@@ -4,6 +4,9 @@ import ReactMapGL, { Source, Layer } from "react-map-gl";
 import { gql, useQuery } from "@apollo/client";
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
+const ZOOM_GRID_LEVEL = 19;
+const GRID_DIM = 100;
+
 const query = gql`
   {
     landParcels(first: 5) {
@@ -55,36 +58,33 @@ function convertToGeoJson(data) {
   return features;
 }
 
-function calculateGrid(lat, lon, zoom) {
+function updateGrid(lat, lon, zoom, oldGrid, setGrid) {
   let gwCoord = GeoWebCoordinate.from_gps(lon, lat);
   let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
   let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-  if (zoom < 19) {
-    return {
-      center: {
-        x: x,
-        y: y,
-      },
-      zoom: zoom,
-      features: [],
-    };
+  if (
+    oldGrid != null &&
+    Math.abs(oldGrid.center.x - x) < GRID_DIM / 2 &&
+    Math.abs(oldGrid.center.y - y) < GRID_DIM / 2
+  ) {
+    return;
   }
 
   let features = [];
-  for (let _x = x - 100; _x < x + 100; _x++) {
-    for (let _y = y - 100; _y < y + 100; _y++) {
+  for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
+    for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
       features.push(coordToFeature(_x, _y));
     }
   }
 
-  return {
+  setGrid({
     center: {
       x: x,
       y: y,
     },
     features: features,
-  };
+  });
 }
 
 function coordToFeature(x, y) {
@@ -110,22 +110,9 @@ function Map() {
   });
   const [grid, setGrid] = useState(null);
 
-  let gwCoord = GeoWebCoordinate.from_gps(
-    viewport.longitude,
-    viewport.latitude
-  );
-  let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-  let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
-
-  if (
-    grid == null ||
-    (grid.zoom < 19 && viewport.zoom >= 19) ||
-    Math.abs(grid.center.x - x) > 100 ||
-    Math.abs(grid.center.y - y) > 100
-  ) {
-    setGrid(
-      calculateGrid(viewport.latitude, viewport.longitude, viewport.zoom)
-    );
+  let gridFeatures = [];
+  if (grid != null && viewport.zoom >= ZOOM_GRID_LEVEL) {
+    gridFeatures = grid.features;
   }
 
   return (
@@ -133,7 +120,16 @@ function Map() {
       {...viewport}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
       mapStyle="mapbox://styles/mapbox/streets-v11"
-      onViewportChange={(nextViewport) => setViewport(nextViewport)}
+      onViewportChange={(nextViewport) => {
+        setViewport(nextViewport);
+        updateGrid(
+          viewport.latitude,
+          viewport.longitude,
+          viewport.zoom,
+          grid,
+          setGrid
+        );
+      }}
     >
       {grid != null ? (
         <Source
@@ -141,7 +137,7 @@ function Map() {
           type="geojson"
           data={{
             type: "FeatureCollection",
-            features: grid.features.concat(
+            features: gridFeatures.concat(
               data != null ? convertToGeoJson(data) : []
             ),
           }}
