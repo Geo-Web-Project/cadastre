@@ -2,14 +2,23 @@ import * as React from "react";
 import { useState } from "react";
 import ReactMapGL, { Source, Layer } from "react-map-gl";
 import { gql, useQuery } from "@apollo/client";
+
+import {
+  gridLayer,
+  gridHighlightLayer,
+  parcelLayer,
+  parcelHighlightLayer,
+} from "./map-style.js";
+
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
 const ZOOM_GRID_LEVEL = 19;
-const GRID_DIM = 100;
+const GRID_DIM = 50;
 
 const query = gql`
   {
     landParcels(first: 5) {
+      id
       geometry {
         type
         coordinates {
@@ -53,6 +62,9 @@ function convertToGeoJson(data) {
         type: "MultiPolygon",
         coordinates: coordinates,
       },
+      properties: {
+        parcelId: parcel.id,
+      },
     };
   });
   return features;
@@ -88,15 +100,35 @@ function updateGrid(lat, lon, zoom, oldGrid, setGrid) {
 }
 
 function coordToFeature(x, y) {
+  let gwCoord = GeoWebCoordinate.make_gw_coord(x, y);
   return {
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [
-        GeoWebCoordinate.to_gps(GeoWebCoordinate.make_gw_coord(x, y)),
-      ],
+      coordinates: [GeoWebCoordinate.to_gps(gwCoord)],
+    },
+    properties: {
+      gwCoord: gwCoord.toString(16),
     },
   };
+}
+
+function onHover(event, setGridHoverCoord, setParcelHoverId) {
+  if (event.features) {
+    let parcelFeature = event.features.find(
+      (f) => f.layer.id === "parcels-layer"
+    );
+    if (parcelFeature) {
+      setParcelHoverId(parcelFeature.properties.parcelId);
+      setGridHoverCoord("");
+    } else {
+      let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
+      if (gridFeature) {
+        setGridHoverCoord(gridFeature.properties.gwCoord);
+        setParcelHoverId("");
+      }
+    }
+  }
 }
 
 function Map() {
@@ -109,6 +141,8 @@ function Map() {
     zoom: 20,
   });
   const [grid, setGrid] = useState(null);
+  const [gridHoverCoord, setGridHoverCoord] = useState("");
+  const [parcelHoverId, setParcelHoverId] = useState("");
 
   let gridFeatures = [];
   if (grid != null && viewport.zoom >= ZOOM_GRID_LEVEL) {
@@ -130,25 +164,37 @@ function Map() {
           setGrid
         );
       }}
+      onHover={(e) => onHover(e, setGridHoverCoord, setParcelHoverId)}
     >
       {grid != null ? (
         <Source
-          id="data"
+          id="grid-data"
           type="geojson"
           data={{
             type: "FeatureCollection",
-            features: gridFeatures.concat(
-              data != null ? convertToGeoJson(data) : []
-            ),
+            features: gridFeatures,
           }}
         >
+          <Layer {...gridLayer} />
           <Layer
-            id="parcels-layer"
-            type="fill"
-            paint={{
-              "fill-color": "#888888",
-              "fill-opacity": 0.1,
-            }}
+            {...gridHighlightLayer}
+            filter={["==", "gwCoord", gridHoverCoord]}
+          />
+        </Source>
+      ) : null}
+      {data != null ? (
+        <Source
+          id="parcel-data"
+          type="geojson"
+          data={{
+            type: "FeatureCollection",
+            features: convertToGeoJson(data),
+          }}
+        >
+          <Layer {...parcelLayer} />
+          <Layer
+            {...parcelHighlightLayer}
+            filter={["==", "parcelId", parcelHoverId]}
           />
         </Source>
       ) : null}
