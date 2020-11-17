@@ -113,7 +113,7 @@ function coordToFeature(x, y) {
   };
 }
 
-function onHover(event, setGridHoverCoord, setParcelHoverId) {
+function onHover(event, setGridHoverCoord, setParcelHoverId, isGridVisible) {
   if (event.features) {
     let parcelFeature = event.features.find(
       (f) => f.layer.id === "parcels-layer"
@@ -121,12 +121,14 @@ function onHover(event, setGridHoverCoord, setParcelHoverId) {
     if (parcelFeature) {
       setParcelHoverId(parcelFeature.properties.parcelId);
       setGridHoverCoord("");
-    } else {
+    } else if (isGridVisible) {
       let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
       if (gridFeature) {
         setGridHoverCoord(gridFeature.properties.gwCoord);
         setParcelHoverId("");
       }
+    } else {
+      setParcelHoverId("");
     }
   }
 }
@@ -144,8 +146,9 @@ function Map() {
   const [gridHoverCoord, setGridHoverCoord] = useState("");
   const [parcelHoverId, setParcelHoverId] = useState("");
 
+  let isGridVisible = viewport.zoom >= ZOOM_GRID_LEVEL;
   let gridFeatures = [];
-  if (grid != null && viewport.zoom >= ZOOM_GRID_LEVEL) {
+  if (grid != null && isGridVisible) {
     gridFeatures = grid.features;
   }
 
@@ -153,7 +156,7 @@ function Map() {
     <ReactMapGL
       {...viewport}
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-      mapStyle="mapbox://styles/mapbox/streets-v11"
+      mapStyle="mapbox://styles/mapbox/satellite-v9"
       onViewportChange={(nextViewport) => {
         setViewport(nextViewport);
         updateGrid(
@@ -164,7 +167,9 @@ function Map() {
           setGrid
         );
       }}
-      onHover={(e) => onHover(e, setGridHoverCoord, setParcelHoverId)}
+      onHover={(e) =>
+        onHover(e, setGridHoverCoord, setParcelHoverId, isGridVisible)
+      }
     >
       {grid != null ? (
         <Source
