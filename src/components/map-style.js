@@ -17,15 +17,17 @@ export const gridHighlightLayer = {
     "fill-opacity": 0.5,
   },
 };
-export const claimLayer = {
-  id: "claim-layer",
-  type: "fill",
-  source: "grid-layer",
-  paint: {
-    "fill-color": "#FAFF00",
-    "fill-opacity": 0.75,
-  },
-};
+export function claimLayer(isValid) {
+  return {
+    id: "claim-layer",
+    type: "fill",
+    source: "grid-layer",
+    paint: {
+      "fill-color": isValid ? "#FAFF00" : "#E11515",
+      "fill-opacity": 0.75,
+    },
+  };
+}
 export const parcelLayer = {
   id: "parcels-layer",
   type: "fill",

@@ -6,13 +6,7 @@ import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 import GridHoverSource from "./sources/GridHoverSource";
 import ClaimSource from "./sources/ClaimSource";
-
-import {
-  gridHighlightLayer,
-  parcelLayer,
-  parcelHighlightLayer,
-  claimLayer,
-} from "./map-style.js";
+import { gql, useQuery } from "@apollo/client";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -23,31 +17,35 @@ const STATE_VIEWING = 0;
 const STATE_CLAIM_SELECTING = 1;
 const STATE_CLAIM_SELECTED = 2;
 
-export function convertToGeoJson(data) {
-  let features = data.landParcels.map((parcel) => {
-    let coordinates = parcel.geometry.coordinates.map((c) => {
-      return [
-        [
-          [c.pointBL.lon, c.pointBL.lat],
-          [c.pointBR.lon, c.pointBR.lat],
-          [c.pointTR.lon, c.pointTR.lat],
-          [c.pointTL.lon, c.pointTL.lat],
-        ],
-      ];
-    });
-    return {
-      type: "Feature",
-      geometry: {
-        type: "MultiPolygon",
-        coordinates: coordinates,
-      },
-      properties: {
-        parcelId: parcel.id,
-      },
-    };
-  });
-  return features;
-}
+const query = gql`
+  {
+    landParcels(first: 5) {
+      id
+      geometry {
+        type
+        coordinates {
+          id
+          pointBR {
+            lon
+            lat
+          }
+          pointBL {
+            lon
+            lat
+          }
+          pointTR {
+            lon
+            lat
+          }
+          pointTL {
+            lon
+            lat
+          }
+        }
+      }
+    }
+  }
+`;
 
 function updateGrid(lat, lon, oldGrid, setGrid) {
   let gwCoord = GeoWebCoordinate.from_gps(lon, lat);
@@ -94,6 +92,8 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map() {
+  const { loading, data } = useQuery(query);
+
   const [viewport, setViewport] = useState({
     width: "100vw",
     height: "100vh",
@@ -158,18 +158,16 @@ function Map() {
       return;
     }
 
+    let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
     switch (interactionState) {
       case STATE_VIEWING:
-        let gridFeature = event.features.find(
-          (f) => f.layer.id === "grid-layer"
-        );
-
         let coord;
         if (gridFeature) {
           coord = {
             x: gridFeature.properties.gwCoordX,
             y: gridFeature.properties.gwCoordY,
           };
+          setGridHoverCoord(gridFeature.properties.gwCoord);
         } else {
           coord = {
             x: GeoWebCoordinate.get_x(new BN(gridHoverCoord, 16)).toNumber(),
@@ -182,6 +180,12 @@ function Map() {
         setInteractionState(STATE_CLAIM_SELECTING);
         break;
       case STATE_CLAIM_SELECTING:
+        if (gridFeature) {
+          setClaimBase2Coord({
+            x: gridFeature.properties.gwCoordX,
+            y: gridFeature.properties.gwCoordY,
+          });
+        }
         setInteractionState(STATE_CLAIM_SELECTED);
         break;
       default:
@@ -203,10 +207,11 @@ function Map() {
     >
       <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
       <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
-      <ParcelSource parcelHoverId={parcelHoverId}></ParcelSource>
+      <ParcelSource data={data} parcelHoverId={parcelHoverId}></ParcelSource>
       <ClaimSource
         claimBase1Coord={claimBase1Coord}
         claimBase2Coord={claimBase2Coord}
+        data={data}
       ></ClaimSource>
     </ReactMapGL>
   );
