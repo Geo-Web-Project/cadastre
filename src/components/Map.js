@@ -109,6 +109,14 @@ function Map() {
 
   let isGridVisible = viewport.zoom >= ZOOM_GRID_LEVEL;
 
+  function _onViewportChange(nextViewport) {
+    setViewport(nextViewport);
+
+    if (nextViewport.zoom >= ZOOM_GRID_LEVEL) {
+      updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+    }
+  }
+
   function onHover(event) {
     if (event.features == null) {
       return;
@@ -203,10 +211,7 @@ function Map() {
       height="100vh"
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
       mapStyle="mapbox://styles/mapbox/satellite-v9"
-      onViewportChange={(nextViewport) => {
-        setViewport(nextViewport);
-        updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
-      }}
+      onViewportChange={_onViewportChange}
       onHover={onHover}
       onClick={onClick}
     >
