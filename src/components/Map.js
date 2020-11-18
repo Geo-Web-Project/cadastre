@@ -95,8 +95,6 @@ function Map() {
   const { loading, data } = useQuery(query);
 
   const [viewport, setViewport] = useState({
-    width: "100vw",
-    height: "100vh",
     latitude: 46.785869,
     longitude: -121.735288,
     zoom: 19,
@@ -188,6 +186,11 @@ function Map() {
         }
         setInteractionState(STATE_CLAIM_SELECTED);
         break;
+      case STATE_CLAIM_SELECTED:
+        setClaimBase1Coord("");
+        setClaimBase2Coord("");
+        setInteractionState(STATE_VIEWING);
+        break;
       default:
         break;
     }
@@ -196,6 +199,8 @@ function Map() {
   return (
     <ReactMapGL
       {...viewport}
+      width="100vw"
+      height="100vh"
       mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
       mapStyle="mapbox://styles/mapbox/satellite-v9"
       onViewportChange={(nextViewport) => {
