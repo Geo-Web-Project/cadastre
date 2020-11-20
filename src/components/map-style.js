@@ -4,7 +4,7 @@ export const gridLayer = {
   paint: {
     "fill-color": "#FFFFFF",
     "fill-outline-color": "#000000",
-    "fill-opacity": 0.1,
+    "fill-opacity": 0.2,
   },
 };
 export const gridHighlightLayer = {
@@ -32,7 +32,7 @@ export const parcelLayer = {
   id: "parcels-layer",
   type: "fill",
   paint: {
-    "fill-color": "#E11515",
+    "fill-color": "#2FC1C1",
     "fill-opacity": 0.5,
   },
 };
@@ -40,7 +40,7 @@ export const parcelHighlightLayer = {
   id: "parcels-highlight-layer",
   type: "fill",
   paint: {
-    "fill-color": "#E11515",
+    "fill-color": "#2FC1C1",
     "fill-opacity": 1.0,
   },
 };

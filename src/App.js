@@ -1,15 +1,15 @@
 import Map from "./components/Map";
-import "./App.css";
+
+import "./App.scss";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
+
 function App() {
   return (
     <Container fluid>
+      <Row className="bg-dark border-bottom" style={{ height: "80px" }}></Row>
       <Row>
-        <Col className="px-0">
-          <Map></Map>
-        </Col>
+        <Map></Map>
       </Row>
     </Container>
   );

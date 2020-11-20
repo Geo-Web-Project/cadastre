@@ -7,15 +7,17 @@ import ParcelSource from "./sources/ParcelSource";
 import GridHoverSource from "./sources/GridHoverSource";
 import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
+import Sidebar from "./Sidebar";
+import Col from "react-bootstrap/Col";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
 export const ZOOM_GRID_LEVEL = 18;
 const GRID_DIM = 100;
 
-const STATE_VIEWING = 0;
-const STATE_CLAIM_SELECTING = 1;
-const STATE_CLAIM_SELECTED = 2;
+export const STATE_VIEWING = 0;
+export const STATE_CLAIM_SELECTING = 1;
+export const STATE_CLAIM_SELECTED = 2;
 
 const query = gql`
   {
@@ -205,25 +207,37 @@ function Map() {
   }
 
   return (
-    <ReactMapGL
-      {...viewport}
-      width="100vw"
-      height="100vh"
-      mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-      mapStyle="mapbox://styles/mapbox/satellite-v9"
-      onViewportChange={_onViewportChange}
-      onHover={onHover}
-      onClick={onClick}
-    >
-      <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
-      <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
-      <ParcelSource data={data} parcelHoverId={parcelHoverId}></ParcelSource>
-      <ClaimSource
+    <>
+      <Sidebar
+        interactionState={interactionState}
         claimBase1Coord={claimBase1Coord}
         claimBase2Coord={claimBase2Coord}
-        data={data}
-      ></ClaimSource>
-    </ReactMapGL>
+      ></Sidebar>
+      <Col sm="9" className="px-0">
+        <ReactMapGL
+          {...viewport}
+          width="100vw"
+          height="100vh"
+          mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+          mapStyle="mapbox://styles/mapbox/satellite-streets-v11"
+          onViewportChange={_onViewportChange}
+          onHover={onHover}
+          onClick={onClick}
+        >
+          <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
+          <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
+          <ParcelSource
+            data={data}
+            parcelHoverId={parcelHoverId}
+          ></ParcelSource>
+          <ClaimSource
+            claimBase1Coord={claimBase1Coord}
+            claimBase2Coord={claimBase2Coord}
+            data={data}
+          ></ClaimSource>
+        </ReactMapGL>
+      </Col>
+    </>
   );
 }
 

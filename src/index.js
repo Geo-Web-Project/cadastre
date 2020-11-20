@@ -10,8 +10,6 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-
 const client = new ApolloClient({
   link: new HttpLink({
     uri:
