@@ -93,7 +93,7 @@ export function coordToFeature(gwCoord) {
   };
 }
 
-function Map() {
+function Map({ adminContract, account }) {
   const { loading, data } = useQuery(query);
 
   const [viewport, setViewport] = useState({
@@ -209,6 +209,8 @@ function Map() {
   return (
     <>
       <Sidebar
+        adminContract={adminContract}
+        account={account}
         interactionState={interactionState}
         claimBase1Coord={claimBase1Coord}
         claimBase2Coord={claimBase2Coord}

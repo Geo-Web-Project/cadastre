@@ -2,9 +2,16 @@ import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Web3 from "web3";
+
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-function ClaimAction({ claimBase1Coord, claimBase2Coord }) {
+function ClaimAction({
+  adminContract,
+  account,
+  claimBase1Coord,
+  claimBase2Coord,
+}) {
   function _claim() {
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -16,7 +23,18 @@ function ClaimAction({ claimBase1Coord, claimBase2Coord }) {
     );
     let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
 
-    console.log(baseCoord.toString(16), path);
+    adminContract.methods
+      .claim(
+        account,
+        baseCoord,
+        path,
+        Web3.utils.toWei("10"),
+        Web3.utils.toWei("1")
+      )
+      .send({ from: account })
+      .then((result) => {
+        console.log(result);
+      });
   }
 
   return (

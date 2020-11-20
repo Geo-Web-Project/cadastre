@@ -10,7 +10,13 @@ import {
   STATE_CLAIM_SELECTED,
 } from "./Map";
 
-function Sidebar({ interactionState, claimBase1Coord, claimBase2Coord }) {
+function Sidebar({
+  adminContract,
+  account,
+  interactionState,
+  claimBase1Coord,
+  claimBase2Coord,
+}) {
   return (
     <Col sm="3" className="bg-dark p-4 text-light">
       {(interactionState == STATE_CLAIM_SELECTING) |
@@ -26,6 +32,8 @@ function Sidebar({ interactionState, claimBase1Coord, claimBase2Coord }) {
             Claim
           </Button>
           <ClaimAction
+            adminContract={adminContract}
+            account={account}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
           ></ClaimAction>
