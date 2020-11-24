@@ -9,11 +9,12 @@ import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
+import { isNonNullType } from "graphql";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
 export const ZOOM_GRID_LEVEL = 18;
-const GRID_DIM = 100;
+const GRID_DIM = 50;
 
 export const STATE_VIEWING = 0;
 export const STATE_CLAIM_SELECTING = 1;
@@ -125,12 +126,16 @@ function Map({ adminContract, account }) {
   const [claimBase1Coord, setClaimBase1Coord] = useState(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState(null);
 
-  let isGridVisible = viewport.zoom >= ZOOM_GRID_LEVEL;
+  let isGridVisible =
+    viewport.zoom >= ZOOM_GRID_LEVEL && interactionState != STATE_VIEWING;
 
   function _onViewportChange(nextViewport) {
     setViewport(nextViewport);
 
-    if (nextViewport.zoom >= ZOOM_GRID_LEVEL) {
+    if (
+      interactionState != STATE_VIEWING &&
+      nextViewport.zoom >= ZOOM_GRID_LEVEL
+    ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
   }
@@ -147,15 +152,6 @@ function Map({ adminContract, account }) {
         );
         if (parcelFeature) {
           setParcelHoverId(parcelFeature.properties.parcelId);
-          setGridHoverCoord("");
-        } else if (isGridVisible) {
-          let gridFeature = event.features.find(
-            (f) => f.layer.id === "grid-layer"
-          );
-          if (gridFeature) {
-            setGridHoverCoord(gridFeature.properties.gwCoord);
-            setParcelHoverId("");
-          }
         } else {
           setParcelHoverId("");
         }
@@ -185,23 +181,27 @@ function Map({ adminContract, account }) {
     let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
     switch (interactionState) {
       case STATE_VIEWING:
-        let coord;
-        if (gridFeature) {
-          coord = {
-            x: gridFeature.properties.gwCoordX,
-            y: gridFeature.properties.gwCoordY,
-          };
-          setGridHoverCoord(gridFeature.properties.gwCoord);
-        } else {
-          coord = {
-            x: GeoWebCoordinate.get_x(new BN(gridHoverCoord, 16)).toNumber(),
-            y: GeoWebCoordinate.get_y(new BN(gridHoverCoord, 16)).toNumber(),
-          };
-        }
+        let gwCoord = GeoWebCoordinate.from_gps(
+          event.lngLat[0],
+          event.lngLat[1]
+        );
+        let coord = {
+          x: GeoWebCoordinate.get_x(gwCoord).toNumber(),
+          y: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+        };
 
         setClaimBase1Coord(coord);
         setClaimBase2Coord(coord);
         setInteractionState(STATE_CLAIM_SELECTING);
+
+        let nextViewport = {
+          latitude: event.lngLat[1],
+          longitude: event.lngLat[0],
+          zoom: ZOOM_GRID_LEVEL + 1,
+          transitionDuration: 500,
+        };
+        setViewport(nextViewport);
+        _onViewportChange(nextViewport);
         break;
       case STATE_CLAIM_SELECTING:
         if (gridFeature) {
@@ -222,15 +222,25 @@ function Map({ adminContract, account }) {
     }
   }
 
+  useEffect(() => {
+    if (interactionState == STATE_VIEWING) {
+      setClaimBase1Coord(null);
+      setClaimBase2Coord(null);
+    }
+  }, [interactionState]);
+
   return (
     <>
-      <Sidebar
-        adminContract={adminContract}
-        account={account}
-        interactionState={interactionState}
-        claimBase1Coord={claimBase1Coord}
-        claimBase2Coord={claimBase2Coord}
-      ></Sidebar>
+      {interactionState != STATE_VIEWING ? (
+        <Sidebar
+          adminContract={adminContract}
+          account={account}
+          interactionState={interactionState}
+          setInteractionState={setInteractionState}
+          claimBase1Coord={claimBase1Coord}
+          claimBase2Coord={claimBase2Coord}
+        ></Sidebar>
+      ) : null}
       <Col sm="9" className="px-0">
         <ReactMapGL
           {...viewport}

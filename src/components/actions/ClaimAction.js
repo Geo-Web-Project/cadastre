@@ -3,6 +3,10 @@ import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Web3 from "web3";
+import Image from "react-bootstrap/Image";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
+import { STATE_VIEWING } from "../Map";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -11,6 +15,7 @@ function ClaimAction({
   account,
   claimBase1Coord,
   claimBase2Coord,
+  setInteractionState,
 }) {
   function _claim() {
     let baseCoord = GeoWebCoordinate.make_gw_coord(
@@ -31,16 +36,28 @@ function ClaimAction({
         Web3.utils.toWei("10"),
         Web3.utils.toWei("1")
       )
-      .send({ from: account })
-      .then((result) => {
-        console.log(result);
-      });
+      .send({ from: account });
   }
 
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
-        <Card.Title className="text-primary">Claim</Card.Title>
+        <Card.Title className="text-primary">
+          <Row>
+            <Col sm="10" className="my-1">
+              Claim
+            </Col>
+            <Col sm="2">
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setInteractionState(STATE_VIEWING)}
+              >
+                <Image src="close.svg" />
+              </Button>
+            </Col>
+          </Row>
+        </Card.Title>
         <Card.Text>
           <Form>
             <Form.Group>
