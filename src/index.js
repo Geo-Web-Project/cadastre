@@ -15,7 +15,20 @@ const client = new ApolloClient({
     uri:
       "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-subgraph",
   }),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          geoWebCoordinates: {
+            keyArgs: [],
+            merge(existing = [], incoming) {
+              return [...existing, ...incoming];
+            },
+          },
+        },
+      },
+    },
+  }),
 });
 
 ReactDOM.render(

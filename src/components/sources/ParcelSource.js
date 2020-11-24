@@ -3,25 +3,23 @@ import { Source, Layer } from "react-map-gl";
 import { parcelLayer, parcelHighlightLayer } from "../map-style.js";
 
 function convertToGeoJson(data) {
-  let features = data.landParcels.map((parcel) => {
-    let coordinates = parcel.geometry.coordinates.map((c) => {
-      return [
-        [
-          [c.pointBL.lon, c.pointBL.lat],
-          [c.pointBR.lon, c.pointBR.lat],
-          [c.pointTR.lon, c.pointTR.lat],
-          [c.pointTL.lon, c.pointTL.lat],
-        ],
-      ];
-    });
+  let features = data.geoWebCoordinates.map((c) => {
+    let coordinates = [
+      [
+        [c.pointBL.lon, c.pointBL.lat],
+        [c.pointBR.lon, c.pointBR.lat],
+        [c.pointTR.lon, c.pointTR.lat],
+        [c.pointTL.lon, c.pointTL.lat],
+      ],
+    ];
     return {
       type: "Feature",
       geometry: {
-        type: "MultiPolygon",
+        type: "Polygon",
         coordinates: coordinates,
       },
       properties: {
-        parcelId: parcel.id,
+        parcelId: c.landParcel.id,
       },
     };
   });

@@ -12,9 +12,7 @@ function ClaimSource({ claimBase1Coord, claimBase2Coord, data }) {
   React.useEffect(() => {
     if (data != null) {
       let _existingCoords = new Set(
-        data.landParcels.flatMap((parcel) => {
-          return parcel.geometry.coordinates.map((c) => c.id);
-        })
+        data.geoWebCoordinates.flatMap((p) => p.id)
       );
       setExistingCoords(_existingCoords);
     }

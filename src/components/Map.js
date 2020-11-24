@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMapGL, { Source, Layer } from "react-map-gl";
 import { BN } from "bn.js";
 import GridSource from "./sources/GridSource";
@@ -20,30 +20,27 @@ export const STATE_CLAIM_SELECTING = 1;
 export const STATE_CLAIM_SELECTED = 2;
 
 const query = gql`
-  {
-    landParcels(first: 5) {
+  query Polygons($lastID: String) {
+    geoWebCoordinates(orderBy: id, first: 1000, where: { id_gt: $lastID }) {
       id
-      geometry {
-        type
-        coordinates {
-          id
-          pointBR {
-            lon
-            lat
-          }
-          pointBL {
-            lon
-            lat
-          }
-          pointTR {
-            lon
-            lat
-          }
-          pointTL {
-            lon
-            lat
-          }
-        }
+      landParcel {
+        id
+      }
+      pointBR {
+        lon
+        lat
+      }
+      pointBL {
+        lon
+        lat
+      }
+      pointTR {
+        lon
+        lat
+      }
+      pointTL {
+        lon
+        lat
       }
     }
   }
@@ -94,7 +91,26 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map({ adminContract, account }) {
-  const { loading, data } = useQuery(query);
+  const { loading, data, fetchMore } = useQuery(query, {
+    variables: {
+      lastID: "0",
+    },
+  });
+
+  // Fetch more until none left
+  useEffect(() => {
+    if (data == null) {
+      return;
+    }
+    let newLastID =
+      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].id;
+
+    fetchMore({
+      variables: {
+        lastID: newLastID,
+      },
+    });
+  }, [data]);
 
   const [viewport, setViewport] = useState({
     latitude: 46.785869,
