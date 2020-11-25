@@ -10,6 +10,7 @@ import {
   STATE_CLAIM_SELECTED,
   STATE_PARCEL_SELECTED,
 } from "./Map";
+import ParcelInfo from "./ParcelInfo";
 
 function Sidebar({
   adminContract,
@@ -24,7 +25,7 @@ function Sidebar({
     <Col sm="3" className="bg-dark p-4 text-light">
       <Row>
         <Col sm="10">
-          <h1 style={{ "font-size": "1.5rem" }}>PARCEL {selectedParcelId}</h1>
+          <h1 style={{ fontSize: "1.5rem" }}>PARCEL {selectedParcelId}</h1>
         </Col>
         <Col sm="2">
           <Button
@@ -37,18 +38,10 @@ function Sidebar({
         </Col>
       </Row>
       <Row>
-        <Col>
-          {interactionState == STATE_PARCEL_SELECTED ? (
-            <>
-              <p>Licensee:</p>
-              <p>For Sale Price:</p>
-              <p>Expiration Date:</p>
-              <p>Network Fee Balance:</p>
-            </>
-          ) : (
-            <p>Unclaimed Coordinates</p>
-          )}
-        </Col>
+        <ParcelInfo
+          interactionState={interactionState}
+          selectedParcelId={selectedParcelId}
+        ></ParcelInfo>
       </Row>
       {interactionState == STATE_CLAIM_SELECTED ? (
         <ClaimAction
