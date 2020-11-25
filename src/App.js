@@ -4,6 +4,7 @@ import "./App.scss";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Web3 from "web3";
+import Col from "react-bootstrap/Col";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin.json");
 const adminAddress = "0xa2328e6dDE846b98333701A5CcF51B31062ac201";
@@ -54,7 +55,16 @@ function App() {
 
   return (
     <Container fluid>
-      <Row className="bg-dark border-bottom" style={{ height: "80px" }}></Row>
+      <Row className="bg-dark border-bottom">
+        <Col className="text-center p-2">
+          <div className="text-primary" style={{ "font-size": "2.5em" }}>
+            Geo Web Cadastre
+          </div>
+          <div className="text-light" style={{ "font-size": "1em" }}>
+            Claim, transfer, and manage digital land
+          </div>
+        </Col>
+      </Row>
       <Row>
         <Map account={account} adminContract={adminContract}></Map>
       </Row>

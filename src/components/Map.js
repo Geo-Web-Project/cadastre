@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import ReactMapGL, { Source, Layer } from "react-map-gl";
-import { BN } from "bn.js";
+import ReactMapGL from "react-map-gl";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 import GridHoverSource from "./sources/GridHoverSource";
@@ -9,7 +8,6 @@ import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
-import { isNonNullType } from "graphql";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
