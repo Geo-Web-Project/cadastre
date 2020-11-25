@@ -26,7 +26,7 @@ function convertToGeoJson(data) {
   return features;
 }
 
-function ParcelSource({ data, parcelHoverId }) {
+function ParcelSource({ data, parcelHoverId, selectedParcelId }) {
   const [geoJsonFeatures, setGeoJsonFeatures] = React.useState([]);
 
   React.useEffect(() => {
@@ -47,7 +47,11 @@ function ParcelSource({ data, parcelHoverId }) {
       <Layer {...parcelLayer} />
       <Layer
         {...parcelHighlightLayer}
-        filter={["==", "parcelId", parcelHoverId]}
+        filter={[
+          "any",
+          ["==", "parcelId", parcelHoverId],
+          ["==", "parcelId", selectedParcelId],
+        ]}
       />
     </Source>
   );

@@ -17,6 +17,7 @@ const GRID_DIM = 50;
 export const STATE_VIEWING = 0;
 export const STATE_CLAIM_SELECTING = 1;
 export const STATE_CLAIM_SELECTED = 2;
+export const STATE_PARCEL_SELECTED = 3;
 
 const query = gql`
   query Polygons($lastID: String) {
@@ -124,14 +125,19 @@ function Map({ adminContract, account }) {
   const [claimBase1Coord, setClaimBase1Coord] = useState(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState(null);
 
+  const [selectedParcelId, setSelectedParcelId] = useState("");
+
   let isGridVisible =
-    viewport.zoom >= ZOOM_GRID_LEVEL && interactionState != STATE_VIEWING;
+    viewport.zoom >= ZOOM_GRID_LEVEL &&
+    (interactionState == STATE_CLAIM_SELECTING ||
+      interactionState == STATE_CLAIM_SELECTED);
 
   function _onViewportChange(nextViewport) {
     setViewport(nextViewport);
 
     if (
-      interactionState != STATE_VIEWING &&
+      (interactionState == STATE_CLAIM_SELECTING ||
+        interactionState == STATE_CLAIM_SELECTED) &&
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
@@ -143,16 +149,20 @@ function Map({ adminContract, account }) {
       return;
     }
 
+    function _checkParcelHover() {
+      let parcelFeature = event.features.find(
+        (f) => f.layer.id === "parcels-layer"
+      );
+      if (parcelFeature) {
+        setParcelHoverId(parcelFeature.properties.parcelId);
+      } else {
+        setParcelHoverId("");
+      }
+    }
+
     switch (interactionState) {
       case STATE_VIEWING:
-        let parcelFeature = event.features.find(
-          (f) => f.layer.id === "parcels-layer"
-        );
-        if (parcelFeature) {
-          setParcelHoverId(parcelFeature.properties.parcelId);
-        } else {
-          setParcelHoverId("");
-        }
+        _checkParcelHover();
         break;
       case STATE_CLAIM_SELECTING:
         let gridFeature = event.features.find(
@@ -165,20 +175,40 @@ function Map({ adminContract, account }) {
           });
         }
         break;
+      case STATE_PARCEL_SELECTED:
+        _checkParcelHover();
+        break;
       default:
         break;
     }
   }
 
   function onClick(event) {
-    if (parcelHoverId) {
-      // TODO: Click on parcel
-      return;
+    let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
+
+    function _checkParcelClick() {
+      let parcelFeature = event.features.find(
+        (f) => f.layer.id === "parcels-layer"
+      );
+      if (parcelFeature) {
+        setSelectedParcelId(parcelFeature.properties.parcelId);
+        setInteractionState(STATE_PARCEL_SELECTED);
+        return true;
+      } else if (parcelHoverId) {
+        setSelectedParcelId(parcelHoverId);
+        setInteractionState(STATE_PARCEL_SELECTED);
+        return true;
+      }
+
+      return false;
     }
 
-    let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
     switch (interactionState) {
       case STATE_VIEWING:
+        if (_checkParcelClick()) {
+          return;
+        }
+
         let gwCoord = GeoWebCoordinate.from_gps(
           event.lngLat[0],
           event.lngLat[1]
@@ -215,15 +245,27 @@ function Map({ adminContract, account }) {
         setClaimBase2Coord("");
         setInteractionState(STATE_VIEWING);
         break;
+      case STATE_PARCEL_SELECTED:
+        if (_checkParcelClick()) {
+          return;
+        }
+        break;
       default:
         break;
     }
   }
 
   useEffect(() => {
-    if (interactionState == STATE_VIEWING) {
-      setClaimBase1Coord(null);
-      setClaimBase2Coord(null);
+    switch (interactionState) {
+      case STATE_VIEWING:
+        setClaimBase1Coord(null);
+        setClaimBase2Coord(null);
+        setSelectedParcelId("");
+        setParcelHoverId("");
+        break;
+
+      default:
+        break;
     }
   }, [interactionState]);
 
@@ -237,6 +279,7 @@ function Map({ adminContract, account }) {
           setInteractionState={setInteractionState}
           claimBase1Coord={claimBase1Coord}
           claimBase2Coord={claimBase2Coord}
+          selectedParcelId={selectedParcelId}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
@@ -255,6 +298,7 @@ function Map({ adminContract, account }) {
           <ParcelSource
             data={data}
             parcelHoverId={parcelHoverId}
+            selectedParcelId={selectedParcelId}
           ></ParcelSource>
           <ClaimSource
             claimBase1Coord={claimBase1Coord}

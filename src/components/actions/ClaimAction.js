@@ -15,7 +15,6 @@ function ClaimAction({
   account,
   claimBase1Coord,
   claimBase2Coord,
-  setInteractionState,
 }) {
   function _claim() {
     let baseCoord = GeoWebCoordinate.make_gw_coord(
@@ -42,22 +41,7 @@ function ClaimAction({
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
-        <Card.Title className="text-primary">
-          <Row>
-            <Col sm="10" className="my-1">
-              Claim
-            </Col>
-            <Col sm="2">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setInteractionState(STATE_VIEWING)}
-              >
-                <Image src="close.svg" />
-              </Button>
-            </Col>
-          </Row>
-        </Card.Title>
+        <Card.Title className="text-primary">Claim</Card.Title>
         <Card.Text>
           <Form>
             <Form.Group>
