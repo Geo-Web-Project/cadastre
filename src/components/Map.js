@@ -112,11 +112,7 @@ function Map({ adminContract, account }) {
     });
   }, [data]);
 
-  const [viewport, setViewport] = useState({
-    latitude: 46.785869,
-    longitude: -121.735288,
-    zoom: 19,
-  });
+  const [viewport, setViewport] = useState({});
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState(STATE_VIEWING);
   const [gridHoverCoord, setGridHoverCoord] = useState("");
@@ -149,7 +145,7 @@ function Map({ adminContract, account }) {
   }
 
   function onHover(event) {
-    if (event.features == null) {
+    if (event.features == null || viewport.zoom < 10) {
       return;
     }
 
@@ -195,6 +191,10 @@ function Map({ adminContract, account }) {
   }
 
   function onClick(event) {
+    if (viewport.zoom < 10) {
+      return;
+    }
+
     let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
 
     function _checkParcelClick() {
@@ -322,6 +322,9 @@ function Map({ adminContract, account }) {
           height="100vh"
           mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/satellite-streets-v11"
+          mapOptions={{
+            renderWorldCopies: false,
+          }}
           onViewportChange={_onViewportChange}
           onHover={onHover}
           onClick={onClick}
