@@ -277,7 +277,6 @@ function Map({ adminContract, account }) {
         setSelectedParcelId("");
         setParcelHoverId("");
         break;
-
       default:
         break;
     }
@@ -290,6 +289,17 @@ function Map({ adminContract, account }) {
       );
       setExistingCoords(_existingCoords);
     }
+
+    const listener = (e) => {
+      if (e.key === "Escape") {
+        setInteractionState(STATE_VIEWING);
+      }
+    };
+    window.addEventListener("keydown", listener);
+
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
   }, [data]);
 
   return (
