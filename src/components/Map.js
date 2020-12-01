@@ -129,6 +129,8 @@ function Map({ adminContract, account }) {
 
   const [existingCoords, setExistingCoords] = useState(new Set());
 
+  const [isValidClaim, setIsValidClaim] = React.useState(true);
+
   let isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE_CLAIM_SELECTING ||
@@ -241,6 +243,9 @@ function Map({ adminContract, account }) {
         _onViewportChange(nextViewport);
         break;
       case STATE_CLAIM_SELECTING:
+        if (!isValidClaim) {
+          break;
+        }
         if (gridFeature) {
           setClaimBase2Coord({
             x: gridFeature.properties.gwCoordX,
@@ -322,7 +327,8 @@ function Map({ adminContract, account }) {
             existingCoords={existingCoords}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
-            data={data}
+            isValidClaim={isValidClaim}
+            setIsValidClaim={setIsValidClaim}
           ></ClaimSource>
         </ReactMapGL>
       </Col>

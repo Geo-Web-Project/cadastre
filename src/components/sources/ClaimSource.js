@@ -8,10 +8,10 @@ function ClaimSource({
   existingCoords,
   claimBase1Coord,
   claimBase2Coord,
-  data,
+  isValidClaim,
+  setIsValidClaim,
 }) {
   const [features, setFeatures] = React.useState(new Set());
-  const [isValid, setIsValid] = React.useState(true);
 
   React.useEffect(() => {
     let _features = [];
@@ -38,7 +38,7 @@ function ClaimSource({
     }
 
     setFeatures(_features);
-    setIsValid(_isValid);
+    setIsValidClaim(_isValid);
   }, [claimBase1Coord, claimBase2Coord]);
 
   return (
@@ -50,7 +50,7 @@ function ClaimSource({
         features: features,
       }}
     >
-      <Layer {...claimLayer(isValid)} />
+      <Layer {...claimLayer(isValidClaim)} />
     </Source>
   );
 }

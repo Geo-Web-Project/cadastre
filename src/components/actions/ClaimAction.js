@@ -58,8 +58,8 @@ function ClaimAction({
               />
             </Form.Group>
           </Form>
-          <p>New Expiration Date:</p>
-          <p>Total (excluding gas):</p>
+          <div>New Expiration Date:</div>
+          <div>Total (excluding gas):</div>
           <Button variant="primary" className="w-100" onClick={_claim}>
             Confirm
           </Button>
