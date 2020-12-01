@@ -4,6 +4,8 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import ClaimAction from "./actions/ClaimAction";
+import ClaimInfo from "./actions/ClaimInfo";
+
 import {
   STATE_VIEWING,
   STATE_CLAIM_SELECTING,
@@ -43,6 +45,7 @@ function Sidebar({
           selectedParcelId={selectedParcelId}
         ></ParcelInfo>
       </Row>
+      {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
         <ClaimAction
           adminContract={adminContract}
