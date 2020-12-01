@@ -28,7 +28,9 @@ function Sidebar({
     <Col sm="3" className="bg-dark p-4 text-light">
       <Row>
         <Col sm="10">
-          <h1 style={{ fontSize: "1.5rem" }}>PARCEL {selectedParcelId}</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+            PARCEL {selectedParcelId}
+          </h1>
         </Col>
         <Col sm="2">
           <Button

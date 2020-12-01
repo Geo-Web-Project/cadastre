@@ -5,6 +5,8 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Web3 from "web3";
 import Col from "react-bootstrap/Col";
+import Image from "react-bootstrap/Image";
+import Badge from "react-bootstrap/Badge";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin.json");
 const adminAddress = "0xa2328e6dDE846b98333701A5CcF51B31062ac201";
@@ -55,12 +57,26 @@ function App() {
 
   return (
     <Container fluid>
-      <Row className="bg-dark border-bottom">
-        <Col className="text-center p-2">
-          <div className="text-primary" style={{ "font-size": "2.5em" }}>
-            Geo Web Cadastre
+      <Row className="bg-dark border-bottom align-items-center">
+        <Col sm="1" className="text-center">
+          <Badge
+            pill
+            variant="secondary"
+            style={{ width: "60px" }}
+            className="py-2"
+          >
+            <span style={{ fontWeight: 600 }}>BETA</span>
+          </Badge>
+        </Col>
+        <Col sm="10" className="text-center p-2">
+          <div
+            className="text-primary"
+            style={{ fontSize: "2.5em", fontFamily: "Abel" }}
+          >
+            <Image style={{ height: "1.1em" }} src="logo.png" /> Geo Web
+            Cadastre
           </div>
-          <div className="text-light" style={{ "font-size": "1em" }}>
+          <div className="text-light" style={{ fontSize: "1em" }}>
             Claim, transfer, and manage digital land
           </div>
         </Col>
