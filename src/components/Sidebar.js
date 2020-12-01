@@ -3,8 +3,9 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
-import ClaimAction from "./actions/ClaimAction";
-import ClaimInfo from "./actions/ClaimInfo";
+import ClaimAction from "./cards/ClaimAction";
+import ClaimInfo from "./cards/ClaimInfo";
+import FaucetInfo from "./cards/FaucetInfo";
 
 import {
   STATE_VIEWING,
@@ -47,12 +48,15 @@ function Sidebar({
       </Row>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
-        <ClaimAction
-          adminContract={adminContract}
-          account={account}
-          claimBase1Coord={claimBase1Coord}
-          claimBase2Coord={claimBase2Coord}
-        ></ClaimAction>
+        <>
+          <ClaimAction
+            adminContract={adminContract}
+            account={account}
+            claimBase1Coord={claimBase1Coord}
+            claimBase2Coord={claimBase2Coord}
+          ></ClaimAction>
+          <FaucetInfo></FaucetInfo>
+        </>
       ) : null}
     </Col>
   );

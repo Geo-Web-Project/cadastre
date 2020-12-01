@@ -12,7 +12,7 @@ function ClaimInfo() {
     <Card className="bg-purple text-light">
       <Card.Body>
         <Card.Text>
-          <h5>Claim Instructions</h5>
+          <h5 className="font-weight-bold">Claim Instructions</h5>
           <p>
             Resize your land parcel claim by moving your mouse. Your claim
             cannot overlap with an existing claim.

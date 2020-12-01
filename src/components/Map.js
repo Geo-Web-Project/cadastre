@@ -191,7 +191,7 @@ function Map({ adminContract, account }) {
   }
 
   function onClick(event) {
-    if (viewport.zoom < 10) {
+    if (viewport.zoom < 8) {
       return;
     }
 
