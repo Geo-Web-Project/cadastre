@@ -45,7 +45,7 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
   }
 
   useEffect(() => {
-    if (data) {
+    if (data && data.landParcel) {
       setNetworkFeeBalance(
         _calculateNetworkFeeBalance(data.landParcel.license)
       );
@@ -53,15 +53,15 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
   }, [data]);
 
   const spinner = (
-    <div class="spinner-border" role="status">
-      <span class="sr-only">Loading...</span>
+    <div className="spinner-border" role="status">
+      <span className="sr-only">Loading...</span>
     </div>
   );
 
   let forSalePrice;
   let expDate;
   let networkFeeBalanceDisplay;
-  if (data) {
+  if (data && data.landParcel) {
     forSalePrice = (
       <>{Web3.utils.fromWei(data.landParcel.license.value)} DAI </>
     );
@@ -79,15 +79,17 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
     <Col>
       {interactionState == STATE_PARCEL_SELECTED ? (
         <>
-          <p>Licensee: {loading ? spinner : data.landParcel.license.owner}</p>
-          <p>For Sale Price: {loading ? spinner : forSalePrice}</p>
-          <p>Expiration Date: {loading ? spinner : expDate}</p>
-          <p>
+          <div>
+            Licensee: {loading ? spinner : data.landParcel.license.owner}
+          </div>
+          <div>For Sale Price: {loading ? spinner : forSalePrice}</div>
+          <div>Expiration Date: {loading ? spinner : expDate}</div>
+          <div>
             Network Fee Balance:{" "}
             {loading || networkFeeBalanceDisplay == null
               ? spinner
               : networkFeeBalanceDisplay}
-          </p>
+          </div>
         </>
       ) : (
         <p>Unclaimed Coordinates</p>
