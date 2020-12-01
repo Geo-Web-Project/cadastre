@@ -127,6 +127,8 @@ function Map({ adminContract, account }) {
 
   const [selectedParcelId, setSelectedParcelId] = useState("");
 
+  const [existingCoords, setExistingCoords] = useState(new Set());
+
   let isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE_CLAIM_SELECTING ||
@@ -156,7 +158,14 @@ function Map({ adminContract, account }) {
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
-        setParcelHoverId("");
+        let gwCoord = GeoWebCoordinate.from_gps(
+          event.lngLat[0],
+          event.lngLat[1]
+        );
+
+        if (!existingCoords.has(gwCoord.toString(10))) {
+          setParcelHoverId("");
+        }
       }
     }
 
@@ -269,6 +278,15 @@ function Map({ adminContract, account }) {
     }
   }, [interactionState]);
 
+  useEffect(() => {
+    if (data != null) {
+      let _existingCoords = new Set(
+        data.geoWebCoordinates.flatMap((p) => p.id)
+      );
+      setExistingCoords(_existingCoords);
+    }
+  }, [data]);
+
   return (
     <>
       {interactionState != STATE_VIEWING ? (
@@ -301,6 +319,7 @@ function Map({ adminContract, account }) {
             selectedParcelId={selectedParcelId}
           ></ParcelSource>
           <ClaimSource
+            existingCoords={existingCoords}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
             data={data}

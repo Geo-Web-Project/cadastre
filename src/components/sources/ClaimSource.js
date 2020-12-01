@@ -4,19 +4,14 @@ import { claimLayer } from "../map-style.js";
 import { coordToFeature } from "../Map";
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-function ClaimSource({ claimBase1Coord, claimBase2Coord, data }) {
-  const [existingCoords, setExistingCoords] = React.useState(new Set());
+function ClaimSource({
+  existingCoords,
+  claimBase1Coord,
+  claimBase2Coord,
+  data,
+}) {
   const [features, setFeatures] = React.useState(new Set());
   const [isValid, setIsValid] = React.useState(true);
-
-  React.useEffect(() => {
-    if (data != null) {
-      let _existingCoords = new Set(
-        data.geoWebCoordinates.flatMap((p) => p.id)
-      );
-      setExistingCoords(_existingCoords);
-    }
-  }, [data]);
 
   React.useEffect(() => {
     let _features = [];
