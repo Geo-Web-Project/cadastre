@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Abel&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap");
+
+$theme-colors: (
+  "primary": #2fc1c1,
+  "secondary": #4b5588,
+  "dark": #202333,
+  "purple": rgba(75, 85, 136, 0.25),
+);
+
+$font-family-base: "Open Sans";
+
+.mapboxgl-canvas {
+  background-color: black;
+}
+
+@import "~bootstrap/scss/bootstrap";
