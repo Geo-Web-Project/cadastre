@@ -70,13 +70,8 @@ function App() {
     <Container fluid>
       <Row className="bg-dark border-bottom align-items-center">
         <Col sm="1" className="text-center">
-          <Badge
-            pill
-            variant="secondary"
-            style={{ width: "60px" }}
-            className="py-2"
-          >
-            <span style={{ fontWeight: 600 }}>BETA</span>
+          <Badge pill variant="secondary" className="py-2 px-3">
+            <span style={{ fontWeight: 600 }}>TESTNET</span>
           </Badge>
         </Col>
         <Col sm="10" className="text-center p-2">

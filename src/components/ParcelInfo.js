@@ -63,11 +63,11 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
   let networkFeeBalanceDisplay;
   if (data && data.landParcel) {
     forSalePrice = (
-      <>{Web3.utils.fromWei(data.landParcel.license.value)} DAI </>
+      <>{Web3.utils.fromWei(data.landParcel.license.value)} GEO </>
     );
     if (networkFeeBalance) {
       networkFeeBalanceDisplay = (
-        <>{Web3.utils.fromWei(networkFeeBalance)} DAI </>
+        <>{Web3.utils.fromWei(networkFeeBalance)} GEO </>
       );
     }
     expDate = new Date(
@@ -79,13 +79,20 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
     <Col>
       {interactionState == STATE_PARCEL_SELECTED ? (
         <>
-          <div>
-            Licensee: {loading ? spinner : data.landParcel.license.owner}
+          <div className="text-truncate">
+            <span className="font-weight-bold">Licensee:</span>{" "}
+            {loading ? spinner : data.landParcel.license.owner}
           </div>
-          <div>For Sale Price: {loading ? spinner : forSalePrice}</div>
-          <div>Expiration Date: {loading ? spinner : expDate}</div>
           <div>
-            Network Fee Balance:{" "}
+            <span className="font-weight-bold">For Sale Price:</span>{" "}
+            {loading ? spinner : forSalePrice}
+          </div>
+          <div>
+            <span className="font-weight-bold">Expiration Date:</span>{" "}
+            {loading ? spinner : expDate}
+          </div>
+          <div>
+            <span className="font-weight-bold">Fee Balance:</span>{" "}
             {loading || networkFeeBalanceDisplay == null
               ? spinner
               : networkFeeBalanceDisplay}
