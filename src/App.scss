@@ -9,4 +9,8 @@ $theme-colors: (
 
 $font-family-base: "Open Sans";
 
+.mapboxgl-canvas {
+  background-color: black;
+}
+
 @import "~bootstrap/scss/bootstrap";
