@@ -7,6 +7,7 @@ import Web3 from "web3";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
+import Navbar from "react-bootstrap/Navbar";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin.json");
 const erc20ABI = require("./contracts/ERC20Mock.json");
@@ -67,35 +68,45 @@ function App() {
   }, []);
 
   return (
-    <Container fluid>
-      <Row className="bg-dark border-bottom align-items-center">
-        <Col sm="1" className="text-center">
-          <Badge pill variant="secondary" className="py-2 px-3">
-            <span style={{ fontWeight: 600 }}>TESTNET</span>
-          </Badge>
-        </Col>
-        <Col sm="10" className="text-center p-2">
-          <div
-            className="text-primary"
-            style={{ fontSize: "2.5em", fontFamily: "Abel" }}
-          >
-            <Image style={{ height: "1.1em" }} src="logo.png" /> Geo Web
-            Cadastre
-          </div>
-          <div className="text-light" style={{ fontSize: "1em" }}>
-            Claim, transfer, and manage digital land
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Map
-          account={account}
-          adminContract={adminContract}
-          paymentTokenContract={paymentTokenContract}
-          adminAddress={adminAddress}
-        ></Map>
-      </Row>
-    </Container>
+    <>
+      <Container fluid>
+        <Navbar
+          bg="dark"
+          variant="dark"
+          fixed="top"
+          style={{ height: "100px" }}
+          className="border-bottom border-purple"
+        >
+          <Col sm="1" className="text-center">
+            <Badge pill variant="secondary" className="py-2 px-3">
+              <span style={{ fontWeight: 600 }}>TESTNET</span>
+            </Badge>
+          </Col>
+          <Col sm="10" className="text-center p-2">
+            <div
+              className="text-primary"
+              style={{ fontSize: "2.5em", fontFamily: "Abel" }}
+            >
+              <Image style={{ height: "1.1em" }} src="logo.png" /> Geo Web
+              Cadastre
+            </div>
+            <div className="text-light" style={{ fontSize: "1em" }}>
+              Claim, transfer, and manage digital land
+            </div>
+          </Col>
+        </Navbar>
+      </Container>
+      <Container fluid>
+        <Row>
+          <Map
+            account={account}
+            adminContract={adminContract}
+            paymentTokenContract={paymentTokenContract}
+            adminAddress={adminAddress}
+          ></Map>
+        </Row>
+      </Container>
+    </>
   );
 }
 

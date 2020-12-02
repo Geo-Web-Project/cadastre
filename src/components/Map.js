@@ -333,8 +333,8 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
       <Col sm="9" className="px-0">
         <ReactMapGL
           {...viewport}
-          width="100vw"
-          height="100vh"
+          width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
+          height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
           mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/satellite-streets-v11"
           mapOptions={{

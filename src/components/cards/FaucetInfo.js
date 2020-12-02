@@ -22,7 +22,7 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   }
 
   return (
-    <Card border="secondary" className="bg-dark mt-5">
+    <Card border="secondary" className="bg-dark my-5">
       <Card.Body>
         <Card.Title className="text-primary font-weight-bold">
           Transaction Requirements

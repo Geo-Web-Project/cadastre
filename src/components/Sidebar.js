@@ -28,7 +28,11 @@ function Sidebar({
   setSelectedParcelId,
 }) {
   return (
-    <Col sm="3" className="bg-dark p-4 text-light">
+    <Col
+      sm="3"
+      className="bg-dark px-4 text-light"
+      style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
+    >
       <Row>
         <Col sm="10">
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>

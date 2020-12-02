@@ -28,7 +28,6 @@ const parcelQuery = gql`
 `;
 
 function ParcelInfo({ interactionState, selectedParcelId }) {
-  console.log(selectedParcelId);
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
