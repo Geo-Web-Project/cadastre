@@ -9,10 +9,12 @@ import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin.json");
-const adminAddress = "0xa2328e6dDE846b98333701A5CcF51B31062ac201";
+const erc20ABI = require("./contracts/ERC20Mock.json");
+const adminAddress = "0xC53C3c14D5d28496C7c41e9945aF54271D0f2e94";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
+  const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [account, setAccount] = useState(null);
 
   // Setup Web3
@@ -50,7 +52,16 @@ function App() {
   useEffect(() => {
     async function contractsSetup() {
       setupWeb3();
-      setAdminContract(new web3.eth.Contract(geoWebAdminABI, adminAddress));
+
+      let _adminContract = new web3.eth.Contract(geoWebAdminABI, adminAddress);
+      setAdminContract(_adminContract);
+
+      let _paymentTokenContractAddress = await _adminContract.methods
+        .paymentTokenContract()
+        .call();
+      setPaymentTokenContract(
+        new web3.eth.Contract(erc20ABI, _paymentTokenContractAddress)
+      );
     }
     contractsSetup();
   }, []);
@@ -82,7 +93,12 @@ function App() {
         </Col>
       </Row>
       <Row>
-        <Map account={account} adminContract={adminContract}></Map>
+        <Map
+          account={account}
+          adminContract={adminContract}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
+        ></Map>
       </Row>
     </Container>
   );

@@ -16,8 +16,10 @@ import {
 import ParcelInfo from "./ParcelInfo";
 
 function Sidebar({
+  adminAddress,
   adminContract,
   account,
+  paymentTokenContract,
   interactionState,
   setInteractionState,
   claimBase1Coord,
@@ -57,7 +59,11 @@ function Sidebar({
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
           ></ClaimAction>
-          <FaucetInfo></FaucetInfo>
+          <FaucetInfo
+            paymentTokenContract={paymentTokenContract}
+            account={account}
+            adminAddress={adminAddress}
+          ></FaucetInfo>
         </>
       ) : null}
     </Col>

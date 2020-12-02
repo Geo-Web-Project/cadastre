@@ -11,7 +11,7 @@ import Col from "react-bootstrap/Col";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-export const ZOOM_GRID_LEVEL = 18;
+export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
 
 export const STATE_VIEWING = 0;
@@ -90,7 +90,7 @@ export function coordToFeature(gwCoord) {
   };
 }
 
-function Map({ adminContract, account }) {
+function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastID: "0",
@@ -99,7 +99,7 @@ function Map({ adminContract, account }) {
 
   // Fetch more until none left
   useEffect(() => {
-    if (data == null) {
+    if (data == null || data.geoWebCoordinates.length == 0) {
       return;
     }
     let newLastID =
@@ -145,7 +145,7 @@ function Map({ adminContract, account }) {
   }
 
   function onHover(event) {
-    if (event.features == null || viewport.zoom < 10) {
+    if (event.features == null || viewport.zoom < 5) {
       return;
     }
 
@@ -191,7 +191,7 @@ function Map({ adminContract, account }) {
   }
 
   function onClick(event) {
-    if (viewport.zoom < 8) {
+    if (viewport.zoom < 5) {
       return;
     }
 
@@ -306,7 +306,9 @@ function Map({ adminContract, account }) {
     <>
       {interactionState != STATE_VIEWING ? (
         <Sidebar
+          adminAddress={adminAddress}
           adminContract={adminContract}
+          paymentTokenContract={paymentTokenContract}
           account={account}
           interactionState={interactionState}
           setInteractionState={setInteractionState}

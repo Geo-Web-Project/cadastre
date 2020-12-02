@@ -16,6 +16,9 @@ function ClaimAction({
   claimBase1Coord,
   claimBase2Coord,
 }) {
+  const [forSalePrice, setForSalePrice] = React.useState(null);
+  const [networkFeePayment, setNetworkFeePayment] = React.useState(null);
+
   function _claim() {
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -32,8 +35,8 @@ function ClaimAction({
         account,
         baseCoord,
         path,
-        Web3.utils.toWei("10"),
-        Web3.utils.toWei("1")
+        Web3.utils.toWei(forSalePrice),
+        Web3.utils.toWei(networkFeePayment)
       )
       .send({ from: account });
   }
@@ -48,19 +51,28 @@ function ClaimAction({
               <Form.Control
                 className="bg-dark text-light"
                 type="text"
-                placeholder="New For Sale Price (DAI)"
+                placeholder="New For Sale Price (GEO)"
+                aria-label="For Sale Price"
+                aria-describedby="for-sale-price"
+                onChange={(e) => setForSalePrice(e.target.value)}
               />
               <br />
               <Form.Control
                 className="bg-dark text-light"
                 type="text"
-                placeholder="Network Fee Payment (DAI)"
+                placeholder="Network Fee Payment (GEO)"
+                aria-label="Network Fee Payment"
+                aria-describedby="network-fee-payment"
+                onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
             </Form.Group>
           </Form>
-          <div>New Expiration Date:</div>
-          <div>Total (excluding gas):</div>
-          <Button variant="primary" className="w-100" onClick={_claim}>
+          <Button
+            variant="primary"
+            className="w-100"
+            onClick={_claim}
+            disabled={!(forSalePrice && networkFeePayment)}
+          >
             Confirm
           </Button>
         </Card.Text>
