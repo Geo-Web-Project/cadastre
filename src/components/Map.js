@@ -209,6 +209,15 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
         setSelectedParcelId(parcelHoverId);
         setInteractionState(STATE_PARCEL_SELECTED);
         return true;
+      } else {
+        let gwCoord = GeoWebCoordinate.from_gps(
+          event.lngLat[0],
+          event.lngLat[1]
+        );
+
+        if (existingCoords.has(gwCoord.toString(10))) {
+          return true;
+        }
       }
 
       return false;
@@ -255,14 +264,13 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
         setInteractionState(STATE_CLAIM_SELECTED);
         break;
       case STATE_CLAIM_SELECTED:
-        setClaimBase1Coord("");
-        setClaimBase2Coord("");
         setInteractionState(STATE_VIEWING);
         break;
       case STATE_PARCEL_SELECTED:
         if (_checkParcelClick()) {
           return;
         }
+        setInteractionState(STATE_VIEWING);
         break;
       default:
         break;
