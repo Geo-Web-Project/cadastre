@@ -44,7 +44,7 @@ function ClaimAction({
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
-        <Card.Title className="text-primary">Claim</Card.Title>
+        <Card.Title className="text-primary font-weight-bold">Claim</Card.Title>
         <Card.Text>
           <Form>
             <Form.Group>

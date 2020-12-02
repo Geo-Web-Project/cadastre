@@ -24,54 +24,57 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
-        <Card.Text>
-          <h5 className="text-center font-weight-bold">Faucet Links</h5>
-          <p className="font-italic">
-            Kovan ETH and GEO are required for Geo Web testnet transactions.
-            First claim ETH (requires a Github ID) then kGEO (via a Metamask
-            transaction) from the links below:
+        <Card.Title className="text-primary font-weight-bold">
+          Transaction Requirements
+        </Card.Title>
+        <Card.Text className="font-italic">
+          <p>
+            Geo Web testnet transactions require Kovan ETH & GEO (Geo Web
+            token). Follow the steps below to claim tokens & provide the
+            necessary authorization to successfully transact:
           </p>
-          <Row className="text-center">
-            <Col>
+          <ol className="px-3">
+            <li>
               <Button
                 variant="link"
                 href="https://faucet.kovan.network"
                 target="_blank"
                 rel="noreferrer"
-                className="text-light"
+                className="text-light font-weight-bold"
                 style={{ textDecoration: "underline" }}
               >
-                Get ETH{""}
+                Claim kETH{""}
                 <span className="text-decoration-none mx-1">
                   <Image src="link.svg" />
                 </span>
-              </Button>
-            </Col>
-            <Col>
+              </Button>{" "}
+              <br />- Requires a Github ID
+            </li>
+            <li>
               <Button
                 variant="link"
                 href="#"
-                className="text-light"
+                className="text-light font-weight-bold"
                 onClick={_mintToken}
                 style={{ textDecoration: "underline" }}
               >
-                Get GEO
-              </Button>
-            </Col>
-          </Row>
-          <Row className="text-center">
-            <Col>
+                Claim kGEO
+              </Button>{" "}
+              <br />- Requires a Metamask transaction
+            </li>
+            <li>
               <Button
                 variant="link"
                 href="#"
-                className="text-light"
+                className="text-light text-left font-weight-bold"
                 onClick={_approve}
                 style={{ textDecoration: "underline" }}
               >
-                Approve GEO
-              </Button>
-            </Col>
-          </Row>
+                Authorize the Cadastre to transact with your kGEO
+              </Button>{" "}
+              <br />- Requires a Metamask transaction
+            </li>
+          </ol>
         </Card.Text>
       </Card.Body>
     </Card>
