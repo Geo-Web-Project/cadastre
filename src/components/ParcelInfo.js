@@ -28,6 +28,7 @@ const parcelQuery = gql`
 `;
 
 function ParcelInfo({ interactionState, selectedParcelId }) {
+  console.log(selectedParcelId);
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
@@ -61,6 +62,7 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
   let forSalePrice;
   let expDate;
   let networkFeeBalanceDisplay;
+  let licenseOwner;
   if (data && data.landParcel) {
     forSalePrice = (
       <>{Web3.utils.fromWei(data.landParcel.license.value)} GEO </>
@@ -73,6 +75,7 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
     expDate = new Date(
       data.landParcel.license.expirationTimestamp * 1000
     ).toLocaleDateString("en-us");
+    licenseOwner = data.landParcel.license.owner;
   }
 
   return (
@@ -81,7 +84,7 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
         <>
           <div className="text-truncate">
             <span className="font-weight-bold">Licensee:</span>{" "}
-            {loading ? spinner : data.landParcel.license.owner}
+            {loading ? spinner : licenseOwner}
           </div>
           <div>
             <span className="font-weight-bold">For Sale Price:</span>{" "}

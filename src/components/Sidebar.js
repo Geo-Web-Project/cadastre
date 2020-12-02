@@ -25,6 +25,7 @@ function Sidebar({
   claimBase1Coord,
   claimBase2Coord,
   selectedParcelId,
+  setSelectedParcelId,
 }) {
   return (
     <Col sm="3" className="bg-dark p-4 text-light">
@@ -58,6 +59,8 @@ function Sidebar({
             account={account}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
+            setInteractionState={setInteractionState}
+            setSelectedParcelId={setSelectedParcelId}
           ></ClaimAction>
           <FaucetInfo
             paymentTokenContract={paymentTokenContract}

@@ -284,6 +284,10 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+      case STATE_PARCEL_SELECTED:
+        setClaimBase1Coord(null);
+        setClaimBase2Coord(null);
+        setParcelHoverId(selectedParcelId);
         break;
       default:
         break;
@@ -323,6 +327,7 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
           claimBase1Coord={claimBase1Coord}
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
+          setSelectedParcelId={setSelectedParcelId}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">

@@ -6,7 +6,8 @@ import Web3 from "web3";
 import Image from "react-bootstrap/Image";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import { STATE_VIEWING } from "../Map";
+import { STATE_PARCEL_SELECTED } from "../Map";
+import BN from "bn.js";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -15,11 +16,22 @@ function ClaimAction({
   account,
   claimBase1Coord,
   claimBase2Coord,
+  setInteractionState,
+  setSelectedParcelId,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState(null);
   const [networkFeePayment, setNetworkFeePayment] = React.useState(null);
+  const [isActing, setIsActing] = React.useState(false);
+
+  const spinner = (
+    <div className="spinner-border" role="status">
+      <span className="sr-only">Sending Transaction...</span>
+    </div>
+  );
 
   function _claim() {
+    setIsActing(true);
+
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
       claimBase1Coord.y
@@ -29,6 +41,9 @@ function ClaimAction({
       claimBase2Coord.y
     );
     let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
+    if (path.length == 0) {
+      path = [new BN(0)];
+    }
 
     adminContract.methods
       .claim(
@@ -38,7 +53,17 @@ function ClaimAction({
         Web3.utils.toWei(forSalePrice),
         Web3.utils.toWei(networkFeePayment)
       )
-      .send({ from: account });
+      .send({ from: account })
+      .once("receipt", async function (receipt) {
+        setIsActing(false);
+        let licenseId =
+          receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
+        setSelectedParcelId(`0x${new BN(licenseId, 10).toString(16)}`);
+        setInteractionState(STATE_PARCEL_SELECTED);
+      })
+      .catch(() => {
+        setIsActing(false);
+      });
   }
 
   return (
@@ -54,6 +79,7 @@ function ClaimAction({
                 placeholder="New For Sale Price (GEO)"
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
+                disabled={isActing}
                 onChange={(e) => setForSalePrice(e.target.value)}
               />
               <br />
@@ -63,6 +89,7 @@ function ClaimAction({
                 placeholder="Network Fee Payment (GEO)"
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
+                disabled={isActing}
                 onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
             </Form.Group>
@@ -71,9 +98,9 @@ function ClaimAction({
             variant="primary"
             className="w-100"
             onClick={_claim}
-            disabled={!(forSalePrice && networkFeePayment)}
+            disabled={!(forSalePrice && networkFeePayment) || isActing}
           >
-            Confirm
+            {isActing ? spinner : "Confirm"}
           </Button>
         </Card.Text>
       </Card.Body>
