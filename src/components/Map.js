@@ -20,7 +20,7 @@ export const STATE_CLAIM_SELECTED = 2;
 export const STATE_PARCEL_SELECTED = 3;
 
 const query = gql`
-  query Polygons($lastID: String) {
+  query Polygons($lastID: String, $reloadTrigger: String) {
     geoWebCoordinates(orderBy: id, first: 1000, where: { id_gt: $lastID }) {
       id
       landParcel {
@@ -91,9 +91,12 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
+  const [reloadTrigger, setReloadTrigger] = useState(0);
+
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastID: "0",
+      reloadTrigger: reloadTrigger.toString(),
     },
   });
 
@@ -328,6 +331,8 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
+          reloadTrigger={reloadTrigger}
+          setReloadTrigger={setReloadTrigger}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">

@@ -18,6 +18,8 @@ function ClaimAction({
   claimBase2Coord,
   setInteractionState,
   setSelectedParcelId,
+  reloadTrigger,
+  setReloadTrigger,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState(null);
   const [networkFeePayment, setNetworkFeePayment] = React.useState(null);
@@ -60,6 +62,7 @@ function ClaimAction({
           receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
         setSelectedParcelId(`0x${new BN(licenseId, 10).toString(16)}`);
         setInteractionState(STATE_PARCEL_SELECTED);
+        setReloadTrigger(++reloadTrigger);
       })
       .catch(() => {
         setIsActing(false);
