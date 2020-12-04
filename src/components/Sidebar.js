@@ -26,8 +26,6 @@ function Sidebar({
   claimBase2Coord,
   selectedParcelId,
   setSelectedParcelId,
-  reloadTrigger,
-  setReloadTrigger,
 }) {
   return (
     <Col
@@ -67,8 +65,6 @@ function Sidebar({
             claimBase2Coord={claimBase2Coord}
             setInteractionState={setInteractionState}
             setSelectedParcelId={setSelectedParcelId}
-            reloadTrigger={reloadTrigger}
-            setReloadTrigger={setReloadTrigger}
           ></ClaimAction>
           <FaucetInfo
             paymentTokenContract={paymentTokenContract}

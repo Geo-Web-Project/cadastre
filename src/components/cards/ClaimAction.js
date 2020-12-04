@@ -3,13 +3,19 @@ import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Web3 from "web3";
-import Image from "react-bootstrap/Image";
-import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import BN from "bn.js";
+import { gql, useLazyQuery } from "@apollo/client";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
+
+const newParcelQuery = gql`
+  query LandParcel($id: String) {
+    landParcel(id: $id) {
+      id
+    }
+  }
+`;
 
 function ClaimAction({
   adminContract,
@@ -18,18 +24,33 @@ function ClaimAction({
   claimBase2Coord,
   setInteractionState,
   setSelectedParcelId,
-  reloadTrigger,
-  setReloadTrigger,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState(null);
   const [networkFeePayment, setNetworkFeePayment] = React.useState(null);
   const [isActing, setIsActing] = React.useState(false);
+  const [newParcelId, setNewParcelId] = React.useState(null);
 
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only">Sending Transaction...</span>
     </div>
   );
+
+  const [getNewParcel, { loading, data, stopPolling }] = useLazyQuery(
+    newParcelQuery
+  );
+
+  React.useEffect(() => {
+    if (data == null || data.landParcel == null) {
+      return;
+    }
+    // Stop polling for new parcel
+    stopPolling();
+
+    // Load new parcel
+    setSelectedParcelId(newParcelId);
+    setInteractionState(STATE_PARCEL_SELECTED);
+  }, [data]);
 
   function _claim() {
     setIsActing(true);
@@ -57,12 +78,17 @@ function ClaimAction({
       )
       .send({ from: account })
       .once("receipt", async function (receipt) {
-        setIsActing(false);
         let licenseId =
           receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
-        setSelectedParcelId(`0x${new BN(licenseId, 10).toString(16)}`);
-        setInteractionState(STATE_PARCEL_SELECTED);
-        setReloadTrigger(++reloadTrigger);
+        let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
+        setNewParcelId(_newParcelId);
+
+        getNewParcel({
+          variables: { id: _newParcelId },
+          pollInterval: 2000,
+        });
+
+        setIsActing(false);
       })
       .catch(() => {
         setIsActing(false);
@@ -82,7 +108,7 @@ function ClaimAction({
                 placeholder="New For Sale Price (GEO)"
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
-                disabled={isActing}
+                disabled={isActing || loading}
                 onChange={(e) => setForSalePrice(e.target.value)}
               />
               <br />
@@ -92,7 +118,7 @@ function ClaimAction({
                 placeholder="Network Fee Payment (GEO)"
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
-                disabled={isActing}
+                disabled={isActing || loading}
                 onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
             </Form.Group>
@@ -101,9 +127,11 @@ function ClaimAction({
             variant="primary"
             className="w-100"
             onClick={_claim}
-            disabled={!(forSalePrice && networkFeePayment) || isActing}
+            disabled={
+              !(forSalePrice && networkFeePayment) || isActing || loading
+            }
           >
-            {isActing ? spinner : "Confirm"}
+            {isActing || loading ? spinner : "Confirm"}
           </Button>
         </Card.Text>
       </Card.Body>

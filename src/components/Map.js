@@ -20,9 +20,14 @@ export const STATE_CLAIM_SELECTED = 2;
 export const STATE_PARCEL_SELECTED = 3;
 
 const query = gql`
-  query Polygons($lastID: String, $reloadTrigger: String) {
-    geoWebCoordinates(orderBy: id, first: 1000, where: { id_gt: $lastID }) {
+  query Polygons($lastBlock: BigInt) {
+    geoWebCoordinates(
+      orderBy: createdAtBlock
+      first: 1000
+      where: { createdAtBlock_gt: $lastBlock }
+    ) {
       id
+      createdAtBlock
       landParcel {
         id
       }
@@ -91,12 +96,9 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
-  const [reloadTrigger, setReloadTrigger] = useState(0);
-
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
-      lastID: "0",
-      reloadTrigger: reloadTrigger.toString(),
+      lastBlock: 0,
     },
   });
 
@@ -105,12 +107,12 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
     if (data == null || data.geoWebCoordinates.length == 0) {
       return;
     }
-    let newLastID =
-      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].id;
+    let newLastBlock =
+      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
     fetchMore({
       variables: {
-        lastID: newLastID,
+        lastBlock: newLastBlock,
       },
     });
   }, [data]);
@@ -281,6 +283,19 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
   }
 
   useEffect(() => {
+    if (data) {
+      // Fetch more coordinates
+      let newLastBlock =
+        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
+          .createdAtBlock;
+
+      fetchMore({
+        variables: {
+          lastBlock: newLastBlock,
+        },
+      });
+    }
+
     switch (interactionState) {
       case STATE_VIEWING:
         setClaimBase1Coord(null);
@@ -331,8 +346,6 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
-          reloadTrigger={reloadTrigger}
-          setReloadTrigger={setReloadTrigger}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
