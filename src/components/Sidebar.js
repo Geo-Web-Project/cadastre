@@ -6,6 +6,7 @@ import Row from "react-bootstrap/Row";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import FaucetInfo from "./cards/FaucetInfo";
+import ParcelInfo from "./cards/ParcelInfo";
 
 import {
   STATE_VIEWING,
@@ -13,7 +14,6 @@ import {
   STATE_CLAIM_SELECTED,
   STATE_PARCEL_SELECTED,
 } from "./Map";
-import ParcelInfo from "./ParcelInfo";
 
 function Sidebar({
   adminAddress,

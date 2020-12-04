@@ -1,7 +1,7 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
-import { STATE_PARCEL_SELECTED } from "./Map";
+import { STATE_PARCEL_SELECTED } from "../Map";
 import Web3 from "web3";
 import { useState, useEffect } from "react";
 import BN from "bn.js";
