@@ -40,6 +40,10 @@ function ClaimAction({
     newParcelQuery
   );
 
+  let isForSalePriceInvalid = isNaN(forSalePrice) || Number(forSalePrice) < 10;
+  let isNetworkFeePaymentInvalid = isNaN(networkFeePayment);
+  let isInvalid = isForSalePriceInvalid || isNetworkFeePaymentInvalid;
+
   React.useEffect(() => {
     if (data == null || data.landParcel == null) {
       return;
@@ -103,6 +107,8 @@ function ClaimAction({
           <Form>
             <Form.Group>
               <Form.Control
+                required
+                isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light"
                 type="text"
                 placeholder="New For Sale Price (GEO)"
@@ -111,28 +117,36 @@ function ClaimAction({
                 disabled={isActing || loading}
                 onChange={(e) => setForSalePrice(e.target.value)}
               />
+              <Form.Control.Feedback type="invalid">
+                For Sale Price must be greater than 10
+              </Form.Control.Feedback>
               <br />
               <Form.Control
+                required
                 className="bg-dark text-light"
                 type="text"
                 placeholder="Network Fee Payment (GEO)"
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
                 disabled={isActing || loading}
+                isInvalid={isNetworkFeePaymentInvalid}
                 onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
             </Form.Group>
+            <Button
+              variant="primary"
+              className="w-100"
+              onClick={_claim}
+              disabled={
+                !(forSalePrice && networkFeePayment) ||
+                isActing ||
+                loading ||
+                isInvalid
+              }
+            >
+              {isActing || loading ? spinner : "Confirm"}
+            </Button>
           </Form>
-          <Button
-            variant="primary"
-            className="w-100"
-            onClick={_claim}
-            disabled={
-              !(forSalePrice && networkFeePayment) || isActing || loading
-            }
-          >
-            {isActing || loading ? spinner : "Confirm"}
-          </Button>
         </Card.Text>
       </Card.Body>
       <Card.Footer border="secondary">
