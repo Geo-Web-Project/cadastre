@@ -136,8 +136,7 @@ function ClaimAction({
         </Card.Text>
       </Card.Body>
       <Card.Footer border="secondary">
-        You will need to confirm a Metamask transactions to complete the
-        transfer.
+        You will need to confirm this transaction in Metamask.
       </Card.Footer>
     </Card>
   );
