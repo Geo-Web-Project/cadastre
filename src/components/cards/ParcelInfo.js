@@ -1,10 +1,12 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
-import { STATE_PARCEL_SELECTED } from "../Map";
+import { STATE_PARCEL_SELECTED, STATE_PARCEL_EDITING } from "../Map";
 import Web3 from "web3";
 import { useState, useEffect } from "react";
 import BN from "bn.js";
+import Button from "react-bootstrap/Button";
+import EditAction from "./EditAction";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -20,8 +22,12 @@ const parcelQuery = gql`
 `;
 
 function ParcelInfo({
+  account,
+  adminContract,
   interactionState,
+  setInteractionState,
   selectedParcelId,
+  setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
 }) {
@@ -82,32 +88,83 @@ function ParcelInfo({
     licenseOwner = data.landParcel.license.owner;
   }
 
+  let editButton;
+  switch (interactionState) {
+    case STATE_PARCEL_SELECTED:
+      editButton = (
+        <Button
+          variant="primary"
+          className="w-100"
+          onClick={() => {
+            setInteractionState(STATE_PARCEL_EDITING);
+          }}
+        >
+          Edit
+        </Button>
+      );
+      break;
+    case STATE_PARCEL_EDITING:
+      editButton = (
+        <Button
+          variant="danger"
+          className="w-100"
+          onClick={() => {
+            setInteractionState(STATE_PARCEL_SELECTED);
+          }}
+        >
+          Cancel Editing
+        </Button>
+      );
+      break;
+    default:
+      break;
+  }
+
+  let initiateTransferButton = (
+    <Button variant="primary" className="w-100" disabled>
+      Initiate Transfer (Coming Soon)
+    </Button>
+  );
+
   return (
     <Col>
-      {interactionState == STATE_PARCEL_SELECTED ? (
+      {interactionState == STATE_PARCEL_SELECTED ||
+      interactionState == STATE_PARCEL_EDITING ? (
         <>
-          <div className="text-truncate">
+          <p className="text-truncate">
             <span className="font-weight-bold">Licensee:</span>{" "}
             {isLoading ? spinner : licenseOwner}
-          </div>
-          <div>
+          </p>
+          <p>
             <span className="font-weight-bold">For Sale Price:</span>{" "}
             {isLoading ? spinner : forSalePrice}
-          </div>
-          <div>
+          </p>
+          <p>
             <span className="font-weight-bold">Expiration Date:</span>{" "}
             {isLoading ? spinner : expDate}
-          </div>
-          <div>
+          </p>
+          <p>
             <span className="font-weight-bold">Fee Balance:</span>{" "}
             {isLoading || networkFeeBalanceDisplay == null
               ? spinner
               : networkFeeBalanceDisplay}
-          </div>
+          </p>
+          <br />
+          {account == licenseOwner ? editButton : initiateTransferButton}
         </>
       ) : (
         <p>Unclaimed Coordinates</p>
       )}
+      {interactionState == STATE_PARCEL_EDITING ? (
+        <EditAction
+          adminContract={adminContract}
+          account={account}
+          setInteractionState={setInteractionState}
+          setSelectedParcelId={setSelectedParcelId}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+        />
+      ) : null}
     </Col>
   );
 }

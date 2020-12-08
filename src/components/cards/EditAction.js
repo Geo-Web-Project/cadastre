@@ -15,11 +15,9 @@ const newParcelQuery = gql`
   }
 `;
 
-function ClaimAction({
+function EditAction({
   adminContract,
   account,
-  claimBase1Coord,
-  claimBase2Coord,
   setInteractionState,
   setSelectedParcelId,
   perSecondFeeNumerator,
@@ -47,63 +45,59 @@ function ClaimAction({
     setInteractionState(STATE_PARCEL_SELECTED);
   }, [data]);
 
-  function _claim() {
-    setIsActing(true);
-
-    let baseCoord = GeoWebCoordinate.make_gw_coord(
-      claimBase1Coord.x,
-      claimBase1Coord.y
-    );
-    let destCoord = GeoWebCoordinate.make_gw_coord(
-      claimBase2Coord.x,
-      claimBase2Coord.y
-    );
-    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
-    if (path.length == 0) {
-      path = [new BN(0)];
-    }
-
-    adminContract.methods
-      .claim(
-        account,
-        baseCoord,
-        path,
-        Web3.utils.toWei(forSalePrice),
-        Web3.utils.toWei(networkFeePayment)
-      )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          setDidFail(true);
-          setIsActing(false);
-        }
-      })
-      .once("receipt", async function (receipt) {
-        let licenseId =
-          receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
-        let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
-        setNewParcelId(_newParcelId);
-
-        getNewParcel({
-          variables: { id: _newParcelId },
-          pollInterval: 2000,
-        });
-
-        setIsActing(false);
-      })
-      .catch(() => {
-        setIsActing(false);
-      });
+  function _edit() {
+    // setIsActing(true);
+    // let baseCoord = GeoWebCoordinate.make_gw_coord(
+    //   claimBase1Coord.x,
+    //   claimBase1Coord.y
+    // );
+    // let destCoord = GeoWebCoordinate.make_gw_coord(
+    //   claimBase2Coord.x,
+    //   claimBase2Coord.y
+    // );
+    // let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
+    // if (path.length == 0) {
+    //   path = [new BN(0)];
+    // }
+    // adminContract.methods
+    //   .claim(
+    //     account,
+    //     baseCoord,
+    //     path,
+    //     Web3.utils.toWei(forSalePrice),
+    //     Web3.utils.toWei(networkFeePayment)
+    //   )
+    //   .send({ from: account }, (error, txHash) => {
+    //     if (error) {
+    //       setDidFail(true);
+    //       setIsActing(false);
+    //     }
+    //   })
+    //   .once("receipt", async function (receipt) {
+    //     let licenseId =
+    //       receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
+    //     let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
+    //     setNewParcelId(_newParcelId);
+    //     getNewParcel({
+    //       variables: { id: _newParcelId },
+    //       pollInterval: 2000,
+    //     });
+    //     setIsActing(false);
+    //   })
+    //   .catch(() => {
+    //     setIsActing(false);
+    //   });
   }
 
   return (
     <ActionForm
-      title="Claim"
+      title="Edit"
       adminContract={adminContract}
       perSecondFeeNumerator={perSecondFeeNumerator}
       perSecondFeeDenominator={perSecondFeeDenominator}
       isActing={isActing}
       loading={loading}
-      performAction={_claim}
+      performAction={_edit}
       setForSalePrice={setForSalePrice}
       forSalePrice={forSalePrice}
       setNetworkFeePayment={setNetworkFeePayment}
@@ -114,4 +108,4 @@ function ClaimAction({
   );
 }
 
-export default ClaimAction;
+export default EditAction;

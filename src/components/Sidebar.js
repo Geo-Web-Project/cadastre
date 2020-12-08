@@ -56,7 +56,7 @@ function Sidebar({
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      <Row>
+      <Row className="mb-3">
         <Col sm="10">
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
             PARCEL {selectedParcelId}
@@ -74,8 +74,12 @@ function Sidebar({
       </Row>
       <Row>
         <ParcelInfo
+          account={account}
+          adminContract={adminContract}
           interactionState={interactionState}
+          setInteractionState={setInteractionState}
           selectedParcelId={selectedParcelId}
+          setSelectedParcelId={setSelectedParcelId}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
         ></ParcelInfo>
