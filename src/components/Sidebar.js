@@ -7,6 +7,7 @@ import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import FaucetInfo from "./cards/FaucetInfo";
 import ParcelInfo from "./cards/ParcelInfo";
+import BN from "bn.js";
 
 import {
   STATE_VIEWING,
@@ -27,6 +28,28 @@ function Sidebar({
   selectedParcelId,
   setSelectedParcelId,
 }) {
+  const [perSecondFeeNumerator, setPerSecondFeeNumerator] = React.useState(
+    null
+  );
+  const [perSecondFeeDenominator, setPerSecondFeeDenominator] = React.useState(
+    null
+  );
+
+  React.useEffect(() => {
+    adminContract.methods
+      .perSecondFeeNumerator()
+      .call()
+      .then((_perSecondFeeNumerator) => {
+        setPerSecondFeeNumerator(new BN(_perSecondFeeNumerator));
+      });
+    adminContract.methods
+      .perSecondFeeDenominator()
+      .call()
+      .then((_perSecondFeeDenominator) => {
+        setPerSecondFeeDenominator(new BN(_perSecondFeeDenominator));
+      });
+  }, [adminContract]);
+
   return (
     <Col
       sm="3"
@@ -53,6 +76,8 @@ function Sidebar({
         <ParcelInfo
           interactionState={interactionState}
           selectedParcelId={selectedParcelId}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
         ></ParcelInfo>
       </Row>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
@@ -65,6 +90,8 @@ function Sidebar({
             claimBase2Coord={claimBase2Coord}
             setInteractionState={setInteractionState}
             setSelectedParcelId={setSelectedParcelId}
+            perSecondFeeNumerator={perSecondFeeNumerator}
+            perSecondFeeDenominator={perSecondFeeDenominator}
           ></ClaimAction>
           <FaucetInfo
             paymentTokenContract={paymentTokenContract}
