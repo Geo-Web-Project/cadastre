@@ -6,14 +6,6 @@ import Web3 from "web3";
 import { useState, useEffect } from "react";
 import BN from "bn.js";
 
-// TODO: Load from admin contract
-const PER_SECOND_FEE_NUMERATOR = new BN(10);
-const PER_SECOND_FEE_DENOMINATOR = new BN(60)
-  .muln(60)
-  .muln(24)
-  .muln(365)
-  .muln(100);
-
 const parcelQuery = gql`
   query LandParcel($id: String) {
     landParcel(id: $id) {
@@ -27,7 +19,12 @@ const parcelQuery = gql`
   }
 `;
 
-function ParcelInfo({ interactionState, selectedParcelId }) {
+function ParcelInfo({
+  interactionState,
+  selectedParcelId,
+  perSecondFeeNumerator,
+  perSecondFeeDenominator,
+}) {
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
@@ -35,22 +32,30 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
   });
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
 
+  let isLoading =
+    loading || perSecondFeeNumerator == null || perSecondFeeDenominator == null;
+
   function _calculateNetworkFeeBalance(license) {
     let now = new Date();
     return new BN(license.expirationTimestamp * 1000 - now)
       .divn(1000)
       .mul(new BN(license.value))
-      .mul(PER_SECOND_FEE_NUMERATOR)
-      .div(PER_SECOND_FEE_DENOMINATOR);
+      .mul(perSecondFeeNumerator)
+      .div(perSecondFeeDenominator);
   }
 
   useEffect(() => {
-    if (data && data.landParcel) {
+    if (
+      data &&
+      data.landParcel &&
+      perSecondFeeNumerator &&
+      perSecondFeeDenominator
+    ) {
       setNetworkFeeBalance(
         _calculateNetworkFeeBalance(data.landParcel.license)
       );
     }
-  }, [data]);
+  }, [data, perSecondFeeNumerator, perSecondFeeDenominator]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -73,7 +78,7 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
     }
     expDate = new Date(
       data.landParcel.license.expirationTimestamp * 1000
-    ).toLocaleDateString("en-us");
+    ).toDateString();
     licenseOwner = data.landParcel.license.owner;
   }
 
@@ -83,19 +88,19 @@ function ParcelInfo({ interactionState, selectedParcelId }) {
         <>
           <div className="text-truncate">
             <span className="font-weight-bold">Licensee:</span>{" "}
-            {loading ? spinner : licenseOwner}
+            {isLoading ? spinner : licenseOwner}
           </div>
           <div>
             <span className="font-weight-bold">For Sale Price:</span>{" "}
-            {loading ? spinner : forSalePrice}
+            {isLoading ? spinner : forSalePrice}
           </div>
           <div>
             <span className="font-weight-bold">Expiration Date:</span>{" "}
-            {loading ? spinner : expDate}
+            {isLoading ? spinner : expDate}
           </div>
           <div>
             <span className="font-weight-bold">Fee Balance:</span>{" "}
-            {loading || networkFeeBalanceDisplay == null
+            {isLoading || networkFeeBalanceDisplay == null
               ? spinner
               : networkFeeBalanceDisplay}
           </div>
