@@ -9,6 +9,7 @@ import { gql, useLazyQuery } from "@apollo/client";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Alert from "react-bootstrap/Alert";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -36,6 +37,7 @@ function ClaimAction({
   const [forSalePrice, setForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
+  const [didFail, setDidFail] = React.useState(false);
   const [newParcelId, setNewParcelId] = React.useState(null);
   const [minInitialValue, setMinInitialValue] = React.useState(0);
 
@@ -134,7 +136,12 @@ function ClaimAction({
         Web3.utils.toWei(forSalePrice),
         Web3.utils.toWei(networkFeePayment)
       )
-      .send({ from: account })
+      .send({ from: account }, (error, txHash) => {
+        if (error) {
+          setDidFail(true);
+          setIsActing(false);
+        }
+      })
       .once("receipt", async function (receipt) {
         let licenseId =
           receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
@@ -205,7 +212,23 @@ function ClaimAction({
               {isActing || loading ? spinner : "Confirm"}
             </Button>
           </Form>
+
           <br />
+          {didFail && !isActing ? (
+            <Alert
+              variant="danger"
+              dismissible
+              onClick={() => setDidFail(false)}
+            >
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Transaction failed
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>
+                Oops! Something went wrong. Please try again.
+              </p>
+            </Alert>
+          ) : null}
+
           <div className="font-weight-bold">New Expiration Date:</div>
           <div className={isDateInvalid ? "text-danger font-weight-bold" : ""}>
             {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
