@@ -1,31 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "paymentTokenContractAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_minInitialValue",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_perSecondFeeNumerator",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_perSecondFeeDenominator",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -216,6 +190,34 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "paymentTokenContractAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minInitialValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_perSecondFeeNumerator",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_perSecondFeeDenominator",
+        "type": "uint256"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "parcelContractAddress",
         "type": "address"
       }
@@ -267,6 +269,29 @@
       }
     ],
     "name": "claim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "licenseId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "additionalFeePayment",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateValue",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

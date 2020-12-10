@@ -163,6 +163,7 @@ function ParcelInfo({
           setSelectedParcelId={setSelectedParcelId}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
+          parcelData={data}
         />
       ) : null}
     </Col>

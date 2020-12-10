@@ -9,8 +9,9 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 
-const MIN_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000;
-const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000;
+const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
+const MIN_EDIT_DATE_MILLIS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
 function ActionForm({
   title,
@@ -26,6 +27,8 @@ function ActionForm({
   setNetworkFeePayment,
   didFail,
   setDidFail,
+  currentForSalePrice,
+  currentExpirationTimestamp,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
 
@@ -41,35 +44,109 @@ function ActionForm({
   let isNetworkFeePaymentInvalid =
     networkFeePayment.length > 0 && isNaN(networkFeePayment);
 
-  let newExpirationDate;
-  let isDateInvalid = false;
-  if (
-    perSecondFeeNumerator &&
-    perSecondFeeDenominator &&
-    forSalePrice.length > 0 &&
-    networkFeePayment.length > 0 &&
-    !isForSalePriceInvalid &&
-    !isNetworkFeePaymentInvalid
+  function _calculateNewExpiration(
+    existingForSalePrice,
+    existingExpirationTimestamp,
+    newForSalePrice,
+    additionalNetworkFeePayment
   ) {
-    let perSecondFee = new BN(Web3.utils.toWei(forSalePrice))
+    let newExpirationDate;
+    let isDateInvalid;
+    let isDateWarning;
+
+    if (
+      perSecondFeeNumerator == null ||
+      perSecondFeeDenominator == null ||
+      isForSalePriceInvalid ||
+      isNetworkFeePaymentInvalid ||
+      newForSalePrice.length == 0
+    ) {
+      return [null, false, false];
+    }
+
+    let now = new Date();
+    let existingTimeBalance = existingExpirationTimestamp
+      ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
+      : 0;
+
+    let existingPerSecondFee = new BN(
+      existingForSalePrice ? Web3.utils.toWei(existingForSalePrice) : 0
+    )
       .mul(perSecondFeeNumerator)
       .div(perSecondFeeDenominator);
 
-    let newFeeBalanceDuration = new BN(Web3.utils.toWei(networkFeePayment))
-      .div(perSecondFee)
-      .muln(1000);
-    let now = new Date();
+    let existingFeeBalance = existingPerSecondFee.muln(existingTimeBalance);
+
+    let newPerSecondFee = new BN(Web3.utils.toWei(newForSalePrice))
+      .mul(perSecondFeeNumerator)
+      .div(perSecondFeeDenominator);
+
+    let newFeeBalance = existingFeeBalance.add(
+      new BN(
+        additionalNetworkFeePayment
+          ? Web3.utils.toWei(additionalNetworkFeePayment)
+          : 0
+      )
+    );
+    let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).muln(1000);
+
     newExpirationDate = new Date(
-      now.getTime() + newFeeBalanceDuration.toNumber()
+      now.getTime() + newTimeBalanceMillis.toNumber()
     );
 
-    isDateInvalid =
-      newFeeBalanceDuration < MIN_DATE_MILLIS ||
-      newFeeBalanceDuration > MAX_DATE_MILLIS;
+    // New parcel
+    if (
+      existingForSalePrice == null ||
+      existingForSalePrice.length == 0 ||
+      existingForSalePrice == 0
+    ) {
+      if (additionalNetworkFeePayment.length > 0) {
+        isDateInvalid =
+          newTimeBalanceMillis < MIN_CLAIM_DATE_MILLIS ||
+          newTimeBalanceMillis > MAX_DATE_MILLIS;
+      }
+
+      isDateWarning = false;
+    } else {
+      // Existing parcel
+      isDateInvalid = newTimeBalanceMillis < MIN_EDIT_DATE_MILLIS;
+      isDateWarning = newTimeBalanceMillis > MAX_DATE_MILLIS;
+    }
+
+    return [newExpirationDate, isDateInvalid, isDateWarning];
   }
 
+  let [
+    newExpirationDate,
+    isDateInvalid,
+    isDateWarning,
+  ] = _calculateNewExpiration(
+    currentForSalePrice,
+    currentExpirationTimestamp,
+    forSalePrice,
+    networkFeePayment
+  );
+
   let isInvalid =
-    isForSalePriceInvalid || isNetworkFeePaymentInvalid || isDateInvalid;
+    isForSalePriceInvalid ||
+    isNetworkFeePaymentInvalid ||
+    isDateInvalid ||
+    !forSalePrice ||
+    (currentForSalePrice == null && !networkFeePayment);
+
+  let expirationDateErrorMessage;
+  if (currentForSalePrice == null && isDateInvalid) {
+    expirationDateErrorMessage =
+      "Initial payment must result in an expiration date between 1 and 2 years from now";
+  } else if (currentForSalePrice != null) {
+    if (isDateInvalid) {
+      expirationDateErrorMessage =
+        "Additional payment is needed to ensure the expiration is at least 2 weeks from now";
+    } else if (isDateWarning) {
+      expirationDateErrorMessage =
+        "New For Sale Price results in a calculated expiration date that exceeds the maximum value (> 2 years). You may proceed with your transaction, but the expiration date will only be set as 2 years from now.";
+    }
+  }
 
   React.useEffect(() => {
     if (adminContract == null) {
@@ -110,31 +187,22 @@ function ActionForm({
               </Form.Control.Feedback>
               <br />
               <Form.Control
-                required
+                required={currentForSalePrice == null}
                 className="bg-dark text-light"
                 type="text"
                 placeholder="Network Fee Payment (GEO)"
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
                 disabled={isActing || loading}
-                isInvalid={isNetworkFeePaymentInvalid || isDateInvalid}
+                isInvalid={isNetworkFeePaymentInvalid}
                 onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
-              <Form.Control.Feedback type="invalid">
-                Initial payment must result in an expiration date between 1 and
-                2 years from now
-              </Form.Control.Feedback>
             </Form.Group>
             <Button
               variant="primary"
               className="w-100"
               onClick={performAction}
-              disabled={
-                !(forSalePrice && networkFeePayment) ||
-                isActing ||
-                loading ||
-                isInvalid
-              }
+              disabled={isActing || loading || isInvalid}
             >
               {isActing || loading ? spinner : "Confirm"}
             </Button>
@@ -157,9 +225,30 @@ function ActionForm({
           ) : null}
 
           <div className="font-weight-bold">New Expiration Date:</div>
-          <div className={isDateInvalid ? "text-danger font-weight-bold" : ""}>
+          <div
+            className={
+              isDateInvalid
+                ? "text-danger font-weight-bold"
+                : isDateWarning
+                ? "text-warning font-weight-bold"
+                : ""
+            }
+          >
             {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
           </div>
+          {isDateInvalid ? (
+            <Alert className="mt-2" variant="danger">
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Expiration date is not valid
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
+            </Alert>
+          ) : null}
+          {isDateWarning ? (
+            <Alert className="mt-2" variant="warning">
+              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
+            </Alert>
+          ) : null}
         </Card.Text>
       </Card.Body>
       <Card.Footer className="border-top border-secondary">

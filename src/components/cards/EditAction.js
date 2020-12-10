@@ -22,6 +22,7 @@ function EditAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  parcelData,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
@@ -46,47 +47,34 @@ function EditAction({
   }, [data]);
 
   function _edit() {
-    // setIsActing(true);
-    // let baseCoord = GeoWebCoordinate.make_gw_coord(
-    //   claimBase1Coord.x,
-    //   claimBase1Coord.y
-    // );
-    // let destCoord = GeoWebCoordinate.make_gw_coord(
-    //   claimBase2Coord.x,
-    //   claimBase2Coord.y
-    // );
-    // let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
-    // if (path.length == 0) {
-    //   path = [new BN(0)];
-    // }
-    // adminContract.methods
-    //   .claim(
-    //     account,
-    //     baseCoord,
-    //     path,
-    //     Web3.utils.toWei(forSalePrice),
-    //     Web3.utils.toWei(networkFeePayment)
-    //   )
-    //   .send({ from: account }, (error, txHash) => {
-    //     if (error) {
-    //       setDidFail(true);
-    //       setIsActing(false);
-    //     }
-    //   })
-    //   .once("receipt", async function (receipt) {
-    //     let licenseId =
-    //       receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
-    //     let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
-    //     setNewParcelId(_newParcelId);
-    //     getNewParcel({
-    //       variables: { id: _newParcelId },
-    //       pollInterval: 2000,
-    //     });
-    //     setIsActing(false);
-    //   })
-    //   .catch(() => {
-    //     setIsActing(false);
-    //   });
+    setIsActing(true);
+
+    adminContract.methods
+      .updateValue(
+        parcelData.landParcel.id,
+        Web3.utils.toWei(forSalePrice),
+        networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0
+      )
+      .send({ from: account }, (error, txHash) => {
+        if (error) {
+          setDidFail(true);
+          setIsActing(false);
+        }
+      })
+      .once("receipt", async function (receipt) {
+        let licenseId =
+          receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
+        let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
+        setNewParcelId(_newParcelId);
+        getNewParcel({
+          variables: { id: _newParcelId },
+          pollInterval: 2000,
+        });
+        setIsActing(false);
+      })
+      .catch(() => {
+        setIsActing(false);
+      });
   }
 
   return (
@@ -104,6 +92,12 @@ function EditAction({
       networkFeePayment={networkFeePayment}
       didFail={didFail}
       setDidFail={setDidFail}
+      currentForSalePrice={Web3.utils.fromWei(
+        parcelData.landParcel.license.value
+      )}
+      currentExpirationTimestamp={
+        parcelData.landParcel.license.expirationTimestamp
+      }
     />
   );
 }

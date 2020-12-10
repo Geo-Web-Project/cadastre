@@ -9,9 +9,9 @@ import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 
-const geoWebAdminABI = require("./contracts/GeoWebAdmin.json");
+const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("./contracts/ERC20Mock.json");
-const adminAddress = "0xC53C3c14D5d28496C7c41e9945aF54271D0f2e94";
+const adminAddress = "0xCd6Cf8CBc0d8207de06C7E539267AE5839b1061A";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
