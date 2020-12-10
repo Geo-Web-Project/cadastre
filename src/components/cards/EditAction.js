@@ -1,50 +1,23 @@
 import * as React from "react";
 import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import BN from "bn.js";
-import { gql, useLazyQuery } from "@apollo/client";
 import ActionForm from "./ActionForm";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-const newParcelQuery = gql`
-  query LandParcel($id: String) {
-    landParcel(id: $id) {
-      id
-    }
-  }
-`;
-
 function EditAction({
   adminContract,
   account,
-  setInteractionState,
-  setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   parcelData,
+  refetchParcelData,
+  setInteractionState,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
-  const [newParcelId, setNewParcelId] = React.useState(null);
-
-  const [getNewParcel, { loading, data, stopPolling }] = useLazyQuery(
-    newParcelQuery
-  );
-
-  React.useEffect(() => {
-    if (data == null || data.landParcel == null) {
-      return;
-    }
-    // Stop polling for new parcel
-    stopPolling();
-
-    // Load new parcel
-    setSelectedParcelId(newParcelId);
-    setInteractionState(STATE_PARCEL_SELECTED);
-  }, [data]);
 
   function _edit() {
     setIsActing(true);
@@ -62,15 +35,9 @@ function EditAction({
         }
       })
       .once("receipt", async function (receipt) {
-        let licenseId =
-          receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
-        let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
-        setNewParcelId(_newParcelId);
-        getNewParcel({
-          variables: { id: _newParcelId },
-          pollInterval: 2000,
-        });
         setIsActing(false);
+        refetchParcelData();
+        setInteractionState(STATE_PARCEL_SELECTED);
       })
       .catch(() => {
         setIsActing(false);
@@ -84,7 +51,6 @@ function EditAction({
       perSecondFeeNumerator={perSecondFeeNumerator}
       perSecondFeeDenominator={perSecondFeeDenominator}
       isActing={isActing}
-      loading={loading}
       performAction={_edit}
       setForSalePrice={setForSalePrice}
       forSalePrice={forSalePrice}

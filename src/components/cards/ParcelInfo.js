@@ -31,7 +31,7 @@ function ParcelInfo({
   perSecondFeeNumerator,
   perSecondFeeDenominator,
 }) {
-  const { loading, data } = useQuery(parcelQuery, {
+  const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
@@ -164,6 +164,7 @@ function ParcelInfo({
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
           parcelData={data}
+          refetchParcelData={refetch}
         />
       ) : null}
     </Col>
