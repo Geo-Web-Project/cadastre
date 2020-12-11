@@ -5,7 +5,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
-import FaucetInfo from "./cards/FaucetInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import BN from "bn.js";
 
@@ -82,6 +81,8 @@ function Sidebar({
           setSelectedParcelId={setSelectedParcelId}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
         ></ParcelInfo>
       </Row>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
@@ -96,12 +97,9 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-          ></ClaimAction>
-          <FaucetInfo
             paymentTokenContract={paymentTokenContract}
-            account={account}
             adminAddress={adminAddress}
-          ></FaucetInfo>
+          ></ClaimAction>
         </>
       ) : null}
     </Col>

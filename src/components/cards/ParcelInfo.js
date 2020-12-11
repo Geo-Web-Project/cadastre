@@ -1,12 +1,17 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
-import { STATE_PARCEL_SELECTED, STATE_PARCEL_EDITING } from "../Map";
+import {
+  STATE_PARCEL_SELECTED,
+  STATE_PARCEL_EDITING,
+  STATE_PARCEL_PURCHASING,
+} from "../Map";
 import Web3 from "web3";
 import { useState, useEffect } from "react";
 import BN from "bn.js";
 import Button from "react-bootstrap/Button";
 import EditAction from "./EditAction";
+import PurchaseAction from "./PurchaseAction";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -30,6 +35,8 @@ function ParcelInfo({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  paymentTokenContract,
+  adminAddress,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -120,16 +127,43 @@ function ParcelInfo({
       break;
   }
 
-  let initiateTransferButton = (
-    <Button variant="primary" className="w-100" disabled>
-      Initiate Transfer (Coming Soon)
-    </Button>
-  );
+  let initiateTransferButton;
+  switch (interactionState) {
+    case STATE_PARCEL_SELECTED:
+      initiateTransferButton = (
+        <Button
+          variant="primary"
+          className="w-100"
+          onClick={() => {
+            setInteractionState(STATE_PARCEL_PURCHASING);
+          }}
+        >
+          Initiate Transfer
+        </Button>
+      );
+      break;
+    case STATE_PARCEL_PURCHASING:
+      initiateTransferButton = (
+        <Button
+          variant="danger"
+          className="w-100"
+          onClick={() => {
+            setInteractionState(STATE_PARCEL_SELECTED);
+          }}
+        >
+          Cancel Transfer
+        </Button>
+      );
+      break;
+    default:
+      break;
+  }
 
   return (
     <Col>
       {interactionState == STATE_PARCEL_SELECTED ||
-      interactionState == STATE_PARCEL_EDITING ? (
+      interactionState == STATE_PARCEL_EDITING ||
+      interactionState == STATE_PARCEL_PURCHASING ? (
         <>
           <p className="text-truncate">
             <span className="font-weight-bold">Licensee:</span>{" "}
@@ -150,7 +184,11 @@ function ParcelInfo({
               : networkFeeBalanceDisplay}
           </p>
           <br />
-          {account == licenseOwner ? editButton : initiateTransferButton}
+          {!isLoading
+            ? account == licenseOwner
+              ? editButton
+              : initiateTransferButton
+            : null}
         </>
       ) : (
         <p>Unclaimed Coordinates</p>
@@ -165,6 +203,22 @@ function ParcelInfo({
           perSecondFeeDenominator={perSecondFeeDenominator}
           parcelData={data}
           refetchParcelData={refetch}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
+        />
+      ) : null}
+      {interactionState == STATE_PARCEL_PURCHASING ? (
+        <PurchaseAction
+          adminContract={adminContract}
+          account={account}
+          setInteractionState={setInteractionState}
+          setSelectedParcelId={setSelectedParcelId}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+          parcelData={data}
+          refetchParcelData={refetch}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
         />
       ) : null}
     </Col>

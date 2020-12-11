@@ -13,7 +13,7 @@ const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 14 * 24 * 60 * 60 * 1000; // 14 days
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
-function ActionForm({
+export function ActionForm({
   title,
   adminContract,
   perSecondFeeNumerator,
@@ -29,6 +29,7 @@ function ActionForm({
   setDidFail,
   currentForSalePrice,
   currentExpirationTimestamp,
+  transactionSubtotal,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
 
@@ -39,10 +40,13 @@ function ActionForm({
   );
 
   let isForSalePriceInvalid =
+    forSalePrice &&
     forSalePrice.length > 0 &&
     (isNaN(forSalePrice) || Number(forSalePrice) < minInitialValue);
   let isNetworkFeePaymentInvalid =
-    networkFeePayment.length > 0 && isNaN(networkFeePayment);
+    networkFeePayment &&
+    networkFeePayment.length > 0 &&
+    isNaN(networkFeePayment);
 
   function _calculateNewExpiration(
     existingForSalePrice,
@@ -59,6 +63,7 @@ function ActionForm({
       perSecondFeeDenominator == null ||
       isForSalePriceInvalid ||
       isNetworkFeePaymentInvalid ||
+      newForSalePrice == null ||
       newForSalePrice.length == 0
     ) {
       return [null, false, false];
@@ -161,6 +166,10 @@ function ActionForm({
       });
   }, [adminContract]);
 
+  React.useEffect(() => {
+    setForSalePrice(currentForSalePrice);
+  }, [currentForSalePrice]);
+
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
@@ -178,6 +187,7 @@ function ActionForm({
                 placeholder="New For Sale Price (GEO)"
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
+                defaultValue={currentForSalePrice}
                 disabled={isActing || loading}
                 onChange={(e) => setForSalePrice(e.target.value)}
               />
@@ -190,7 +200,11 @@ function ActionForm({
                 required={currentForSalePrice == null}
                 className="bg-dark text-light"
                 type="text"
-                placeholder="Network Fee Payment (GEO)"
+                placeholder={
+                  currentForSalePrice != null
+                    ? "Additional Network Fee Payment (GEO)"
+                    : "Network Fee Payment (GEO)"
+                }
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
                 disabled={isActing || loading}
@@ -236,6 +250,14 @@ function ActionForm({
           >
             {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
           </div>
+          <div className="font-weight-bold">
+            Transaction subtotal (excludes gas):
+          </div>
+          <div>
+            {transactionSubtotal
+              ? `${Web3.utils.fromWei(transactionSubtotal)} GEO`
+              : "N/A"}
+          </div>
           {isDateInvalid ? (
             <Alert className="mt-2" variant="danger">
               <Alert.Heading style={{ fontSize: "1em" }}>
@@ -266,3 +288,11 @@ function ActionForm({
 }
 
 export default ActionForm;
+
+export function calculateWeiSubtotalField(value) {
+  if (value && value.length > 0 && !isNaN(value)) {
+    return new BN(Web3.utils.toWei(value));
+  } else {
+    return new BN(0);
+  }
+}

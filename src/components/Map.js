@@ -19,6 +19,7 @@ export const STATE_CLAIM_SELECTING = 1;
 export const STATE_CLAIM_SELECTED = 2;
 export const STATE_PARCEL_SELECTED = 3;
 export const STATE_PARCEL_EDITING = 4;
+export const STATE_PARCEL_PURCHASING = 5;
 
 const query = gql`
   query Polygons($lastBlock: BigInt) {
@@ -284,7 +285,7 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
   }
 
   useEffect(() => {
-    if (data) {
+    if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
       let newLastBlock =
         data.geoWebCoordinates[data.geoWebCoordinates.length - 1]

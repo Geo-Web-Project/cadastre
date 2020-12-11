@@ -11,7 +11,7 @@ import BN from "bn.js";
 function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   function _mintToken() {
     paymentTokenContract.methods
-      .mockMint(account, Web3.utils.toWei("10"))
+      .mockMint(account, Web3.utils.toWei("1000"))
       .send({ from: account });
   }
 

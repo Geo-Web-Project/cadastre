@@ -11,7 +11,7 @@ import Navbar from "react-bootstrap/Navbar";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("./contracts/ERC20Mock.json");
-const adminAddress = "0xCd6Cf8CBc0d8207de06C7E539267AE5839b1061A";
+const adminAddress = "0xb1a97Cd9fb8Ef04b308Fee7e0F582148F931F5fe";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
