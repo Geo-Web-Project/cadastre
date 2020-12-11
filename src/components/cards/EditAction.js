@@ -2,6 +2,7 @@ import * as React from "react";
 import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import ActionForm from "./ActionForm";
+import FaucetInfo from "./FaucetInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -13,6 +14,8 @@ function EditAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
+  paymentTokenContract,
+  adminAddress,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
@@ -45,26 +48,33 @@ function EditAction({
   }
 
   return (
-    <ActionForm
-      title="Edit"
-      adminContract={adminContract}
-      perSecondFeeNumerator={perSecondFeeNumerator}
-      perSecondFeeDenominator={perSecondFeeDenominator}
-      isActing={isActing}
-      performAction={_edit}
-      setForSalePrice={setForSalePrice}
-      forSalePrice={forSalePrice}
-      setNetworkFeePayment={setNetworkFeePayment}
-      networkFeePayment={networkFeePayment}
-      didFail={didFail}
-      setDidFail={setDidFail}
-      currentForSalePrice={Web3.utils.fromWei(
-        parcelData.landParcel.license.value
-      )}
-      currentExpirationTimestamp={
-        parcelData.landParcel.license.expirationTimestamp
-      }
-    />
+    <>
+      <ActionForm
+        title="Edit"
+        adminContract={adminContract}
+        perSecondFeeNumerator={perSecondFeeNumerator}
+        perSecondFeeDenominator={perSecondFeeDenominator}
+        isActing={isActing}
+        performAction={_edit}
+        setForSalePrice={setForSalePrice}
+        forSalePrice={forSalePrice}
+        setNetworkFeePayment={setNetworkFeePayment}
+        networkFeePayment={networkFeePayment}
+        didFail={didFail}
+        setDidFail={setDidFail}
+        currentForSalePrice={Web3.utils.fromWei(
+          parcelData.landParcel.license.value
+        )}
+        currentExpirationTimestamp={
+          parcelData.landParcel.license.expirationTimestamp
+        }
+      />
+      <FaucetInfo
+        paymentTokenContract={paymentTokenContract}
+        account={account}
+        adminAddress={adminAddress}
+      ></FaucetInfo>
+    </>
   );
 }
 

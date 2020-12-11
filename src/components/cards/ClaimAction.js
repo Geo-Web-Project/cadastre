@@ -4,6 +4,7 @@ import { STATE_PARCEL_SELECTED } from "../Map";
 import BN from "bn.js";
 import { gql, useLazyQuery } from "@apollo/client";
 import ActionForm from "./ActionForm";
+import FaucetInfo from "./FaucetInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -17,6 +18,8 @@ const newParcelQuery = gql`
 
 function ClaimAction({
   adminContract,
+  paymentTokenContract,
+  adminAddress,
   account,
   claimBase1Coord,
   claimBase2Coord,
@@ -45,6 +48,8 @@ function ClaimAction({
     // Load new parcel
     setSelectedParcelId(newParcelId);
     setInteractionState(STATE_PARCEL_SELECTED);
+
+    setIsActing(false);
   }, [data]);
 
   function _claim() {
@@ -87,8 +92,6 @@ function ClaimAction({
           variables: { id: _newParcelId },
           pollInterval: 2000,
         });
-
-        setIsActing(false);
       })
       .catch(() => {
         setIsActing(false);
@@ -96,21 +99,28 @@ function ClaimAction({
   }
 
   return (
-    <ActionForm
-      title="Claim"
-      adminContract={adminContract}
-      perSecondFeeNumerator={perSecondFeeNumerator}
-      perSecondFeeDenominator={perSecondFeeDenominator}
-      isActing={isActing}
-      loading={loading}
-      performAction={_claim}
-      setForSalePrice={setForSalePrice}
-      forSalePrice={forSalePrice}
-      setNetworkFeePayment={setNetworkFeePayment}
-      networkFeePayment={networkFeePayment}
-      didFail={didFail}
-      setDidFail={setDidFail}
-    />
+    <>
+      <ActionForm
+        title="Claim"
+        adminContract={adminContract}
+        perSecondFeeNumerator={perSecondFeeNumerator}
+        perSecondFeeDenominator={perSecondFeeDenominator}
+        isActing={isActing}
+        loading={loading}
+        performAction={_claim}
+        setForSalePrice={setForSalePrice}
+        forSalePrice={forSalePrice}
+        setNetworkFeePayment={setNetworkFeePayment}
+        networkFeePayment={networkFeePayment}
+        didFail={didFail}
+        setDidFail={setDidFail}
+      />
+      <FaucetInfo
+        paymentTokenContract={paymentTokenContract}
+        account={account}
+        adminAddress={adminAddress}
+      ></FaucetInfo>
+    </>
   );
 }
 

@@ -285,7 +285,7 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
   }
 
   useEffect(() => {
-    if (data) {
+    if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
       let newLastBlock =
         data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
