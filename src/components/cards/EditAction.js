@@ -1,7 +1,7 @@
 import * as React from "react";
 import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import ActionForm from "./ActionForm";
+import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
@@ -21,6 +21,8 @@ function EditAction({
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+
+  let transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
 
   function _edit() {
     setIsActing(true);
@@ -68,6 +70,7 @@ function EditAction({
         currentExpirationTimestamp={
           parcelData.landParcel.license.expirationTimestamp
         }
+        transactionSubtotal={transactionSubtotal}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

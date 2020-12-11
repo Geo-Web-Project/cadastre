@@ -1,10 +1,9 @@
 import * as React from "react";
 import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import ActionForm from "./ActionForm";
+import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-
-const GeoWebCoordinate = require("js-geo-web-coordinate");
+import BN from "bn.js";
 
 function PurchaseAction({
   adminContract,
@@ -22,14 +21,46 @@ function PurchaseAction({
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
+  let currentForSalePriceWei = parcelData.landParcel.license.value;
+  let currentExpirationTimestamp =
+    parcelData.landParcel.license.expirationTimestamp;
+
+  function _calculateNetworkFeeBalance(
+    existingExpirationTimestamp,
+    existingForSalePriceWei
+  ) {
+    let now = new Date();
+    let existingTimeBalance = existingExpirationTimestamp
+      ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
+      : 0;
+
+    let existingPerSecondFee = new BN(
+      existingForSalePriceWei ? existingForSalePriceWei : 0
+    )
+      .mul(perSecondFeeNumerator)
+      .div(perSecondFeeDenominator);
+
+    return existingPerSecondFee.muln(existingTimeBalance);
+  }
+
+  let existingNetworkFeeBalanceWei = _calculateNetworkFeeBalance(
+    currentExpirationTimestamp,
+    currentForSalePriceWei
+  );
+
+  let transactionSubtotal = calculateWeiSubtotalField(forSalePrice)
+    .add(calculateWeiSubtotalField(networkFeePayment))
+    .add(existingNetworkFeeBalanceWei);
+
   function _purchase() {
     setIsActing(true);
 
     adminContract.methods
-      .updateValue(
+      .purchaseLicense(
         parcelData.landParcel.id,
-        Web3.utils.toWei(forSalePrice),
-        networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0
+        transactionSubtotal,
+        calculateWeiSubtotalField(forSalePrice),
+        calculateWeiSubtotalField(networkFeePayment)
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {
@@ -62,12 +93,9 @@ function PurchaseAction({
         networkFeePayment={networkFeePayment}
         didFail={didFail}
         setDidFail={setDidFail}
-        currentForSalePrice={Web3.utils.fromWei(
-          parcelData.landParcel.license.value
-        )}
-        currentExpirationTimestamp={
-          parcelData.landParcel.license.expirationTimestamp
-        }
+        currentForSalePrice={Web3.utils.fromWei(currentForSalePriceWei)}
+        currentExpirationTimestamp={currentExpirationTimestamp}
+        transactionSubtotal={transactionSubtotal}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

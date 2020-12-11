@@ -35,6 +35,8 @@ function ParcelInfo({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  paymentTokenContract,
+  adminAddress,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -182,7 +184,11 @@ function ParcelInfo({
               : networkFeeBalanceDisplay}
           </p>
           <br />
-          {account == licenseOwner ? editButton : initiateTransferButton}
+          {!isLoading
+            ? account == licenseOwner
+              ? editButton
+              : initiateTransferButton
+            : null}
         </>
       ) : (
         <p>Unclaimed Coordinates</p>
@@ -197,6 +203,8 @@ function ParcelInfo({
           perSecondFeeDenominator={perSecondFeeDenominator}
           parcelData={data}
           refetchParcelData={refetch}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
         />
       ) : null}
       {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -209,6 +217,8 @@ function ParcelInfo({
           perSecondFeeDenominator={perSecondFeeDenominator}
           parcelData={data}
           refetchParcelData={refetch}
+          paymentTokenContract={paymentTokenContract}
+          adminAddress={adminAddress}
         />
       ) : null}
     </Col>

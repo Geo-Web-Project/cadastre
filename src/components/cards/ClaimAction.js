@@ -3,7 +3,7 @@ import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import BN from "bn.js";
 import { gql, useLazyQuery } from "@apollo/client";
-import ActionForm from "./ActionForm";
+import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
@@ -33,6 +33,8 @@ function ClaimAction({
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [newParcelId, setNewParcelId] = React.useState(null);
+
+  let transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
 
   const [getNewParcel, { loading, data, stopPolling }] = useLazyQuery(
     newParcelQuery
@@ -114,6 +116,7 @@ function ClaimAction({
         networkFeePayment={networkFeePayment}
         didFail={didFail}
         setDidFail={setDidFail}
+        transactionSubtotal={transactionSubtotal}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}
