@@ -48,7 +48,7 @@ function PurchaseAction({
     currentForSalePriceWei
   );
 
-  let transactionSubtotal = calculateWeiSubtotalField(forSalePrice)
+  let transactionSubtotal = new BN(currentForSalePriceWei)
     .add(calculateWeiSubtotalField(networkFeePayment))
     .add(existingNetworkFeeBalanceWei);
 
