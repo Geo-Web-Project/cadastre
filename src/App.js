@@ -8,14 +8,13 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
+import { NETWORK_NAME, NETWORK_ID } from "./constants";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
-const erc20ABI = require("./contracts/ERC20Mock.json");
-const adminAddress = "0xb1a97Cd9fb8Ef04b308Fee7e0F582148F931F5fe";
+const adminAddress = "0x6CC6d2ba9668d5F8F5D08A45520E935cD6CDfc6f";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
-  const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [account, setAccount] = useState(null);
 
   // Setup Web3
@@ -27,9 +26,9 @@ function App() {
         await window.ethereum.enable();
         // User has allowed account access to DApp...
         setAccount(window.web3.eth.defaultAccount);
-        web3.eth.net.getNetworkType().then((network) => {
-          if (network !== "kovan")
-            alert("Please Switch to Kovan to use this DApp");
+        web3.eth.net.getId().then((networkId) => {
+          if (networkId != NETWORK_ID)
+            alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
         });
       } catch (e) {
         // User has denied account access to DApp...
@@ -38,9 +37,9 @@ function App() {
     // Legacy DApp Browsers
     else if (window.web3) {
       web3 = new Web3(window.web3.currentProvider);
-      web3.eth.net.getNetworkType().then((network) => {
-        if (network !== "kovan")
-          alert("Please Switch to Kovan to use this DApp");
+      web3.eth.net.getId().then((networkId) => {
+        if (networkId != NETWORK_ID)
+          alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
       });
     }
     // Non-DApp Browsers
@@ -56,13 +55,6 @@ function App() {
 
       let _adminContract = new web3.eth.Contract(geoWebAdminABI, adminAddress);
       setAdminContract(_adminContract);
-
-      let _paymentTokenContractAddress = await _adminContract.methods
-        .paymentTokenContract()
-        .call();
-      setPaymentTokenContract(
-        new web3.eth.Contract(erc20ABI, _paymentTokenContractAddress)
-      );
     }
     contractsSetup();
   }, []);
@@ -101,7 +93,6 @@ function App() {
           <Map
             account={account}
             adminContract={adminContract}
-            paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
           ></Map>
         </Row>

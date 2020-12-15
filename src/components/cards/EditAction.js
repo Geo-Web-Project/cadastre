@@ -14,7 +14,6 @@ function EditAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  paymentTokenContract,
   adminAddress,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
@@ -27,18 +26,22 @@ function EditAction({
   function _edit() {
     setIsActing(true);
 
+    let paymentValue =
+      networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0;
     adminContract.methods
-      .updateValue(
-        parcelData.landParcel.id,
-        Web3.utils.toWei(forSalePrice),
-        networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0
-      )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          setDidFail(true);
-          setIsActing(false);
+      .updateValue(parcelData.landParcel.id, Web3.utils.toWei(forSalePrice))
+      .send(
+        {
+          from: account,
+          value: paymentValue,
+        },
+        (error, txHash) => {
+          if (error) {
+            setDidFail(true);
+            setIsActing(false);
+          }
         }
-      })
+      )
       .once("receipt", async function (receipt) {
         setIsActing(false);
         refetchParcelData();
@@ -72,11 +75,7 @@ function EditAction({
         }
         transactionSubtotal={transactionSubtotal}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

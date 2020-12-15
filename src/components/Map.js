@@ -97,7 +97,7 @@ export function coordToFeature(gwCoord) {
   };
 }
 
-function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
+function Map({ adminAddress, adminContract, account }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -340,7 +340,6 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
         <Sidebar
           adminAddress={adminAddress}
           adminContract={adminContract}
-          paymentTokenContract={paymentTokenContract}
           account={account}
           interactionState={interactionState}
           setInteractionState={setInteractionState}

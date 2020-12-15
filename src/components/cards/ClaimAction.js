@@ -18,7 +18,6 @@ const newParcelQuery = gql`
 
 function ClaimAction({
   adminContract,
-  paymentTokenContract,
   adminAddress,
   account,
   claimBase1Coord,
@@ -71,19 +70,16 @@ function ClaimAction({
     }
 
     adminContract.methods
-      .claim(
-        account,
-        baseCoord,
-        path,
-        Web3.utils.toWei(forSalePrice),
-        Web3.utils.toWei(networkFeePayment)
-      )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          setDidFail(true);
-          setIsActing(false);
+      .claim(account, baseCoord, path, Web3.utils.toWei(forSalePrice))
+      .send(
+        { from: account, value: Web3.utils.toWei(networkFeePayment) },
+        (error, txHash) => {
+          if (error) {
+            setDidFail(true);
+            setIsActing(false);
+          }
         }
-      })
+      )
       .once("receipt", async function (receipt) {
         let licenseId =
           receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
@@ -118,11 +114,7 @@ function ClaimAction({
         setDidFail={setDidFail}
         transactionSubtotal={transactionSubtotal}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

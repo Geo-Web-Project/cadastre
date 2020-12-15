@@ -13,7 +13,7 @@ import {
 const client = new ApolloClient({
   link: new HttpLink({
     uri:
-      "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-subgraph",
+      "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-xdai-subgraph",
   }),
   cache: new InMemoryCache({
     typePolicies: {

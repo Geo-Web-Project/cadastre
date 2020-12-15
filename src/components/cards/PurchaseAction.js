@@ -13,7 +13,6 @@ function PurchaseAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  paymentTokenContract,
   adminAddress,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
@@ -59,10 +58,9 @@ function PurchaseAction({
       .purchaseLicense(
         parcelData.landParcel.id,
         transactionSubtotal,
-        calculateWeiSubtotalField(forSalePrice),
-        calculateWeiSubtotalField(networkFeePayment)
+        calculateWeiSubtotalField(forSalePrice)
       )
-      .send({ from: account }, (error, txHash) => {
+      .send({ from: account, value: transactionSubtotal }, (error, txHash) => {
         if (error) {
           setDidFail(true);
           setIsActing(false);
@@ -97,11 +95,7 @@ function PurchaseAction({
         currentExpirationTimestamp={currentExpirationTimestamp}
         transactionSubtotal={transactionSubtotal}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

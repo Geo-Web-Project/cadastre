@@ -19,7 +19,6 @@ function Sidebar({
   adminAddress,
   adminContract,
   account,
-  paymentTokenContract,
   interactionState,
   setInteractionState,
   claimBase1Coord,
@@ -81,7 +80,6 @@ function Sidebar({
           setSelectedParcelId={setSelectedParcelId}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
-          paymentTokenContract={paymentTokenContract}
           adminAddress={adminAddress}
         ></ParcelInfo>
       </Row>
@@ -97,7 +95,6 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
           ></ClaimAction>
         </>
