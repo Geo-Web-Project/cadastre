@@ -11,7 +11,7 @@ import Navbar from "react-bootstrap/Navbar";
 import { NETWORK_NAME, NETWORK_ID } from "./constants";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
-const adminAddress = "0x6CC6d2ba9668d5F8F5D08A45520E935cD6CDfc6f";
+const adminAddress = "0x40e21849492Dc88386382755C6648fc7F945d37D";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
@@ -71,7 +71,7 @@ function App() {
         >
           <Col sm="1" className="text-center">
             <Badge pill variant="secondary" className="py-2 px-3">
-              <span style={{ fontWeight: 600 }}>TESTNET</span>
+              <span style={{ fontWeight: 600 }}>ALPHA</span>
             </Badge>
           </Col>
           <Col sm="10" className="text-center p-2">
@@ -89,6 +89,19 @@ function App() {
         </Navbar>
       </Container>
       <Container fluid>
+        <Navbar
+          fixed="top"
+          className="bg-danger p-2 text-light text-center"
+          style={{ marginTop: "100px" }}
+        >
+          <Col>
+            WARNING: This is an Alpha product! We will actively be making
+            changes to the contracts and do not make any representations about
+            the stability, efficacy, or long-term availability of this product.
+            By continuing, you agree that you are using this product at your own
+            risk and with xDAI you are EXPECTING to lose.{" "}
+          </Col>
+        </Navbar>
         <Row>
           <Map
             account={account}

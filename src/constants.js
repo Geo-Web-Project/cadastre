@@ -1,6 +1,6 @@
-export const NETWORK_ID = 77;
-export const NETWORK_NAME = "POA Sokul";
-export const PAYMENT_TOKEN = "SPOA";
-export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.poa.network/";
+export const NETWORK_ID = 100;
+export const NETWORK_NAME = "xDai";
+export const PAYMENT_TOKEN = "xDai";
+export const PAYMENT_TOKEN_FAUCET_URL = "https://xdai-faucet.top";
 export const SUBGRAPH_URL =
   "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-xdai-subgraph";

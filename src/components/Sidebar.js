@@ -52,7 +52,7 @@ function Sidebar({
     <Col
       sm="3"
       className="bg-dark px-4 text-light"
-      style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
+      style={{ paddingTop: "200px", overflowY: "scroll", height: "100vh" }}
     >
       <Row className="mb-3">
         <Col sm="10">
