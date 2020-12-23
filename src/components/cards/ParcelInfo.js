@@ -13,6 +13,7 @@ import Button from "react-bootstrap/Button";
 import EditAction from "./EditAction";
 import PurchaseAction from "./PurchaseAction";
 import { PAYMENT_TOKEN } from "../../constants";
+import AuctionInfo from "./AuctionInfo";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -51,11 +52,13 @@ function ParcelInfo({
 
   function _calculateNetworkFeeBalance(license) {
     let now = new Date();
-    return new BN(license.expirationTimestamp * 1000 - now)
+    let networkFeeBalance = new BN(license.expirationTimestamp * 1000 - now)
       .divn(1000)
       .mul(new BN(license.value))
       .mul(perSecondFeeNumerator)
       .div(perSecondFeeDenominator);
+
+    return networkFeeBalance < 0 ? 0 : networkFeeBalance;
   }
 
   useEffect(() => {
@@ -65,9 +68,13 @@ function ParcelInfo({
       perSecondFeeNumerator &&
       perSecondFeeDenominator
     ) {
-      setNetworkFeeBalance(
-        _calculateNetworkFeeBalance(data.landParcel.license)
-      );
+      if (networkFeeBalance == null) {
+        setInterval(() => {
+          setNetworkFeeBalance(
+            _calculateNetworkFeeBalance(data.landParcel.license)
+          );
+        }, 500);
+      }
     }
   }, [data, perSecondFeeNumerator, perSecondFeeDenominator]);
 
@@ -81,6 +88,7 @@ function ParcelInfo({
   let expDate;
   let networkFeeBalanceDisplay;
   let licenseOwner;
+  let isExpired;
   if (data && data.landParcel) {
     forSalePrice = (
       <>
@@ -88,6 +96,7 @@ function ParcelInfo({
       </>
     );
     if (networkFeeBalance) {
+      isExpired = networkFeeBalance == 0;
       networkFeeBalanceDisplay = (
         <>
           {Web3.utils.fromWei(networkFeeBalance)} {PAYMENT_TOKEN}{" "}
@@ -143,7 +152,7 @@ function ParcelInfo({
             setInteractionState(STATE_PARCEL_PURCHASING);
           }}
         >
-          Initiate Transfer
+          {isExpired ? "Auction Claim" : "Initiate Transfer"}
         </Button>
       );
       break;
@@ -156,7 +165,7 @@ function ParcelInfo({
             setInteractionState(STATE_PARCEL_SELECTED);
           }}
         >
-          Cancel Transfer
+          {isExpired ? "Cancel Auction Claim" : "Cancel Transfer"}
         </Button>
       );
       break;
@@ -188,6 +197,15 @@ function ParcelInfo({
               ? spinner
               : networkFeeBalanceDisplay}
           </p>
+          {isExpired ? (
+            <>
+              <hr className="border-secondary" />
+              <AuctionInfo
+                adminContract={adminContract}
+                licenseInfo={data.landParcel.license}
+              ></AuctionInfo>
+            </>
+          ) : null}
           <br />
           {!isLoading
             ? account == licenseOwner
