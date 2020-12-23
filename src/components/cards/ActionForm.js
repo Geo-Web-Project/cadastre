@@ -11,7 +11,7 @@ import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
-const MIN_EDIT_DATE_MILLIS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
 export function ActionForm({
