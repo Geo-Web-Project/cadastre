@@ -7,6 +7,7 @@ import Image from "react-bootstrap/Image";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import BN from "bn.js";
+import { PAYMENT_TOKEN, PAYMENT_TOKEN_FAUCET_URL } from "../../constants";
 
 function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   function _mintToken() {
@@ -29,15 +30,15 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
         </Card.Title>
         <Card.Text className="font-italic">
           <p>
-            Geo Web testnet transactions require Kovan ETH & GEO (Geo Web
-            token). Follow the steps below to claim tokens & provide the
-            necessary authorization to successfully transact:
+            Geo Web testnet transactions require Kovan ETH & {PAYMENT_TOKEN}.
+            Follow the steps below to claim tokens & provide the necessary
+            authorization to successfully transact:
           </p>
           <ol className="px-3">
             <li>
               <Button
                 variant="link"
-                href="https://faucet.kovan.network"
+                href={PAYMENT_TOKEN_FAUCET_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="text-light font-weight-bold"
@@ -58,7 +59,7 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
                 onClick={_mintToken}
                 style={{ textDecoration: "underline" }}
               >
-                Claim kGEO
+                Claim {PAYMENT_TOKEN}
               </Button>{" "}
               <br />- Requires a Metamask transaction
             </li>
@@ -70,7 +71,7 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
                 onClick={_approve}
                 style={{ textDecoration: "underline" }}
               >
-                Authorize the Cadastre to transact with your kGEO
+                Authorize the Cadastre to transact with your {PAYMENT_TOKEN}
               </Button>{" "}
               <br />- Requires a Metamask transaction
             </li>

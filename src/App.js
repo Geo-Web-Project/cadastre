@@ -8,10 +8,10 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
+import { NETWORK_NAME, NETWORK_ID, ADMIN_CONTRACT_ADDRESS } from "./constants";
 
 const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("./contracts/ERC20Mock.json");
-const adminAddress = "0xb1a97Cd9fb8Ef04b308Fee7e0F582148F931F5fe";
 
 function App() {
   const [adminContract, setAdminContract] = useState(null);
@@ -27,9 +27,9 @@ function App() {
         await window.ethereum.enable();
         // User has allowed account access to DApp...
         setAccount(window.web3.eth.defaultAccount);
-        web3.eth.net.getNetworkType().then((network) => {
-          if (network !== "kovan")
-            alert("Please Switch to Kovan to use this DApp");
+        web3.eth.net.getId().then((networkId) => {
+          if (networkId != NETWORK_ID)
+            alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
         });
       } catch (e) {
         // User has denied account access to DApp...
@@ -38,9 +38,9 @@ function App() {
     // Legacy DApp Browsers
     else if (window.web3) {
       web3 = new Web3(window.web3.currentProvider);
-      web3.eth.net.getNetworkType().then((network) => {
-        if (network !== "kovan")
-          alert("Please Switch to Kovan to use this DApp");
+      web3.eth.net.getId().then((networkId) => {
+        if (networkId != NETWORK_ID)
+          alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
       });
     }
     // Non-DApp Browsers
@@ -54,7 +54,10 @@ function App() {
     async function contractsSetup() {
       setupWeb3();
 
-      let _adminContract = new web3.eth.Contract(geoWebAdminABI, adminAddress);
+      let _adminContract = new web3.eth.Contract(
+        geoWebAdminABI,
+        ADMIN_CONTRACT_ADDRESS
+      );
       setAdminContract(_adminContract);
 
       let _paymentTokenContractAddress = await _adminContract.methods
@@ -102,7 +105,7 @@ function App() {
             account={account}
             adminContract={adminContract}
             paymentTokenContract={paymentTokenContract}
-            adminAddress={adminAddress}
+            adminAddress={ADMIN_CONTRACT_ADDRESS}
           ></Map>
         </Row>
       </Container>

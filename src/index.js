@@ -9,11 +9,11 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
+import { SUBGRAPH_URL } from "./constants";
 
 const client = new ApolloClient({
   link: new HttpLink({
-    uri:
-      "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-subgraph",
+    uri: SUBGRAPH_URL,
   }),
   cache: new InMemoryCache({
     typePolicies: {
