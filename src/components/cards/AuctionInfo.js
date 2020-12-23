@@ -38,7 +38,7 @@ function AuctionInfo({ adminContract, licenseInfo }) {
     }
 
     let _auctionLength = await adminContract.methods
-      .ductionAuctionLengthInSeconds()
+      .dutchAuctionLengthInSeconds()
       .call();
     setAuctionLength(_auctionLength);
 

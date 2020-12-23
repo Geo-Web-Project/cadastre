@@ -70,8 +70,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -90,12 +89,11 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
-    "name": "ductionAuctionLengthInSeconds",
+    "name": "dutchAuctionLengthInSeconds",
     "outputs": [
       {
         "internalType": "uint256",
@@ -104,8 +102,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -118,8 +115,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -143,8 +139,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -157,8 +152,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -171,8 +165,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -185,8 +178,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -199,8 +191,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -213,8 +204,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -227,8 +217,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -241,7 +230,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_ductionAuctionLengthInSeconds",
+        "name": "_dutchAuctionLengthInSeconds",
         "type": "uint256"
       }
     ],
@@ -321,7 +310,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "_ductionAuctionLengthInSeconds",
+        "name": "_dutchAuctionLengthInSeconds",
         "type": "uint256"
       }
     ],
@@ -354,7 +343,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "_ductionAuctionLengthInSeconds",
+        "name": "_dutchAuctionLengthInSeconds",
         "type": "uint256"
       }
     ],

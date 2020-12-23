@@ -6,4 +6,4 @@ export const SUBGRAPH_URL =
   "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-subgraph";
 
 export const ADMIN_CONTRACT_ADDRESS =
-  "0x373b238977E1A23f4aF3728517cD00DD588a00c3";
+  "0x5F98696751b374192deF5C3D5736C866dfe07B76";
