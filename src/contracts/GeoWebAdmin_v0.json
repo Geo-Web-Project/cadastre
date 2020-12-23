@@ -44,6 +44,70 @@
     "type": "event"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expirationTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "_calculateTotalBuyPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "licenseId",
+        "type": "uint256"
+      }
+    ],
+    "name": "calculateTotalBuyPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "ductionAuctionLengthInSeconds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
     "inputs": [],
     "name": "licenseContract",
     "outputs": [
@@ -176,12 +240,92 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_ductionAuctionLengthInSeconds",
+        "type": "uint256"
+      }
+    ],
+    "name": "setDuctionAuctionLength",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "licenseContractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setLicenseContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_minInitialValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMinInitialValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "parcelContractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setParcelContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_minInitialValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_perSecondFeeNumerator",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_perSecondFeeDenominator",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_ductionAuctionLengthInSeconds",
+        "type": "uint256"
+      }
+    ],
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -207,35 +351,14 @@
         "internalType": "uint256",
         "name": "_perSecondFeeDenominator",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_ductionAuctionLengthInSeconds",
+        "type": "uint256"
       }
     ],
     "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "parcelContractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "setParcelContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "licenseContractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "setLicenseContract",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

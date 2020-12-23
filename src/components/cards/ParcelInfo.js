@@ -12,6 +12,7 @@ import BN from "bn.js";
 import Button from "react-bootstrap/Button";
 import EditAction from "./EditAction";
 import PurchaseAction from "./PurchaseAction";
+import { PAYMENT_TOKEN } from "../../constants";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -82,11 +83,15 @@ function ParcelInfo({
   let licenseOwner;
   if (data && data.landParcel) {
     forSalePrice = (
-      <>{Web3.utils.fromWei(data.landParcel.license.value)} GEO </>
+      <>
+        {Web3.utils.fromWei(data.landParcel.license.value)} {PAYMENT_TOKEN}{" "}
+      </>
     );
     if (networkFeeBalance) {
       networkFeeBalanceDisplay = (
-        <>{Web3.utils.fromWei(networkFeeBalance)} GEO </>
+        <>
+          {Web3.utils.fromWei(networkFeeBalance)} {PAYMENT_TOKEN}{" "}
+        </>
       );
     }
     expDate = new Date(
