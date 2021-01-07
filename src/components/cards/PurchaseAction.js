@@ -34,6 +34,8 @@ function PurchaseAction({
       ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
       : 0;
 
+    existingTimeBalance = Math.max(existingTimeBalance, 0);
+
     let existingPerSecondFee = new BN(
       existingForSalePriceWei ? existingForSalePriceWei : 0
     )

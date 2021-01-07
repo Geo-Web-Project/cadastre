@@ -58,7 +58,7 @@ function ParcelInfo({
       .mul(perSecondFeeNumerator)
       .div(perSecondFeeDenominator);
 
-    return networkFeeBalance < 0 ? 0 : networkFeeBalance;
+    return networkFeeBalance < 0 ? new BN(0) : networkFeeBalance;
   }
 
   useEffect(() => {
@@ -95,7 +95,7 @@ function ParcelInfo({
         {Web3.utils.fromWei(data.landParcel.license.value)} {PAYMENT_TOKEN}{" "}
       </>
     );
-    if (networkFeeBalance) {
+    if (networkFeeBalance != null) {
       isExpired = networkFeeBalance == 0;
       networkFeeBalanceDisplay = (
         <>

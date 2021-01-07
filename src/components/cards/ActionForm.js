@@ -75,6 +75,8 @@ export function ActionForm({
       ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
       : 0;
 
+    existingTimeBalance = Math.max(existingTimeBalance, 0);
+
     let existingPerSecondFee = new BN(
       existingForSalePrice ? Web3.utils.toWei(existingForSalePrice) : 0
     )

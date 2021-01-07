@@ -6,7 +6,7 @@ import BN from "bn.js";
 function _calculateAuctionValue(auctionLength, auctionEndDate, value) {
   let now = new Date();
   if (now > auctionEndDate) {
-    return 0;
+    return new BN(0);
   }
 
   let auctionTimeRemaining = auctionEndDate - now;
@@ -17,6 +17,9 @@ function _calculateAuctionValue(auctionLength, auctionEndDate, value) {
 }
 
 function _calculateTimeString(remaining) {
+  if (remaining <= 0) {
+    return "0d 0h 0m 0s";
+  }
   let days = Math.floor(remaining / (1000 * 60 * 60 * 24));
   let hours = Math.floor(
     (remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
