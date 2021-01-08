@@ -105,7 +105,7 @@ function ParcelInfo({
     }
     expDate = new Date(
       data.landParcel.license.expirationTimestamp * 1000
-    ).toDateString();
+    ).toUTCString();
     licenseOwner = data.landParcel.license.owner;
   }
 
