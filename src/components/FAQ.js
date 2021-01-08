@@ -1,15 +1,14 @@
 import * as React from "react";
-import Popover from "react-bootstrap/Popover";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Button from "react-bootstrap/Button";
 import Accordion from "react-bootstrap/Accordion";
 import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
 import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
 import Modal from "react-bootstrap/Modal";
-import { PAYMENT_TOKEN, PAYMENT_TOKEN_FAUCET_URL } from "../constants";
+import { PAYMENT_TOKEN_FAUCET_URL } from "../constants";
 import Web3 from "web3";
 import BN from "bn.js";
+import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({ children, eventKey, callback }) {
   const currentEventKey = React.useContext(AccordionContext);
@@ -54,13 +53,14 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
   return (
     <>
       <Button
-        variant="link"
         target="_blank"
         rel="noreferrer"
-        className="text-light font-weight-bold"
+        variant="outline-primary"
+        className="text-light font-weight-bold border-dark"
+        style={{ height: "100px", width: "100px" }}
         onClick={handleShow}
       >
-        Help
+        <Image src="help.svg" /> Help
       </Button>
       <Modal show={show} size="lg" onHide={handleClose}>
         <Modal.Header
@@ -70,9 +70,11 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
             fontSize: "1.5em",
           }}
           className="text-primary border-dark"
-          closeButton
         >
           <Modal.Title as="h2">FAQ</Modal.Title>
+          <Button variant="link" size="sm" onClick={handleClose}>
+            <Image src="close.svg" />
+          </Button>
         </Modal.Header>
         <Modal.Body className="bg-dark text-light">
           <Accordion defaultActiveKey="0">

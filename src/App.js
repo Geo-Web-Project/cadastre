@@ -98,7 +98,7 @@ function App() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-          <Col>
+          <Col sm="2" className="p-0">
             <FAQ
               account={account}
               paymentTokenContract={paymentTokenContract}
