@@ -1,4 +1,5 @@
 import Map from "./components/Map";
+import FAQ from "./components/FAQ";
 import { useState, useEffect } from "react";
 import "./App.scss";
 import Container from "react-bootstrap/Container";
@@ -96,6 +97,13 @@ function App() {
             <div className="text-light" style={{ fontSize: "1em" }}>
               Claim, transfer, and manage digital land
             </div>
+          </Col>
+          <Col sm="2" className="p-0">
+            <FAQ
+              account={account}
+              paymentTokenContract={paymentTokenContract}
+              adminAddress={ADMIN_CONTRACT_ADDRESS}
+            />
           </Col>
         </Navbar>
       </Container>
