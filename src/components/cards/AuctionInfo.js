@@ -30,8 +30,12 @@ function _calculateTimeString(remaining) {
   return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-function AuctionInfo({ adminContract, licenseInfo }) {
-  let [auctionValue, setAuctionValue] = React.useState(null);
+function AuctionInfo({
+  adminContract,
+  licenseInfo,
+  auctionValue,
+  setAuctionValue,
+}) {
   let [auctionLength, setAuctionLength] = React.useState(null);
   let [auctionTimeRemaining, setAuctionTimeRemaining] = React.useState(null);
 

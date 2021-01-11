@@ -15,13 +15,15 @@ function PurchaseAction({
   setInteractionState,
   paymentTokenContract,
   adminAddress,
+  auctionValue,
 }) {
   const [forSalePrice, setForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
-  let currentForSalePriceWei = parcelData.landParcel.license.value;
+  let currentForSalePriceWei =
+    auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
   let currentExpirationTimestamp =
     parcelData.landParcel.license.expirationTimestamp;
 
