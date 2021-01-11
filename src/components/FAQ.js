@@ -137,7 +137,11 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                   </p>
                   <p>
                     It might seem a little{" "}
-                    <a href="https://www.radicalxchange.org/concepts/">
+                    <a
+                      href="https://www.radicalxchange.org/concepts/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       radical
                     </a>
                     , but we believe this system that creates the right
@@ -183,7 +187,11 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                   <ul>
                     <li>A modern web browser</li>
                     <li>
-                      <a href="https://metamask.io/download.html">
+                      <a
+                        href="https://metamask.io/download.html"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         The MetaMask web3 plugin
                       </a>{" "}
                       & an active account (other wallets and forms of identity
@@ -374,9 +382,17 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                     Hit us up at{" "}
                     <a href="mailto:info@geoweb.network">info@geoweb.network</a>
                     , jump in on{" "}
-                    <a href="https://github.com/Geo-Web-Project"></a>our Github
-                    organization, or even{" "}
-                    <a href="http://bit.ly/geowebcalendly">
+                    <a
+                      href="https://github.com/Geo-Web-Project"
+                      target="_blank"
+                      rel="noreferrer"
+                    ></a>
+                    our Github organization, or even{" "}
+                    <a
+                      href="http://bit.ly/geowebcalendly"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       schedule a call with us
                     </a>
                     .
