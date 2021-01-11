@@ -33,6 +33,7 @@ export function ActionForm({
   transactionSubtotal,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
+  let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -170,6 +171,12 @@ export function ActionForm({
   }, [adminContract]);
 
   React.useEffect(() => {
+    if (!isActing) {
+      setDisplaySubtotal(transactionSubtotal);
+    }
+  }, [transactionSubtotal]);
+
+  React.useEffect(() => {
     setForSalePrice(currentForSalePrice);
   }, [currentForSalePrice]);
 
@@ -257,8 +264,8 @@ export function ActionForm({
             Transaction subtotal (excludes gas):
           </div>
           <div>
-            {transactionSubtotal
-              ? `${Web3.utils.fromWei(transactionSubtotal)} ${PAYMENT_TOKEN}`
+            {displaySubtotal
+              ? `${Web3.utils.fromWei(displaySubtotal)} ${PAYMENT_TOKEN}`
               : "N/A"}
           </div>
           {isDateInvalid ? (

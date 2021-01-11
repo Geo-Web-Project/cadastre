@@ -63,6 +63,7 @@ function ParcelInfo({
     },
   });
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
+  let [auctionValue, setAuctionValue] = React.useState(null);
 
   let isLoading =
     loading || perSecondFeeNumerator == null || perSecondFeeDenominator == null;
@@ -220,6 +221,8 @@ function ParcelInfo({
               <AuctionInfo
                 adminContract={adminContract}
                 licenseInfo={data.landParcel.license}
+                auctionValue={auctionValue}
+                setAuctionValue={setAuctionValue}
               ></AuctionInfo>
             </>
           ) : null}
@@ -259,6 +262,7 @@ function ParcelInfo({
           refetchParcelData={refetch}
           paymentTokenContract={paymentTokenContract}
           adminAddress={adminAddress}
+          auctionValue={auctionValue}
         />
       ) : null}
     </Col>
