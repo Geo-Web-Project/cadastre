@@ -22,8 +22,8 @@ export function ActionForm({
   isActing,
   loading,
   performAction,
-  forSalePrice,
-  setForSalePrice,
+  newForSalePrice,
+  setNewForSalePrice,
   networkFeePayment,
   setNetworkFeePayment,
   didFail,
@@ -42,9 +42,9 @@ export function ActionForm({
   );
 
   let isForSalePriceInvalid =
-    forSalePrice &&
-    forSalePrice.length > 0 &&
-    (isNaN(forSalePrice) || Number(forSalePrice) < minInitialValue);
+    newForSalePrice &&
+    newForSalePrice.length > 0 &&
+    (isNaN(newForSalePrice) || Number(newForSalePrice) < minInitialValue);
   let isNetworkFeePaymentInvalid =
     networkFeePayment &&
     networkFeePayment.length > 0 &&
@@ -132,7 +132,7 @@ export function ActionForm({
   ] = _calculateNewExpiration(
     currentForSalePrice,
     currentExpirationTimestamp,
-    forSalePrice,
+    newForSalePrice,
     networkFeePayment
   );
 
@@ -140,7 +140,7 @@ export function ActionForm({
     isForSalePriceInvalid ||
     isNetworkFeePaymentInvalid ||
     isDateInvalid ||
-    !forSalePrice ||
+    !newForSalePrice ||
     (currentForSalePrice == null && !networkFeePayment);
 
   let expirationDateErrorMessage;
@@ -177,7 +177,9 @@ export function ActionForm({
   }, [transactionSubtotal]);
 
   React.useEffect(() => {
-    setForSalePrice(currentForSalePrice);
+    if (newForSalePrice == null) {
+      setNewForSalePrice(currentForSalePrice);
+    }
   }, [currentForSalePrice]);
 
   return (
@@ -199,7 +201,7 @@ export function ActionForm({
                 aria-describedby="for-sale-price"
                 defaultValue={currentForSalePrice}
                 disabled={isActing || loading}
-                onChange={(e) => setForSalePrice(e.target.value)}
+                onChange={(e) => setNewForSalePrice(e.target.value)}
               />
               <Form.Control.Feedback type="invalid">
                 For Sale Price must be greater than or equal to{" "}
