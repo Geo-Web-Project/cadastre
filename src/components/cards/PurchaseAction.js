@@ -17,7 +17,7 @@ function PurchaseAction({
   adminAddress,
   auctionValue,
 }) {
-  const [forSalePrice, setForSalePrice] = React.useState("");
+  const [newForSalePrice, setNewForSalePrice] = React.useState(null);
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -63,7 +63,7 @@ function PurchaseAction({
       .purchaseLicense(
         parcelData.landParcel.id,
         transactionSubtotal,
-        calculateWeiSubtotalField(forSalePrice),
+        calculateWeiSubtotalField(newForSalePrice),
         calculateWeiSubtotalField(networkFeePayment)
       )
       .send({ from: account }, (error, txHash) => {
@@ -91,8 +91,8 @@ function PurchaseAction({
         perSecondFeeDenominator={perSecondFeeDenominator}
         isActing={isActing}
         performAction={_purchase}
-        setForSalePrice={setForSalePrice}
-        forSalePrice={forSalePrice}
+        setNewForSalePrice={setNewForSalePrice}
+        newForSalePrice={newForSalePrice}
         setNetworkFeePayment={setNetworkFeePayment}
         networkFeePayment={networkFeePayment}
         didFail={didFail}
