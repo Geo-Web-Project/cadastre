@@ -17,7 +17,7 @@ function EditAction({
   paymentTokenContract,
   adminAddress,
 }) {
-  const [forSalePrice, setForSalePrice] = React.useState("");
+  const [newForSalePrice, setNewForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -30,7 +30,7 @@ function EditAction({
     adminContract.methods
       .updateValue(
         parcelData.landParcel.id,
-        Web3.utils.toWei(forSalePrice),
+        Web3.utils.toWei(newForSalePrice),
         networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0
       )
       .send({ from: account }, (error, txHash) => {
@@ -58,8 +58,8 @@ function EditAction({
         perSecondFeeDenominator={perSecondFeeDenominator}
         isActing={isActing}
         performAction={_edit}
-        setForSalePrice={setForSalePrice}
-        forSalePrice={forSalePrice}
+        setNewForSalePrice={setNewForSalePrice}
+        newForSalePrice={newForSalePrice}
         setNetworkFeePayment={setNetworkFeePayment}
         networkFeePayment={networkFeePayment}
         didFail={didFail}

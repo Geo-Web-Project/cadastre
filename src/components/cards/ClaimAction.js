@@ -28,7 +28,7 @@ function ClaimAction({
   perSecondFeeNumerator,
   perSecondFeeDenominator,
 }) {
-  const [forSalePrice, setForSalePrice] = React.useState("");
+  const [newForSalePrice, setNewForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -75,7 +75,7 @@ function ClaimAction({
         account,
         baseCoord,
         path,
-        Web3.utils.toWei(forSalePrice),
+        Web3.utils.toWei(newForSalePrice),
         Web3.utils.toWei(networkFeePayment)
       )
       .send({ from: account }, (error, txHash) => {
@@ -110,8 +110,8 @@ function ClaimAction({
         isActing={isActing}
         loading={loading}
         performAction={_claim}
-        setForSalePrice={setForSalePrice}
-        forSalePrice={forSalePrice}
+        setNewForSalePrice={setNewForSalePrice}
+        newForSalePrice={newForSalePrice}
         setNetworkFeePayment={setNetworkFeePayment}
         networkFeePayment={networkFeePayment}
         didFail={didFail}
