@@ -5,7 +5,7 @@ import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
 import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
 import Modal from "react-bootstrap/Modal";
-import { PAYMENT_TOKEN_FAUCET_URL } from "../constants";
+import { PAYMENT_TOKEN_FAUCET_URL } from "../lib/constants";
 import Web3 from "web3";
 import BN from "bn.js";
 import Image from "react-bootstrap/Image";

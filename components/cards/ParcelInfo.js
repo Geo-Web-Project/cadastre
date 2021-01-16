@@ -12,7 +12,7 @@ import BN from "bn.js";
 import Button from "react-bootstrap/Button";
 import EditAction from "./EditAction";
 import PurchaseAction from "./PurchaseAction";
-import { PAYMENT_TOKEN } from "../../constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 import AuctionInfo from "./AuctionInfo";
 
 const parcelQuery = gql`

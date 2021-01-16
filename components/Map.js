@@ -355,7 +355,7 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
           {...viewport}
           width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
           height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
-          mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+          mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/satellite-streets-v11"
           mapOptions={{
             renderWorldCopies: false,

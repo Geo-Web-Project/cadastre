@@ -7,7 +7,7 @@ import Image from "react-bootstrap/Image";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import BN from "bn.js";
-import { PAYMENT_TOKEN, PAYMENT_TOKEN_FAUCET_URL } from "../../constants";
+import { PAYMENT_TOKEN, PAYMENT_TOKEN_FAUCET_URL } from "../../lib/constants";
 
 function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   function _mintToken() {

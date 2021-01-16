@@ -1,7 +1,6 @@
-import Map from "./components/Map";
-import FAQ from "./components/FAQ";
+import Map from "../components/Map";
+import FAQ from "../components/FAQ";
 import { useState, useEffect } from "react";
-import "./App.scss";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Web3 from "web3";
@@ -9,25 +8,40 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
-import { NETWORK_NAME, NETWORK_ID, ADMIN_CONTRACT_ADDRESS } from "./constants";
+import {
+  NETWORK_NAME,
+  NETWORK_ID,
+  ADMIN_CONTRACT_ADDRESS,
+} from "../lib/constants";
+import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
+// import IPFS from "ipfs";
+// import dagJose from "dag-jose";
+// import basicsImport from "multiformats/cjs/src/basics-import.js";
+// import legacy from "multiformats/cjs/src/legacy.js";
 
-const geoWebAdminABI = require("./contracts/GeoWebAdmin_v0.json");
-const erc20ABI = require("./contracts/ERC20Mock.json");
+// basicsImport.multicodec.add(dagJose);
+// const format = legacy(basicsImport, dagJose.name);
 
-function App() {
+const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
+const erc20ABI = require("../contracts/ERC20Mock.json");
+
+function IndexPage() {
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [account, setAccount] = useState(null);
 
   // Setup Web3
   let web3;
+  // const threeIdConnect = new ThreeIdConnect();
   const setupWeb3 = async () => {
     if (window.ethereum) {
       web3 = new Web3(window.ethereum);
+      let addresses;
       try {
-        await window.ethereum.enable();
+        addresses = await window.ethereum.enable();
         // User has allowed account access to DApp...
         setAccount(window.web3.eth.defaultAccount);
+
         web3.eth.net.getId().then((networkId) => {
           if (networkId != NETWORK_ID)
             alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
@@ -35,14 +49,27 @@ function App() {
       } catch (e) {
         // User has denied account access to DApp...
       }
-    }
-    // Legacy DApp Browsers
-    else if (window.web3) {
-      web3 = new Web3(window.web3.currentProvider);
-      web3.eth.net.getId().then((networkId) => {
-        if (networkId != NETWORK_ID)
-          alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
-      });
+
+      // const authProvider = new EthereumAuthProvider(web3, addresses[0]);
+      // await threeIdConnect.connect(authProvider);
+
+      // const provider = await threeIdConnect.getDidProvider();
+
+      // const Ceramic = await require("@ceramicnetwork/core");
+
+      // const ipfs = Ipfs.create({
+      //   ipld: { formats: [format] },
+      // });
+
+      // const ceramic = await Ceramic.create(ipfs);
+
+      // await ceramic.setDIDProvider(provider);
+
+      // const doc = await ceramic.createDocument("tile", {
+      //   content: { foo: "bar" },
+      // });
+
+      // console.log(provider);
     }
     // Non-DApp Browsers
     else {
@@ -121,4 +148,4 @@ function App() {
   );
 }
 
-export default App;
+export default IndexPage;

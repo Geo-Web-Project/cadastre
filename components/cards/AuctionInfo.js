@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PAYMENT_TOKEN } from "../../constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 import Web3 from "web3";
 import BN from "bn.js";
 
