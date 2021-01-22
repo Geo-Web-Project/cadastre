@@ -3,84 +3,69 @@ import FAQ from "../components/FAQ";
 import { useState, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Web3 from "web3";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
+import Button from "react-bootstrap/Button";
 import {
   NETWORK_NAME,
   NETWORK_ID,
   ADMIN_CONTRACT_ADDRESS,
 } from "../lib/constants";
+import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
-// import IPFS from "ipfs";
-// import dagJose from "dag-jose";
-// import basicsImport from "multiformats/cjs/src/basics-import.js";
-// import legacy from "multiformats/cjs/src/legacy.js";
-
-// basicsImport.multicodec.add(dagJose);
-// const format = legacy(basicsImport, dagJose.name);
+import { useWeb3React } from "@web3-react/core";
+import { truncateStr } from "../lib/truncate";
+import { InjectedConnector } from "@web3-react/injected-connector";
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("../contracts/ERC20Mock.json");
 
+export const injected = new InjectedConnector({
+  supportedChainIds: [NETWORK_ID],
+});
+
 function IndexPage() {
+  const context = useWeb3React();
+  const {
+    connector,
+    library,
+    chainId,
+    account,
+    activate,
+    deactivate,
+    active,
+    error,
+  } = context;
+
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
-  const [account, setAccount] = useState(null);
 
-  // Setup Web3
-  let web3;
-  // const threeIdConnect = new ThreeIdConnect();
-  const setupWeb3 = async () => {
-    if (window.ethereum) {
-      web3 = new Web3(window.ethereum);
-      let addresses;
-      try {
-        addresses = await window.ethereum.enable();
-        // User has allowed account access to DApp...
-        setAccount(window.web3.eth.defaultAccount);
-
-        web3.eth.net.getId().then((networkId) => {
-          if (networkId != NETWORK_ID)
-            alert(`Please Switch to ${NETWORK_NAME} to use this DApp`);
-        });
-      } catch (e) {
-        // User has denied account access to DApp...
-      }
-
-      // const authProvider = new EthereumAuthProvider(web3, addresses[0]);
-      // await threeIdConnect.connect(authProvider);
-
-      // const provider = await threeIdConnect.getDidProvider();
-
-      // const Ceramic = await require("@ceramicnetwork/core");
-
-      // const ipfs = Ipfs.create({
-      //   ipld: { formats: [format] },
-      // });
-
-      // const ceramic = await Ceramic.create(ipfs);
-
-      // await ceramic.setDIDProvider(provider);
-
-      // const doc = await ceramic.createDocument("tile", {
-      //   content: { foo: "bar" },
-      // });
-
-      // console.log(provider);
+  useEffect(async () => {
+    if (active == false) {
+      return;
     }
-    // Non-DApp Browsers
-    else {
-      alert("You have to install MetaMask !");
-    }
-  };
+
+    const ethProvider = await connector.getProvider();
+    const threeIdConnect = new ThreeIdConnect();
+
+    const authProvider = new EthereumAuthProvider(ethProvider, account);
+    await threeIdConnect.connect(authProvider);
+
+    const ceramic = new CeramicClient("https://ceramic-clay.3boxlabs.com");
+    const didProvider = await threeIdConnect.getDidProvider();
+
+    await ceramic.setDIDProvider(didProvider);
+  }, [active]);
 
   // Setup Contracts on App Load
   useEffect(() => {
+    if (library == null) {
+      return;
+    }
     async function contractsSetup() {
-      setupWeb3();
+      let web3 = library;
 
       let _adminContract = new web3.eth.Contract(
         geoWebAdminABI,
@@ -96,7 +81,7 @@ function IndexPage() {
       );
     }
     contractsSetup();
-  }, []);
+  }, [library]);
 
   return (
     <>
@@ -113,7 +98,14 @@ function IndexPage() {
               <span style={{ fontWeight: 600 }}>TESTNET</span>
             </Badge>
           </Col>
-          <Col sm="10" className="text-center p-2">
+          <Col sm="1" className="p-0">
+            <FAQ
+              account={account}
+              paymentTokenContract={paymentTokenContract}
+              adminAddress={ADMIN_CONTRACT_ADDRESS}
+            />
+          </Col>
+          <Col sm={{ span: 8, offset: 0 }} className="text-center p-2 mx-auto">
             <div
               className="text-primary"
               style={{ fontSize: "2.5em", fontFamily: "Abel" }}
@@ -125,12 +117,35 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-          <Col sm="2" className="p-0">
-            <FAQ
-              account={account}
-              paymentTokenContract={paymentTokenContract}
-              adminAddress={ADMIN_CONTRACT_ADDRESS}
-            />
+          <Col sm={{ span: 2, offset: 0 }} className="p-0">
+            {active == false ? (
+              <Button
+                target="_blank"
+                rel="noreferrer"
+                variant="outline-primary"
+                className="text-light font-weight-bold border-dark"
+                style={{ height: "100px" }}
+                onClick={() => activate(injected)}
+              >
+                Connect Wallet
+              </Button>
+            ) : (
+              <Button
+                target="_blank"
+                rel="noreferrer"
+                variant="outline-danger"
+                className="text-light font-weight-bold border-dark"
+                style={{ height: "100px" }}
+                onClick={() => deactivate()}
+              >
+                Disconnect Wallet{" "}
+                <Badge pill variant="secondary" className="py-2 px-3">
+                  <span style={{ fontWeight: 600 }}>
+                    {truncateStr(account, 20)}
+                  </span>
+                </Badge>
+              </Button>
+            )}
           </Col>
         </Navbar>
       </Container>

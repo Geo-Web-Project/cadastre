@@ -14,3 +14,7 @@ $font-family-base: "Open Sans";
 }
 
 @import "~bootstrap/scss/bootstrap";
+
+.fixed-top {
+  z-index: 500;
+}

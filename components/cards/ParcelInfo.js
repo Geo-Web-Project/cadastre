@@ -14,6 +14,7 @@ import EditAction from "./EditAction";
 import PurchaseAction from "./PurchaseAction";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import AuctionInfo from "./AuctionInfo";
+import { truncateStr } from "../../lib/truncate";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -27,23 +28,6 @@ const parcelQuery = gql`
     }
   }
 `;
-
-function truncateStr(str, strLen) {
-  if (str.length <= strLen) {
-    return str;
-  }
-
-  var separator = "...";
-
-  var sepLen = separator.length,
-    charsToShow = strLen - sepLen,
-    frontChars = Math.ceil(charsToShow / 2),
-    backChars = Math.floor(charsToShow / 2);
-
-  return (
-    str.substr(0, frontChars) + separator + str.substr(str.length - backChars)
-  );
-}
 
 function ParcelInfo({
   account,

@@ -6,8 +6,14 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 import { SUBGRAPH_URL } from "../lib/constants";
+import { Web3ReactProvider } from "@web3-react/core";
+import Web3 from "web3";
 
 import "../styles.scss";
+
+function getLibrary(provider, connector) {
+  return new Web3(provider);
+}
 
 export default function App({ Component, pageProps }) {
   const client = new ApolloClient({
@@ -31,8 +37,10 @@ export default function App({ Component, pageProps }) {
   });
 
   return (
-    <ApolloProvider client={client}>
-      <Component {...pageProps} />
-    </ApolloProvider>
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <ApolloProvider client={client}>
+        <Component {...pageProps} />
+      </ApolloProvider>
+    </Web3ReactProvider>
   );
 }
