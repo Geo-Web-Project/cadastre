@@ -57,7 +57,7 @@ function IndexPage() {
     const didProvider = await threeIdConnect.getDidProvider();
 
     await ceramic.setDIDProvider(didProvider);
-  }, [active]);
+  }, [active, account]);
 
   // Setup Contracts on App Load
   useEffect(() => {
