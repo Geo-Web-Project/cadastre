@@ -97,7 +97,13 @@ export function coordToFeature(gwCoord) {
   };
 }
 
-function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
+function Map({
+  adminAddress,
+  adminContract,
+  paymentTokenContract,
+  account,
+  ceramic,
+}) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -348,6 +354,7 @@ function Map({ adminAddress, adminContract, paymentTokenContract, account }) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
+          ceramic={ceramic}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
