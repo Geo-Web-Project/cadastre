@@ -279,6 +279,19 @@ function ParcelInfo({
                   ? spinner
                   : networkFeeBalanceDisplay}
               </p>
+              <p className="text-truncate">
+                <span className="font-weight-bold">Linked CID:</span>{" "}
+                {contentDocId == null ? (
+                  spinner
+                ) : (
+                  <a
+                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${contentDocId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-light"
+                  >{`ceramic://${contentDocId}`}</a>
+                )}
+              </p>
               {isExpired ? (
                 <>
                   <hr className="border-secondary" />
