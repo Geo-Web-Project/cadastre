@@ -52,6 +52,7 @@ function ParcelInfo({
       id: selectedParcelId,
     },
   });
+
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
   const [contentDocId, setContentDocId] = React.useState(null);
@@ -297,7 +298,7 @@ function ParcelInfo({
               ) : null}
               <br />
               {!isLoading
-                ? account == licenseOwner
+                ? account.toLowerCase() == licenseOwner.toLowerCase()
                   ? editButton
                   : initiateTransferButton
                 : null}

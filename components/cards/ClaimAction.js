@@ -27,18 +27,32 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  ceramic,
 }) {
-  const [newForSalePrice, setNewForSalePrice] = React.useState("");
-  const [networkFeePayment, setNetworkFeePayment] = React.useState("");
-  const [isActing, setIsActing] = React.useState(false);
-  const [didFail, setDidFail] = React.useState(false);
   const [newParcelId, setNewParcelId] = React.useState(null);
-
-  let transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
 
   const [getNewParcel, { loading, data, stopPolling }] = useLazyQuery(
     newParcelQuery
   );
+
+  const [actionData, setActionData] = React.useState({
+    isActing: false,
+    didFail: false,
+    networkFeePayment: "",
+    newForSalePrice: "",
+  });
+
+  function updateActionData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
+
+  const { newForSalePrice, networkFeePayment } = actionData;
 
   React.useEffect(() => {
     if (data == null || data.landParcel == null) {
@@ -51,11 +65,17 @@ function ClaimAction({
     setSelectedParcelId(newParcelId);
     setInteractionState(STATE_PARCEL_SELECTED);
 
-    setIsActing(false);
+    updateActionData({ isActing: false });
   }, [data]);
 
+  React.useEffect(() => {
+    let _transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
+
+    updateActionData({ transactionSubtotal: _transactionSubtotal });
+  }, [networkFeePayment]);
+
   function _claim() {
-    setIsActing(true);
+    updateActionData({ isActing: true });
 
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -80,8 +100,7 @@ function ClaimAction({
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {
-          setDidFail(true);
-          setIsActing(false);
+          updateActionData({ isActing: false, didFail: true });
         }
       })
       .once("receipt", async function (receipt) {
@@ -96,7 +115,7 @@ function ClaimAction({
         });
       })
       .catch(() => {
-        setIsActing(false);
+        updateActionData({ isActing: false });
       });
   }
 
@@ -107,16 +126,11 @@ function ClaimAction({
         adminContract={adminContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        isActing={isActing}
         loading={loading}
         performAction={_claim}
-        setNewForSalePrice={setNewForSalePrice}
-        newForSalePrice={newForSalePrice}
-        setNetworkFeePayment={setNetworkFeePayment}
-        networkFeePayment={networkFeePayment}
-        didFail={didFail}
-        setDidFail={setDidFail}
-        transactionSubtotal={transactionSubtotal}
+        actionData={actionData}
+        setActionData={setActionData}
+        ceramic={ceramic}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

@@ -4,8 +4,6 @@ import { STATE_PARCEL_SELECTED } from "../Map";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 
-const GeoWebCoordinate = require("js-geo-web-coordinate");
-
 function EditAction({
   adminContract,
   account,
@@ -18,15 +16,38 @@ function EditAction({
   adminAddress,
   ceramic,
 }) {
-  const [newForSalePrice, setNewForSalePrice] = React.useState("");
-  const [networkFeePayment, setNetworkFeePayment] = React.useState("");
-  const [isActing, setIsActing] = React.useState(false);
-  const [didFail, setDidFail] = React.useState(false);
+  const [actionData, setActionData] = React.useState({
+    currentForSalePrice: Web3.utils.fromWei(
+      parcelData.landParcel.license.value
+    ),
+    currentExpirationTimestamp:
+      parcelData.landParcel.license.expirationTimestamp,
+    isActing: false,
+    didFail: false,
+    networkFeePayment: "",
+    newForSalePrice: "",
+  });
 
-  let transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
+  function updateActionData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
+
+  const { newForSalePrice, networkFeePayment } = actionData;
+
+  React.useEffect(() => {
+    let _transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
+
+    updateActionData({ transactionSubtotal: _transactionSubtotal });
+  }, [networkFeePayment]);
 
   function _edit() {
-    setIsActing(true);
+    updateActionData({ isActing: true });
 
     adminContract.methods
       .updateValue(
@@ -36,17 +57,16 @@ function EditAction({
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {
-          setDidFail(true);
-          setIsActing(false);
+          updateActionData({ isActing: false, didFail: true });
         }
       })
       .once("receipt", async function (receipt) {
-        setIsActing(false);
+        updateActionData({ isActing: false });
         refetchParcelData();
         setInteractionState(STATE_PARCEL_SELECTED);
       })
       .catch(() => {
-        setIsActing(false);
+        updateActionData({ isActing: false });
       });
   }
 
@@ -57,21 +77,9 @@ function EditAction({
         adminContract={adminContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        isActing={isActing}
         performAction={_edit}
-        setNewForSalePrice={setNewForSalePrice}
-        newForSalePrice={newForSalePrice}
-        setNetworkFeePayment={setNetworkFeePayment}
-        networkFeePayment={networkFeePayment}
-        didFail={didFail}
-        setDidFail={setDidFail}
-        currentForSalePrice={Web3.utils.fromWei(
-          parcelData.landParcel.license.value
-        )}
-        currentExpirationTimestamp={
-          parcelData.landParcel.license.expirationTimestamp
-        }
-        transactionSubtotal={transactionSubtotal}
+        actionData={actionData}
+        setActionData={setActionData}
         ceramic={ceramic}
       />
       <FaucetInfo

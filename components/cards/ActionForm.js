@@ -8,46 +8,38 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN } from "../../lib/constants";
+import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_CID } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
-
-async function _updateContentRootDoc(ceramic, parcelName, webContentURI) {
-  const doc = await ceramic.createDocument("tile", {
-    content: { name: parcelName, webContent: webContentURI },
-    metadata: {
-      schema:
-        "ceramic://k3y52l7qbv1frxu9k9s3x7a1rbf5ifau2v20pwghjb2ymv2uor6uajz1x8c7nabk0",
-    },
-  });
-  console.log(doc.id.toString());
-}
 
 export function ActionForm({
   title,
   adminContract,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  isActing,
   loading,
   performAction,
-  newForSalePrice,
-  setNewForSalePrice,
-  networkFeePayment,
-  setNetworkFeePayment,
-  didFail,
-  setDidFail,
-  currentForSalePrice,
-  currentExpirationTimestamp,
-  transactionSubtotal,
+  actionData,
+  setActionData,
   ceramic,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
-  const [parcelName, setParcelName] = React.useState(null);
-  const [parcelWebContentURI, setParcelWebContentURI] = React.useState(null);
+
+  const {
+    parcelContentRootCID,
+    parcelName,
+    parcelWebContentURI,
+    newForSalePrice,
+    networkFeePayment,
+    currentForSalePrice,
+    currentExpirationTimestamp,
+    transactionSubtotal,
+    didFail,
+    isActing,
+  } = actionData;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -68,6 +60,16 @@ export function ActionForm({
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
+
+  function updateActionData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
 
   function _calculateNewExpiration(
     existingForSalePrice,
@@ -144,6 +146,32 @@ export function ActionForm({
     return [newExpirationDate, isDateInvalid, isDateWarning];
   }
 
+  async function submit() {
+    async function _updateContentRootDoc() {
+      let doc;
+      if (parcelContentRootCID) {
+        doc = await ceramic.loadDocument(parcelContentRootCID);
+        await doc.change({
+          content: { name: parcelName, webContent: parcelWebContentURI },
+        });
+      } else {
+        doc = await ceramic.createDocument("tile", {
+          content: { name: parcelName, webContent: parcelWebContentURI },
+          metadata: {
+            schema: CONTENT_ROOT_SCHEMA_CID,
+          },
+        });
+        updateActionData({ parcelContentRootCID: doc.id });
+      }
+      console.log(doc.id.toString());
+      console.log(doc.commitId.toString());
+    }
+
+    updateActionData({ isActing: true });
+    await _updateContentRootDoc();
+    performAction();
+  }
+
   let [
     newExpirationDate,
     isDateInvalid,
@@ -199,7 +227,7 @@ export function ActionForm({
 
   React.useEffect(() => {
     if (newForSalePrice == null) {
-      setNewForSalePrice(currentForSalePrice);
+      updateActionData({ newForSalePrice: currentForSalePrice });
     }
   }, [currentForSalePrice]);
 
@@ -220,7 +248,9 @@ export function ActionForm({
                 aria-label="Parcel Name"
                 aria-describedby="parcel-name"
                 disabled={isActing || isLoading}
-                onChange={(e) => setParcelName(e.target.value)}
+                onChange={(e) =>
+                  updateActionData({ parcelName: e.target.value })
+                }
               />
               {isParcelNameInvalid ? (
                 <Form.Control.Feedback type="invalid">
@@ -236,7 +266,9 @@ export function ActionForm({
                 aria-label="Web Content URI"
                 aria-describedby="web-content-uri"
                 disabled={isActing || isLoading}
-                onChange={(e) => setParcelWebContentURI(e.target.value)}
+                onChange={(e) =>
+                  updateActionData({ parcelWebContentURI: e.target.value })
+                }
               />
               {isURIInvalid ? (
                 <Form.Control.Feedback type="invalid">
@@ -256,7 +288,9 @@ export function ActionForm({
                 aria-describedby="for-sale-price"
                 defaultValue={currentForSalePrice}
                 disabled={isActing || isLoading}
-                onChange={(e) => setNewForSalePrice(e.target.value)}
+                onChange={(e) =>
+                  updateActionData({ newForSalePrice: e.target.value })
+                }
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
@@ -279,15 +313,15 @@ export function ActionForm({
                 aria-describedby="network-fee-payment"
                 disabled={isActing || isLoading}
                 isInvalid={isNetworkFeePaymentInvalid}
-                onChange={(e) => setNetworkFeePayment(e.target.value)}
+                onChange={(e) =>
+                  updateActionData({ networkFeePayment: e.target.value })
+                }
               />
             </Form.Group>
             <Button
               variant="primary"
               className="w-100"
-              onClick={() =>
-                _updateContentRootDoc(ceramic, parcelName, parcelWebContentURI)
-              }
+              onClick={() => submit()}
               disabled={isActing || isLoading || isInvalid}
             >
               {isActing || isLoading ? spinner : "Confirm"}
@@ -299,7 +333,7 @@ export function ActionForm({
             <Alert
               variant="danger"
               dismissible
-              onClick={() => setDidFail(false)}
+              onClick={() => updateActionData({ didFail: false })}
             >
               <Alert.Heading style={{ fontSize: "1em" }}>
                 Transaction failed
