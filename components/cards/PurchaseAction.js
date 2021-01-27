@@ -17,6 +17,7 @@ function PurchaseAction({
   adminAddress,
   auctionValue,
   ceramic,
+  parcelContentDoc,
 }) {
   const currentForSalePriceWei =
     auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
@@ -48,8 +49,11 @@ function PurchaseAction({
     currentForSalePriceWei
   );
 
+  const currentForSalePrice = Web3.utils.fromWei(
+    parcelData.landParcel.license.value
+  );
   const [actionData, setActionData] = React.useState({
-    currentForSalePrice: Web3.utils.fromWei(currentForSalePriceWei),
+    currentForSalePrice: currentForSalePrice,
     currentExpirationTimestamp: currentExpirationTimestamp,
     transactionSubtotal: new BN(currentForSalePriceWei).add(
       existingNetworkFeeBalanceWei
@@ -57,7 +61,12 @@ function PurchaseAction({
     isActing: false,
     didFail: false,
     networkFeePayment: "",
-    newForSalePrice: "",
+    newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
+    parcelContentDoc: parcelContentDoc,
+    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
+    parcelWebContentURI: parcelContentDoc
+      ? parcelContentDoc.content.webContent
+      : null,
   });
 
   function updateActionData(updatedValues) {

@@ -29,7 +29,7 @@ export function ActionForm({
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const {
-    parcelContentRootCID,
+    parcelContentDoc,
     parcelName,
     parcelWebContentURI,
     newForSalePrice,
@@ -149,8 +149,8 @@ export function ActionForm({
   async function submit() {
     async function _updateContentRootDoc() {
       let doc;
-      if (parcelContentRootCID) {
-        doc = await ceramic.loadDocument(parcelContentRootCID);
+      if (parcelContentDoc) {
+        doc = parcelContentDoc;
         await doc.change({
           content: { name: parcelName, webContent: parcelWebContentURI },
         });
@@ -161,7 +161,7 @@ export function ActionForm({
             schema: CONTENT_ROOT_SCHEMA_CID,
           },
         });
-        updateActionData({ parcelContentRootCID: doc.id });
+        updateActionData({ parcelContentDoc: doc });
       }
       console.log(doc.id.toString());
       console.log(doc.commitId.toString());
@@ -247,6 +247,7 @@ export function ActionForm({
                 placeholder="Parcel Name"
                 aria-label="Parcel Name"
                 aria-describedby="parcel-name"
+                defaultValue={parcelName}
                 disabled={isActing || isLoading}
                 onChange={(e) =>
                   updateActionData({ parcelName: e.target.value })
@@ -265,6 +266,7 @@ export function ActionForm({
                 placeholder="URI (http://, https://, ipfs://, ipns://)"
                 aria-label="Web Content URI"
                 aria-describedby="web-content-uri"
+                defaultValue={parcelWebContentURI}
                 disabled={isActing || isLoading}
                 onChange={(e) =>
                   updateActionData({ parcelWebContentURI: e.target.value })

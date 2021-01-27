@@ -56,8 +56,9 @@ function ParcelInfo({
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
   const [contentDocId, setContentDocId] = React.useState(null);
-  const [parcelContent, setParcelContent] = React.useState(null);
+  const [parcelContentDoc, setParcelContentDoc] = React.useState(null);
 
+  const parcelContent = parcelContentDoc ? parcelContentDoc.content : null;
   let isLoading =
     loading ||
     perSecondFeeNumerator == null ||
@@ -101,7 +102,7 @@ function ParcelInfo({
       return;
     }
     const doc = await ceramic.loadDocument(contentDocId);
-    setParcelContent(doc.content);
+    setParcelContentDoc(doc);
   }, [contentDocId, ceramic]);
   const spinner = (
     <div className="spinner-border" role="status">
@@ -319,6 +320,7 @@ function ParcelInfo({
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               ceramic={ceramic}
+              parcelContentDoc={parcelContentDoc}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -335,6 +337,7 @@ function ParcelInfo({
               adminAddress={adminAddress}
               auctionValue={auctionValue}
               ceramic={ceramic}
+              parcelContentDoc={parcelContentDoc}
             />
           ) : null}
         </Col>

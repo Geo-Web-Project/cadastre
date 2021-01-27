@@ -15,17 +15,24 @@ function EditAction({
   paymentTokenContract,
   adminAddress,
   ceramic,
+  parcelContentDoc,
 }) {
+  const currentForSalePrice = Web3.utils.fromWei(
+    parcelData.landParcel.license.value
+  );
   const [actionData, setActionData] = React.useState({
-    currentForSalePrice: Web3.utils.fromWei(
-      parcelData.landParcel.license.value
-    ),
+    currentForSalePrice: currentForSalePrice,
     currentExpirationTimestamp:
       parcelData.landParcel.license.expirationTimestamp,
     isActing: false,
     didFail: false,
     networkFeePayment: "",
-    newForSalePrice: "",
+    newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
+    parcelContentDoc: parcelContentDoc,
+    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
+    parcelWebContentURI: parcelContentDoc
+      ? parcelContentDoc.content.webContent
+      : null,
   });
 
   function updateActionData(updatedValues) {
