@@ -64,6 +64,7 @@ function IndexPage() {
   // Setup Contracts on App Load
   useEffect(() => {
     if (library == null) {
+      activate(injected);
       return;
     }
     async function contractsSetup() {
