@@ -6,6 +6,8 @@ import {
   STATE_PARCEL_EDITING,
   STATE_PARCEL_PURCHASING,
   STATE_VIEWING,
+  STATE_CLAIM_SELECTED,
+  STATE_CLAIM_SELECTING,
 } from "../Map";
 import Web3 from "web3";
 import { useState, useEffect } from "react";
@@ -203,14 +205,30 @@ function ParcelInfo({
       break;
   }
 
+  let title;
+  if (
+    interactionState == STATE_CLAIM_SELECTING ||
+    interactionState == STATE_CLAIM_SELECTED
+  ) {
+    title = (
+      <>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Claim a Parcel</h1>
+      </>
+    );
+  } else {
+    title = (
+      <>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+          {isLoading ? spinner : parcelContent.name}
+        </h1>
+      </>
+    );
+  }
+
   return (
     <>
       <Row className="mb-3">
-        <Col sm="10">
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-            {isLoading ? spinner : parcelContent.name}
-          </h1>
-        </Col>
+        <Col sm="10">{title}</Col>
         <Col sm="2">
           <Button
             variant="link"
