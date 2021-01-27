@@ -80,6 +80,7 @@ function Sidebar({
             perSecondFeeDenominator={perSecondFeeDenominator}
             paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
+            ceramic={ceramic}
           ></ClaimAction>
         </>
       ) : null}

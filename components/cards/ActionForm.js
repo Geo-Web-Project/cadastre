@@ -14,6 +14,17 @@ const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
+async function _updateContentRootDoc(ceramic, parcelName, webContentURI) {
+  const doc = await ceramic.createDocument("tile", {
+    content: { name: parcelName, webContent: webContentURI },
+    metadata: {
+      schema:
+        "ceramic://k3y52l7qbv1frxu9k9s3x7a1rbf5ifau2v20pwghjb2ymv2uor6uajz1x8c7nabk0",
+    },
+  });
+  console.log(doc.id.toString());
+}
+
 export function ActionForm({
   title,
   adminContract,
@@ -31,9 +42,12 @@ export function ActionForm({
   currentForSalePrice,
   currentExpirationTimestamp,
   transactionSubtotal,
+  ceramic,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
+  const [parcelName, setParcelName] = React.useState(null);
+  const [parcelWebContentURI, setParcelWebContentURI] = React.useState(null);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -49,6 +63,11 @@ export function ActionForm({
     networkFeePayment &&
     networkFeePayment.length > 0 &&
     isNaN(networkFeePayment);
+  let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
+  let isURIInvalid = parcelWebContentURI
+    ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
+        false || parcelWebContentURI.length > 150
+    : false;
 
   function _calculateNewExpiration(
     existingForSalePrice,
@@ -143,6 +162,8 @@ export function ActionForm({
     !newForSalePrice ||
     (currentForSalePrice == null && !networkFeePayment);
 
+  let isLoading = loading || ceramic == null;
+
   let expirationDateErrorMessage;
   if (currentForSalePrice == null && isDateInvalid) {
     expirationDateErrorMessage =
@@ -162,9 +183,12 @@ export function ActionForm({
       return;
     }
 
-    adminContract.methods.minInitialValue().call().then((minInitialValue) => {
-      setMinInitialValue(Web3.utils.fromWei(minInitialValue));
-    });
+    adminContract.methods
+      .minInitialValue()
+      .call()
+      .then((minInitialValue) => {
+        setMinInitialValue(Web3.utils.fromWei(minInitialValue));
+      });
   }, [adminContract]);
 
   React.useEffect(() => {
@@ -189,6 +213,40 @@ export function ActionForm({
           <Form>
             <Form.Group>
               <Form.Control
+                isInvalid={isParcelNameInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="Parcel Name"
+                aria-label="Parcel Name"
+                aria-describedby="parcel-name"
+                disabled={isActing || isLoading}
+                onChange={(e) => setParcelName(e.target.value)}
+              />
+              {isParcelNameInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Parcel name cannot be longer than 150 characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
+                isInvalid={isURIInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="URI (http://, https://, ipfs://, ipns://)"
+                aria-label="Web Content URI"
+                aria-describedby="web-content-uri"
+                disabled={isActing || isLoading}
+                onChange={(e) => setParcelWebContentURI(e.target.value)}
+              />
+              {isURIInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Web content URI must be one of
+                  (http://,https://,ipfs://,ipns://) and less than 150
+                  characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light"
@@ -197,13 +255,16 @@ export function ActionForm({
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
                 defaultValue={currentForSalePrice}
-                disabled={isActing || loading}
+                disabled={isActing || isLoading}
                 onChange={(e) => setNewForSalePrice(e.target.value)}
               />
-              <Form.Control.Feedback type="invalid">
-                For Sale Price must be greater than or equal to{" "}
-                {minInitialValue}
-              </Form.Control.Feedback>
+              {isForSalePriceInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  For Sale Price must be greater than or equal to{" "}
+                  {minInitialValue}
+                </Form.Control.Feedback>
+              ) : null}
+
               <br />
               <Form.Control
                 required={currentForSalePrice == null}
@@ -216,7 +277,7 @@ export function ActionForm({
                 }
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
-                disabled={isActing || loading}
+                disabled={isActing || isLoading}
                 isInvalid={isNetworkFeePaymentInvalid}
                 onChange={(e) => setNetworkFeePayment(e.target.value)}
               />
@@ -224,10 +285,12 @@ export function ActionForm({
             <Button
               variant="primary"
               className="w-100"
-              onClick={performAction}
-              disabled={isActing || loading || isInvalid}
+              onClick={() =>
+                _updateContentRootDoc(ceramic, parcelName, parcelWebContentURI)
+              }
+              disabled={isActing || isLoading || isInvalid}
             >
-              {isActing || loading ? spinner : "Confirm"}
+              {isActing || isLoading ? spinner : "Confirm"}
             </Button>
           </Form>
 

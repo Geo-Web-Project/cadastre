@@ -99,14 +99,6 @@ function ParcelInfo({
     if (ceramic == null || contentDocId == null) {
       return;
     }
-    // const doc = await ceramic.createDocument("tile", {
-    //   content: { name: "Test", webContent: "ipns://codyhatfield.me" },
-    //   metadata: {
-    //     schema:
-    //       "ceramic://k3y52l7qbv1frxu9k9s3x7a1rbf5ifau2v20pwghjb2ymv2uor6uajz1x8c7nabk0",
-    //   },
-    // });
-    // console.log(doc.id);
     const doc = await ceramic.loadDocument(contentDocId);
     setParcelContent(doc.content);
   }, [contentDocId, ceramic]);
@@ -325,6 +317,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
+              ceramic={ceramic}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -340,6 +333,7 @@ function ParcelInfo({
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
+              ceramic={ceramic}
             />
           ) : null}
         </Col>

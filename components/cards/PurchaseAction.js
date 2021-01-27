@@ -16,6 +16,7 @@ function PurchaseAction({
   paymentTokenContract,
   adminAddress,
   auctionValue,
+  ceramic,
 }) {
   const [newForSalePrice, setNewForSalePrice] = React.useState(null);
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
@@ -100,6 +101,7 @@ function PurchaseAction({
         currentForSalePrice={Web3.utils.fromWei(currentForSalePriceWei)}
         currentExpirationTimestamp={currentExpirationTimestamp}
         transactionSubtotal={transactionSubtotal}
+        ceramic={ceramic}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

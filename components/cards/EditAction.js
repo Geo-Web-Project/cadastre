@@ -16,6 +16,7 @@ function EditAction({
   setInteractionState,
   paymentTokenContract,
   adminAddress,
+  ceramic,
 }) {
   const [newForSalePrice, setNewForSalePrice] = React.useState("");
   const [networkFeePayment, setNetworkFeePayment] = React.useState("");
@@ -71,6 +72,7 @@ function EditAction({
           parcelData.landParcel.license.expirationTimestamp
         }
         transactionSubtotal={transactionSubtotal}
+        ceramic={ceramic}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}
