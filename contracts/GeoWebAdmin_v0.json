@@ -445,6 +445,11 @@
         "internalType": "uint256",
         "name": "additionalFeePayment",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "ceramicDocId",
+        "type": "string"
       }
     ],
     "name": "purchaseLicense",
