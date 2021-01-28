@@ -1,8 +1,5 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
-import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/Image";
-import Row from "react-bootstrap/Row";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
@@ -26,6 +23,7 @@ function Sidebar({
   claimBase2Coord,
   selectedParcelId,
   setSelectedParcelId,
+  ceramic,
 }) {
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] = React.useState(
     null
@@ -55,36 +53,19 @@ function Sidebar({
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      <Row className="mb-3">
-        <Col sm="10">
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-            PARCEL {selectedParcelId}
-          </h1>
-        </Col>
-        <Col sm="2">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => setInteractionState(STATE_VIEWING)}
-          >
-            <Image src="close.svg" />
-          </Button>
-        </Col>
-      </Row>
-      <Row>
-        <ParcelInfo
-          account={account}
-          adminContract={adminContract}
-          interactionState={interactionState}
-          setInteractionState={setInteractionState}
-          selectedParcelId={selectedParcelId}
-          setSelectedParcelId={setSelectedParcelId}
-          perSecondFeeNumerator={perSecondFeeNumerator}
-          perSecondFeeDenominator={perSecondFeeDenominator}
-          paymentTokenContract={paymentTokenContract}
-          adminAddress={adminAddress}
-        ></ParcelInfo>
-      </Row>
+      <ParcelInfo
+        account={account}
+        adminContract={adminContract}
+        interactionState={interactionState}
+        setInteractionState={setInteractionState}
+        selectedParcelId={selectedParcelId}
+        setSelectedParcelId={setSelectedParcelId}
+        perSecondFeeNumerator={perSecondFeeNumerator}
+        perSecondFeeDenominator={perSecondFeeDenominator}
+        paymentTokenContract={paymentTokenContract}
+        adminAddress={adminAddress}
+        ceramic={ceramic}
+      ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
         <>
@@ -99,6 +80,7 @@ function Sidebar({
             perSecondFeeDenominator={perSecondFeeDenominator}
             paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
+            ceramic={ceramic}
           ></ClaimAction>
         </>
       ) : null}

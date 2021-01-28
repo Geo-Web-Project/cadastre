@@ -16,15 +16,12 @@ function PurchaseAction({
   paymentTokenContract,
   adminAddress,
   auctionValue,
+  ceramic,
+  parcelContentDoc,
 }) {
-  const [newForSalePrice, setNewForSalePrice] = React.useState(null);
-  const [networkFeePayment, setNetworkFeePayment] = React.useState("");
-  const [isActing, setIsActing] = React.useState(false);
-  const [didFail, setDidFail] = React.useState(false);
-
-  let currentForSalePriceWei =
+  const currentForSalePriceWei =
     auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
-  let currentExpirationTimestamp =
+  const currentExpirationTimestamp =
     parcelData.landParcel.license.expirationTimestamp;
 
   function _calculateNetworkFeeBalance(
@@ -52,12 +49,48 @@ function PurchaseAction({
     currentForSalePriceWei
   );
 
-  let transactionSubtotal = new BN(currentForSalePriceWei)
-    .add(calculateWeiSubtotalField(networkFeePayment))
-    .add(existingNetworkFeeBalanceWei);
+  const currentForSalePrice = Web3.utils.fromWei(
+    parcelData.landParcel.license.value
+  );
+  const [actionData, setActionData] = React.useState({
+    currentForSalePrice: currentForSalePrice,
+    currentExpirationTimestamp: currentExpirationTimestamp,
+    transactionSubtotal: new BN(currentForSalePriceWei).add(
+      existingNetworkFeeBalanceWei
+    ),
+    isActing: false,
+    didFail: false,
+    networkFeePayment: "",
+    newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
+    parcelContentDoc: parcelContentDoc,
+    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
+    parcelWebContentURI: parcelContentDoc
+      ? parcelContentDoc.content.webContent
+      : null,
+  });
+
+  function updateActionData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
+
+  const { newForSalePrice, networkFeePayment, isActing, didFail } = actionData;
+
+  React.useEffect(() => {
+    let _transactionSubtotal = new BN(currentForSalePriceWei)
+      .add(calculateWeiSubtotalField(networkFeePayment))
+      .add(existingNetworkFeeBalanceWei);
+
+    updateActionData({ transactionSubtotal: _transactionSubtotal });
+  }, [networkFeePayment]);
 
   function _purchase() {
-    setIsActing(true);
+    updateActionData({ isActing: true });
 
     adminContract.methods
       .purchaseLicense(
@@ -68,17 +101,16 @@ function PurchaseAction({
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {
-          setDidFail(true);
-          setIsActing(false);
+          updateActionData({ isActing: false, didFail: true });
         }
       })
       .once("receipt", async function (receipt) {
-        setIsActing(false);
+        updateActionData({ isActing: false });
         refetchParcelData();
         setInteractionState(STATE_PARCEL_SELECTED);
       })
       .catch(() => {
-        setIsActing(false);
+        updateActionData({ isActing: false });
       });
   }
 
@@ -89,17 +121,10 @@ function PurchaseAction({
         adminContract={adminContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        isActing={isActing}
         performAction={_purchase}
-        setNewForSalePrice={setNewForSalePrice}
-        newForSalePrice={newForSalePrice}
-        setNetworkFeePayment={setNetworkFeePayment}
-        networkFeePayment={networkFeePayment}
-        didFail={didFail}
-        setDidFail={setDidFail}
-        currentForSalePrice={Web3.utils.fromWei(currentForSalePriceWei)}
-        currentExpirationTimestamp={currentExpirationTimestamp}
-        transactionSubtotal={transactionSubtotal}
+        ceramic={ceramic}
+        actionData={actionData}
+        setActionData={setActionData}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

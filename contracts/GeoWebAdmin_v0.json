@@ -389,6 +389,11 @@
         "internalType": "uint256",
         "name": "initialFeePayment",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "ceramicDocId",
+        "type": "string"
       }
     ],
     "name": "claim",

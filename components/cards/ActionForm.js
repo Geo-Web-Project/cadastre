@@ -8,7 +8,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN } from "../../lib/constants";
+import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_CID } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -19,21 +19,27 @@ export function ActionForm({
   adminContract,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  isActing,
   loading,
   performAction,
-  newForSalePrice,
-  setNewForSalePrice,
-  networkFeePayment,
-  setNetworkFeePayment,
-  didFail,
-  setDidFail,
-  currentForSalePrice,
-  currentExpirationTimestamp,
-  transactionSubtotal,
+  actionData,
+  setActionData,
+  ceramic,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
+
+  const {
+    parcelContentDoc,
+    parcelName,
+    parcelWebContentURI,
+    newForSalePrice,
+    networkFeePayment,
+    currentForSalePrice,
+    currentExpirationTimestamp,
+    transactionSubtotal,
+    didFail,
+    isActing,
+  } = actionData;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -49,6 +55,21 @@ export function ActionForm({
     networkFeePayment &&
     networkFeePayment.length > 0 &&
     isNaN(networkFeePayment);
+  let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
+  let isURIInvalid = parcelWebContentURI
+    ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
+        false || parcelWebContentURI.length > 150
+    : false;
+
+  function updateActionData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
 
   function _calculateNewExpiration(
     existingForSalePrice,
@@ -125,6 +146,31 @@ export function ActionForm({
     return [newExpirationDate, isDateInvalid, isDateWarning];
   }
 
+  async function submit() {
+    async function _updateContentRootDoc() {
+      let doc;
+      if (parcelContentDoc) {
+        doc = parcelContentDoc;
+        await doc.change({
+          content: { name: parcelName, webContent: parcelWebContentURI },
+        });
+      } else {
+        doc = await ceramic.createDocument("tile", {
+          content: { name: parcelName, webContent: parcelWebContentURI },
+          metadata: {
+            schema: CONTENT_ROOT_SCHEMA_CID,
+          },
+        });
+        updateActionData({ parcelContentDoc: doc });
+      }
+
+      return doc.id;
+    }
+    updateActionData({ isActing: true });
+    const rootCID = await _updateContentRootDoc();
+    performAction(rootCID);
+  }
+
   let [
     newExpirationDate,
     isDateInvalid,
@@ -142,6 +188,8 @@ export function ActionForm({
     isDateInvalid ||
     !newForSalePrice ||
     (currentForSalePrice == null && !networkFeePayment);
+
+  let isLoading = loading || ceramic == null;
 
   let expirationDateErrorMessage;
   if (currentForSalePrice == null && isDateInvalid) {
@@ -162,9 +210,12 @@ export function ActionForm({
       return;
     }
 
-    adminContract.methods.minInitialValue().call().then((minInitialValue) => {
-      setMinInitialValue(Web3.utils.fromWei(minInitialValue));
-    });
+    adminContract.methods
+      .minInitialValue()
+      .call()
+      .then((minInitialValue) => {
+        setMinInitialValue(Web3.utils.fromWei(minInitialValue));
+      });
   }, [adminContract]);
 
   React.useEffect(() => {
@@ -175,7 +226,7 @@ export function ActionForm({
 
   React.useEffect(() => {
     if (newForSalePrice == null) {
-      setNewForSalePrice(currentForSalePrice);
+      updateActionData({ newForSalePrice: currentForSalePrice });
     }
   }, [currentForSalePrice]);
 
@@ -189,6 +240,46 @@ export function ActionForm({
           <Form>
             <Form.Group>
               <Form.Control
+                isInvalid={isParcelNameInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="Parcel Name"
+                aria-label="Parcel Name"
+                aria-describedby="parcel-name"
+                defaultValue={parcelName}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelName: e.target.value })
+                }
+              />
+              {isParcelNameInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Parcel name cannot be longer than 150 characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
+                isInvalid={isURIInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="URI (http://, https://, ipfs://, ipns://)"
+                aria-label="Web Content URI"
+                aria-describedby="web-content-uri"
+                defaultValue={parcelWebContentURI}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelWebContentURI: e.target.value })
+                }
+              />
+              {isURIInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Web content URI must be one of
+                  (http://,https://,ipfs://,ipns://) and less than 150
+                  characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light"
@@ -197,13 +288,18 @@ export function ActionForm({
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
                 defaultValue={currentForSalePrice}
-                disabled={isActing || loading}
-                onChange={(e) => setNewForSalePrice(e.target.value)}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ newForSalePrice: e.target.value })
+                }
               />
-              <Form.Control.Feedback type="invalid">
-                For Sale Price must be greater than or equal to{" "}
-                {minInitialValue}
-              </Form.Control.Feedback>
+              {isForSalePriceInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  For Sale Price must be greater than or equal to{" "}
+                  {minInitialValue}
+                </Form.Control.Feedback>
+              ) : null}
+
               <br />
               <Form.Control
                 required={currentForSalePrice == null}
@@ -216,18 +312,20 @@ export function ActionForm({
                 }
                 aria-label="Network Fee Payment"
                 aria-describedby="network-fee-payment"
-                disabled={isActing || loading}
+                disabled={isActing || isLoading}
                 isInvalid={isNetworkFeePaymentInvalid}
-                onChange={(e) => setNetworkFeePayment(e.target.value)}
+                onChange={(e) =>
+                  updateActionData({ networkFeePayment: e.target.value })
+                }
               />
             </Form.Group>
             <Button
               variant="primary"
               className="w-100"
-              onClick={performAction}
-              disabled={isActing || loading || isInvalid}
+              onClick={() => submit()}
+              disabled={isActing || isLoading || isInvalid}
             >
-              {isActing || loading ? spinner : "Confirm"}
+              {isActing || isLoading ? spinner : "Confirm"}
             </Button>
           </Form>
 
@@ -236,7 +334,7 @@ export function ActionForm({
             <Alert
               variant="danger"
               dismissible
-              onClick={() => setDidFail(false)}
+              onClick={() => updateActionData({ didFail: false })}
             >
               <Alert.Heading style={{ fontSize: "1em" }}>
                 Transaction failed

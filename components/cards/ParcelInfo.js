@@ -5,6 +5,9 @@ import {
   STATE_PARCEL_SELECTED,
   STATE_PARCEL_EDITING,
   STATE_PARCEL_PURCHASING,
+  STATE_VIEWING,
+  STATE_CLAIM_SELECTED,
+  STATE_CLAIM_SELECTING,
 } from "../Map";
 import Web3 from "web3";
 import { useState, useEffect } from "react";
@@ -15,12 +18,15 @@ import PurchaseAction from "./PurchaseAction";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import AuctionInfo from "./AuctionInfo";
 import { truncateStr } from "../../lib/truncate";
+import Image from "react-bootstrap/Image";
+import Row from "react-bootstrap/Row";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
     landParcel(id: $id) {
       id
       license {
+        rootCID
         owner
         value
         expirationTimestamp
@@ -40,17 +46,25 @@ function ParcelInfo({
   perSecondFeeDenominator,
   paymentTokenContract,
   adminAddress,
+  ceramic,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
   });
-  const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
-  let [auctionValue, setAuctionValue] = React.useState(null);
 
+  const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
+  const [auctionValue, setAuctionValue] = React.useState(null);
+  const [contentDocId, setContentDocId] = React.useState(null);
+  const [parcelContentDoc, setParcelContentDoc] = React.useState(null);
+
+  const parcelContent = parcelContentDoc ? parcelContentDoc.content : null;
   let isLoading =
-    loading || perSecondFeeNumerator == null || perSecondFeeDenominator == null;
+    loading ||
+    perSecondFeeNumerator == null ||
+    perSecondFeeDenominator == null ||
+    parcelContent == null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = new Date();
@@ -70,6 +84,8 @@ function ParcelInfo({
       perSecondFeeNumerator &&
       perSecondFeeDenominator
     ) {
+      setContentDocId(data.landParcel.license.rootCID);
+
       if (networkFeeBalance == null) {
         setInterval(() => {
           setNetworkFeeBalance(
@@ -80,6 +96,13 @@ function ParcelInfo({
     }
   }, [data, perSecondFeeNumerator, perSecondFeeDenominator]);
 
+  useEffect(async () => {
+    if (ceramic == null || contentDocId == null) {
+      return;
+    }
+    const doc = await ceramic.loadDocument(contentDocId);
+    setParcelContentDoc(doc);
+  }, [contentDocId, ceramic]);
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
@@ -175,81 +198,150 @@ function ParcelInfo({
       break;
   }
 
+  let title;
+  if (
+    interactionState == STATE_CLAIM_SELECTING ||
+    interactionState == STATE_CLAIM_SELECTED
+  ) {
+    title = (
+      <>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Claim a Parcel</h1>
+      </>
+    );
+  } else {
+    title = (
+      <>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+          {isLoading ? spinner : parcelContent.name}
+        </h1>
+      </>
+    );
+  }
+
   return (
-    <Col>
-      {interactionState == STATE_PARCEL_SELECTED ||
-      interactionState == STATE_PARCEL_EDITING ||
-      interactionState == STATE_PARCEL_PURCHASING ? (
-        <>
-          <p className="text-truncate">
-            <span className="font-weight-bold">Licensee:</span>{" "}
-            {isLoading ? spinner : truncateStr(licenseOwner, 11)}
-          </p>
-          <p>
-            <span className="font-weight-bold">For Sale Price:</span>{" "}
-            {isLoading ? spinner : forSalePrice}
-          </p>
-          <p>
-            <span className="font-weight-bold">Expiration Date:</span>{" "}
-            {isLoading ? spinner : expDate}
-          </p>
-          <p>
-            <span className="font-weight-bold">Fee Balance:</span>{" "}
-            {isLoading || networkFeeBalanceDisplay == null
-              ? spinner
-              : networkFeeBalanceDisplay}
-          </p>
-          {isExpired ? (
+    <>
+      <Row className="mb-3">
+        <Col sm="10">{title}</Col>
+        <Col sm="2">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => setInteractionState(STATE_VIEWING)}
+          >
+            <Image src="close.svg" />
+          </Button>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          {interactionState == STATE_PARCEL_SELECTED ||
+          interactionState == STATE_PARCEL_EDITING ||
+          interactionState == STATE_PARCEL_PURCHASING ? (
             <>
-              <hr className="border-secondary" />
-              <AuctionInfo
-                adminContract={adminContract}
-                licenseInfo={data.landParcel.license}
-                auctionValue={auctionValue}
-                setAuctionValue={setAuctionValue}
-              ></AuctionInfo>
+              <p className="font-weight-bold text-truncate">
+                {isLoading ? (
+                  spinner
+                ) : (
+                  <a
+                    href={parcelContent.webContent}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-light"
+                  >{`[${parcelContent.webContent}]`}</a>
+                )}
+              </p>
+              <p className="text-truncate">
+                <span className="font-weight-bold">Parcel ID:</span>{" "}
+                {isLoading ? spinner : selectedParcelId}
+              </p>
+              <p className="text-truncate">
+                <span className="font-weight-bold">Licensee:</span>{" "}
+                {isLoading ? spinner : truncateStr(licenseOwner, 11)}
+              </p>
+              <p>
+                <span className="font-weight-bold">For Sale Price:</span>{" "}
+                {isLoading ? spinner : forSalePrice}
+              </p>
+              <p>
+                <span className="font-weight-bold">Expiration Date:</span>{" "}
+                {isLoading ? spinner : expDate}
+              </p>
+              <p>
+                <span className="font-weight-bold">Fee Balance:</span>{" "}
+                {isLoading || networkFeeBalanceDisplay == null
+                  ? spinner
+                  : networkFeeBalanceDisplay}
+              </p>
+              <p className="text-truncate">
+                <span className="font-weight-bold">Linked CID:</span>{" "}
+                {contentDocId == null ? (
+                  spinner
+                ) : (
+                  <a
+                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${contentDocId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-light"
+                  >{`ceramic://${contentDocId}`}</a>
+                )}
+              </p>
+              {isExpired ? (
+                <>
+                  <hr className="border-secondary" />
+                  <AuctionInfo
+                    adminContract={adminContract}
+                    licenseInfo={data.landParcel.license}
+                    auctionValue={auctionValue}
+                    setAuctionValue={setAuctionValue}
+                  ></AuctionInfo>
+                </>
+              ) : null}
+              <br />
+              {!isLoading
+                ? account.toLowerCase() == licenseOwner.toLowerCase()
+                  ? editButton
+                  : initiateTransferButton
+                : null}
             </>
+          ) : (
+            <p>Unclaimed Coordinates</p>
+          )}
+          {interactionState == STATE_PARCEL_EDITING ? (
+            <EditAction
+              adminContract={adminContract}
+              account={account}
+              setInteractionState={setInteractionState}
+              setSelectedParcelId={setSelectedParcelId}
+              perSecondFeeNumerator={perSecondFeeNumerator}
+              perSecondFeeDenominator={perSecondFeeDenominator}
+              parcelData={data}
+              refetchParcelData={refetch}
+              paymentTokenContract={paymentTokenContract}
+              adminAddress={adminAddress}
+              ceramic={ceramic}
+              parcelContentDoc={parcelContentDoc}
+            />
           ) : null}
-          <br />
-          {!isLoading
-            ? account == licenseOwner
-              ? editButton
-              : initiateTransferButton
-            : null}
-        </>
-      ) : (
-        <p>Unclaimed Coordinates</p>
-      )}
-      {interactionState == STATE_PARCEL_EDITING ? (
-        <EditAction
-          adminContract={adminContract}
-          account={account}
-          setInteractionState={setInteractionState}
-          setSelectedParcelId={setSelectedParcelId}
-          perSecondFeeNumerator={perSecondFeeNumerator}
-          perSecondFeeDenominator={perSecondFeeDenominator}
-          parcelData={data}
-          refetchParcelData={refetch}
-          paymentTokenContract={paymentTokenContract}
-          adminAddress={adminAddress}
-        />
-      ) : null}
-      {interactionState == STATE_PARCEL_PURCHASING ? (
-        <PurchaseAction
-          adminContract={adminContract}
-          account={account}
-          setInteractionState={setInteractionState}
-          setSelectedParcelId={setSelectedParcelId}
-          perSecondFeeNumerator={perSecondFeeNumerator}
-          perSecondFeeDenominator={perSecondFeeDenominator}
-          parcelData={data}
-          refetchParcelData={refetch}
-          paymentTokenContract={paymentTokenContract}
-          adminAddress={adminAddress}
-          auctionValue={auctionValue}
-        />
-      ) : null}
-    </Col>
+          {interactionState == STATE_PARCEL_PURCHASING ? (
+            <PurchaseAction
+              adminContract={adminContract}
+              account={account}
+              setInteractionState={setInteractionState}
+              setSelectedParcelId={setSelectedParcelId}
+              perSecondFeeNumerator={perSecondFeeNumerator}
+              perSecondFeeDenominator={perSecondFeeDenominator}
+              parcelData={data}
+              refetchParcelData={refetch}
+              paymentTokenContract={paymentTokenContract}
+              adminAddress={adminAddress}
+              auctionValue={auctionValue}
+              ceramic={ceramic}
+              parcelContentDoc={parcelContentDoc}
+            />
+          ) : null}
+        </Col>
+      </Row>
+    </>
   );
 }
 

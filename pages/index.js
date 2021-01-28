@@ -18,7 +18,6 @@ import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
 import { useWeb3React } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
-
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("../contracts/ERC20Mock.json");
 
@@ -41,6 +40,7 @@ function IndexPage() {
 
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
+  const [ceramic, setCeramic] = useState(null);
 
   useEffect(async () => {
     if (active == false) {
@@ -57,11 +57,14 @@ function IndexPage() {
     const didProvider = await threeIdConnect.getDidProvider();
 
     await ceramic.setDIDProvider(didProvider);
+
+    setCeramic(ceramic);
   }, [active, account]);
 
   // Setup Contracts on App Load
   useEffect(() => {
     if (library == null) {
+      activate(injected);
       return;
     }
     async function contractsSetup() {
@@ -155,6 +158,7 @@ function IndexPage() {
             account={account}
             adminContract={adminContract}
             paymentTokenContract={paymentTokenContract}
+            ceramic={ceramic}
             adminAddress={ADMIN_CONTRACT_ADDRESS}
           ></Map>
         </Row>
