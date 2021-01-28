@@ -18,12 +18,8 @@ function PurchaseAction({
   auctionValue,
   ceramic,
   parcelContentDoc,
+  existingNetworkFeeBalance,
 }) {
-  const currentForSalePriceWei =
-    auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
-  const currentExpirationTimestamp =
-    parcelData.landParcel.license.expirationTimestamp;
-
   function _calculateNetworkFeeBalance(
     existingExpirationTimestamp,
     existingForSalePriceWei
@@ -44,19 +40,17 @@ function PurchaseAction({
     return existingPerSecondFee.muln(existingTimeBalance);
   }
 
-  let existingNetworkFeeBalanceWei = _calculateNetworkFeeBalance(
-    currentExpirationTimestamp,
-    currentForSalePriceWei
-  );
-
+  const _currentForSalePriceWei =
+    auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
   const currentForSalePrice = Web3.utils.fromWei(
     parcelData.landParcel.license.value
   );
   const [actionData, setActionData] = React.useState({
     currentForSalePrice: currentForSalePrice,
-    currentExpirationTimestamp: currentExpirationTimestamp,
-    transactionSubtotal: new BN(currentForSalePriceWei).add(
-      existingNetworkFeeBalanceWei
+    currentExpirationTimestamp:
+      parcelData.landParcel.license.expirationTimestamp,
+    transactionSubtotal: new BN(_currentForSalePriceWei).add(
+      existingNetworkFeeBalance
     ),
     isActing: false,
     didFail: false,
@@ -81,12 +75,15 @@ function PurchaseAction({
   const { newForSalePrice, networkFeePayment, isActing, didFail } = actionData;
 
   React.useEffect(() => {
+    const currentForSalePriceWei =
+      auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
+
     let _transactionSubtotal = new BN(currentForSalePriceWei)
       .add(calculateWeiSubtotalField(networkFeePayment))
-      .add(existingNetworkFeeBalanceWei);
+      .add(existingNetworkFeeBalance);
 
     updateActionData({ transactionSubtotal: _transactionSubtotal });
-  }, [networkFeePayment]);
+  }, [networkFeePayment, auctionValue, parcelData, existingNetworkFeeBalance]);
 
   function _purchase(rootCID) {
     updateActionData({ isActing: true });

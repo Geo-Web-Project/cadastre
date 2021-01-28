@@ -337,6 +337,7 @@ function ParcelInfo({
               auctionValue={auctionValue}
               ceramic={ceramic}
               parcelContentDoc={parcelContentDoc}
+              existingNetworkFeeBalance={networkFeeBalance}
             />
           ) : null}
         </Col>
