@@ -56,6 +56,15 @@ function EditAction({
   function _edit() {
     updateActionData({ isActing: true });
 
+    // Check for changes
+    const networkFeeIsUnchanged =
+      networkFeePayment.length == 0 || Web3.utils.toWei(networkFeePayment) == 0;
+    if (newForSalePrice == currentForSalePrice && networkFeeIsUnchanged) {
+      updateActionData({ isActing: false });
+      setInteractionState(STATE_PARCEL_SELECTED);
+      return;
+    }
+
     adminContract.methods
       .updateValue(
         parcelData.landParcel.id,
