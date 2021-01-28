@@ -52,7 +52,7 @@ function ClaimAction({
     setActionData(_updateData(updatedValues));
   }
 
-  const { newForSalePrice, networkFeePayment } = actionData;
+  const { newForSalePrice, networkFeePayment, parcelContentDoc } = actionData;
 
   React.useEffect(() => {
     if (data == null || data.landParcel == null) {
@@ -74,8 +74,12 @@ function ClaimAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [networkFeePayment]);
 
-  function _claim() {
+  function _claim(rootCID) {
     updateActionData({ isActing: true });
+    if (rootCID == null) {
+      updateActionData({ isActing: false, didFail: true });
+      return;
+    }
 
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -96,7 +100,8 @@ function ClaimAction({
         baseCoord,
         path,
         Web3.utils.toWei(newForSalePrice),
-        Web3.utils.toWei(networkFeePayment)
+        Web3.utils.toWei(networkFeePayment),
+        rootCID.toString()
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {

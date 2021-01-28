@@ -163,13 +163,12 @@ export function ActionForm({
         });
         updateActionData({ parcelContentDoc: doc });
       }
-      console.log(doc.id.toString());
-      console.log(doc.commitId.toString());
-    }
 
+      return doc.id;
+    }
     updateActionData({ isActing: true });
-    await _updateContentRootDoc();
-    performAction();
+    const rootCID = await _updateContentRootDoc();
+    performAction(rootCID);
   }
 
   let [

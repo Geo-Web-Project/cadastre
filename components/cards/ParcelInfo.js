@@ -26,6 +26,7 @@ const parcelQuery = gql`
     landParcel(id: $id) {
       id
       license {
+        rootCID
         owner
         value
         expirationTimestamp
@@ -83,9 +84,7 @@ function ParcelInfo({
       perSecondFeeNumerator &&
       perSecondFeeDenominator
     ) {
-      setContentDocId(
-        "kjzl6cwe1jw148i0sped8bat1fv3otest2zhil9qe1zk6sa6wjlbtwivi28jm2a"
-      );
+      setContentDocId(data.landParcel.license.rootCID);
 
       if (networkFeeBalance == null) {
         setInterval(() => {
