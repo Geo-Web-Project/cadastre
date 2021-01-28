@@ -62,7 +62,6 @@ function PurchaseAction({
     didFail: false,
     networkFeePayment: "",
     newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
-    parcelContentDoc: parcelContentDoc,
     parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
     parcelWebContentURI: parcelContentDoc
       ? parcelContentDoc.content.webContent
@@ -89,15 +88,16 @@ function PurchaseAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [networkFeePayment]);
 
-  function _purchase() {
+  function _purchase(rootCID) {
     updateActionData({ isActing: true });
 
     adminContract.methods
       .purchaseLicense(
         parcelData.landParcel.id,
-        transactionSubtotal,
+        actionData.transactionSubtotal,
         calculateWeiSubtotalField(newForSalePrice),
-        calculateWeiSubtotalField(networkFeePayment)
+        calculateWeiSubtotalField(networkFeePayment),
+        rootCID.toString()
       )
       .send({ from: account }, (error, txHash) => {
         if (error) {
