@@ -20,6 +20,7 @@ import AuctionInfo from "./AuctionInfo";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
+import CID from "cids";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -134,6 +135,19 @@ function ParcelInfo({
     licenseOwner = data.landParcel.license.owner;
   }
 
+  let hrefWebContent;
+  // Translate ipfs:// to case-insensitive base
+  if (
+    parcelContent &&
+    parcelContent.webContent &&
+    parcelContent.webContent.startsWith("ipfs://")
+  ) {
+    const cid = new CID(parcelContent.webContent.split("ipfs://")[1]);
+    hrefWebContent = `ipfs://${cid.toV1().toBaseEncodedString("base32")}`;
+  } else if (parcelContent) {
+    hrefWebContent = parcelContent.webContent;
+  }
+
   let editButton;
   switch (interactionState) {
     case STATE_PARCEL_SELECTED:
@@ -243,11 +257,11 @@ function ParcelInfo({
                   spinner
                 ) : (
                   <a
-                    href={parcelContent.webContent}
+                    href={hrefWebContent}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`[${parcelContent.webContent}]`}</a>
+                  >{`[${hrefWebContent}]`}</a>
                 )}
               </p>
               <p className="text-truncate">
