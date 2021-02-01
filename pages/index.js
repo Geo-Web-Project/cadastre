@@ -25,6 +25,33 @@ export const injected = new InjectedConnector({
   supportedChainIds: [NETWORK_ID],
 });
 
+function useEagerConnect() {
+  const { activate, active } = useWeb3React();
+
+  const [tried, setTried] = useState(false);
+
+  useEffect(() => {
+    injected.isAuthorized().then((isAuthorized) => {
+      if (isAuthorized) {
+        activate(injected, undefined, true).catch(() => {
+          setTried(true);
+        });
+      } else {
+        setTried(true);
+      }
+    });
+  }, []); // intentionally only running on mount (make sure it's only mounted once :))
+
+  // if the connection worked, wait until we get confirmation of that to flip the flag
+  useEffect(() => {
+    if (!tried && active) {
+      setTried(true);
+    }
+  }, [tried, active]);
+
+  return tried;
+}
+
 function IndexPage() {
   const context = useWeb3React();
   const {
@@ -38,6 +65,7 @@ function IndexPage() {
     error,
   } = context;
 
+  const triedEager = useEagerConnect();
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [ceramic, setCeramic] = useState(null);
@@ -64,7 +92,6 @@ function IndexPage() {
   // Setup Contracts on App Load
   useEffect(() => {
     if (library == null) {
-      activate(injected);
       return;
     }
     async function contractsSetup() {
@@ -153,15 +180,17 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        <Row>
-          <Map
-            account={account}
-            adminContract={adminContract}
-            paymentTokenContract={paymentTokenContract}
-            ceramic={ceramic}
-            adminAddress={ADMIN_CONTRACT_ADDRESS}
-          ></Map>
-        </Row>
+        {active ? (
+          <Row>
+            <Map
+              account={account}
+              adminContract={adminContract}
+              paymentTokenContract={paymentTokenContract}
+              ceramic={ceramic}
+              adminAddress={ADMIN_CONTRACT_ADDRESS}
+            ></Map>
+          </Row>
+        ) : null}
       </Container>
     </>
   );
