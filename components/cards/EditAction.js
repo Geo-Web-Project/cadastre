@@ -1,5 +1,5 @@
 import * as React from "react";
-import Web3 from "web3";
+import { ethers, BigNumber } from "ethers";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
@@ -17,17 +17,19 @@ function EditAction({
   ceramic,
   parcelContentDoc,
 }) {
-  const currentForSalePrice = Web3.utils.fromWei(
-    parcelData.landParcel.license.value
+  const displayCurrentForSalePrice = ethers.utils.formatEther(
+    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
   const [actionData, setActionData] = React.useState({
-    currentForSalePrice: currentForSalePrice,
+    displayCurrentForSalePrice: displayCurrentForSalePrice,
     currentExpirationTimestamp:
       parcelData.landParcel.license.expirationTimestamp,
     isActing: false,
     didFail: false,
-    networkFeePayment: "",
-    newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
+    displayNetworkFeePayment: "",
+    displayNewForSalePrice: displayCurrentForSalePrice
+      ? displayCurrentForSalePrice
+      : "",
     parcelContentDoc: parcelContentDoc,
     parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
     parcelWebContentURI: parcelContentDoc
@@ -45,44 +47,52 @@ function EditAction({
     setActionData(_updateData(updatedValues));
   }
 
-  const { newForSalePrice, networkFeePayment } = actionData;
+  const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
 
   React.useEffect(() => {
-    let _transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
+    let _transactionSubtotal = calculateWeiSubtotalField(
+      displayNetworkFeePayment
+    );
 
     updateActionData({ transactionSubtotal: _transactionSubtotal });
-  }, [networkFeePayment]);
+  }, [displayNetworkFeePayment]);
 
   function _edit() {
     updateActionData({ isActing: true });
 
     // Check for changes
+    const networkFeePayment = ethers.utils.parseEther(
+      displayNetworkFeePayment.length > 0 ? displayNetworkFeePayment : "0"
+    );
     const networkFeeIsUnchanged =
-      networkFeePayment.length == 0 || Web3.utils.toWei(networkFeePayment) == 0;
-    if (newForSalePrice == currentForSalePrice && networkFeeIsUnchanged) {
+      displayNetworkFeePayment.length == 0 || networkFeePayment == 0;
+    if (
+      displayNewForSalePrice == displayCurrentForSalePrice &&
+      networkFeeIsUnchanged
+    ) {
       updateActionData({ isActing: false });
       setInteractionState(STATE_PARCEL_SELECTED);
       return;
     }
 
-    adminContract.methods
+    let newForSalePrice = ethers.utils.parseEther(displayNewForSalePrice);
+    adminContract
       .updateValue(
         parcelData.landParcel.id,
-        Web3.utils.toWei(newForSalePrice),
-        networkFeePayment.length > 0 ? Web3.utils.toWei(networkFeePayment) : 0
+        newForSalePrice,
+        displayNetworkFeePayment.length > 0 ? networkFeePayment : 0,
+        { from: account }
       )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          updateActionData({ isActing: false, didFail: true });
-        }
+      .then((resp) => {
+        return resp.wait();
       })
-      .once("receipt", async function (receipt) {
+      .then(async function (receipt) {
         updateActionData({ isActing: false });
         refetchParcelData();
         setInteractionState(STATE_PARCEL_SELECTED);
       })
-      .catch(() => {
-        updateActionData({ isActing: false });
+      .catch((error) => {
+        updateActionData({ isActing: false, didFail: true });
       });
   }
 

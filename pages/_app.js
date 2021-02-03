@@ -8,11 +8,12 @@ import {
 import { SUBGRAPH_URL } from "../lib/constants";
 import { Web3ReactProvider } from "@web3-react/core";
 import Web3 from "web3";
+import { ethers } from "ethers";
 
 import "../styles.scss";
 
 function getLibrary(provider, connector) {
-  return new Web3(provider);
+  return new ethers.providers.Web3Provider(provider);
 }
 
 export default function App({ Component, pageProps }) {

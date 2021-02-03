@@ -1,10 +1,10 @@
 import * as React from "react";
-import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import BN from "bn.js";
 import { gql, useLazyQuery } from "@apollo/client";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
+import { ethers, BigNumber } from "ethers";
+import BN from "bn.js";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -38,8 +38,8 @@ function ClaimAction({
   const [actionData, setActionData] = React.useState({
     isActing: false,
     didFail: false,
-    networkFeePayment: "",
-    newForSalePrice: "",
+    displayNetworkFeePayment: "",
+    displayNewForSalePrice: "",
   });
 
   function updateActionData(updatedValues) {
@@ -52,7 +52,11 @@ function ClaimAction({
     setActionData(_updateData(updatedValues));
   }
 
-  const { newForSalePrice, networkFeePayment, parcelContentDoc } = actionData;
+  const {
+    displayNewForSalePrice,
+    displayNetworkFeePayment,
+    parcelContentDoc,
+  } = actionData;
 
   React.useEffect(() => {
     if (data == null || data.landParcel == null) {
@@ -69,10 +73,12 @@ function ClaimAction({
   }, [data]);
 
   React.useEffect(() => {
-    let _transactionSubtotal = calculateWeiSubtotalField(networkFeePayment);
+    let _transactionSubtotal = calculateWeiSubtotalField(
+      displayNetworkFeePayment
+    );
 
     updateActionData({ transactionSubtotal: _transactionSubtotal });
-  }, [networkFeePayment]);
+  }, [displayNetworkFeePayment]);
 
   function _claim(rootCID) {
     updateActionData({ isActing: true });
@@ -89,29 +95,43 @@ function ClaimAction({
       claimBase2Coord.x,
       claimBase2Coord.y
     );
-    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
+    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord).map(
+      (v) => {
+        return BigNumber.from(v.toString(10));
+      }
+    );
     if (path.length == 0) {
-      path = [new BN(0)];
+      path = [BigNumber.from(0)];
     }
 
-    adminContract.methods
+    adminContract
       .claim(
         account,
-        baseCoord,
+        baseCoord.toString(10),
         path,
-        Web3.utils.toWei(newForSalePrice),
-        Web3.utils.toWei(networkFeePayment),
-        rootCID.toString()
+        calculateWeiSubtotalField(displayNewForSalePrice),
+        calculateWeiSubtotalField(displayNetworkFeePayment),
+        rootCID.toString(),
+        { from: account }
       )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          updateActionData({ isActing: false, didFail: true });
-        }
+      .then((resp) => {
+        return resp.wait();
       })
-      .once("receipt", async function (receipt) {
-        let licenseId =
-          receipt.events["LicenseInfoUpdated"].returnValues._licenseId;
-        let _newParcelId = `0x${new BN(licenseId, 10).toString(16)}`;
+      .then((receipt) => {
+        const filter = adminContract.filters.LicenseInfoUpdated(
+          null,
+          null,
+          null
+        );
+        return adminContract.queryFilter(
+          filter,
+          receipt.blockNumber,
+          receipt.blockNumber
+        );
+      })
+      .then((res) => {
+        let licenseId = res[0].args[0];
+        let _newParcelId = `0x${new BN(licenseId.toString()).toString(16)}`;
         setNewParcelId(_newParcelId);
 
         getNewParcel({
@@ -119,8 +139,9 @@ function ClaimAction({
           pollInterval: 2000,
         });
       })
-      .catch(() => {
-        updateActionData({ isActing: false });
+      .catch((error) => {
+        console.log(error);
+        updateActionData({ isActing: false, didFail: true });
       });
   }
 
