@@ -18,12 +18,41 @@ import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
 import { useWeb3React } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
+import { ethers } from "ethers";
+
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("../contracts/ERC20Mock.json");
 
 export const injected = new InjectedConnector({
   supportedChainIds: [NETWORK_ID],
 });
+
+function useEagerConnect() {
+  const { activate, active } = useWeb3React();
+
+  const [tried, setTried] = useState(false);
+
+  useEffect(() => {
+    injected.isAuthorized().then((isAuthorized) => {
+      if (isAuthorized) {
+        activate(injected, undefined, true).catch(() => {
+          setTried(true);
+        });
+      } else {
+        setTried(true);
+      }
+    });
+  }, []); // intentionally only running on mount (make sure it's only mounted once :))
+
+  // if the connection worked, wait until we get confirmation of that to flip the flag
+  useEffect(() => {
+    if (!tried && active) {
+      setTried(true);
+    }
+  }, [tried, active]);
+
+  return tried;
+}
 
 function IndexPage() {
   const context = useWeb3React();
@@ -38,6 +67,7 @@ function IndexPage() {
     error,
   } = context;
 
+  const triedEager = useEagerConnect();
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [ceramic, setCeramic] = useState(null);
@@ -64,24 +94,27 @@ function IndexPage() {
   // Setup Contracts on App Load
   useEffect(() => {
     if (library == null) {
-      activate(injected);
       return;
     }
     async function contractsSetup() {
-      let web3 = library;
+      const signer = library.getSigner();
 
-      let _adminContract = new web3.eth.Contract(
+      let _adminContract = new ethers.Contract(
+        ADMIN_CONTRACT_ADDRESS,
         geoWebAdminABI,
-        ADMIN_CONTRACT_ADDRESS
+        library
       );
-      setAdminContract(_adminContract);
+      let _adminContractWithSigner = _adminContract.connect(signer);
+      setAdminContract(_adminContractWithSigner);
 
-      let _paymentTokenContractAddress = await _adminContract.methods
-        .paymentTokenContract()
-        .call();
-      setPaymentTokenContract(
-        new web3.eth.Contract(erc20ABI, _paymentTokenContractAddress)
+      let _paymentTokenContractAddress = await _adminContract.paymentTokenContract();
+      let _paymentContract = new ethers.Contract(
+        _paymentTokenContractAddress,
+        erc20ABI,
+        library
       );
+      let _paymentContractWithSigner = _paymentContract.connect(signer);
+      setPaymentTokenContract(_paymentContractWithSigner);
     }
     contractsSetup();
   }, [library]);
@@ -153,15 +186,17 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        <Row>
-          <Map
-            account={account}
-            adminContract={adminContract}
-            paymentTokenContract={paymentTokenContract}
-            ceramic={ceramic}
-            adminAddress={ADMIN_CONTRACT_ADDRESS}
-          ></Map>
-        </Row>
+        {active ? (
+          <Row>
+            <Map
+              account={account}
+              adminContract={adminContract}
+              paymentTokenContract={paymentTokenContract}
+              ceramic={ceramic}
+              adminAddress={ADMIN_CONTRACT_ADDRESS}
+            ></Map>
+          </Row>
+        ) : null}
       </Container>
     </>
   );

@@ -3,7 +3,6 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import BN from "bn.js";
 
 import {
   STATE_VIEWING,
@@ -33,18 +32,12 @@ function Sidebar({
   );
 
   React.useEffect(() => {
-    adminContract.methods
-      .perSecondFeeNumerator()
-      .call()
-      .then((_perSecondFeeNumerator) => {
-        setPerSecondFeeNumerator(new BN(_perSecondFeeNumerator));
-      });
-    adminContract.methods
-      .perSecondFeeDenominator()
-      .call()
-      .then((_perSecondFeeDenominator) => {
-        setPerSecondFeeDenominator(new BN(_perSecondFeeDenominator));
-      });
+    adminContract.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
+      setPerSecondFeeNumerator(_perSecondFeeNumerator);
+    });
+    adminContract.perSecondFeeDenominator().then((_perSecondFeeDenominator) => {
+      setPerSecondFeeDenominator(_perSecondFeeDenominator);
+    });
   }, [adminContract]);
 
   return (

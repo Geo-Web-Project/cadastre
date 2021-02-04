@@ -1,9 +1,8 @@
 import * as React from "react";
-import Web3 from "web3";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-import BN from "bn.js";
+import { ethers, BigNumber } from "ethers";
 
 function PurchaseAction({
   adminContract,
@@ -42,20 +41,22 @@ function PurchaseAction({
 
   const _currentForSalePriceWei =
     auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
-  const currentForSalePrice = Web3.utils.fromWei(
-    parcelData.landParcel.license.value
+  const displayCurrentForSalePrice = ethers.utils.formatEther(
+    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
   const [actionData, setActionData] = React.useState({
-    currentForSalePrice: currentForSalePrice,
+    displayCurrentForSalePrice: displayCurrentForSalePrice,
     currentExpirationTimestamp:
       parcelData.landParcel.license.expirationTimestamp,
-    transactionSubtotal: new BN(_currentForSalePriceWei).add(
+    transactionSubtotal: BigNumber.from(_currentForSalePriceWei).add(
       existingNetworkFeeBalance
     ),
     isActing: false,
     didFail: false,
-    networkFeePayment: "",
-    newForSalePrice: currentForSalePrice ? currentForSalePrice : "",
+    displayNetworkFeePayment: "",
+    displayNewForSalePrice: displayCurrentForSalePrice
+      ? displayCurrentForSalePrice
+      : "",
     parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
     parcelWebContentURI: parcelContentDoc
       ? parcelContentDoc.content.webContent
@@ -72,42 +73,52 @@ function PurchaseAction({
     setActionData(_updateData(updatedValues));
   }
 
-  const { newForSalePrice, networkFeePayment, isActing, didFail } = actionData;
+  const {
+    displayNewForSalePrice,
+    displayNetworkFeePayment,
+    isActing,
+    didFail,
+  } = actionData;
 
   React.useEffect(() => {
     const currentForSalePriceWei =
       auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
 
-    let _transactionSubtotal = new BN(currentForSalePriceWei)
-      .add(calculateWeiSubtotalField(networkFeePayment))
+    let _transactionSubtotal = BigNumber.from(currentForSalePriceWei)
+      .add(calculateWeiSubtotalField(displayNetworkFeePayment))
       .add(existingNetworkFeeBalance);
 
     updateActionData({ transactionSubtotal: _transactionSubtotal });
-  }, [networkFeePayment, auctionValue, parcelData, existingNetworkFeeBalance]);
+  }, [
+    displayNetworkFeePayment,
+    auctionValue,
+    parcelData,
+    existingNetworkFeeBalance,
+  ]);
 
   function _purchase(rootCID) {
     updateActionData({ isActing: true });
 
-    adminContract.methods
+    adminContract
       .purchaseLicense(
         parcelData.landParcel.id,
         actionData.transactionSubtotal,
-        calculateWeiSubtotalField(newForSalePrice),
-        calculateWeiSubtotalField(networkFeePayment),
-        rootCID.toString()
+        calculateWeiSubtotalField(displayNewForSalePrice),
+        calculateWeiSubtotalField(displayNetworkFeePayment),
+        rootCID.toString(),
+        { from: account }
       )
-      .send({ from: account }, (error, txHash) => {
-        if (error) {
-          updateActionData({ isActing: false, didFail: true });
-        }
+      .then((resp) => {
+        return resp.wait();
       })
-      .once("receipt", async function (receipt) {
+      .then(async function (receipt) {
         updateActionData({ isActing: false });
         refetchParcelData();
         setInteractionState(STATE_PARCEL_SELECTED);
       })
-      .catch(() => {
-        updateActionData({ isActing: false });
+      .catch((error) => {
+        console.log(error);
+        updateActionData({ isActing: false, didFail: true });
       });
   }
 

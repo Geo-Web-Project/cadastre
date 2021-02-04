@@ -2,8 +2,7 @@ import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
-import Web3 from "web3";
-import BN from "bn.js";
+import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -32,9 +31,9 @@ export function ActionForm({
     parcelContentDoc,
     parcelName,
     parcelWebContentURI,
-    newForSalePrice,
-    networkFeePayment,
-    currentForSalePrice,
+    displayNewForSalePrice,
+    displayNetworkFeePayment,
+    displayCurrentForSalePrice,
     currentExpirationTimestamp,
     transactionSubtotal,
     didFail,
@@ -48,13 +47,14 @@ export function ActionForm({
   );
 
   let isForSalePriceInvalid =
-    newForSalePrice &&
-    newForSalePrice.length > 0 &&
-    (isNaN(newForSalePrice) || Number(newForSalePrice) < minInitialValue);
+    displayNewForSalePrice &&
+    displayNewForSalePrice.length > 0 &&
+    (isNaN(displayNewForSalePrice) ||
+      Number(displayNewForSalePrice) < minInitialValue);
   let isNetworkFeePaymentInvalid =
-    networkFeePayment &&
-    networkFeePayment.length > 0 &&
-    isNaN(networkFeePayment);
+    displayNetworkFeePayment &&
+    displayNetworkFeePayment.length > 0 &&
+    isNaN(displayNetworkFeePayment);
   let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   let isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -72,10 +72,10 @@ export function ActionForm({
   }
 
   function _calculateNewExpiration(
-    existingForSalePrice,
+    displayExistingForSalePrice,
     existingExpirationTimestamp,
-    newForSalePrice,
-    additionalNetworkFeePayment
+    displayNewForSalePrice,
+    displayAdditionalNetworkFeePayment
   ) {
     let newExpirationDate;
     let isDateInvalid;
@@ -86,8 +86,8 @@ export function ActionForm({
       perSecondFeeDenominator == null ||
       isForSalePriceInvalid ||
       isNetworkFeePaymentInvalid ||
-      newForSalePrice == null ||
-      newForSalePrice.length == 0
+      displayNewForSalePrice == null ||
+      displayNewForSalePrice.length == 0
     ) {
       return [null, false, false];
     }
@@ -97,28 +97,29 @@ export function ActionForm({
       ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
       : 0;
 
-    existingTimeBalance = Math.max(existingTimeBalance, 0);
+    existingTimeBalance = Math.floor(Math.max(existingTimeBalance, 0));
 
-    let existingPerSecondFee = new BN(
-      existingForSalePrice ? Web3.utils.toWei(existingForSalePrice) : 0
-    )
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
-
-    let existingFeeBalance = existingPerSecondFee.muln(existingTimeBalance);
-
-    let newPerSecondFee = new BN(Web3.utils.toWei(newForSalePrice))
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
-
-    let newFeeBalance = existingFeeBalance.add(
-      new BN(
-        additionalNetworkFeePayment
-          ? Web3.utils.toWei(additionalNetworkFeePayment)
-          : 0
-      )
+    const existingForSalePrice = ethers.utils.parseEther(
+      displayExistingForSalePrice ? displayExistingForSalePrice : "0"
     );
-    let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).muln(1000);
+    let existingPerSecondFee = existingForSalePrice
+      .mul(perSecondFeeNumerator)
+      .div(perSecondFeeDenominator);
+
+    let existingFeeBalance = existingPerSecondFee.mul(existingTimeBalance);
+
+    let newPerSecondFee = ethers.utils
+      .parseEther(displayNewForSalePrice)
+      .mul(perSecondFeeNumerator)
+      .div(perSecondFeeDenominator);
+
+    const additionalNetworkFeePayment = ethers.utils.parseEther(
+      displayAdditionalNetworkFeePayment.length > 0
+        ? displayAdditionalNetworkFeePayment
+        : "0"
+    );
+    let newFeeBalance = existingFeeBalance.add(additionalNetworkFeePayment);
+    let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).mul(1000);
 
     newExpirationDate = new Date(
       now.getTime() + newTimeBalanceMillis.toNumber()
@@ -130,7 +131,7 @@ export function ActionForm({
       existingForSalePrice.length == 0 ||
       existingForSalePrice == 0
     ) {
-      if (additionalNetworkFeePayment.length > 0) {
+      if (displayAdditionalNetworkFeePayment.length > 0) {
         isDateInvalid =
           newTimeBalanceMillis < MIN_CLAIM_DATE_MILLIS ||
           newTimeBalanceMillis > MAX_DATE_MILLIS;
@@ -176,26 +177,26 @@ export function ActionForm({
     isDateInvalid,
     isDateWarning,
   ] = _calculateNewExpiration(
-    currentForSalePrice,
+    displayCurrentForSalePrice,
     currentExpirationTimestamp,
-    newForSalePrice,
-    networkFeePayment
+    displayNewForSalePrice,
+    displayNetworkFeePayment
   );
 
   let isInvalid =
     isForSalePriceInvalid ||
     isNetworkFeePaymentInvalid ||
     isDateInvalid ||
-    !newForSalePrice ||
-    (currentForSalePrice == null && !networkFeePayment);
+    !displayNewForSalePrice ||
+    (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
   let isLoading = loading || ceramic == null;
 
   let expirationDateErrorMessage;
-  if (currentForSalePrice == null && isDateInvalid) {
+  if (displayCurrentForSalePrice == null && isDateInvalid) {
     expirationDateErrorMessage =
       "Initial payment must result in an expiration date between 1 and 2 years from now";
-  } else if (currentForSalePrice != null) {
+  } else if (displayCurrentForSalePrice != null) {
     if (isDateInvalid) {
       expirationDateErrorMessage =
         "Additional payment is needed to ensure the expiration is at least 2 weeks from now";
@@ -210,12 +211,9 @@ export function ActionForm({
       return;
     }
 
-    adminContract.methods
-      .minInitialValue()
-      .call()
-      .then((minInitialValue) => {
-        setMinInitialValue(Web3.utils.fromWei(minInitialValue));
-      });
+    adminContract.minInitialValue().then((minInitialValue) => {
+      setMinInitialValue(ethers.utils.formatEther(minInitialValue.toString()));
+    });
   }, [adminContract]);
 
   React.useEffect(() => {
@@ -225,10 +223,10 @@ export function ActionForm({
   }, [transactionSubtotal]);
 
   React.useEffect(() => {
-    if (newForSalePrice == null) {
-      updateActionData({ newForSalePrice: currentForSalePrice });
+    if (displayNewForSalePrice == null) {
+      updateActionData({ displayNewForSalePrice: displayCurrentForSalePrice });
     }
-  }, [currentForSalePrice]);
+  }, [displayCurrentForSalePrice]);
 
   return (
     <Card border="secondary" className="bg-dark mt-5">
@@ -287,10 +285,10 @@ export function ActionForm({
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
-                defaultValue={currentForSalePrice}
+                defaultValue={displayCurrentForSalePrice}
                 disabled={isActing || isLoading}
                 onChange={(e) =>
-                  updateActionData({ newForSalePrice: e.target.value })
+                  updateActionData({ displayNewForSalePrice: e.target.value })
                 }
               />
               {isForSalePriceInvalid ? (
@@ -302,11 +300,11 @@ export function ActionForm({
 
               <br />
               <Form.Control
-                required={currentForSalePrice == null}
+                required={displayCurrentForSalePrice == null}
                 className="bg-dark text-light"
                 type="text"
                 placeholder={
-                  currentForSalePrice != null
+                  displayCurrentForSalePrice != null
                     ? `Additional Network Fee Payment (${PAYMENT_TOKEN})`
                     : `Network Fee Payment (${PAYMENT_TOKEN})`
                 }
@@ -315,7 +313,7 @@ export function ActionForm({
                 disabled={isActing || isLoading}
                 isInvalid={isNetworkFeePaymentInvalid}
                 onChange={(e) =>
-                  updateActionData({ networkFeePayment: e.target.value })
+                  updateActionData({ displayNetworkFeePayment: e.target.value })
                 }
               />
             </Form.Group>
@@ -362,7 +360,9 @@ export function ActionForm({
           </div>
           <div>
             {displaySubtotal
-              ? `${Web3.utils.fromWei(displaySubtotal)} ${PAYMENT_TOKEN}`
+              ? `${ethers.utils.formatEther(
+                  displaySubtotal.toString()
+                )} ${PAYMENT_TOKEN}`
               : "N/A"}
           </div>
           {isDateInvalid ? (
@@ -396,10 +396,10 @@ export function ActionForm({
 
 export default ActionForm;
 
-export function calculateWeiSubtotalField(value) {
-  if (value && value.length > 0 && !isNaN(value)) {
-    return new BN(Web3.utils.toWei(value));
+export function calculateWeiSubtotalField(displayValue) {
+  if (displayValue && displayValue.length > 0 && !isNaN(displayValue)) {
+    return ethers.utils.parseEther(displayValue);
   } else {
-    return new BN(0);
+    return BigNumber.from(0);
   }
 }

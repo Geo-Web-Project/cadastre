@@ -9,9 +9,8 @@ import {
   STATE_CLAIM_SELECTED,
   STATE_CLAIM_SELECTING,
 } from "../Map";
-import Web3 from "web3";
+import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
-import BN from "bn.js";
 import Button from "react-bootstrap/Button";
 import EditAction from "./EditAction";
 import PurchaseAction from "./PurchaseAction";
@@ -20,6 +19,7 @@ import AuctionInfo from "./AuctionInfo";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
+import CID from "cids";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -67,14 +67,16 @@ function ParcelInfo({
     parcelContent == null;
 
   function _calculateNetworkFeeBalance(license) {
-    let now = new Date();
-    let networkFeeBalance = new BN(license.expirationTimestamp * 1000 - now)
-      .divn(1000)
-      .mul(new BN(license.value))
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
+    let now = Date.now();
+    let networkFeeBalance = BigNumber.from(license.expirationTimestamp)
+      .mul(1000)
+      .sub(now)
+      .div(1000)
+      .mul(BigNumber.from(license.value))
+      .mul(perSecondFeeNumerator.toNumber())
+      .div(perSecondFeeDenominator.toNumber());
 
-    return networkFeeBalance < 0 ? new BN(0) : networkFeeBalance;
+    return networkFeeBalance < 0 ? BigNumber.from(0) : networkFeeBalance;
   }
 
   useEffect(() => {
@@ -117,14 +119,16 @@ function ParcelInfo({
   if (data && data.landParcel) {
     forSalePrice = (
       <>
-        {Web3.utils.fromWei(data.landParcel.license.value)} {PAYMENT_TOKEN}{" "}
+        {ethers.utils.formatEther(data.landParcel.license.value)}{" "}
+        {PAYMENT_TOKEN}{" "}
       </>
     );
     if (networkFeeBalance != null) {
       isExpired = networkFeeBalance == 0;
       networkFeeBalanceDisplay = (
         <>
-          {Web3.utils.fromWei(networkFeeBalance)} {PAYMENT_TOKEN}{" "}
+          {ethers.utils.formatEther(networkFeeBalance.toString())}{" "}
+          {PAYMENT_TOKEN}{" "}
         </>
       );
     }
@@ -132,6 +136,19 @@ function ParcelInfo({
       data.landParcel.license.expirationTimestamp * 1000
     ).toUTCString();
     licenseOwner = data.landParcel.license.owner;
+  }
+
+  let hrefWebContent;
+  // Translate ipfs:// to case-insensitive base
+  if (
+    parcelContent &&
+    parcelContent.webContent &&
+    parcelContent.webContent.startsWith("ipfs://")
+  ) {
+    const cid = new CID(parcelContent.webContent.split("ipfs://")[1]);
+    hrefWebContent = `ipfs://${cid.toV1().toBaseEncodedString("base32")}`;
+  } else if (parcelContent) {
+    hrefWebContent = parcelContent.webContent;
   }
 
   let editButton;
@@ -243,11 +260,11 @@ function ParcelInfo({
                   spinner
                 ) : (
                   <a
-                    href={parcelContent.webContent}
+                    href={hrefWebContent}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`[${parcelContent.webContent}]`}</a>
+                  >{`[${hrefWebContent}]`}</a>
                 )}
               </p>
               <p className="text-truncate">
