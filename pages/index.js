@@ -83,9 +83,7 @@ function IndexPage() {
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);
 
-    const ceramic = new CeramicClient(
-      "http://ipfs-clay-1.nodes.geoweb.network:7007"
-    );
+    const ceramic = new CeramicClient("https://ceramic.geoweb.network");
     const didProvider = await threeIdConnect.getDidProvider();
 
     await ceramic.setDIDProvider(didProvider);
