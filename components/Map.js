@@ -147,6 +147,9 @@ function Map({
       interactionState == STATE_CLAIM_SELECTED);
 
   function _onViewportChange(nextViewport) {
+    if (interactionState == STATE_EDITING_GALLERY) {
+      return;
+    }
     setViewport(nextViewport);
 
     if (

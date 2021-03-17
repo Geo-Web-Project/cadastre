@@ -8,6 +8,7 @@ import {
   STATE_VIEWING,
   STATE_CLAIM_SELECTED,
   STATE_CLAIM_SELECTING,
+  STATE_EDITING_GALLERY,
 } from "../Map";
 import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
@@ -180,7 +181,7 @@ function ParcelInfo({
       variant="secondary"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE_PARCEL_EDITING);
+        setInteractionState(STATE_EDITING_GALLERY);
       }}
     >
       Edit Media Gallery
@@ -253,7 +254,8 @@ function ParcelInfo({
         <Col>
           {interactionState == STATE_PARCEL_SELECTED ||
           interactionState == STATE_PARCEL_EDITING ||
-          interactionState == STATE_PARCEL_PURCHASING ? (
+          interactionState == STATE_PARCEL_PURCHASING ||
+          interactionState == STATE_EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
                 {isLoading ? (
