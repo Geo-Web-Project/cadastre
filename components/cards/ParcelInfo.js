@@ -290,7 +290,7 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Linked CID:</span>{" "}
+                <span className="font-weight-bold">Doc CID:</span>{" "}
                 {contentDocId == null ? (
                   spinner
                 ) : (
