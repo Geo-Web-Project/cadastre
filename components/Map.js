@@ -20,6 +20,7 @@ export const STATE_CLAIM_SELECTED = 2;
 export const STATE_PARCEL_SELECTED = 3;
 export const STATE_PARCEL_EDITING = 4;
 export const STATE_PARCEL_PURCHASING = 5;
+export const STATE_EDITING_GALLERY = 6;
 
 const query = gql`
   query Polygons($lastBlock: BigInt) {

@@ -151,69 +151,53 @@ function ParcelInfo({
     hrefWebContent = parcelContent.webContent;
   }
 
-  let editButton;
-  switch (interactionState) {
-    case STATE_PARCEL_SELECTED:
-      editButton = (
-        <Button
-          variant="primary"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_EDITING);
-          }}
-        >
-          Edit
-        </Button>
-      );
-      break;
-    case STATE_PARCEL_EDITING:
-      editButton = (
-        <Button
-          variant="danger"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_SELECTED);
-          }}
-        >
-          Cancel Editing
-        </Button>
-      );
-      break;
-    default:
-      break;
-  }
+  let cancelButton = (
+    <Button
+      variant="danger"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_SELECTED);
+      }}
+    >
+      Cancel
+    </Button>
+  );
 
-  let initiateTransferButton;
-  switch (interactionState) {
-    case STATE_PARCEL_SELECTED:
-      initiateTransferButton = (
-        <Button
-          variant="primary"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_PURCHASING);
-          }}
-        >
-          {isExpired ? "Auction Claim" : "Initiate Transfer"}
-        </Button>
-      );
-      break;
-    case STATE_PARCEL_PURCHASING:
-      initiateTransferButton = (
-        <Button
-          variant="danger"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_SELECTED);
-          }}
-        >
-          {isExpired ? "Cancel Auction Claim" : "Cancel Transfer"}
-        </Button>
-      );
-      break;
-    default:
-      break;
-  }
+  let editButton = (
+    <Button
+      variant="primary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_EDITING);
+      }}
+    >
+      Edit Parcel
+    </Button>
+  );
+
+  let editGalleryButton = (
+    <Button
+      variant="secondary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_EDITING);
+      }}
+    >
+      Edit Media Gallery
+    </Button>
+  );
+
+  let initiateTransferButton = (
+    <Button
+      variant="primary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_PURCHASING);
+      }}
+    >
+      {isExpired ? "Auction Claim" : "Initiate Transfer"}
+    </Button>
+  );
 
   let title;
   if (
@@ -233,6 +217,22 @@ function ParcelInfo({
         </h1>
       </>
     );
+  }
+
+  let buttons;
+  if (interactionState != STATE_PARCEL_SELECTED) {
+    buttons = cancelButton;
+  } else if (!isLoading) {
+    if (account.toLowerCase() == licenseOwner.toLowerCase()) {
+      buttons = (
+        <>
+          <div className="mb-2">{editButton}</div>
+          {editGalleryButton}
+        </>
+      );
+    } else {
+      buttons = initiateTransferButton;
+    }
   }
 
   return (
@@ -314,11 +314,7 @@ function ParcelInfo({
                 </>
               ) : null}
               <br />
-              {!isLoading
-                ? account.toLowerCase() == licenseOwner.toLowerCase()
-                  ? editButton
-                  : initiateTransferButton
-                : null}
+              {buttons}
             </>
           ) : (
             <p>Unclaimed Coordinates</p>
