@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Container from "react-bootstrap/Container";
 import GalleryForm from "./GalleryForm";
+import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
 
 export function GalleryModal({ show, setInteractionState }) {
@@ -44,6 +45,7 @@ export function GalleryModal({ show, setInteractionState }) {
           for easy Geo Web publishing and browsing.
         </p>
         <GalleryForm />
+        <GalleryDisplayGrid />
       </Modal.Body>
     </Modal>
   );
