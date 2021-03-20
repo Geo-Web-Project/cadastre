@@ -4,7 +4,24 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 
+const ipfsClient = require("ipfs-http-client");
+
 export function GalleryForm({}) {
+  const ipfs = ipfsClient("/ip4/127.0.0.1/tcp/5002");
+
+  const [cid, setCID] = React.useState(null);
+
+  async function captureFile(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const file = event.target.files[0];
+
+    const added = await ipfs.add(file);
+
+    setCID(added.cid.toV1().toBaseEncodedString("base32"));
+  }
+
   return (
     <>
       <Form>
@@ -12,7 +29,8 @@ export function GalleryForm({}) {
           <Col sm="12" md="6">
             <Form.File
               id="uploadCid"
-              label="Upload media or add an existing CID"
+              label={cid || "Upload media or add an existing CID"}
+              onChange={captureFile}
               custom
             />
           </Col>
