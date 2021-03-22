@@ -12,6 +12,7 @@ import {
   NETWORK_NAME,
   NETWORK_ID,
   ADMIN_CONTRACT_ADDRESS,
+  CERAMIC_API_ENDPOINT,
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
@@ -83,7 +84,7 @@ function IndexPage() {
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);
 
-    const ceramic = new CeramicClient("https://ceramic.geoweb.network");
+    const ceramic = new CeramicClient(CERAMIC_API_ENDPOINT);
     const didProvider = await threeIdConnect.getDidProvider();
 
     await ceramic.setDIDProvider(didProvider);

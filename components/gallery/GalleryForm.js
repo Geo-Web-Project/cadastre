@@ -3,11 +3,12 @@ import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
+import { IPFS_API_ENDPOINT } from "../../lib/constants";
 
 const ipfsClient = require("ipfs-http-client");
 
 export function GalleryForm({}) {
-  const ipfs = ipfsClient("/ip4/127.0.0.1/tcp/5002");
+  const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
   const [cid, setCID] = React.useState(null);
 
@@ -31,6 +32,7 @@ export function GalleryForm({}) {
               id="uploadCid"
               label={cid || "Upload media or add an existing CID"}
               onChange={captureFile}
+              accept=".glb, .usdz"
               custom
             />
           </Col>
@@ -38,6 +40,7 @@ export function GalleryForm({}) {
             <div key="inline-radio" className="mb-3">
               <Form.Check
                 inline
+                checked
                 label="AR/VR (.glb or .usdz)"
                 type="radio"
                 id="inline-radio-1"
