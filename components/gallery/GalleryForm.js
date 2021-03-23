@@ -62,7 +62,7 @@ export function GalleryForm({ addMediaGalleryItem }) {
   return (
     <>
       <Form id="galleryForm">
-        <Row>
+        <Row className="p-3">
           <Col sm="12" md="6">
             <Form.File
               id="uploadCid"
@@ -71,6 +71,7 @@ export function GalleryForm({ addMediaGalleryItem }) {
                   ? mediaGalleryItem.contentUri.replace("ipfs://", "")
                   : "Upload media or add an existing CID"
               }
+              style={{ backgroundColor: "#111320", border: "none" }}
               onChange={captureFile}
               accept=".glb, .usdz"
               custom
@@ -109,9 +110,11 @@ export function GalleryForm({ addMediaGalleryItem }) {
             </div>
           </Col>
         </Row>
-        <Row>
+        <Row className="p-3">
           <Col sm="12" md="6">
             <Form.Control
+              style={{ backgroundColor: "#111320", border: "none" }}
+              className="text-white"
               type="text"
               placeholder="Display Name of Media"
               onChange={(e) => {
@@ -122,28 +125,42 @@ export function GalleryForm({ addMediaGalleryItem }) {
             />
           </Col>
           <Col sm="12" md="6">
-            <Form.Control as="select" custom>
+            <Form.Control
+              as="select"
+              className="text-white"
+              style={{ backgroundColor: "#111320", border: "none" }}
+              custom
+            >
               <option>Pinata Pinning Service (Requires Credentials)</option>
               <option>Custom Pinning Service</option>
             </Form.Control>
           </Col>
         </Row>
-        <Row>
+        <Row className="p-3">
           <Col sm="12" md="6">
             <Form.Control
+              style={{ backgroundColor: "#111320", border: "none" }}
+              className="text-white"
               type="text"
               placeholder="Pinning Service API Endpoint"
             />
           </Col>
           <Col sm="12" md="6">
-            <Form.Control type="text" placeholder="JWT Access Token" />
+            <Form.Control
+              style={{ backgroundColor: "#111320", border: "none" }}
+              className="text-white"
+              type="text"
+              placeholder="JWT Access Token"
+            />
           </Col>
         </Row>
-        <Row>
-          <Col sm="12" md="6">
+        <Row className="p-3">
+          <Col sm="1">
             <Button variant="danger" onClick={clearForm}>
               Cancel
             </Button>
+          </Col>
+          <Col sm="2">
             <Button
               variant="secondary"
               disabled={!isReadyToAdd}

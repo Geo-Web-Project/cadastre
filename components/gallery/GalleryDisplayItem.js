@@ -19,8 +19,8 @@ export function GalleryDisplayItem({ data, index, removeMediaGalleryItemAt }) {
     <Container
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`text-center p-3 rounded border ${
-        isHovered ? "border-secondary" : "border-dark"
+      className={`text-center p-3 rounded ${
+        isHovered ? "border border-secondary" : ""
       }`}
     >
       <Row>

@@ -26,7 +26,6 @@ export function GalleryModal({ show, setInteractionState }) {
   }
 
   function removeMediaGalleryItemAt(index) {
-    console.log("REMOVE: " + index);
     function _removeAt(index) {
       return (prevState) => {
         return prevState.splice(index + 1, 1);
@@ -66,11 +65,13 @@ export function GalleryModal({ show, setInteractionState }) {
           Upload, pin, and link media in this structured media gallery template
           for easy Geo Web publishing and browsing.
         </p>
-        <GalleryForm addMediaGalleryItem={addMediaGalleryItem} />
-        <GalleryDisplayGrid
-          mediaGalleryData={mediaGalleryData}
-          removeMediaGalleryItemAt={removeMediaGalleryItemAt}
-        />
+        <div className="border border-secondary rounded p-3">
+          <GalleryForm addMediaGalleryItem={addMediaGalleryItem} />
+          <GalleryDisplayGrid
+            mediaGalleryData={mediaGalleryData}
+            removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+          />
+        </div>
       </Modal.Body>
     </Modal>
   );

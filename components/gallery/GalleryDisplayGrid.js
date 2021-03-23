@@ -38,7 +38,7 @@ export function GalleryDisplayGrid({
   let data = mediaGalleryData;
 
   return (
-    <Row className="p-5">
+    <Row className="p-5 m-3" style={{ backgroundColor: "#111320" }}>
       {data.map((item, i) => (
         <Col key={i}>
           <GalleryDisplayItem
