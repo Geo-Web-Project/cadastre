@@ -14,6 +14,7 @@
     "graphql": "^15.4.0",
     "ipfs-http-client": "^49.0.4",
     "js-geo-web-coordinate": "^0.2.0",
+    "js-pinning-service-http-client": "^1.0.2",
     "next": "^10.0.5",
     "node-sass": "^4.0.0",
     "react": "^17.0.1",

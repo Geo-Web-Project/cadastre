@@ -6,16 +6,18 @@ import Button from "react-bootstrap/Button";
 import { IPFS_API_ENDPOINT } from "../../lib/constants";
 
 const ipfsClient = require("ipfs-http-client");
+const JsPinningServiceHttpClient = require("js-pinning-service-http-client");
 
-const pinataApiEndpoint = "https://api.pinata.cloud/psa";
+const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 
 export function GalleryForm({ addMediaGalleryItem }) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
   const [pinningService, setPinningService] = React.useState("pinata");
   const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
-    pinataApiEndpoint
+    PINATA_API_ENDPOINT
   );
+
   const [
     pinningServiceAccessToken,
     setPinningServiceAccessToken,
@@ -54,6 +56,24 @@ export function GalleryForm({ addMediaGalleryItem }) {
     });
   }
 
+  async function pinCid(name, cid) {
+    const pinningServiceClient = JsPinningServiceHttpClient.PinsApiFactory({
+      basePath: pinningServiceEndpoint,
+      accessToken: pinningServiceAccessToken,
+    });
+
+    // Get node addresses
+    const id = await ipfs.id();
+    const addresses = id.addresses.map((a) => a.toString());
+
+    // Pin cid
+    await pinningServiceClient.pinsPost({
+      cid: cid,
+      name: name,
+      origins: addresses,
+    });
+  }
+
   function clearForm() {
     document.getElementById("galleryForm").reset();
 
@@ -66,6 +86,12 @@ export function GalleryForm({ addMediaGalleryItem }) {
     }
 
     clearForm();
+
+    // Asyncronously add pin
+    pinCid(
+      mediaGalleryItem.name,
+      mediaGalleryItem.contentUri.replace("ipfs://", "")
+    );
   }
 
   function onSelectPinningService(event) {
@@ -74,13 +100,17 @@ export function GalleryForm({ addMediaGalleryItem }) {
     if (event.target.value != "pinata") {
       setPinningServiceEndpoint("");
     } else {
-      setPinningServiceEndpoint(pinataApiEndpoint);
+      setPinningServiceEndpoint(PINATA_API_ENDPOINT);
     }
 
     setPinningServiceAccessToken("");
   }
 
-  let isReadyToAdd = mediaGalleryItem.contentUri && mediaGalleryItem.name;
+  let isReadyToAdd =
+    mediaGalleryItem.contentUri &&
+    mediaGalleryItem.name &&
+    pinningServiceEndpoint &&
+    pinningServiceAccessToken;
 
   return (
     <>
