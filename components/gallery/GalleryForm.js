@@ -10,9 +10,7 @@ const ipfsClient = require("ipfs-http-client");
 export function GalleryForm({ addMediaGalleryItem }) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
-  const [mediaGalleryItem, setMediaGalleryItem] = React.useState({
-    "@type": "3DModel",
-  });
+  const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
   function updateMediaGalleryItem(updatedValues) {
     function _updateData(updatedValues) {
       return (prevState) => {
@@ -39,6 +37,7 @@ export function GalleryForm({ addMediaGalleryItem }) {
     const added = await ipfs.add(file);
 
     updateMediaGalleryItem({
+      "@type": "3DModel",
       contentUri: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
       encodingFormat: format,
     });
