@@ -6,7 +6,7 @@ import Web3 from "web3";
 import Image from "react-bootstrap/Image";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import BN from "bn.js";
+import { BigNumber } from "ethers";
 import { PAYMENT_TOKEN, PAYMENT_TOKEN_FAUCET_URL } from "../../lib/constants";
 
 function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
@@ -19,7 +19,7 @@ function FaucetInfo({ account, paymentTokenContract, adminAddress }) {
   function _approve() {
     paymentTokenContract.approve(
       adminAddress,
-      new BN(2).pow(new BN(256)).subn(1),
+      BigNumber.from(2).pow(BigNumber.from(256)).sub(BigNumber.from(1)),
       { from: account }
     );
   }

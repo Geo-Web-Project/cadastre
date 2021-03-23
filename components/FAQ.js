@@ -7,7 +7,7 @@ import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
 import Modal from "react-bootstrap/Modal";
 import { PAYMENT_TOKEN_FAUCET_URL } from "../lib/constants";
 import Web3 from "web3";
-import BN from "bn.js";
+import { BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({ children, eventKey, callback }) {
@@ -47,7 +47,7 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
   function _approve() {
     paymentTokenContract.approve(
       adminAddress,
-      new BN(2).pow(new BN(256)).subn(1),
+      BigNumber.from(2).pow(BigNumber.from(256)).sub(BigNumber.from(1)),
       { from: account }
     );
   }
