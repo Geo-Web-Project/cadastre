@@ -25,6 +25,17 @@ export function GalleryModal({ show, setInteractionState }) {
     setMediaGalleryData(_addItem(item));
   }
 
+  function removeMediaGalleryItemAt(index) {
+    console.log("REMOVE: " + index);
+    function _removeAt(index) {
+      return (prevState) => {
+        return prevState.splice(index + 1, 1);
+      };
+    }
+
+    setMediaGalleryData(_removeAt(index));
+  }
+
   return (
     <Modal
       show={show}
@@ -56,7 +67,10 @@ export function GalleryModal({ show, setInteractionState }) {
           for easy Geo Web publishing and browsing.
         </p>
         <GalleryForm addMediaGalleryItem={addMediaGalleryItem} />
-        <GalleryDisplayGrid mediaGalleryData={mediaGalleryData} />
+        <GalleryDisplayGrid
+          mediaGalleryData={mediaGalleryData}
+          removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+        />
       </Modal.Body>
     </Modal>
   );

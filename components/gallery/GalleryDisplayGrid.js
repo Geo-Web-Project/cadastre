@@ -31,14 +31,21 @@ const MOCK_DATA = [
   },
 ];
 
-export function GalleryDisplayGrid({ mediaGalleryData }) {
+export function GalleryDisplayGrid({
+  mediaGalleryData,
+  removeMediaGalleryItemAt,
+}) {
   let data = mediaGalleryData;
 
   return (
-    <Row>
+    <Row className="p-5">
       {data.map((item, i) => (
         <Col key={i}>
-          <GalleryDisplayItem data={item} />
+          <GalleryDisplayItem
+            data={item}
+            index={i}
+            removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+          />
         </Col>
       ))}
     </Row>
