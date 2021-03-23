@@ -12,8 +12,24 @@ const DISPLAY_TYPES = {
   AudioObject: "Audio",
 };
 
-export function GalleryDisplayItem({ data, index, removeMediaGalleryItemAt }) {
+export function GalleryDisplayItem({
+  data,
+  index,
+  removeMediaGalleryItemAt,
+  pinningData,
+  updatePinningData,
+}) {
   const [isHovered, setIsHovered] = React.useState(false);
+
+  const pinningDataItem = pinningData[data.contentUri.replace("ipfs://", "")];
+  const pinningStatus = pinningDataItem ? pinningDataItem.status : null;
+  const isPinned = pinningStatus == "pinned";
+
+  const spinner = (
+    <div className="spinner-border" role="status">
+      <span className="sr-only"></span>
+    </div>
+  );
 
   return (
     <Container
@@ -39,6 +55,9 @@ export function GalleryDisplayItem({ data, index, removeMediaGalleryItemAt }) {
         <Col>
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
         </Col>
+      </Row>
+      <Row className="text-center text-primary mb-3">
+        <Col>{isPinned ? "Pinned" : <>Pinning {spinner}</>}</Col>
       </Row>
       <Row style={{ visibility: isHovered ? "visible" : "hidden" }}>
         <Col>

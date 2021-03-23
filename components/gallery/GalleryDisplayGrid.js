@@ -34,17 +34,21 @@ const MOCK_DATA = [
 export function GalleryDisplayGrid({
   mediaGalleryData,
   removeMediaGalleryItemAt,
+  pinningData,
+  updatePinningData,
 }) {
   let data = mediaGalleryData;
 
   return (
     <Row className="p-5 m-3" style={{ backgroundColor: "#111320" }}>
       {data.map((item, i) => (
-        <Col key={i}>
+        <Col key={i} sm="4">
           <GalleryDisplayItem
             data={item}
             index={i}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+            pinningData={pinningData}
+            updatePinningData={updatePinningData}
           />
         </Col>
       ))}

@@ -10,7 +10,7 @@ const JsPinningServiceHttpClient = require("js-pinning-service-http-client");
 
 const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 
-export function GalleryForm({ addMediaGalleryItem }) {
+export function GalleryForm({ addMediaGalleryItem, updatePinningData }) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
   const [pinningService, setPinningService] = React.useState("pinata");
@@ -62,6 +62,25 @@ export function GalleryForm({ addMediaGalleryItem }) {
       accessToken: pinningServiceAccessToken,
     });
 
+    // Check for existing pin
+    const pins = await pinningServiceClient.pinsGet();
+    const existingPins = pins.data.results.filter(
+      (item) => item.pin.cid == cid
+    );
+    const existingPin = existingPins.length > 0 ? existingPins[0] : null;
+
+    if (existingPin) {
+      // Add pin data
+      updatePinningData({
+        [cid]: {
+          requestid: existingPin.requestid,
+          status: existingPin.status,
+        },
+      });
+
+      return;
+    }
+
     // Get node addresses
     const id = await ipfs.id();
     const addresses = id.addresses
@@ -75,10 +94,17 @@ export function GalleryForm({ addMediaGalleryItem }) {
       );
 
     // Pin cid
-    await pinningServiceClient.pinsPost({
+    const result = await pinningServiceClient.pinsPost({
       cid: cid,
       name: name,
       origins: addresses,
+    });
+
+    updatePinningData({
+      [cid]: {
+        requestid: result.requestid,
+        status: result.status,
+      },
     });
   }
 

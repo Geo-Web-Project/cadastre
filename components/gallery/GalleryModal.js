@@ -25,6 +25,18 @@ export function GalleryModal({ show, setInteractionState }) {
     setMediaGalleryData(_addItem(item));
   }
 
+  // Store pinning data in-memory for now
+  const [pinningData, setPinningData] = React.useState({});
+  function updatePinningData(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setPinningData(_updateData(updatedValues));
+  }
+
   function removeMediaGalleryItemAt(index) {
     function _removeAt(index) {
       return (prevState) => {
@@ -66,10 +78,15 @@ export function GalleryModal({ show, setInteractionState }) {
           for easy Geo Web publishing and browsing.
         </p>
         <div className="border border-secondary rounded p-3">
-          <GalleryForm addMediaGalleryItem={addMediaGalleryItem} />
+          <GalleryForm
+            addMediaGalleryItem={addMediaGalleryItem}
+            updatePinningData={updatePinningData}
+          />
           <GalleryDisplayGrid
             mediaGalleryData={mediaGalleryData}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+            pinningData={pinningData}
+            updatePinningData={updatePinningData}
           />
         </div>
       </Modal.Body>
