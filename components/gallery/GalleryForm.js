@@ -64,7 +64,15 @@ export function GalleryForm({ addMediaGalleryItem }) {
 
     // Get node addresses
     const id = await ipfs.id();
-    const addresses = id.addresses.map((a) => a.toString());
+    const addresses = id.addresses
+      .map((a) => a.toString())
+      .filter(
+        // Filter out local addresses
+        (a) =>
+          !a.startsWith("/ip4/127.0.0.1") &&
+          !a.startsWith("/ip6/::1") &&
+          !a.startsWith("/ip4/192.168")
+      );
 
     // Pin cid
     await pinningServiceClient.pinsPost({
