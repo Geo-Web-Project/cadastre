@@ -7,10 +7,21 @@ import { IPFS_API_ENDPOINT } from "../../lib/constants";
 
 const ipfsClient = require("ipfs-http-client");
 
-export function GalleryForm({}) {
+export function GalleryForm({ addMediaGalleryItem }) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
-  const [cid, setCID] = React.useState(null);
+  const [mediaGalleryItem, setMediaGalleryItem] = React.useState({
+    "@type": "3DModel",
+  });
+  function updateMediaGalleryItem(updatedValues) {
+    function _updateData(updatedValues) {
+      return (prevState) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setMediaGalleryItem(_updateData(updatedValues));
+  }
 
   async function captureFile(event) {
     event.stopPropagation();
@@ -18,19 +29,49 @@ export function GalleryForm({}) {
 
     const file = event.target.files[0];
 
+    let format;
+    if (file.name.endsWith(".glb")) {
+      format = "model/gltf-binary";
+    } else if (file.name.endsWith(".usdz")) {
+      format = "model/vnd.usdz+zip";
+    }
+
     const added = await ipfs.add(file);
 
-    setCID(added.cid.toV1().toBaseEncodedString("base32"));
+    updateMediaGalleryItem({
+      contentUri: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
+      encodingFormat: format,
+    });
   }
+
+  function clearForm() {
+    document.getElementById("galleryForm").reset();
+
+    setMediaGalleryItem({});
+  }
+
+  function addToGallery() {
+    if (mediaGalleryItem) {
+      addMediaGalleryItem(mediaGalleryItem);
+    }
+
+    clearForm();
+  }
+
+  let isReadyToAdd = mediaGalleryItem.contentUri && mediaGalleryItem.name;
 
   return (
     <>
-      <Form>
+      <Form id="galleryForm">
         <Row>
           <Col sm="12" md="6">
             <Form.File
               id="uploadCid"
-              label={cid || "Upload media or add an existing CID"}
+              label={
+                mediaGalleryItem.contentUri
+                  ? mediaGalleryItem.contentUri.replace("ipfs://", "")
+                  : "Upload media or add an existing CID"
+              }
               onChange={captureFile}
               accept=".glb, .usdz"
               custom
@@ -71,7 +112,15 @@ export function GalleryForm({}) {
         </Row>
         <Row>
           <Col sm="12" md="6">
-            <Form.Control type="text" placeholder="Display Name of Media" />
+            <Form.Control
+              type="text"
+              placeholder="Display Name of Media"
+              onChange={(e) => {
+                updateMediaGalleryItem({
+                  name: e.target.value,
+                });
+              }}
+            />
           </Col>
           <Col sm="12" md="6">
             <Form.Control as="select" custom>
@@ -93,8 +142,16 @@ export function GalleryForm({}) {
         </Row>
         <Row>
           <Col sm="12" md="6">
-            <Button variant="danger">Cancel</Button>
-            <Button variant="secondary">Add to Gallery</Button>
+            <Button variant="danger" onClick={clearForm}>
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!isReadyToAdd}
+              onClick={addToGallery}
+            >
+              Add to Gallery
+            </Button>
           </Col>
         </Row>
       </Form>

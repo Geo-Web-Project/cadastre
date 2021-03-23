@@ -14,6 +14,17 @@ export function GalleryModal({ show, setInteractionState }) {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
 
+  const [mediaGalleryData, setMediaGalleryData] = React.useState([]);
+  function addMediaGalleryItem(item) {
+    function _addItem(item) {
+      return (prevState) => {
+        return prevState.concat(item);
+      };
+    }
+
+    setMediaGalleryData(_addItem(item));
+  }
+
   return (
     <Modal
       show={show}
@@ -44,8 +55,8 @@ export function GalleryModal({ show, setInteractionState }) {
           Upload, pin, and link media in this structured media gallery template
           for easy Geo Web publishing and browsing.
         </p>
-        <GalleryForm />
-        <GalleryDisplayGrid />
+        <GalleryForm addMediaGalleryItem={addMediaGalleryItem} />
+        <GalleryDisplayGrid mediaGalleryData={mediaGalleryData} />
       </Modal.Body>
     </Modal>
   );
