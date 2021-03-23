@@ -7,8 +7,19 @@ import { IPFS_API_ENDPOINT } from "../../lib/constants";
 
 const ipfsClient = require("ipfs-http-client");
 
+const pinataApiEndpoint = "https://api.pinata.cloud/psa";
+
 export function GalleryForm({ addMediaGalleryItem }) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
+
+  const [pinningService, setPinningService] = React.useState("pinata");
+  const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
+    pinataApiEndpoint
+  );
+  const [
+    pinningServiceAccessToken,
+    setPinningServiceAccessToken,
+  ] = React.useState("");
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
   function updateMediaGalleryItem(updatedValues) {
@@ -57,6 +68,18 @@ export function GalleryForm({ addMediaGalleryItem }) {
     clearForm();
   }
 
+  function onSelectPinningService(event) {
+    setPinningService(event.target.value);
+
+    if (event.target.value != "pinata") {
+      setPinningServiceEndpoint("");
+    } else {
+      setPinningServiceEndpoint(pinataApiEndpoint);
+    }
+
+    setPinningServiceAccessToken("");
+  }
+
   let isReadyToAdd = mediaGalleryItem.contentUri && mediaGalleryItem.name;
 
   return (
@@ -82,6 +105,7 @@ export function GalleryForm({ addMediaGalleryItem }) {
               <Form.Check
                 inline
                 checked
+                readOnly
                 label="AR/VR (.glb or .usdz)"
                 type="radio"
                 id="inline-radio-1"
@@ -117,6 +141,7 @@ export function GalleryForm({ addMediaGalleryItem }) {
               className="text-white"
               type="text"
               placeholder="Display Name of Media"
+              required
               onChange={(e) => {
                 updateMediaGalleryItem({
                   name: e.target.value,
@@ -129,10 +154,13 @@ export function GalleryForm({ addMediaGalleryItem }) {
               as="select"
               className="text-white"
               style={{ backgroundColor: "#111320", border: "none" }}
+              onChange={onSelectPinningService}
               custom
             >
-              <option>Pinata Pinning Service (Requires Credentials)</option>
-              <option>Custom Pinning Service</option>
+              <option value="pinata">
+                Pinata Pinning Service (Requires Credentials)
+              </option>
+              <option value="custom">Custom Pinning Service</option>
             </Form.Control>
           </Col>
         </Row>
@@ -143,6 +171,11 @@ export function GalleryForm({ addMediaGalleryItem }) {
               className="text-white"
               type="text"
               placeholder="Pinning Service API Endpoint"
+              value={pinningServiceEndpoint}
+              readOnly={pinningService == "pinata"}
+              onChange={(e) => {
+                setPinningServiceEndpoint(e.target.value);
+              }}
             />
           </Col>
           <Col sm="12" md="6">
@@ -151,7 +184,26 @@ export function GalleryForm({ addMediaGalleryItem }) {
               className="text-white"
               type="text"
               placeholder="JWT Access Token"
+              value={pinningServiceAccessToken}
+              onChange={(e) => {
+                setPinningServiceAccessToken(e.target.value);
+              }}
             />
+          </Col>
+          <Col
+            className="mt-3 mb-3"
+            style={{
+              visibility: pinningService == "pinata" ? "visible" : "hidden",
+            }}
+          >
+            <a
+              href="https://pinata.cloud/documentation#PinningServicesAPI"
+              target="_blank"
+              rel="noreferrer"
+              className="text-light"
+            >
+              <i>See Pinata’s documentation for details on configuration.</i>
+            </a>
           </Col>
         </Row>
         <Row className="p-3">

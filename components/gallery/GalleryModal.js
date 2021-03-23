@@ -44,7 +44,7 @@ export function GalleryModal({ show, setInteractionState }) {
       size="xl"
       onHide={handleClose}
     >
-      <Modal.Header className="bg-dark">
+      <Modal.Header className="bg-dark border-0">
         <Container>
           <Row>
             <Col sm="11">
