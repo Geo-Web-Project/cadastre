@@ -3,7 +3,7 @@ import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import { IPFS_API_ENDPOINT } from "../../lib/constants";
+import { IPFS_API_ENDPOINT, PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
 
 const ipfsClient = require("ipfs-http-client");

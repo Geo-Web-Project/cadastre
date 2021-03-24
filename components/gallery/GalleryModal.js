@@ -8,8 +8,7 @@ import Container from "react-bootstrap/Container";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
-
-const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
+import { PINATA_API_ENDPOINT } from "../../lib/constants";
 
 export function GalleryModal({ show, setInteractionState }) {
   const handleClose = () => {
