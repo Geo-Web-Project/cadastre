@@ -74,7 +74,7 @@ export function GalleryModal({ show, setInteractionState }) {
                 Edit Media Gallery
               </Modal.Title>
             </Col>
-            <Col sm="1">
+            <Col sm="1" className="text-right">
               <Button variant="link" size="sm" onClick={handleClose}>
                 <Image src="close.svg" />
               </Button>

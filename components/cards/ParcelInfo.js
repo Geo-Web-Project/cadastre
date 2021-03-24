@@ -240,7 +240,7 @@ function ParcelInfo({
     <>
       <Row className="mb-3">
         <Col sm="10">{title}</Col>
-        <Col sm="2">
+        <Col sm="2" className="text-right">
           <Button
             variant="link"
             size="sm"
