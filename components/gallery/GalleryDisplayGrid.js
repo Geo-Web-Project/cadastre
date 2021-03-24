@@ -42,7 +42,7 @@ export function GalleryDisplayGrid({
   let data = mediaGalleryData;
 
   return (
-    <Row className="p-5 m-3" style={{ backgroundColor: "#111320" }}>
+    <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>
       {data.map((item, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
@@ -56,6 +56,11 @@ export function GalleryDisplayGrid({
           />
         </Col>
       ))}
+      {data.length == 0 ? (
+        <Col xs="12" className="text-muted">
+          No items in gallery
+        </Col>
+      ) : null}
     </Row>
   );
 }
