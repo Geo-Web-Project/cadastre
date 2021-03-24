@@ -44,9 +44,7 @@ function AuctionInfo({
       return;
     }
 
-    let _auctionLength = await adminContract.methods
-      .dutchAuctionLengthInSeconds()
-      .call();
+    let _auctionLength = await adminContract.dutchAuctionLengthInSeconds();
     setAuctionLength(_auctionLength);
 
     // Set timer
