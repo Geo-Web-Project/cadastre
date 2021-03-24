@@ -149,7 +149,7 @@ export function GalleryForm({
             </div>
           </Col>
         </Row>
-        <Row className="px-3">
+        <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               style={{ backgroundColor: "#111320", border: "none" }}
@@ -165,6 +165,9 @@ export function GalleryForm({
             />
           </Col>
           <Col sm="12" lg="6" className="mb-3">
+            <Form.Text className="text-primary mb-1">
+              Content Pinning Service
+            </Form.Text>
             <Form.Control
               as="select"
               className="text-white"
