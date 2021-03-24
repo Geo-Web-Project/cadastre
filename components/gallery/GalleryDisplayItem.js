@@ -4,6 +4,10 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
+import { pinCid, unpinCid } from "../../lib/pinning";
+import { IPFS_API_ENDPOINT } from "../../lib/constants";
+
+const ipfsClient = require("ipfs-http-client");
 
 const DISPLAY_TYPES = {
   "3DModel": "3D Model",
@@ -18,18 +22,68 @@ export function GalleryDisplayItem({
   removeMediaGalleryItemAt,
   pinningData,
   updatePinningData,
+  pinningServiceEndpoint,
+  pinningServiceAccessToken,
 }) {
+  const ipfs = ipfsClient(IPFS_API_ENDPOINT);
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isUnpinning, setIsUnpinning] = React.useState(false);
 
-  const pinningDataItem = pinningData[data.contentUri.replace("ipfs://", "")];
+  const cid = data.contentUri.replace("ipfs://", "");
+  const pinningDataItem = pinningData[cid];
   const pinningStatus = pinningDataItem ? pinningDataItem.status : null;
   const isPinned = pinningStatus == "pinned";
+  const isReadyToPin = pinningStatus == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only"></span>
     </div>
   );
+
+  let pinningStatusView;
+  switch (pinningStatus) {
+    case "pinned":
+      pinningStatusView = <Col className="text-primary">Pinned</Col>;
+      break;
+    case "queued":
+      pinningStatusView = <Col className="text-info">Pinning {spinner}</Col>;
+      break;
+    case "pinning":
+      pinningStatusView = <Col className="text-info">Pinning {spinner}</Col>;
+      break;
+    case "failed":
+      pinningStatusView = <Col className="text-danger">Pinning Failed</Col>;
+      break;
+    default:
+      pinningStatusView = <Col className="text-warning">Not Pinned</Col>;
+      break;
+  }
+
+  async function handlePin() {
+    await pinCid(
+      ipfs,
+      pinningServiceEndpoint,
+      pinningServiceAccessToken,
+      data.name,
+      cid,
+      updatePinningData
+    );
+  }
+
+  async function handleUnpin() {
+    setIsUnpinning(true);
+
+    await unpinCid(
+      pinningData,
+      pinningServiceEndpoint,
+      pinningServiceAccessToken,
+      cid,
+      updatePinningData
+    );
+
+    setIsUnpinning(false);
+  }
 
   return (
     <Container
@@ -56,13 +110,22 @@ export function GalleryDisplayItem({
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
         </Col>
       </Row>
-      <Row className="text-center text-primary mb-3">
-        <Col>{isPinned ? "Pinned" : <>Pinning {spinner}</>}</Col>
-      </Row>
+      <Row className="text-center mb-3">{pinningStatusView}</Row>
       <Row style={{ visibility: isHovered ? "visible" : "hidden" }}>
-        <Col>
-          <Button variant="info">Unpin</Button>
-        </Col>
+        {isPinned ? (
+          <Col>
+            <Button variant="info" onClick={handleUnpin} disabled={isUnpinning}>
+              Unpin
+            </Button>
+          </Col>
+        ) : null}
+        {isReadyToPin ? (
+          <Col>
+            <Button variant="info" onClick={handlePin}>
+              Pin
+            </Button>
+          </Col>
+        ) : null}
         <Col>
           <Button
             variant="danger"

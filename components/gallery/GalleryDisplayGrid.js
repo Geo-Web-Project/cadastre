@@ -36,6 +36,8 @@ export function GalleryDisplayGrid({
   removeMediaGalleryItemAt,
   pinningData,
   updatePinningData,
+  pinningServiceEndpoint,
+  pinningServiceAccessToken,
 }) {
   let data = mediaGalleryData;
 
@@ -49,6 +51,8 @@ export function GalleryDisplayGrid({
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
             updatePinningData={updatePinningData}
+            pinningServiceEndpoint={pinningServiceEndpoint}
+            pinningServiceAccessToken={pinningServiceAccessToken}
           />
         </Col>
       ))}

@@ -4,24 +4,21 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import { IPFS_API_ENDPOINT } from "../../lib/constants";
+import { pinCid } from "../../lib/pinning";
 
 const ipfsClient = require("ipfs-http-client");
-const JsPinningServiceHttpClient = require("js-pinning-service-http-client");
 
-const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
-
-export function GalleryForm({ addMediaGalleryItem, updatePinningData }) {
+export function GalleryForm({
+  addMediaGalleryItem,
+  updatePinningData,
+  pinningServiceEndpoint,
+  pinningServiceAccessToken,
+  setPinningServiceEndpoint,
+  setPinningServiceAccessToken,
+}) {
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
   const [pinningService, setPinningService] = React.useState("pinata");
-  const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
-    PINATA_API_ENDPOINT
-  );
-
-  const [
-    pinningServiceAccessToken,
-    setPinningServiceAccessToken,
-  ] = React.useState("");
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
   function updateMediaGalleryItem(updatedValues) {
@@ -56,58 +53,6 @@ export function GalleryForm({ addMediaGalleryItem, updatePinningData }) {
     });
   }
 
-  async function pinCid(name, cid) {
-    const pinningServiceClient = JsPinningServiceHttpClient.PinsApiFactory({
-      basePath: pinningServiceEndpoint,
-      accessToken: pinningServiceAccessToken,
-    });
-
-    // Check for existing pin
-    const pins = await pinningServiceClient.pinsGet();
-    const existingPins = pins.data.results.filter(
-      (item) => item.pin.cid == cid
-    );
-    const existingPin = existingPins.length > 0 ? existingPins[0] : null;
-
-    if (existingPin) {
-      // Add pin data
-      updatePinningData({
-        [cid]: {
-          requestid: existingPin.requestid,
-          status: existingPin.status,
-        },
-      });
-
-      return;
-    }
-
-    // Get node addresses
-    const id = await ipfs.id();
-    const addresses = id.addresses
-      .map((a) => a.toString())
-      .filter(
-        // Filter out local addresses
-        (a) =>
-          !a.startsWith("/ip4/127.0.0.1") &&
-          !a.startsWith("/ip6/::1") &&
-          !a.startsWith("/ip4/192.168")
-      );
-
-    // Pin cid
-    const result = await pinningServiceClient.pinsPost({
-      cid: cid,
-      name: name,
-      origins: addresses,
-    });
-
-    updatePinningData({
-      [cid]: {
-        requestid: result.requestid,
-        status: result.status,
-      },
-    });
-  }
-
   function clearForm() {
     document.getElementById("galleryForm").reset();
 
@@ -123,8 +68,12 @@ export function GalleryForm({ addMediaGalleryItem, updatePinningData }) {
 
     // Asyncronously add pin
     pinCid(
+      ipfs,
+      pinningServiceEndpoint,
+      pinningServiceAccessToken,
       mediaGalleryItem.name,
-      mediaGalleryItem.contentUri.replace("ipfs://", "")
+      mediaGalleryItem.contentUri.replace("ipfs://", ""),
+      updatePinningData
     );
   }
 

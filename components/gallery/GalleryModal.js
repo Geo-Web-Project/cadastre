@@ -9,10 +9,21 @@ import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
 
+const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
+
 export function GalleryModal({ show, setInteractionState }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
+
+  const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
+    PINATA_API_ENDPOINT
+  );
+
+  const [
+    pinningServiceAccessToken,
+    setPinningServiceAccessToken,
+  ] = React.useState("");
 
   const [mediaGalleryData, setMediaGalleryData] = React.useState([]);
   function addMediaGalleryItem(item) {
@@ -81,12 +92,18 @@ export function GalleryModal({ show, setInteractionState }) {
           <GalleryForm
             addMediaGalleryItem={addMediaGalleryItem}
             updatePinningData={updatePinningData}
+            pinningServiceEndpoint={pinningServiceEndpoint}
+            pinningServiceAccessToken={pinningServiceAccessToken}
+            setPinningServiceEndpoint={setPinningServiceEndpoint}
+            setPinningServiceAccessToken={setPinningServiceAccessToken}
           />
           <GalleryDisplayGrid
             mediaGalleryData={mediaGalleryData}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
             updatePinningData={updatePinningData}
+            pinningServiceEndpoint={pinningServiceEndpoint}
+            pinningServiceAccessToken={pinningServiceAccessToken}
           />
         </div>
       </Modal.Body>
