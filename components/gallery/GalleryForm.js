@@ -97,9 +97,9 @@ export function GalleryForm({
 
   return (
     <>
-      <Form id="galleryForm">
-        <Row className="p-3">
-          <Col sm="12" md="6">
+      <Form id="galleryForm" className="pt-3">
+        <Row className="px-3">
+          <Col sm="12" lg="6" className="mb-3">
             <Form.File
               id="uploadCid"
               label={
@@ -113,8 +113,8 @@ export function GalleryForm({
               custom
             />
           </Col>
-          <Col sm="12" md="6">
-            <div key="inline-radio" className="mb-3">
+          <Col sm="12" lg="6" className="mb-3">
+            <div key="inline-radio">
               <Form.Check
                 inline
                 checked
@@ -147,8 +147,8 @@ export function GalleryForm({
             </div>
           </Col>
         </Row>
-        <Row className="p-3">
-          <Col sm="12" md="6">
+        <Row className="px-3">
+          <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               style={{ backgroundColor: "#111320", border: "none" }}
               className="text-white"
@@ -162,7 +162,7 @@ export function GalleryForm({
               }}
             />
           </Col>
-          <Col sm="12" md="6">
+          <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               as="select"
               className="text-white"
@@ -177,8 +177,8 @@ export function GalleryForm({
             </Form.Control>
           </Col>
         </Row>
-        <Row className="p-3">
-          <Col sm="12" md="6">
+        <Row className="px-3">
+          <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               style={{ backgroundColor: "#111320", border: "none" }}
               className="text-white"
@@ -191,7 +191,7 @@ export function GalleryForm({
               }}
             />
           </Col>
-          <Col sm="12" md="6">
+          <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               style={{ backgroundColor: "#111320", border: "none" }}
               className="text-white"
@@ -204,7 +204,7 @@ export function GalleryForm({
             />
           </Col>
           <Col
-            className="mt-3 mb-3"
+            className="mb-3"
             style={{
               visibility: pinningService == "pinata" ? "visible" : "hidden",
             }}
@@ -219,13 +219,13 @@ export function GalleryForm({
             </a>
           </Col>
         </Row>
-        <Row className="p-3">
-          <Col sm="1">
+        <Row className="px-3 text-right">
+          <Col xs="auto" lg={{ offset: 6 }} className="mb-3">
             <Button variant="danger" onClick={clearForm}>
               Cancel
             </Button>
           </Col>
-          <Col sm="2">
+          <Col xs="auto">
             <Button
               variant="secondary"
               disabled={!isReadyToAdd}

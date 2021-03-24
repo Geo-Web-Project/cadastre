@@ -44,7 +44,7 @@ export function GalleryDisplayGrid({
   return (
     <Row className="p-5 m-3" style={{ backgroundColor: "#111320" }}>
       {data.map((item, i) => (
-        <Col key={i} sm="4">
+        <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
             data={item}
             index={i}
