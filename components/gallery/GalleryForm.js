@@ -3,6 +3,8 @@ import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
+import InputGroup from "react-bootstrap/InputGroup";
+import FormFile from "react-bootstrap/FormFile";
 import { IPFS_API_ENDPOINT, PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
 
@@ -19,8 +21,13 @@ export function GalleryForm({
   const ipfs = ipfsClient(IPFS_API_ENDPOINT);
 
   const [pinningService, setPinningService] = React.useState("pinata");
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+  const cid = mediaGalleryItem.contentUri
+    ? mediaGalleryItem.contentUri.replace("ipfs://", "")
+    : "";
+
   function updateMediaGalleryItem(updatedValues) {
     function _updateData(updatedValues) {
       return (prevState) => {
@@ -32,6 +39,8 @@ export function GalleryForm({
   }
 
   async function captureFile(event) {
+    setIsUploading(true);
+
     event.stopPropagation();
     event.preventDefault();
 
@@ -51,6 +60,8 @@ export function GalleryForm({
       contentUri: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
       encodingFormat: format,
     });
+
+    setIsUploading(false);
   }
 
   function clearForm() {
@@ -97,23 +108,48 @@ export function GalleryForm({
     pinningServiceEndpoint &&
     pinningServiceAccessToken;
 
+  const spinner = (
+    <div
+      className="spinner-border"
+      role="status"
+      style={{ height: "1.5em", width: "1.5em" }}
+    >
+      <span className="sr-only"></span>
+    </div>
+  );
+
   return (
     <>
       <Form id="galleryForm" className="pt-3">
         <Row className="px-3">
           <Col sm="12" lg="6" className="mb-3">
-            <Form.File
-              id="uploadCid"
-              label={
-                mediaGalleryItem.contentUri
-                  ? mediaGalleryItem.contentUri.replace("ipfs://", "")
-                  : "Upload media or add an existing CID"
-              }
-              style={{ backgroundColor: "#111320", border: "none" }}
-              onChange={captureFile}
-              accept=".glb, .usdz"
-              custom
-            />
+            <InputGroup>
+              <Form.Control
+                style={{ backgroundColor: "#111320", border: "none" }}
+                className="text-white"
+                type="text"
+                placeholder="Upload media or add an existing CID"
+                readOnly={isUploading}
+                value={cid}
+                onChange={(e) => {
+                  updateMediaGalleryItem({
+                    contentUri: `ipfs://${e.target.value}`,
+                  });
+                }}
+              />
+              <InputGroup.Append>
+                <FormFile.Input
+                  id="uploadCid"
+                  style={{ backgroundColor: "#111320", border: "none" }}
+                  accept=".glb, .usdz"
+                  onChange={captureFile}
+                  hidden
+                ></FormFile.Input>
+                <Button as="label" htmlFor="uploadCid" disabled={isUploading}>
+                  {!isUploading ? "Upload" : spinner}
+                </Button>
+              </InputGroup.Append>
+            </InputGroup>
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">
