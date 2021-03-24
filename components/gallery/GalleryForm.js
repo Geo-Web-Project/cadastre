@@ -57,6 +57,8 @@ export function GalleryForm({
     document.getElementById("galleryForm").reset();
 
     setMediaGalleryItem({});
+    setPinningService("pinata");
+    setPinningServiceEndpoint(PINATA_API_ENDPOINT);
   }
 
   function addToGallery() {
