@@ -48,13 +48,9 @@ export function GalleryModal({ show, setInteractionState }) {
   }
 
   function removeMediaGalleryItemAt(index) {
-    function _removeAt(index) {
-      return (prevState) => {
-        return prevState.splice(index + 1, 1);
-      };
-    }
-
-    setMediaGalleryData(_removeAt(index));
+    setMediaGalleryData((prevState) => {
+      return prevState.filter((item, i) => index != i);
+    });
   }
 
   return (
