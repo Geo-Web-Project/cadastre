@@ -9,6 +9,7 @@ import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
+import { unpinCid } from "../../lib/pinning";
 
 export function GalleryModal({ show, setInteractionState }) {
   const handleClose = () => {
@@ -47,10 +48,20 @@ export function GalleryModal({ show, setInteractionState }) {
     setPinningData(_updateData(updatedValues));
   }
 
-  function removeMediaGalleryItemAt(index) {
+  async function removeMediaGalleryItemAt(index) {
+    const cid = mediaGalleryData[index].contentUri.replace("ipfs://", "");
+
     setMediaGalleryData((prevState) => {
       return prevState.filter((item, i) => index != i);
     });
+
+    await unpinCid(
+      pinningData,
+      pinningServiceEndpoint,
+      pinningServiceAccessToken,
+      cid,
+      updatePinningData
+    );
   }
 
   return (
