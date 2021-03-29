@@ -21,6 +21,7 @@ import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
+import GalleryModal from "../gallery/GalleryModal";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -106,6 +107,21 @@ function ParcelInfo({
     const doc = await ceramic.loadDocument(contentDocId);
     setParcelContentDoc(doc);
   }, [contentDocId, ceramic]);
+
+  async function updateContentRootDoc(newState) {
+    if (!parcelContentDoc) {
+      return;
+    }
+
+    await parcelContentDoc.change({
+      content: { ...newState, ...parcelContentDoc.content },
+    });
+  }
+
+  async function setMediaGalleryDocId(newDocId) {
+    await updateContentRootDoc({ mediaGallery: newDocId });
+  }
+
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
@@ -357,6 +373,15 @@ function ParcelInfo({
           ) : null}
         </Col>
       </Row>
+      <GalleryModal
+        show={interactionState == STATE_EDITING_GALLERY}
+        setInteractionState={setInteractionState}
+        ceramic={ceramic}
+        mediaGalleryDocId={
+          parcelContentDoc ? parcelContentDoc.mediaGallery : null
+        }
+        setMediaGalleryDocId={setMediaGalleryDocId}
+      ></GalleryModal>
     </>
   );
 }

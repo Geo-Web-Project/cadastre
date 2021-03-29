@@ -8,7 +8,6 @@ import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
-import GalleryModal from "./gallery/GalleryModal";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -391,11 +390,6 @@ function Map({
             setIsValidClaim={setIsValidClaim}
           ></ClaimSource>
         </ReactMapGL>
-        <GalleryModal
-          show={interactionState == STATE_EDITING_GALLERY}
-          setInteractionState={setInteractionState}
-          ceramic={ceramic}
-        ></GalleryModal>
       </Col>
     </>
   );

@@ -11,10 +11,17 @@ import { STATE_PARCEL_SELECTED } from "../Map";
 import {
   PINATA_API_ENDPOINT,
   MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
+  MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
 import { unpinCid } from "../../lib/pinning";
 
-export function GalleryModal({ show, setInteractionState, ceramic }) {
+export function GalleryModal({
+  mediaGalleryDocId,
+  setMediaGalleryDocId,
+  show,
+  setInteractionState,
+  ceramic,
+}) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
@@ -28,9 +35,40 @@ export function GalleryModal({ show, setInteractionState, ceramic }) {
     setPinningServiceAccessToken,
   ] = React.useState("");
 
-  const [mediaGalleryData, setMediaGalleryData] = React.useState([]);
-  console.log(mediaGalleryData);
+  const [mediaGalleryDoc, setMediaGalleryDoc] = React.useState(null);
+  const [mediaGalleryData, setMediaGalleryData] = React.useState(null);
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
+
+  React.useEffect(async () => {
+    if (!mediaGalleryDocId) {
+      setMediaGalleryData([]);
+      return;
+    }
+
+    mediaGalleryDoc = await ceramic.loadDocument(mediaGalleryDocId);
+    console.log(mediaGalleryDoc);
+  }, [mediaGalleryDocId]);
+
+  async function saveMediaGallery() {
+    if (mediaGalleryDocId) {
+      // Update doc
+      await mediaGalleryDoc.change({
+        content: mediaGalleryData,
+      });
+    } else {
+      // Create doc
+      const doc = await ceramic.createDocument("tile", {
+        content: mediaGalleryData,
+        metadata: {
+          schema: MEDIA_GALLERY_SCHEMA_DOCID,
+        },
+      });
+      console.log(doc);
+      const docId = doc.id.toString();
+      console.log(docId);
+      setMediaGalleryDocId(docId);
+    }
+  }
 
   async function addMediaGalleryItem(item) {
     function _addItem(item) {
@@ -83,6 +121,12 @@ export function GalleryModal({ show, setInteractionState, ceramic }) {
     );
   }
 
+  const spinner = (
+    <div className="spinner-border" role="status">
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+
   return (
     <Modal
       show={show}
@@ -108,31 +152,54 @@ export function GalleryModal({ show, setInteractionState, ceramic }) {
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="bg-dark px-4 text-light">
-        <p>
-          Upload, pin, and link media in this structured media gallery template
-          for easy Geo Web publishing and browsing.
-        </p>
-        <div className="border border-secondary rounded p-3">
-          <GalleryForm
-            addMediaGalleryItem={addMediaGalleryItem}
-            updatePinningData={updatePinningData}
-            pinningServiceEndpoint={pinningServiceEndpoint}
-            pinningServiceAccessToken={pinningServiceAccessToken}
-            setPinningServiceEndpoint={setPinningServiceEndpoint}
-            setPinningServiceAccessToken={setPinningServiceAccessToken}
-          />
-          <GalleryDisplayGrid
-            mediaGalleryData={mediaGalleryData}
-            mediaGalleryItems={mediaGalleryItems}
-            removeMediaGalleryItemAt={removeMediaGalleryItemAt}
-            pinningData={pinningData}
-            updatePinningData={updatePinningData}
-            pinningServiceEndpoint={pinningServiceEndpoint}
-            pinningServiceAccessToken={pinningServiceAccessToken}
-          />
-        </div>
-      </Modal.Body>
+      {mediaGalleryData != null ? (
+        <>
+          <Modal.Body className="bg-dark px-4 text-light">
+            <p>
+              Upload, pin, and link media in this structured media gallery
+              template for easy Geo Web publishing and browsing.
+            </p>
+            <div className="border border-secondary rounded p-3">
+              <GalleryForm
+                addMediaGalleryItem={addMediaGalleryItem}
+                updatePinningData={updatePinningData}
+                pinningServiceEndpoint={pinningServiceEndpoint}
+                pinningServiceAccessToken={pinningServiceAccessToken}
+                setPinningServiceEndpoint={setPinningServiceEndpoint}
+                setPinningServiceAccessToken={setPinningServiceAccessToken}
+              />
+              <GalleryDisplayGrid
+                mediaGalleryData={mediaGalleryData}
+                mediaGalleryItems={mediaGalleryItems}
+                removeMediaGalleryItemAt={removeMediaGalleryItemAt}
+                pinningData={pinningData}
+                updatePinningData={updatePinningData}
+                pinningServiceEndpoint={pinningServiceEndpoint}
+                pinningServiceAccessToken={pinningServiceAccessToken}
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer className="bg-dark border-0 pb-4">
+            <Container>
+              <Row className="text-right">
+                <Col xs="12">
+                  <Button
+                    variant="primary"
+                    // disabled={!isReadyToAdd}
+                    onClick={saveMediaGallery}
+                  >
+                    Save Changes
+                  </Button>
+                </Col>
+              </Row>
+            </Container>
+          </Modal.Footer>
+        </>
+      ) : (
+        <Modal.Body className="bg-dark p-5 text-light text-center">
+          {spinner}
+        </Modal.Body>
+      )}
     </Modal>
   );
 }
