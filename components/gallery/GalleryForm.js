@@ -24,8 +24,8 @@ export function GalleryForm({
   const [isUploading, setIsUploading] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
-  const cid = mediaGalleryItem.contentUri
-    ? mediaGalleryItem.contentUri.replace("ipfs://", "")
+  const cid = mediaGalleryItem.contentUrl
+    ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
     : "";
 
   function updateMediaGalleryItem(updatedValues) {
@@ -57,7 +57,7 @@ export function GalleryForm({
 
     updateMediaGalleryItem({
       "@type": "3DModel",
-      contentUri: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
+      contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
       encodingFormat: format,
     });
 
@@ -85,7 +85,7 @@ export function GalleryForm({
       pinningServiceEndpoint,
       pinningServiceAccessToken,
       mediaGalleryItem.name,
-      mediaGalleryItem.contentUri.replace("ipfs://", ""),
+      mediaGalleryItem.contentUrl.replace("ipfs://", ""),
       updatePinningData
     );
   }
@@ -103,7 +103,7 @@ export function GalleryForm({
   }
 
   let isReadyToAdd =
-    mediaGalleryItem.contentUri &&
+    mediaGalleryItem.contentUrl &&
     mediaGalleryItem.name &&
     pinningServiceEndpoint &&
     pinningServiceAccessToken;
@@ -133,7 +133,7 @@ export function GalleryForm({
                 value={cid}
                 onChange={(e) => {
                   updateMediaGalleryItem({
-                    contentUri: `ipfs://${e.target.value}`,
+                    contentUrl: `ipfs://${e.target.value}`,
                   });
                 }}
               />

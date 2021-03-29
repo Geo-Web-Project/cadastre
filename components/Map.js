@@ -394,6 +394,7 @@ function Map({
         <GalleryModal
           show={interactionState == STATE_EDITING_GALLERY}
           setInteractionState={setInteractionState}
+          ceramic={ceramic}
         ></GalleryModal>
       </Col>
     </>

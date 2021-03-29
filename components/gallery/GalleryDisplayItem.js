@@ -29,7 +29,7 @@ export function GalleryDisplayItem({
   const [isHovered, setIsHovered] = React.useState(false);
   const [isUnpinning, setIsUnpinning] = React.useState(false);
 
-  const cid = data.contentUri.replace("ipfs://", "");
+  const cid = data.contentUrl.replace("ipfs://", "");
   const pinningDataItem = pinningData[cid];
   const pinningStatus = pinningDataItem ? pinningDataItem.status : null;
   const isPinned = pinningStatus == "pinned";

@@ -8,10 +8,13 @@ import Container from "react-bootstrap/Container";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import { PINATA_API_ENDPOINT } from "../../lib/constants";
+import {
+  PINATA_API_ENDPOINT,
+  MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
+} from "../../lib/constants";
 import { unpinCid } from "../../lib/pinning";
 
-export function GalleryModal({ show, setInteractionState }) {
+export function GalleryModal({ show, setInteractionState, ceramic }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
@@ -26,14 +29,29 @@ export function GalleryModal({ show, setInteractionState }) {
   ] = React.useState("");
 
   const [mediaGalleryData, setMediaGalleryData] = React.useState([]);
-  function addMediaGalleryItem(item) {
+  console.log(mediaGalleryData);
+  const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
+
+  async function addMediaGalleryItem(item) {
     function _addItem(item) {
       return (prevState) => {
         return prevState.concat(item);
       };
     }
 
-    setMediaGalleryData(_addItem(item));
+    const doc = await ceramic.createDocument("tile", {
+      content: item,
+      metadata: {
+        schema: MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
+      },
+    });
+
+    const docId = doc.id.toString();
+    setMediaGalleryItems((prev) => {
+      return { ...prev, [docId]: item };
+    });
+
+    setMediaGalleryData(_addItem(docId));
   }
 
   // Store pinning data in-memory for now
@@ -49,7 +67,8 @@ export function GalleryModal({ show, setInteractionState }) {
   }
 
   async function removeMediaGalleryItemAt(index) {
-    const cid = mediaGalleryData[index].contentUri.replace("ipfs://", "");
+    const item = mediaGalleryItems[mediaGalleryData[index]];
+    const cid = item.contentUrl.replace("ipfs://", "");
 
     setMediaGalleryData((prevState) => {
       return prevState.filter((item, i) => index != i);
@@ -105,6 +124,7 @@ export function GalleryModal({ show, setInteractionState }) {
           />
           <GalleryDisplayGrid
             mediaGalleryData={mediaGalleryData}
+            mediaGalleryItems={mediaGalleryItems}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
             updatePinningData={updatePinningData}

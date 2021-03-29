@@ -7,7 +7,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_CID } from "../../lib/constants";
+import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_DOCID } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -159,7 +159,7 @@ export function ActionForm({
         doc = await ceramic.createDocument("tile", {
           content: { name: parcelName, webContent: parcelWebContentURI },
           metadata: {
-            schema: CONTENT_ROOT_SCHEMA_CID,
+            schema: CONTENT_ROOT_SCHEMA_DOCID,
           },
         });
         updateActionData({ parcelContentDoc: doc });
