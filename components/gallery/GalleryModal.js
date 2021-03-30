@@ -78,9 +78,9 @@ export function GalleryModal({
       });
       const docId = doc.id.toString();
       setMediaGalleryDocId(docId);
-
-      handleClose();
     }
+
+    handleClose();
   }
 
   async function addMediaGalleryItem(item) {
