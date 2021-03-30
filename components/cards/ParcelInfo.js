@@ -377,9 +377,7 @@ function ParcelInfo({
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
         ceramic={ceramic}
-        mediaGalleryDocId={
-          parcelContentDoc ? parcelContentDoc.mediaGallery : null
-        }
+        mediaGalleryDocId={parcelContent ? parcelContent.mediaGallery : null}
         setMediaGalleryDocId={setMediaGalleryDocId}
       ></GalleryModal>
     </>

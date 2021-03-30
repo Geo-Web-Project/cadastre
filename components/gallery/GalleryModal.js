@@ -45,8 +45,21 @@ export function GalleryModal({
       return;
     }
 
-    mediaGalleryDoc = await ceramic.loadDocument(mediaGalleryDocId);
-    console.log(mediaGalleryDoc);
+    const doc = await ceramic.loadDocument(mediaGalleryDocId);
+    setMediaGalleryDoc(doc);
+
+    const queries = doc.content.map((docId) => {
+      return { docId: docId, paths: [] };
+    });
+    const docMap = await ceramic.multiQuery(queries);
+
+    const loadedItems = Object.keys(docMap).reduce((result, docId) => {
+      result[docId] = docMap[docId].content;
+      return result;
+    }, {});
+    setMediaGalleryItems(loadedItems);
+
+    setMediaGalleryData(doc.content);
   }, [mediaGalleryDocId]);
 
   async function saveMediaGallery() {
@@ -63,10 +76,10 @@ export function GalleryModal({
           schema: MEDIA_GALLERY_SCHEMA_DOCID,
         },
       });
-      console.log(doc);
       const docId = doc.id.toString();
-      console.log(docId);
       setMediaGalleryDocId(docId);
+
+      handleClose();
     }
   }
 
