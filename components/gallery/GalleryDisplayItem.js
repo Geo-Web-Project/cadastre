@@ -5,9 +5,6 @@ import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import { pinCid, unpinCid } from "../../lib/pinning";
-import { IPFS_API_ENDPOINT } from "../../lib/constants";
-
-const ipfsClient = require("ipfs-http-client");
 
 const DISPLAY_TYPES = {
   "3DModel": "3D Model",
@@ -17,6 +14,7 @@ const DISPLAY_TYPES = {
 };
 
 export function GalleryDisplayItem({
+  ipfs,
   data,
   index,
   removeMediaGalleryItemAt,
@@ -25,7 +23,6 @@ export function GalleryDisplayItem({
   pinningServiceEndpoint,
   pinningServiceAccessToken,
 }) {
-  const ipfs = ipfsClient(IPFS_API_ENDPOINT);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isUnpinning, setIsUnpinning] = React.useState(false);
 

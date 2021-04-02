@@ -21,6 +21,7 @@ export function GalleryModal({
   show,
   setInteractionState,
   ceramic,
+  ipfs,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
@@ -174,6 +175,7 @@ export function GalleryModal({
             </p>
             <div className="border border-secondary rounded p-3">
               <GalleryForm
+                ipfs={ipfs}
                 addMediaGalleryItem={addMediaGalleryItem}
                 updatePinningData={updatePinningData}
                 pinningServiceEndpoint={pinningServiceEndpoint}
@@ -182,6 +184,7 @@ export function GalleryModal({
                 setPinningServiceAccessToken={setPinningServiceAccessToken}
               />
               <GalleryDisplayGrid
+                ipfs={ipfs}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
                 removeMediaGalleryItemAt={removeMediaGalleryItemAt}

@@ -12,6 +12,7 @@ export function GalleryDisplayGrid({
   updatePinningData,
   pinningServiceEndpoint,
   pinningServiceAccessToken,
+  ipfs,
 }) {
   let data = mediaGalleryData.map((docId) => mediaGalleryItems[docId]);
 
@@ -20,6 +21,7 @@ export function GalleryDisplayGrid({
       {data.map((item, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
+            ipfs={ipfs}
             data={item}
             index={i}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}

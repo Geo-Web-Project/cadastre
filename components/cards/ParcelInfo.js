@@ -49,6 +49,7 @@ function ParcelInfo({
   paymentTokenContract,
   adminAddress,
   ceramic,
+  ipfs,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -374,6 +375,7 @@ function ParcelInfo({
         </Col>
       </Row>
       <GalleryModal
+        ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
         ceramic={ceramic}

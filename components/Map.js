@@ -104,6 +104,7 @@ function Map({
   paymentTokenContract,
   account,
   ceramic,
+  ipfs,
 }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
@@ -359,6 +360,7 @@ function Map({
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
           ceramic={ceramic}
+          ipfs={ipfs}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
