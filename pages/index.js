@@ -13,6 +13,7 @@ import {
   NETWORK_ID,
   ADMIN_CONTRACT_ADDRESS,
   CERAMIC_API_ENDPOINT,
+  IPFS_BOOTSTRAP_PEER,
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
@@ -20,6 +21,9 @@ import { useWeb3React } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
+
+const { getIpfs, providers } = require("ipfs-provider");
+const { httpClient, jsIpfs } = providers;
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 const erc20ABI = require("../contracts/ERC20Mock.json");
@@ -72,6 +76,7 @@ function IndexPage() {
   const [adminContract, setAdminContract] = useState(null);
   const [paymentTokenContract, setPaymentTokenContract] = useState(null);
   const [ceramic, setCeramic] = useState(null);
+  const [ipfs, setIPFS] = useState(null);
 
   useEffect(async () => {
     if (active == false) {
@@ -90,6 +95,21 @@ function IndexPage() {
     await ceramic.setDIDProvider(didProvider);
 
     setCeramic(ceramic);
+
+    const { ipfs, provider, apiAddress } = await getIpfs({
+      loadHttpClientModule: () => require("ipfs-http-client"),
+      providers: [
+        httpClient({
+          apiAddress: "/ip4/127.0.0.1/tcp/5001",
+        }),
+        jsIpfs({
+          loadJsIpfsModule: () => require("ipfs-core"),
+          options: { Bootstrap: [IPFS_BOOTSTRAP_PEER] },
+        }),
+      ],
+    });
+
+    setIPFS(ipfs);
   }, [active, account]);
 
   // Setup Contracts on App Load
@@ -195,6 +215,7 @@ function IndexPage() {
               paymentTokenContract={paymentTokenContract}
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
+              ipfs={ipfs}
             ></Map>
           </Row>
         ) : null}

@@ -5,12 +5,11 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
-import { IPFS_API_ENDPOINT, PINATA_API_ENDPOINT } from "../../lib/constants";
+import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
 
-const ipfsClient = require("ipfs-http-client");
-
 export function GalleryForm({
+  ipfs,
   addMediaGalleryItem,
   updatePinningData,
   pinningServiceEndpoint,
@@ -18,8 +17,6 @@ export function GalleryForm({
   setPinningServiceEndpoint,
   setPinningServiceAccessToken,
 }) {
-  const ipfs = ipfsClient(IPFS_API_ENDPOINT);
-
   const [pinningService, setPinningService] = React.useState("pinata");
   const [isUploading, setIsUploading] = React.useState(false);
 
