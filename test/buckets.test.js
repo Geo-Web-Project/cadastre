@@ -10,8 +10,8 @@ describe("buckets", () => {
   test("should generate and parse identity", async () => {
     const bucket = new GeoWebBucket(idx);
 
-    const encryptedIdentity = await bucket.generateEncryptedIdentity();
-    const identity = await bucket.decryptIdentity(encryptedIdentity);
+    const encryptedIdentity = await bucket._generateEncryptedIdentity();
+    const identity = await bucket._decryptIdentity(encryptedIdentity);
     expect(identity).toBeDefined();
   });
 });
