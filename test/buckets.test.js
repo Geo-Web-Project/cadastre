@@ -1,14 +1,15 @@
-const { IDX } = require("@ceramicstudio/idx");
-const { getIdentity, saveIdentity } = require("../lib/buckets");
+import { IDX } from "@ceramicstudio/idx";
+import { decryptIdentity, generateEncryptedIdentity } from "../lib/buckets";
 
 describe("buckets", () => {
   let idx;
-  beforeAll(() => {
+  beforeAll(async () => {
     idx = new IDX({ ceramic });
   });
 
-  test("should set and get seed", () => {
-    const identity = saveIdentity(idx);
-    console.log(identity);
+  test("should generate and parse identity", async () => {
+    const encryptedIdentity = await generateEncryptedIdentity(idx);
+    const identity = await decryptIdentity(idx, encryptedIdentity);
+    expect(identity).toBeDefined();
   });
 });
