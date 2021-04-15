@@ -1,5 +1,5 @@
 import { IDX } from "@ceramicstudio/idx";
-import { decryptIdentity, generateEncryptedIdentity } from "../lib/buckets";
+import { GeoWebBucket } from "../lib/GeoWebBucket";
 
 describe("buckets", () => {
   let idx;
@@ -8,8 +8,10 @@ describe("buckets", () => {
   });
 
   test("should generate and parse identity", async () => {
-    const encryptedIdentity = await generateEncryptedIdentity(idx);
-    const identity = await decryptIdentity(idx, encryptedIdentity);
+    const bucket = new GeoWebBucket(idx);
+
+    const encryptedIdentity = await bucket.generateEncryptedIdentity();
+    const identity = await bucket.decryptIdentity(encryptedIdentity);
     expect(identity).toBeDefined();
   });
 });
