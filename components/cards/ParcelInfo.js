@@ -103,6 +103,7 @@ function ParcelInfo({
 
   useEffect(async () => {
     if (ceramic == null || contentDocId == null) {
+      console.error("Ceramic instance or Doc ID not found");
       return;
     }
     const doc = await ceramic.loadDocument(contentDocId);
