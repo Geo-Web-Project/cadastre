@@ -2,9 +2,9 @@
   "name": "geo-web-cadastre",
   "version": "0.1.0",
   "dependencies": {
-    "3id-connect": "^1.0.0-alpha.15",
+    "3id-connect": "^1.0.0-beta.15",
     "@apollo/client": "^3.2.5",
-    "@ceramicnetwork/http-client": "^0.9.5",
+    "@ceramicnetwork/http-client": "^0.10.2",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
