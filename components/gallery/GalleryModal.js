@@ -170,8 +170,8 @@ export function GalleryModal({
         <>
           <Modal.Body className="bg-dark px-4 text-light">
             <p>
-              Upload, pin, and link media in this structured media gallery
-              template for easy Geo Web publishing and browsing.
+              Add content to this structured gallery for easy display on the{" "}
+              <a>Geo Web Spatial Browser.</a>
             </p>
             <div className="border border-secondary rounded p-3">
               <GalleryForm
