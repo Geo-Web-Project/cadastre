@@ -16,7 +16,7 @@ import {
   IPFS_BOOTSTRAP_PEER,
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
-import { ThreeIdConnect, EthereumAuthProvider } from "3id-connect";
+import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
 import { useWeb3React } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
