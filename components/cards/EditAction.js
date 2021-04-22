@@ -3,6 +3,7 @@ import { ethers, BigNumber } from "ethers";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
+const erc721LicenseABI = require("../../contracts/ERC721License.json");
 
 function EditAction({
   adminContract,
@@ -16,6 +17,7 @@ function EditAction({
   adminAddress,
   parcelContentManager,
 }) {
+  const [licenseContract, setLicenseContract] = React.useState(null);
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
@@ -56,7 +58,27 @@ function EditAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  function _edit() {
+  React.useEffect(() => {
+    if (!adminContract) {
+      return;
+    }
+
+    async function updateLicenseContract() {
+      const _licenseContract = new ethers.Contract(
+        await adminContract.licenseContract(),
+        erc721LicenseABI,
+        adminContract.provider
+      );
+      let _licenseContractWithSigner = _licenseContract.connect(
+        adminContract.provider.getSigner()
+      );
+      setLicenseContract(_licenseContractWithSigner);
+    }
+
+    updateLicenseContract();
+  }, [adminContract]);
+
+  function _edit(newStreamId) {
     updateActionData({ isActing: true });
 
     // Check for changes
@@ -69,8 +91,28 @@ function EditAction({
       displayNewForSalePrice == displayCurrentForSalePrice &&
       networkFeeIsUnchanged
     ) {
-      updateActionData({ isActing: false });
-      setInteractionState(STATE_PARCEL_SELECTED);
+      // Content change only
+
+      if (newStreamId) {
+        // Requires stream ID update
+        licenseContract
+          .setContent(parcelData.landParcel.id, newStreamId.toString())
+          .then((resp) => {
+            return resp.wait();
+          })
+          .then(async function (receipt) {
+            updateActionData({ isActing: false });
+            refetchParcelData();
+            setInteractionState(STATE_PARCEL_SELECTED);
+          })
+          .catch((error) => {
+            console.error(error);
+            updateActionData({ isActing: false, didFail: true });
+          });
+      } else {
+        updateActionData({ isActing: false });
+        setInteractionState(STATE_PARCEL_SELECTED);
+      }
       return;
     }
 
