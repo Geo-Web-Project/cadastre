@@ -14,12 +14,14 @@ function EditAction({
   setInteractionState,
   paymentTokenContract,
   adminAddress,
-  ceramic,
-  parcelContentDoc,
+  parcelContentManager,
 }) {
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
+  const parcelContent = parcelContentManager
+    ? parcelContentManager.getRootStreamContent()
+    : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
     currentExpirationTimestamp:
@@ -30,11 +32,8 @@ function EditAction({
     displayNewForSalePrice: displayCurrentForSalePrice
       ? displayCurrentForSalePrice
       : "",
-    parcelContentDoc: parcelContentDoc,
-    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
-    parcelWebContentURI: parcelContentDoc
-      ? parcelContentDoc.content.webContent
-      : null,
+    parcelName: parcelContent ? parcelContent.name : null,
+    parcelWebContentURI: parcelContent ? parcelContent.webContent : null,
   });
 
   function updateActionData(updatedValues) {
@@ -106,7 +105,7 @@ function EditAction({
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
-        ceramic={ceramic}
+        parcelContentManager={parcelContentManager}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

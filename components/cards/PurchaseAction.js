@@ -15,8 +15,7 @@ function PurchaseAction({
   paymentTokenContract,
   adminAddress,
   auctionValue,
-  ceramic,
-  parcelContentDoc,
+  parcelContentManager,
   existingNetworkFeeBalance,
 }) {
   function _calculateNetworkFeeBalance(
@@ -44,6 +43,9 @@ function PurchaseAction({
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
+  const parcelContent = parcelContentManager
+    ? parcelContentManager.getRootStreamContent()
+    : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
     currentExpirationTimestamp:
@@ -57,10 +59,8 @@ function PurchaseAction({
     displayNewForSalePrice: displayCurrentForSalePrice
       ? displayCurrentForSalePrice
       : "",
-    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
-    parcelWebContentURI: parcelContentDoc
-      ? parcelContentDoc.content.webContent
-      : null,
+    parcelName: parcelContent ? parcelContent.name : null,
+    parcelWebContentURI: parcelContent ? parcelContent.webContent : null,
   });
 
   function updateActionData(updatedValues) {
@@ -130,7 +130,7 @@ function PurchaseAction({
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_purchase}
-        ceramic={ceramic}
+        parcelContentManager={parcelContentManager}
         actionData={actionData}
         setActionData={setActionData}
       />

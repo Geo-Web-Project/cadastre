@@ -22,13 +22,12 @@ export function ActionForm({
   performAction,
   actionData,
   setActionData,
-  ceramic,
+  parcelContentManager,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const {
-    parcelContentDoc,
     parcelName,
     parcelWebContentURI,
     displayNewForSalePrice,
@@ -148,28 +147,17 @@ export function ActionForm({
   }
 
   async function submit() {
-    async function _updateContentRootDoc() {
-      let doc;
-      if (parcelContentDoc) {
-        doc = parcelContentDoc;
-        await doc.change({
-          content: { name: parcelName, webContent: parcelWebContentURI },
-        });
-      } else {
-        doc = await ceramic.createDocument("tile", {
-          content: { name: parcelName, webContent: parcelWebContentURI },
-          metadata: {
-            schema: CONTENT_ROOT_SCHEMA_DOCID,
-          },
-        });
-        updateActionData({ parcelContentDoc: doc });
-      }
-
-      return doc.id;
+    if (!parcelContentManager) {
+      console.error("ParcelContentManager not found");
+      return;
     }
+
     updateActionData({ isActing: true });
-    const rootCID = await _updateContentRootDoc();
-    performAction(rootCID);
+    await parcelContentManager.createOrUpdateRootStream({
+      name: parcelName,
+      webContent: parcelWebContentURI,
+    });
+    performAction(parcelContentManager.getRootStreamId());
   }
 
   let [
@@ -190,7 +178,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || ceramic == null;
+  let isLoading = loading || parcelContentManager == null;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {

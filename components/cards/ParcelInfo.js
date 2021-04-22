@@ -22,6 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
+import { ParcelContentManager } from "../../lib/ParcelContentManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -59,10 +60,14 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
-  const [contentDocId, setContentDocId] = React.useState(null);
-  const [parcelContentDoc, setParcelContentDoc] = React.useState(null);
+  const [parcelContentManager, setParcelContentManager] = React.useState(null);
 
-  const parcelContent = parcelContentDoc ? parcelContentDoc.content : null;
+  const parcelContent = parcelContentManager
+    ? parcelContentManager.getRootStreamContent()
+    : null;
+  const parcelContentStreamId = parcelContentManager
+    ? parcelContentManager.getRootStreamId()
+    : null;
   let isLoading =
     loading ||
     perSecondFeeNumerator == null ||
@@ -83,35 +88,50 @@ function ParcelInfo({
   }
 
   useEffect(() => {
-    if (
-      data &&
-      data.landParcel &&
-      perSecondFeeNumerator &&
-      perSecondFeeDenominator
-    ) {
-      setContentDocId(data.landParcel.license.rootCID);
-
-      if (networkFeeBalance == null) {
-        setInterval(() => {
-          setNetworkFeeBalance(
-            _calculateNetworkFeeBalance(data.landParcel.license)
+    async function updateContent() {
+      if (
+        data &&
+        data.landParcel &&
+        perSecondFeeNumerator &&
+        perSecondFeeDenominator
+      ) {
+        if (data.landParcel.license.rootCID && parcelContentManager) {
+          await parcelContentManager.setExistingRootStreamId(
+            data.landParcel.license.rootCID
           );
-        }, 500);
+        }
+
+        if (networkFeeBalance == null) {
+          setInterval(() => {
+            setNetworkFeeBalance(
+              _calculateNetworkFeeBalance(data.landParcel.license)
+            );
+          }, 500);
+        }
       }
     }
-  }, [data, perSecondFeeNumerator, perSecondFeeDenominator]);
 
-  useEffect(async () => {
-    if (ceramic == null || contentDocId == null) {
-      console.error("Ceramic instance or Doc ID not found");
+    updateContent();
+  }, [
+    data,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
+    parcelContentManager,
+  ]);
+
+  useEffect(() => {
+    if (ceramic == null) {
+      console.error("Ceramic instance not found");
       return;
     }
-    const doc = await ceramic.loadDocument(contentDocId);
-    setParcelContentDoc(doc);
-  }, [contentDocId, ceramic]);
+
+    const _parcelContentManager = new ParcelContentManager(ceramic);
+    setParcelContentManager(_parcelContentManager);
+  }, [ceramic]);
 
   async function updateContentRootDoc(newState) {
-    if (!parcelContentDoc) {
+    if (!parcelContentManager) {
+      console.error("ParcelContentManager not found");
       return;
     }
 
@@ -311,15 +331,15 @@ function ParcelInfo({
               </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Doc CID:</span>{" "}
-                {contentDocId == null ? (
+                {parcelContentStreamId == null ? (
                   spinner
                 ) : (
                   <a
-                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${contentDocId}`}
+                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${parcelContentStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`ceramic://${contentDocId}`}</a>
+                  >{`ceramic://${parcelContentStreamId}`}</a>
                 )}
               </p>
               {isExpired ? (
@@ -351,8 +371,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
-              ceramic={ceramic}
-              parcelContentDoc={parcelContentDoc}
+              parcelContentManager={parcelContentManager}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -368,8 +387,7 @@ function ParcelInfo({
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
-              ceramic={ceramic}
-              parcelContentDoc={parcelContentDoc}
+              parcelContentManager={parcelContentManager}
               existingNetworkFeeBalance={networkFeeBalance}
             />
           ) : null}
