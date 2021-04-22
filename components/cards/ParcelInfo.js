@@ -22,7 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
-import { ParcelContentManager } from "../../lib/ParcelContentManager";
+import { RootStreamManager } from "../../lib/stream-managers/RootStreamManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -60,13 +60,13 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
-  const [parcelContentManager, setParcelContentManager] = React.useState(null);
+  const [parcelRootStreamManager, setRootStreamManager] = React.useState(null);
 
-  const parcelContent = parcelContentManager
-    ? parcelContentManager.getRootStreamContent()
+  const parcelContent = parcelRootStreamManager
+    ? parcelRootStreamManager.getStreamContent()
     : null;
-  const parcelContentStreamId = parcelContentManager
-    ? parcelContentManager.getRootStreamId()
+  const parcelContentStreamId = parcelRootStreamManager
+    ? parcelRootStreamManager.getStreamId()
     : null;
   let isLoading =
     loading ||
@@ -95,8 +95,8 @@ function ParcelInfo({
         perSecondFeeNumerator &&
         perSecondFeeDenominator
       ) {
-        if (data.landParcel.license.rootCID && parcelContentManager) {
-          await parcelContentManager.setExistingRootStreamId(
+        if (data.landParcel.license.rootCID && parcelRootStreamManager) {
+          await parcelRootStreamManager.setExistingStreamId(
             data.landParcel.license.rootCID
           );
         }
@@ -116,7 +116,7 @@ function ParcelInfo({
     data,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    parcelContentManager,
+    parcelRootStreamManager,
   ]);
 
   useEffect(() => {
@@ -125,12 +125,12 @@ function ParcelInfo({
       return;
     }
 
-    const _parcelContentManager = new ParcelContentManager(ceramic);
-    setParcelContentManager(_parcelContentManager);
+    const _parcelRootStreamManager = new RootStreamManager(ceramic);
+    setRootStreamManager(_parcelRootStreamManager);
   }, [ceramic]);
 
   async function updateContentRootDoc(newState) {
-    if (!parcelContentManager) {
+    if (!parcelRootStreamManager) {
       console.error("ParcelContentManager not found");
       return;
     }
@@ -371,7 +371,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
-              parcelContentManager={parcelContentManager}
+              parcelRootStreamManager={parcelRootStreamManager}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -387,7 +387,7 @@ function ParcelInfo({
               paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
-              parcelContentManager={parcelContentManager}
+              parcelRootStreamManager={parcelRootStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
             />
           ) : null}

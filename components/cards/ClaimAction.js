@@ -151,7 +151,7 @@ function ClaimAction({
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        parcelContentManager={parcelContentManager}
+        parcelRootStreamManager={parcelRootStreamManager}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}

@@ -7,7 +7,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_DOCID } from "../../lib/constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -22,7 +22,7 @@ export function ActionForm({
   performAction,
   actionData,
   setActionData,
-  parcelContentManager,
+  parcelRootStreamManager,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -147,13 +147,13 @@ export function ActionForm({
   }
 
   async function submit() {
-    if (!parcelContentManager) {
+    if (!parcelRootStreamManager) {
       console.error("ParcelContentManager not found");
       return;
     }
 
     updateActionData({ isActing: true });
-    const newStreamId = await parcelContentManager.createOrUpdateRootStream({
+    const newStreamId = await parcelRootStreamManager.createOrUpdateStream({
       name: parcelName,
       webContent: parcelWebContentURI,
     });
@@ -178,7 +178,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || parcelContentManager == null;
+  let isLoading = loading || parcelRootStreamManager == null;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {
