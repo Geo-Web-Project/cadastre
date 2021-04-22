@@ -23,6 +23,7 @@ function Sidebar({
   selectedParcelId,
   setSelectedParcelId,
   ceramic,
+  ipfs,
 }) {
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] = React.useState(
     null
@@ -58,6 +59,7 @@ function Sidebar({
         paymentTokenContract={paymentTokenContract}
         adminAddress={adminAddress}
         ceramic={ceramic}
+        ipfs={ipfs}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (

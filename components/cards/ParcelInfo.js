@@ -8,6 +8,7 @@ import {
   STATE_VIEWING,
   STATE_CLAIM_SELECTED,
   STATE_CLAIM_SELECTING,
+  STATE_EDITING_GALLERY,
 } from "../Map";
 import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
@@ -20,6 +21,7 @@ import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
+import GalleryModal from "../gallery/GalleryModal";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -47,6 +49,7 @@ function ParcelInfo({
   paymentTokenContract,
   adminAddress,
   ceramic,
+  ipfs,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -105,6 +108,21 @@ function ParcelInfo({
     const doc = await ceramic.loadDocument(contentDocId);
     setParcelContentDoc(doc);
   }, [contentDocId, ceramic]);
+
+  async function updateContentRootDoc(newState) {
+    if (!parcelContentDoc) {
+      return;
+    }
+
+    await parcelContentDoc.change({
+      content: { ...newState, ...parcelContentDoc.content },
+    });
+  }
+
+  async function setMediaGalleryDocId(newDocId) {
+    await updateContentRootDoc({ mediaGallery: newDocId });
+  }
+
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
@@ -151,69 +169,53 @@ function ParcelInfo({
     hrefWebContent = parcelContent.webContent;
   }
 
-  let editButton;
-  switch (interactionState) {
-    case STATE_PARCEL_SELECTED:
-      editButton = (
-        <Button
-          variant="primary"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_EDITING);
-          }}
-        >
-          Edit
-        </Button>
-      );
-      break;
-    case STATE_PARCEL_EDITING:
-      editButton = (
-        <Button
-          variant="danger"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_SELECTED);
-          }}
-        >
-          Cancel Editing
-        </Button>
-      );
-      break;
-    default:
-      break;
-  }
+  let cancelButton = (
+    <Button
+      variant="danger"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_SELECTED);
+      }}
+    >
+      Cancel
+    </Button>
+  );
 
-  let initiateTransferButton;
-  switch (interactionState) {
-    case STATE_PARCEL_SELECTED:
-      initiateTransferButton = (
-        <Button
-          variant="primary"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_PURCHASING);
-          }}
-        >
-          {isExpired ? "Auction Claim" : "Initiate Transfer"}
-        </Button>
-      );
-      break;
-    case STATE_PARCEL_PURCHASING:
-      initiateTransferButton = (
-        <Button
-          variant="danger"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE_PARCEL_SELECTED);
-          }}
-        >
-          {isExpired ? "Cancel Auction Claim" : "Cancel Transfer"}
-        </Button>
-      );
-      break;
-    default:
-      break;
-  }
+  let editButton = (
+    <Button
+      variant="primary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_EDITING);
+      }}
+    >
+      Edit Parcel
+    </Button>
+  );
+
+  let editGalleryButton = (
+    <Button
+      variant="secondary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_EDITING_GALLERY);
+      }}
+    >
+      Edit Media Gallery
+    </Button>
+  );
+
+  let initiateTransferButton = (
+    <Button
+      variant="primary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE_PARCEL_PURCHASING);
+      }}
+    >
+      {isExpired ? "Auction Claim" : "Initiate Transfer"}
+    </Button>
+  );
 
   let title;
   if (
@@ -235,11 +237,27 @@ function ParcelInfo({
     );
   }
 
+  let buttons;
+  if (interactionState != STATE_PARCEL_SELECTED) {
+    buttons = cancelButton;
+  } else if (!isLoading) {
+    if (account.toLowerCase() == licenseOwner.toLowerCase()) {
+      buttons = (
+        <>
+          <div className="mb-2">{editButton}</div>
+          {editGalleryButton}
+        </>
+      );
+    } else {
+      buttons = initiateTransferButton;
+    }
+  }
+
   return (
     <>
       <Row className="mb-3">
         <Col sm="10">{title}</Col>
-        <Col sm="2">
+        <Col sm="2" className="text-right">
           <Button
             variant="link"
             size="sm"
@@ -253,7 +271,8 @@ function ParcelInfo({
         <Col>
           {interactionState == STATE_PARCEL_SELECTED ||
           interactionState == STATE_PARCEL_EDITING ||
-          interactionState == STATE_PARCEL_PURCHASING ? (
+          interactionState == STATE_PARCEL_PURCHASING ||
+          interactionState == STATE_EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
                 {isLoading ? (
@@ -290,7 +309,7 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Linked CID:</span>{" "}
+                <span className="font-weight-bold">Doc CID:</span>{" "}
                 {contentDocId == null ? (
                   spinner
                 ) : (
@@ -314,11 +333,7 @@ function ParcelInfo({
                 </>
               ) : null}
               <br />
-              {!isLoading
-                ? account.toLowerCase() == licenseOwner.toLowerCase()
-                  ? editButton
-                  : initiateTransferButton
-                : null}
+              {buttons}
             </>
           ) : (
             <p>Unclaimed Coordinates</p>
@@ -359,6 +374,14 @@ function ParcelInfo({
           ) : null}
         </Col>
       </Row>
+      <GalleryModal
+        ipfs={ipfs}
+        show={interactionState == STATE_EDITING_GALLERY}
+        setInteractionState={setInteractionState}
+        ceramic={ceramic}
+        mediaGalleryDocId={parcelContent ? parcelContent.mediaGallery : null}
+        setMediaGalleryDocId={setMediaGalleryDocId}
+      ></GalleryModal>
     </>
   );
 }

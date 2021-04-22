@@ -20,6 +20,7 @@ export const STATE_CLAIM_SELECTED = 2;
 export const STATE_PARCEL_SELECTED = 3;
 export const STATE_PARCEL_EDITING = 4;
 export const STATE_PARCEL_PURCHASING = 5;
+export const STATE_EDITING_GALLERY = 6;
 
 const query = gql`
   query Polygons($lastBlock: BigInt) {
@@ -103,6 +104,7 @@ function Map({
   paymentTokenContract,
   account,
   ceramic,
+  ipfs,
 }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
@@ -146,6 +148,9 @@ function Map({
       interactionState == STATE_CLAIM_SELECTED);
 
   function _onViewportChange(nextViewport) {
+    if (interactionState == STATE_EDITING_GALLERY) {
+      return;
+    }
     setViewport(nextViewport);
 
     if (
@@ -355,6 +360,7 @@ function Map({
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
           ceramic={ceramic}
+          ipfs={ipfs}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
