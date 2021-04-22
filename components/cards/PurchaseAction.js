@@ -84,7 +84,10 @@ function PurchaseAction({
     const currentForSalePriceWei =
       auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
 
+    // Add a 1% buffer
     let _transactionSubtotal = BigNumber.from(currentForSalePriceWei)
+      .mul(101)
+      .div(100)
       .add(calculateWeiSubtotalField(displayNetworkFeePayment))
       .add(existingNetworkFeeBalance);
 
@@ -96,30 +99,28 @@ function PurchaseAction({
     existingNetworkFeeBalance,
   ]);
 
-  function _purchase(rootCID) {
+  async function _purchase(newStreamId, getCurrentStreamId) {
     updateActionData({ isActing: true });
 
-    adminContract
-      .purchaseLicense(
+    const rootCID = newStreamId ?? getCurrentStreamId();
+
+    try {
+      const resp = await adminContract.purchaseLicense(
         parcelData.landParcel.id,
         actionData.transactionSubtotal,
         calculateWeiSubtotalField(displayNewForSalePrice),
         calculateWeiSubtotalField(displayNetworkFeePayment),
         rootCID.toString(),
         { from: account }
-      )
-      .then((resp) => {
-        return resp.wait();
-      })
-      .then(async function (receipt) {
-        updateActionData({ isActing: false });
-        refetchParcelData();
-        setInteractionState(STATE_PARCEL_SELECTED);
-      })
-      .catch((error) => {
-        console.log(error);
-        updateActionData({ isActing: false, didFail: true });
-      });
+      );
+      const receipt = await resp.wait();
+      updateActionData({ isActing: false });
+      refetchParcelData();
+      setInteractionState(STATE_PARCEL_SELECTED);
+    } catch (error) {
+      console.error(error);
+      updateActionData({ isActing: false, didFail: true });
+    }
   }
 
   return (

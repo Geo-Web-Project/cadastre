@@ -157,7 +157,9 @@ export function ActionForm({
       name: parcelName,
       webContent: parcelWebContentURI,
     });
-    performAction(newStreamId);
+    performAction(newStreamId, () => {
+      return parcelRootStreamManager.getStreamId();
+    });
   }
 
   let [
