@@ -125,23 +125,11 @@ function ParcelInfo({
       return;
     }
 
+    console.log("ON CERAMIC");
+
     const _parcelRootStreamManager = new RootStreamManager(ceramic);
     setRootStreamManager(_parcelRootStreamManager);
   }, [ceramic]);
-
-  async function updateContentRootDoc(newState) {
-    if (!parcelRootStreamManager) {
-      console.error("ParcelContentManager not found");
-      return;
-    }
-
-    console.log(newState);
-    await parcelRootStreamManager.createOrUpdateStream(newState);
-  }
-
-  async function setMediaGalleryDocId(newDocId) {
-    await updateContentRootDoc({ mediaGallery: newDocId });
-  }
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -396,9 +384,7 @@ function ParcelInfo({
         ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
-        ceramic={ceramic}
-        mediaGalleryDocId={parcelContent ? parcelContent.mediaGallery : null}
-        setMediaGalleryDocId={setMediaGalleryDocId}
+        parcelRootStreamManager={parcelRootStreamManager}
       ></GalleryModal>
     </>
   );

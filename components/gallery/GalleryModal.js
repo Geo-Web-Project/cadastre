@@ -14,13 +14,12 @@ import {
   MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
 import { unpinCid } from "../../lib/pinning";
+import { MediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 
 export function GalleryModal({
-  mediaGalleryDocId,
-  setMediaGalleryDocId,
   show,
   setInteractionState,
-  ceramic,
+  parcelRootStreamManager,
   ipfs,
 }) {
   const handleClose = () => {
@@ -36,20 +35,30 @@ export function GalleryModal({
     setPinningServiceAccessToken,
   ] = React.useState("");
 
-  const [mediaGalleryDoc, setMediaGalleryDoc] = React.useState(null);
+  const [
+    mediaGalleryStreamManager,
+    setMediaGalleryStreamManager,
+  ] = React.useState(null);
   const [mediaGalleryData, setMediaGalleryData] = React.useState(null);
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
 
   React.useEffect(async () => {
-    if (!mediaGalleryDocId) {
-      setMediaGalleryData([]);
+    if (!parcelRootStreamManager || mediaGalleryStreamManager) {
       return;
     }
 
-    const doc = await ceramic.loadDocument(mediaGalleryDocId);
-    setMediaGalleryDoc(doc);
+    const _mediaGalleryStreamManager = new MediaGalleryStreamManager(
+      parcelRootStreamManager.ceramic
+    );
+    _mediaGalleryStreamManager.setRootStreamManager(parcelRootStreamManager);
+    setMediaGalleryStreamManager(_mediaGalleryStreamManager);
 
-    const queries = doc.content.map((docId) => {
+    const mediaGalleryContent = _mediaGalleryStreamManager.getStreamContent();
+    if (!mediaGalleryContent) {
+      return;
+    }
+
+    const queries = mediaGalleryContent.map((docId) => {
       return { docId: docId, paths: [] };
     });
     const docMap = await ceramic.multiQuery(queries);
@@ -60,26 +69,11 @@ export function GalleryModal({
     }, {});
     setMediaGalleryItems(loadedItems);
 
-    setMediaGalleryData(doc.content);
-  }, [mediaGalleryDocId]);
+    setMediaGalleryData(mediaGalleryContent);
+  }, [parcelRootStreamManager]);
 
   async function saveMediaGallery() {
-    if (mediaGalleryDocId) {
-      // Update doc
-      await mediaGalleryDoc.change({
-        content: mediaGalleryData,
-      });
-    } else {
-      // Create doc
-      const doc = await ceramic.createDocument("tile", {
-        content: mediaGalleryData,
-        metadata: {
-          schema: MEDIA_GALLERY_SCHEMA_DOCID,
-        },
-      });
-      const docId = doc.id.toString();
-      setMediaGalleryDocId(docId);
-    }
+    mediaGalleryStreamManager.createOrUpdateStream(mediaGalleryData);
 
     handleClose();
   }
