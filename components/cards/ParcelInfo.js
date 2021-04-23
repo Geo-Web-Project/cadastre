@@ -135,7 +135,6 @@ function ParcelInfo({
       return;
     }
 
-    console.log(newState);
     await parcelRootStreamManager.createOrUpdateStream(newState);
   }
 
