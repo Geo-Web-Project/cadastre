@@ -135,9 +135,8 @@ function ParcelInfo({
       return;
     }
 
-    await parcelContentDoc.change({
-      content: { ...newState, ...parcelContentDoc.content },
-    });
+    console.log(newState);
+    await parcelRootStreamManager.createOrUpdateStream(newState);
   }
 
   async function setMediaGalleryDocId(newDocId) {
