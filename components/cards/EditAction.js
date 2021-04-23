@@ -3,6 +3,7 @@ import { ethers, BigNumber } from "ethers";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
+const erc721LicenseABI = require("../../contracts/ERC721License.json");
 
 function EditAction({
   adminContract,
@@ -14,12 +15,15 @@ function EditAction({
   setInteractionState,
   paymentTokenContract,
   adminAddress,
-  ceramic,
-  parcelContentDoc,
+  parcelRootStreamManager,
 }) {
+  const [licenseContract, setLicenseContract] = React.useState(null);
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
+  const parcelContent = parcelRootStreamManager
+    ? parcelRootStreamManager.getStreamContent()
+    : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
     currentExpirationTimestamp:
@@ -30,11 +34,8 @@ function EditAction({
     displayNewForSalePrice: displayCurrentForSalePrice
       ? displayCurrentForSalePrice
       : "",
-    parcelContentDoc: parcelContentDoc,
-    parcelName: parcelContentDoc ? parcelContentDoc.content.name : null,
-    parcelWebContentURI: parcelContentDoc
-      ? parcelContentDoc.content.webContent
-      : null,
+    parcelName: parcelContent ? parcelContent.name : null,
+    parcelWebContentURI: parcelContent ? parcelContent.webContent : null,
   });
 
   function updateActionData(updatedValues) {
@@ -57,7 +58,27 @@ function EditAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  function _edit() {
+  React.useEffect(() => {
+    if (!adminContract) {
+      return;
+    }
+
+    async function updateLicenseContract() {
+      const _licenseContract = new ethers.Contract(
+        await adminContract.licenseContract(),
+        erc721LicenseABI,
+        adminContract.provider
+      );
+      let _licenseContractWithSigner = _licenseContract.connect(
+        adminContract.provider.getSigner()
+      );
+      setLicenseContract(_licenseContractWithSigner);
+    }
+
+    updateLicenseContract();
+  }, [adminContract]);
+
+  function _edit(newStreamId) {
     updateActionData({ isActing: true });
 
     // Check for changes
@@ -70,8 +91,28 @@ function EditAction({
       displayNewForSalePrice == displayCurrentForSalePrice &&
       networkFeeIsUnchanged
     ) {
-      updateActionData({ isActing: false });
-      setInteractionState(STATE_PARCEL_SELECTED);
+      // Content change only
+
+      if (newStreamId) {
+        // Requires stream ID update
+        licenseContract
+          .setContent(parcelData.landParcel.id, newStreamId.toString())
+          .then((resp) => {
+            return resp.wait();
+          })
+          .then(async function (receipt) {
+            updateActionData({ isActing: false });
+            refetchParcelData();
+            setInteractionState(STATE_PARCEL_SELECTED);
+          })
+          .catch((error) => {
+            console.error(error);
+            updateActionData({ isActing: false, didFail: true });
+          });
+      } else {
+        updateActionData({ isActing: false });
+        setInteractionState(STATE_PARCEL_SELECTED);
+      }
       return;
     }
 
@@ -106,7 +147,7 @@ function EditAction({
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
-        ceramic={ceramic}
+        parcelRootStreamManager={parcelRootStreamManager}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}
