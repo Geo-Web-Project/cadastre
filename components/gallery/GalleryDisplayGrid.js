@@ -14,15 +14,15 @@ export function GalleryDisplayGrid({
   pinningServiceAccessToken,
   ipfs,
 }) {
-  let data = mediaGalleryData.map((docId) => mediaGalleryItems[docId]);
+  const data = mediaGalleryData.map((docId) => mediaGalleryItems[docId]);
 
   return (
     <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>
-      {data.map((item, i) => (
+      {data.map((mediaGalleryItemStreamManager, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
             ipfs={ipfs}
-            data={item}
+            data={mediaGalleryItemStreamManager.getStreamContent()}
             index={i}
             removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
