@@ -22,7 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
-import { RootStreamManager } from "../../lib/stream-managers/RootStreamManager";
+import { useRootStreamManager } from "../../lib/stream-managers/RootStreamManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -60,7 +60,7 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
-  const [parcelRootStreamManager, setRootStreamManager] = React.useState(null);
+  const parcelRootStreamManager = useRootStreamManager(ceramic);
 
   const parcelContent = parcelRootStreamManager
     ? parcelRootStreamManager.getStreamContent()
@@ -118,18 +118,6 @@ function ParcelInfo({
     perSecondFeeDenominator,
     parcelRootStreamManager,
   ]);
-
-  useEffect(() => {
-    if (ceramic == null) {
-      console.error("Ceramic instance not found");
-      return;
-    }
-
-    console.log("ON CERAMIC");
-
-    const _parcelRootStreamManager = new RootStreamManager(ceramic);
-    setRootStreamManager(_parcelRootStreamManager);
-  }, [ceramic]);
 
   const spinner = (
     <div className="spinner-border" role="status">

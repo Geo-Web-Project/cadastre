@@ -14,7 +14,7 @@ import {
   MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
 import { unpinCid } from "../../lib/pinning";
-import { MediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
+import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 
 export function GalleryModal({
   show,
@@ -35,25 +35,18 @@ export function GalleryModal({
     setPinningServiceAccessToken,
   ] = React.useState("");
 
-  const [
-    mediaGalleryStreamManager,
-    setMediaGalleryStreamManager,
-  ] = React.useState(null);
+  const mediaGalleryStreamManager = useMediaGalleryStreamManager(
+    parcelRootStreamManager
+  );
   const [mediaGalleryData, setMediaGalleryData] = React.useState(null);
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
 
   React.useEffect(async () => {
-    if (!parcelRootStreamManager || mediaGalleryStreamManager) {
+    if (!mediaGalleryStreamManager) {
       return;
     }
 
-    const _mediaGalleryStreamManager = new MediaGalleryStreamManager(
-      parcelRootStreamManager.ceramic
-    );
-    _mediaGalleryStreamManager.setRootStreamManager(parcelRootStreamManager);
-    setMediaGalleryStreamManager(_mediaGalleryStreamManager);
-
-    const mediaGalleryContent = _mediaGalleryStreamManager.getStreamContent();
+    const mediaGalleryContent = mediaGalleryStreamManager.getStreamContent();
     if (!mediaGalleryContent) {
       return;
     }
@@ -70,7 +63,7 @@ export function GalleryModal({
     setMediaGalleryItems(loadedItems);
 
     setMediaGalleryData(mediaGalleryContent);
-  }, [parcelRootStreamManager]);
+  }, [mediaGalleryStreamManager]);
 
   async function saveMediaGallery() {
     mediaGalleryStreamManager.createOrUpdateStream(mediaGalleryData);
