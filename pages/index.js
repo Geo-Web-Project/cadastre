@@ -17,10 +17,13 @@ import {
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
+import KeyDidResolver from "key-did-resolver";
+import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import { useWeb3React } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
+import { DID } from "dids";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -83,16 +86,28 @@ function IndexPage() {
       return;
     }
 
+    // Create Ceramic and DID with resolvers
+    const ceramic = new CeramicClient(CERAMIC_API_ENDPOINT);
+
+    const resolver = {
+      ...KeyDidResolver.getResolver(),
+      ...ThreeIdResolver.getResolver(ceramic),
+    };
+
+    const did = new DID({ resolver });
+    ceramic.setDID(did);
+
+    // Add provider to Ceramic DID
     const ethProvider = await connector.getProvider();
     const threeIdConnect = new ThreeIdConnect();
 
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);
 
-    const ceramic = new CeramicClient(CERAMIC_API_ENDPOINT);
     const didProvider = await threeIdConnect.getDidProvider();
 
-    await ceramic.setDIDProvider(didProvider);
+    await ceramic.did.setProvider(didProvider);
+    await ceramic.did.authenticate();
 
     setCeramic(ceramic);
 
