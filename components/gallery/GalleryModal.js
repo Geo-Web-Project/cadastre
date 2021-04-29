@@ -21,6 +21,7 @@ export function GalleryModal({
   setInteractionState,
   parcelRootStreamManager,
   ipfs,
+  ceramic,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
@@ -48,6 +49,7 @@ export function GalleryModal({
 
     const mediaGalleryContent = mediaGalleryStreamManager.getStreamContent();
     if (!mediaGalleryContent) {
+      setMediaGalleryData([]);
       return;
     }
 

@@ -373,6 +373,7 @@ function ParcelInfo({
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
         parcelRootStreamManager={parcelRootStreamManager}
+        ceramic={ceramic}
       ></GalleryModal>
     </>
   );
