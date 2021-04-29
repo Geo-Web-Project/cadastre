@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PAYMENT_TOKEN } from "../../lib/constants";
-import Web3 from "web3";
 import BN from "bn.js";
+import { ethers } from "ethers";
 
 function _calculateAuctionValue(auctionLength, auctionEndDate, value) {
   let now = new Date();
@@ -91,7 +91,7 @@ function AuctionInfo({
         <br />{" "}
         {isLoading
           ? spinner
-          : `${Web3.utils.fromWei(auctionValue)} ${PAYMENT_TOKEN}`}
+          : `${ethers.utils.format(auctionValue)} ${PAYMENT_TOKEN}`}
       </p>
       <p className="text-truncate">
         <span className="font-weight-bold">Auction End:</span>
