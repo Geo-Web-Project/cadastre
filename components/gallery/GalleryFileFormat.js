@@ -5,6 +5,7 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
+import Image from "react-bootstrap/Image";
 
 export function GalleryFileFormat({
   ipfs,
@@ -108,7 +109,16 @@ export function GalleryFileFormat({
 
   return (
     <Row className="px-3 d-flex align-items-end">
-      <Col sm="12" lg="6" className="mb-3">
+      <Col sm="1">
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => updateEncodingObject(null)}
+        >
+          <Image src="close.svg" />
+        </Button>
+      </Col>
+      <Col sm="11" lg="5" className="mb-3">
         <InputGroup>
           <Form.Control
             style={{ backgroundColor: "#111320", border: "none" }}

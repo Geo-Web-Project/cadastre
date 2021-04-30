@@ -9,7 +9,7 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { GalleryFileFormat } from "./GalleryFileFormat";
-import { isNullableType } from "graphql";
+import Image from "react-bootstrap/Image";
 
 export function GalleryForm({
   ipfs,
@@ -26,10 +26,10 @@ export function GalleryForm({
   const [isSaving, setIsSaving] = React.useState(false);
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
 
-  let encodings;
+  let encodings = [{}];
   if (mediaGalleryItem.encoding) {
     encodings = mediaGalleryItem.encoding;
-  } else {
+  } else if (mediaGalleryItem.encodingFormat) {
     encodings = [
       {
         contentUrl: mediaGalleryItem.contentUrl,
@@ -97,6 +97,14 @@ export function GalleryForm({
     // );
 
     setIsSaving(false);
+  }
+
+  function addNewFileFormat() {
+    let newEncodings = encodings;
+    newEncodings.push({});
+    updateMediaGalleryItem({
+      encoding: newEncodings,
+    });
   }
 
   async function saveChanges() {
@@ -167,6 +175,18 @@ export function GalleryForm({
             }
           />
         ))}
+        <Row className="mb-3 px-3 text-right">
+          <Col sm="12">
+            <Button
+              variant="link"
+              className="text-muted"
+              onClick={addNewFileFormat}
+            >
+              <Image src="add.png" />
+              Add the same content in an alternative file format.
+            </Button>
+          </Col>
+        </Row>
         <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <Form.Control
