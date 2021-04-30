@@ -8,6 +8,8 @@ import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { GalleryFileFormat } from "./GalleryFileFormat";
+import { isNullableType } from "graphql";
 
 export function GalleryForm({
   ipfs,
@@ -21,15 +23,20 @@ export function GalleryForm({
   setSelectedMediaGalleryItemId,
 }) {
   const [pinningService, setPinningService] = React.useState("pinata");
-  const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
-  const [fileFormat, setFileFormat] = React.useState(null);
-  const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
-  const cid = mediaGalleryItem.contentUrl
-    ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
-    : "";
+
+  let encodings;
+  if (mediaGalleryItem.encoding) {
+    encodings = mediaGalleryItem.encoding;
+  } else {
+    encodings = [
+      {
+        contentUrl: mediaGalleryItem.contentUrl,
+        encodingFormat: mediaGalleryItem.encodingFormat,
+      },
+    ];
+  }
 
   React.useEffect(() => {
     if (!selectedMediaGalleryItemManager) {
@@ -39,10 +46,6 @@ export function GalleryForm({
 
     const mediaGalleryItemContent = selectedMediaGalleryItemManager.getStreamContent();
     setMediaGalleryItem(mediaGalleryItemContent ?? {});
-
-    if (mediaGalleryItemContent) {
-      setFileFormat(mediaGalleryItemContent.encodingFormat);
-    }
   }, [selectedMediaGalleryItemManager]);
 
   function updateMediaGalleryItem(updatedValues) {
@@ -55,64 +58,9 @@ export function GalleryForm({
     setMediaGalleryItem(_updateData(updatedValues));
   }
 
-  function updateContentUrl(event) {
-    const cid = event.target.value;
-
-    if (!cid || cid.length == 0) {
-      updateMediaGalleryItem({
-        contentUrl: null,
-      });
-
-      setDetectedFileFormat(null);
-      setFileFormat(null);
-
-      return;
-    }
-
-    updateMediaGalleryItem({
-      "@type": "3DModel",
-      contentUrl: `ipfs://${cid}`,
-      encodingFormat: fileFormat,
-    });
-  }
-
-  async function captureFile(event) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    const file = event.target.files[0];
-
-    if (!file) {
-      return;
-    }
-
-    setIsUploading(true);
-
-    let format;
-    if (file.name.endsWith(".glb")) {
-      format = "model/gltf-binary";
-    } else if (file.name.endsWith(".usdz")) {
-      format = "model/vnd.usdz+zip";
-    }
-
-    setDetectedFileFormat(format);
-
-    const added = await ipfs.add(file);
-
-    updateMediaGalleryItem({
-      "@type": "3DModel",
-      contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
-      encodingFormat: format,
-    });
-
-    setIsUploading(false);
-  }
-
   function clearForm() {
     document.getElementById("galleryForm").reset();
 
-    setDetectedFileFormat(null);
-    setFileFormat(null);
     setMediaGalleryItem({});
     setPinningService("pinata");
     setPinningServiceEndpoint(PINATA_API_ENDPOINT);
@@ -164,14 +112,6 @@ export function GalleryForm({
     setIsSaving(false);
   }
 
-  function onSelectFileFormat(event) {
-    setFileFormat(event.target.value);
-
-    updateMediaGalleryItem({
-      encodingFormat: event.target.value,
-    });
-  }
-
   function onSelectPinningService(event) {
     setPinningService(event.target.value);
 
@@ -182,6 +122,17 @@ export function GalleryForm({
     }
 
     setPinningServiceAccessToken("");
+  }
+
+  function updateEncodingAtIndex(index, newEncoding) {
+    let newEncodings = mediaGalleryItem.encoding ?? [];
+    newEncodings[index] = newEncoding;
+    updateMediaGalleryItem({
+      "@type": "3DModel",
+      encoding: newEncodings,
+      encodingFormat: null,
+      contentUrl: null,
+    });
   }
 
   let isReadyToAdd =
@@ -204,60 +155,16 @@ export function GalleryForm({
   return (
     <>
       <Form id="galleryForm" className="pt-2">
-        <Row className="px-3 d-flex align-items-end">
-          <Col sm="12" lg="6" className="mb-3">
-            <InputGroup>
-              <Form.Control
-                style={{ backgroundColor: "#111320", border: "none" }}
-                className="text-white"
-                type="text"
-                placeholder="Upload media or add an existing CID"
-                readOnly={isUploading || selectedMediaGalleryItemManager}
-                value={cid}
-                onChange={updateContentUrl}
-              />
-              <InputGroup.Append>
-                <FormFile.Input
-                  id="uploadCid"
-                  style={{ backgroundColor: "#111320", border: "none" }}
-                  accept=".glb, .usdz"
-                  disabled={isUploading || selectedMediaGalleryItemManager}
-                  onChange={captureFile}
-                  hidden
-                ></FormFile.Input>
-                <Button
-                  as="label"
-                  htmlFor="uploadCid"
-                  disabled={isUploading || selectedMediaGalleryItemManager}
-                >
-                  {!isUploading ? "Upload" : spinner}
-                </Button>
-              </InputGroup.Append>
-            </InputGroup>
-          </Col>
-          <Col sm="12" lg="6" className="mb-3">
-            <div key="inline-radio">
-              <Form.Text className="text-primary mb-1">File Format</Form.Text>
-              <Form.Control
-                as="select"
-                className="text-white"
-                style={{ backgroundColor: "#111320", border: "none" }}
-                onChange={onSelectFileFormat}
-                value={detectedFileFormat ?? fileFormat}
-                disabled={detectedFileFormat != null}
-                custom
-              >
-                <option selected>Select a File Format</option>
-                <option value="model/gltf-binary">
-                  .glb (model/gltf-binary)
-                </option>
-                <option value="model/vnd.usdz+zip">
-                  .usdz (model/vnd.usdz+zip)
-                </option>
-              </Form.Control>
-            </div>
-          </Col>
-        </Row>
+        {encodings.map((encoding, i) => (
+          <GalleryFileFormat
+            ipfs={ipfs}
+            isReadOnly={selectedMediaGalleryItemManager}
+            encodingObject={encoding}
+            setEncodingObject={(newEncoding) =>
+              updateEncodingAtIndex(i, newEncoding)
+            }
+          />
+        ))}
         <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <Form.Control
