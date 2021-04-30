@@ -127,6 +127,7 @@ export function GalleryDisplayItem({
       <Row className="text-center">
         <Col>
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
+          <p>{data.encodingFormat}</p>
         </Col>
       </Row>
       <Row className="text-center mb-3">{pinningStatusView}</Row>
