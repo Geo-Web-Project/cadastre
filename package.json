@@ -29,9 +29,6 @@
         "use-wallet": "^0.8.1",
         "wasm-loader": "^1.3.0"
     },
-    "engines": {
-        "node": ">=14.0.0"
-    },
     "scripts": {
         "dev": "next dev",
         "build": "next build",
@@ -43,6 +40,9 @@
             "react-app",
             "react-app/jest"
         ]
+    },
+    "engines": {
+        "node": ">=14.0.0"
     },
     "browserslist": {
         "production": [

@@ -7,24 +7,24 @@ import GalleryDisplayItem from "./GalleryDisplayItem";
 export function GalleryDisplayGrid({
   mediaGalleryData,
   mediaGalleryItems,
-  removeMediaGalleryItemAt,
   pinningData,
   updatePinningData,
   pinningServiceEndpoint,
   pinningServiceAccessToken,
   ipfs,
 }) {
-  let data = mediaGalleryData.map((docId) => mediaGalleryItems[docId]);
+  const data = mediaGalleryData
+    .flatMap((docId) => mediaGalleryItems[docId])
+    .filter((v) => v);
 
   return (
     <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>
-      {data.map((item, i) => (
+      {data.map((mediaGalleryItemStreamManager, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
             ipfs={ipfs}
-            data={item}
+            mediaGalleryItemStreamManager={mediaGalleryItemStreamManager}
             index={i}
-            removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
             updatePinningData={updatePinningData}
             pinningServiceEndpoint={pinningServiceEndpoint}
