@@ -19,6 +19,8 @@ export function GalleryForm({
   mediaGalleryStreamManager,
 }) {
   const [pinningService, setPinningService] = React.useState("pinata");
+  const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
+  const [fileFormat, setFileFormat] = React.useState(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isAdding, setIsAdding] = React.useState(false);
 
@@ -37,13 +39,38 @@ export function GalleryForm({
     setMediaGalleryItem(_updateData(updatedValues));
   }
 
-  async function captureFile(event) {
-    setIsUploading(true);
+  function updateContentUrl(event) {
+    const cid = event.target.value;
 
+    if (!cid || cid.length == 0) {
+      updateMediaGalleryItem({
+        contentUrl: null,
+      });
+
+      setDetectedFileFormat(null);
+      setFileFormat(null);
+
+      return;
+    }
+
+    updateMediaGalleryItem({
+      "@type": "3DModel",
+      contentUrl: `ipfs://${cid}`,
+      encodingFormat: fileFormat,
+    });
+  }
+
+  async function captureFile(event) {
     event.stopPropagation();
     event.preventDefault();
 
     const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    setIsUploading(true);
 
     let format;
     if (file.name.endsWith(".glb")) {
@@ -51,6 +78,8 @@ export function GalleryForm({
     } else if (file.name.endsWith(".usdz")) {
       format = "model/vnd.usdz+zip";
     }
+
+    setDetectedFileFormat(format);
 
     const added = await ipfs.add(file);
 
@@ -101,6 +130,14 @@ export function GalleryForm({
     setIsAdding(false);
   }
 
+  function onSelectFileFormat(event) {
+    setFileFormat(event.target.value);
+
+    updateMediaGalleryItem({
+      encodingFormat: event.target.value,
+    });
+  }
+
   function onSelectPinningService(event) {
     setPinningService(event.target.value);
 
@@ -132,8 +169,8 @@ export function GalleryForm({
 
   return (
     <>
-      <Form id="galleryForm" className="pt-3">
-        <Row className="px-3">
+      <Form id="galleryForm" className="pt-2">
+        <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <InputGroup>
               <Form.Control
@@ -143,11 +180,7 @@ export function GalleryForm({
                 placeholder="Upload media or add an existing CID"
                 readOnly={isUploading}
                 value={cid}
-                onChange={(e) => {
-                  updateMediaGalleryItem({
-                    contentUrl: `ipfs://${e.target.value}`,
-                  });
-                }}
+                onChange={updateContentUrl}
               />
               <InputGroup.Append>
                 <FormFile.Input
@@ -165,35 +198,24 @@ export function GalleryForm({
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">
-              <Form.Check
-                inline
-                checked
-                readOnly
-                label="AR/VR (.glb or .usdz)"
-                type="radio"
-                id="inline-radio-1"
-              />
-              <Form.Check
-                inline
-                label="Image"
-                type="radio"
-                id="inline-radio-2"
-                disabled
-              />
-              <Form.Check
-                inline
-                label="Video"
-                type="radio"
-                id="inline-radio-3"
-                disabled
-              />
-              <Form.Check
-                inline
-                label="Audio"
-                type="radio"
-                id="inline-radio-4"
-                disabled
-              />
+              <Form.Text className="text-primary mb-1">File Format</Form.Text>
+              <Form.Control
+                as="select"
+                className="text-white"
+                style={{ backgroundColor: "#111320", border: "none" }}
+                onChange={onSelectFileFormat}
+                value={detectedFileFormat}
+                disabled={detectedFileFormat != null}
+                custom
+              >
+                <option selected>Select a File Format</option>
+                <option value="model/gltf-binary">
+                  .glb (model/gltf-binary)
+                </option>
+                <option value="model/vnd.usdz+zip">
+                  .usdz (model/vnd.usdz+zip)
+                </option>
+              </Form.Control>
             </div>
           </Col>
         </Row>
