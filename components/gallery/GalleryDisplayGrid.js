@@ -7,7 +7,6 @@ import GalleryDisplayItem from "./GalleryDisplayItem";
 export function GalleryDisplayGrid({
   mediaGalleryData,
   mediaGalleryItems,
-  removeMediaGalleryItemAt,
   pinningData,
   updatePinningData,
   pinningServiceEndpoint,
@@ -24,9 +23,8 @@ export function GalleryDisplayGrid({
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
             ipfs={ipfs}
-            data={mediaGalleryItemStreamManager.getStreamContent()}
+            mediaGalleryItemStreamManager={mediaGalleryItemStreamManager}
             index={i}
-            removeMediaGalleryItemAt={removeMediaGalleryItemAt}
             pinningData={pinningData}
             updatePinningData={updatePinningData}
             pinningServiceEndpoint={pinningServiceEndpoint}

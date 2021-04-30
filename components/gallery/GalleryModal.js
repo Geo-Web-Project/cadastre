@@ -55,23 +55,6 @@ export function GalleryModal({
     setPinningData(_updateData(updatedValues));
   }
 
-  async function removeMediaGalleryItemAt(index) {
-    const item = mediaGalleryItems[mediaGalleryData[index]];
-    const cid = item.contentUrl.replace("ipfs://", "");
-
-    setMediaGalleryData((prevState) => {
-      return prevState.filter((item, i) => index != i);
-    });
-
-    await unpinCid(
-      pinningData,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      cid,
-      updatePinningData
-    );
-  }
-
   const spinner = (
     <div className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
@@ -124,7 +107,6 @@ export function GalleryModal({
                 ipfs={ipfs}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
-                removeMediaGalleryItemAt={removeMediaGalleryItemAt}
                 pinningData={pinningData}
                 updatePinningData={updatePinningData}
                 pinningServiceEndpoint={pinningServiceEndpoint}
