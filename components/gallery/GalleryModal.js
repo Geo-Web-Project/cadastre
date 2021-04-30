@@ -125,13 +125,8 @@ export function GalleryModal({
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
               <GalleryDisplayGrid
-                ipfs={ipfs}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
-                pinningData={pinningData}
-                updatePinningData={updatePinningData}
-                pinningServiceEndpoint={pinningServiceEndpoint}
-                pinningServiceAccessToken={pinningServiceAccessToken}
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
