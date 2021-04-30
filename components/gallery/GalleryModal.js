@@ -42,6 +42,23 @@ export function GalleryModal({
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager
   );
+  const [
+    selectedMediaGalleryItemId,
+    setSelectedMediaGalleryItemId,
+  ] = React.useState(null);
+  const [
+    selectedMediaGalleryItemManager,
+    setSelectedMediaGalleryItemManager,
+  ] = React.useState(null);
+
+  // Only update when ID changes
+  React.useEffect(() => {
+    const _selectedMediaGalleryItemManager =
+      mediaGalleryItems && selectedMediaGalleryItemId
+        ? mediaGalleryItems[selectedMediaGalleryItemId]
+        : null;
+    setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
+  }, [selectedMediaGalleryItemId]);
 
   // Store pinning data in-memory for now
   const [pinningData, setPinningData] = React.useState({});
@@ -102,6 +119,10 @@ export function GalleryModal({
                 setPinningServiceEndpoint={setPinningServiceEndpoint}
                 setPinningServiceAccessToken={setPinningServiceAccessToken}
                 mediaGalleryStreamManager={mediaGalleryStreamManager}
+                selectedMediaGalleryItemManager={
+                  selectedMediaGalleryItemManager
+                }
+                setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
               <GalleryDisplayGrid
                 ipfs={ipfs}
@@ -111,6 +132,8 @@ export function GalleryModal({
                 updatePinningData={updatePinningData}
                 pinningServiceEndpoint={pinningServiceEndpoint}
                 pinningServiceAccessToken={pinningServiceAccessToken}
+                selectedMediaGalleryItemId={selectedMediaGalleryItemId}
+                setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
             </div>
           </Modal.Body>
