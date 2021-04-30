@@ -14,7 +14,9 @@ export function GalleryDisplayGrid({
   pinningServiceAccessToken,
   ipfs,
 }) {
-  const data = mediaGalleryData.map((docId) => mediaGalleryItems[docId]);
+  const data = mediaGalleryData
+    .flatMap((docId) => mediaGalleryItems[docId])
+    .filter((v) => v);
 
   return (
     <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>

@@ -7,18 +7,20 @@ import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { pinCid } from "../../lib/pinning";
+import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryForm({
   ipfs,
-  addMediaGalleryItem,
   updatePinningData,
   pinningServiceEndpoint,
   pinningServiceAccessToken,
   setPinningServiceEndpoint,
   setPinningServiceAccessToken,
+  mediaGalleryStreamManager,
 }) {
   const [pinningService, setPinningService] = React.useState("pinata");
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isAdding, setIsAdding] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
   const cid = mediaGalleryItem.contentUrl
@@ -69,9 +71,19 @@ export function GalleryForm({
     setPinningServiceEndpoint(PINATA_API_ENDPOINT);
   }
 
-  function addToGallery() {
+  async function addToGallery() {
+    setIsAdding(true);
+
     if (mediaGalleryItem) {
-      addMediaGalleryItem(mediaGalleryItem);
+      const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
+        mediaGalleryStreamManager.ceramic
+      );
+      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
+        mediaGalleryStreamManager
+      );
+      await _mediaGalleryItemStreamManager.createOrUpdateStream(
+        mediaGalleryItem
+      );
     }
 
     clearForm();
@@ -85,6 +97,8 @@ export function GalleryForm({
       mediaGalleryItem.contentUrl.replace("ipfs://", ""),
       updatePinningData
     );
+
+    setIsAdding(false);
   }
 
   function onSelectPinningService(event) {
@@ -103,7 +117,8 @@ export function GalleryForm({
     mediaGalleryItem.contentUrl &&
     mediaGalleryItem.name &&
     pinningServiceEndpoint &&
-    pinningServiceAccessToken;
+    pinningServiceAccessToken &&
+    !isAdding;
 
   const spinner = (
     <div
@@ -269,7 +284,7 @@ export function GalleryForm({
               disabled={!isReadyToAdd}
               onClick={addToGallery}
             >
-              Add to Gallery
+              {isAdding ? spinner : "Add to Gallery"}
             </Button>
           </Col>
         </Row>

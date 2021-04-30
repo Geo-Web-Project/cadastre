@@ -118,6 +118,7 @@ export function GalleryModal({
                 pinningServiceAccessToken={pinningServiceAccessToken}
                 setPinningServiceEndpoint={setPinningServiceEndpoint}
                 setPinningServiceAccessToken={setPinningServiceAccessToken}
+                mediaGalleryStreamManager={mediaGalleryStreamManager}
               />
               <GalleryDisplayGrid
                 ipfs={ipfs}
