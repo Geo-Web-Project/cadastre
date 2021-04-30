@@ -14,13 +14,13 @@ import {
   MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
 import { unpinCid } from "../../lib/pinning";
+import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
+import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryModal({
-  mediaGalleryDocId,
-  setMediaGalleryDocId,
   show,
   setInteractionState,
-  ceramic,
+  parcelRootStreamManager,
   ipfs,
 }) {
   const handleClose = () => {
@@ -36,75 +36,12 @@ export function GalleryModal({
     setPinningServiceAccessToken,
   ] = React.useState("");
 
-  const [mediaGalleryDoc, setMediaGalleryDoc] = React.useState(null);
-  const [mediaGalleryData, setMediaGalleryData] = React.useState(null);
-  const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
-
-  React.useEffect(async () => {
-    if (!mediaGalleryDocId) {
-      setMediaGalleryData([]);
-      return;
-    }
-
-    const doc = await ceramic.loadDocument(mediaGalleryDocId);
-    setMediaGalleryDoc(doc);
-
-    const queries = doc.content.map((docId) => {
-      return { docId: docId, paths: [] };
-    });
-    const docMap = await ceramic.multiQuery(queries);
-
-    const loadedItems = Object.keys(docMap).reduce((result, docId) => {
-      result[docId] = docMap[docId].content;
-      return result;
-    }, {});
-    setMediaGalleryItems(loadedItems);
-
-    setMediaGalleryData(doc.content);
-  }, [mediaGalleryDocId]);
-
-  async function saveMediaGallery() {
-    if (mediaGalleryDocId) {
-      // Update doc
-      await mediaGalleryDoc.change({
-        content: mediaGalleryData,
-      });
-    } else {
-      // Create doc
-      const doc = await ceramic.createDocument("tile", {
-        content: mediaGalleryData,
-        metadata: {
-          schema: MEDIA_GALLERY_SCHEMA_DOCID,
-        },
-      });
-      const docId = doc.id.toString();
-      setMediaGalleryDocId(docId);
-    }
-
-    handleClose();
-  }
-
-  async function addMediaGalleryItem(item) {
-    function _addItem(item) {
-      return (prevState) => {
-        return prevState.concat(item);
-      };
-    }
-
-    const doc = await ceramic.createDocument("tile", {
-      content: item,
-      metadata: {
-        schema: MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
-      },
-    });
-
-    const docId = doc.id.toString();
-    setMediaGalleryItems((prev) => {
-      return { ...prev, [docId]: item };
-    });
-
-    setMediaGalleryData(_addItem(docId));
-  }
+  const mediaGalleryStreamManager = useMediaGalleryStreamManager(
+    parcelRootStreamManager
+  );
+  const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
+    mediaGalleryStreamManager
+  );
 
   // Store pinning data in-memory for now
   const [pinningData, setPinningData] = React.useState({});
@@ -116,23 +53,6 @@ export function GalleryModal({
     }
 
     setPinningData(_updateData(updatedValues));
-  }
-
-  async function removeMediaGalleryItemAt(index) {
-    const item = mediaGalleryItems[mediaGalleryData[index]];
-    const cid = item.contentUrl.replace("ipfs://", "");
-
-    setMediaGalleryData((prevState) => {
-      return prevState.filter((item, i) => index != i);
-    });
-
-    await unpinCid(
-      pinningData,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      cid,
-      updatePinningData
-    );
   }
 
   const spinner = (
@@ -176,18 +96,17 @@ export function GalleryModal({
             <div className="border border-secondary rounded p-3">
               <GalleryForm
                 ipfs={ipfs}
-                addMediaGalleryItem={addMediaGalleryItem}
                 updatePinningData={updatePinningData}
                 pinningServiceEndpoint={pinningServiceEndpoint}
                 pinningServiceAccessToken={pinningServiceAccessToken}
                 setPinningServiceEndpoint={setPinningServiceEndpoint}
                 setPinningServiceAccessToken={setPinningServiceAccessToken}
+                mediaGalleryStreamManager={mediaGalleryStreamManager}
               />
               <GalleryDisplayGrid
                 ipfs={ipfs}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
-                removeMediaGalleryItemAt={removeMediaGalleryItemAt}
                 pinningData={pinningData}
                 updatePinningData={updatePinningData}
                 pinningServiceEndpoint={pinningServiceEndpoint}
@@ -195,21 +114,6 @@ export function GalleryModal({
               />
             </div>
           </Modal.Body>
-          <Modal.Footer className="bg-dark border-0 pb-4">
-            <Container>
-              <Row className="text-right">
-                <Col xs="12">
-                  <Button
-                    variant="primary"
-                    // disabled={!isReadyToAdd}
-                    onClick={saveMediaGallery}
-                  >
-                    Save Changes
-                  </Button>
-                </Col>
-              </Row>
-            </Container>
-          </Modal.Footer>
         </>
       ) : (
         <Modal.Body className="bg-dark p-5 text-light text-center">
