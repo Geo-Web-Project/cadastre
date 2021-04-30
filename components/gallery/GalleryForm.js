@@ -86,14 +86,15 @@ export function GalleryForm({
     clearForm();
 
     // Asyncronously add pin
-    pinCid(
-      ipfs,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      mediaGalleryItem.name,
-      mediaGalleryItem.contentUrl.replace("ipfs://", ""),
-      updatePinningData
-    );
+    // FIXME: Disabling pinning for now
+    // pinCid(
+    //   ipfs,
+    //   pinningServiceEndpoint,
+    //   pinningServiceAccessToken,
+    //   mediaGalleryItem.name,
+    //   mediaGalleryItem.contentUrl.replace("ipfs://", ""),
+    //   updatePinningData
+    // );
 
     setIsSaving(false);
   }
@@ -136,7 +137,8 @@ export function GalleryForm({
   }
 
   let isReadyToAdd =
-    mediaGalleryItem.contentUrl &&
+    mediaGalleryItem.encoding &&
+    mediaGalleryItem.encoding.length > 0 &&
     mediaGalleryItem.name &&
     pinningServiceEndpoint &&
     pinningServiceAccessToken &&
