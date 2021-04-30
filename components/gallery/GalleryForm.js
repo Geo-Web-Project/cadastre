@@ -95,6 +95,8 @@ export function GalleryForm({
   function clearForm() {
     document.getElementById("galleryForm").reset();
 
+    setDetectedFileFormat(null);
+    setFileFormat(null);
     setMediaGalleryItem({});
     setPinningService("pinata");
     setPinningServiceEndpoint(PINATA_API_ENDPOINT);
