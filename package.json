@@ -4,8 +4,8 @@
     "dependencies": {
         "@3id/connect": "^0.1.2",
         "@apollo/client": "^3.2.5",
-        "@ceramicnetwork/3id-did-resolver": "1.2.0-rc.9",
-        "@ceramicnetwork/http-client": "1.0.0-rc.6",
+        "@ceramicnetwork/3id-did-resolver": "1.2.0",
+        "@ceramicnetwork/http-client": "1.0.0",
         "@testing-library/jest-dom": "^5.11.4",
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
