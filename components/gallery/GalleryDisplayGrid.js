@@ -12,6 +12,8 @@ export function GalleryDisplayGrid({
   pinningServiceEndpoint,
   pinningServiceAccessToken,
   ipfs,
+  selectedMediaGalleryItemId,
+  setSelectedMediaGalleryItemId,
 }) {
   const data = mediaGalleryData
     .flatMap((docId) => mediaGalleryItems[docId])
@@ -29,6 +31,8 @@ export function GalleryDisplayGrid({
             updatePinningData={updatePinningData}
             pinningServiceEndpoint={pinningServiceEndpoint}
             pinningServiceAccessToken={pinningServiceAccessToken}
+            selectedMediaGalleryItemId={selectedMediaGalleryItemId}
+            setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
           />
         </Col>
       ))}
