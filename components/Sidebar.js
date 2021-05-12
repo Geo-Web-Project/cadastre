@@ -3,6 +3,7 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
+import { useRootStreamManager } from "../lib/stream-managers/RootStreamManager";
 
 import {
   STATE_VIEWING,
@@ -25,6 +26,7 @@ function Sidebar({
   ceramic,
   ipfs,
 }) {
+  const parcelRootStreamManager = useRootStreamManager(ceramic);
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] = React.useState(
     null
   );
@@ -60,6 +62,7 @@ function Sidebar({
         adminAddress={adminAddress}
         ceramic={ceramic}
         ipfs={ipfs}
+        parcelRootStreamManager={parcelRootStreamManager}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
@@ -75,7 +78,7 @@ function Sidebar({
             perSecondFeeDenominator={perSecondFeeDenominator}
             paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
-            ceramic={ceramic}
+            parcelRootStreamManager={parcelRootStreamManager}
           ></ClaimAction>
         </>
       ) : null}

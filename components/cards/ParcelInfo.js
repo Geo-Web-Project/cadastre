@@ -22,7 +22,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
-import { useRootStreamManager } from "../../lib/stream-managers/RootStreamManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -51,6 +50,7 @@ function ParcelInfo({
   adminAddress,
   ceramic,
   ipfs,
+  parcelRootStreamManager,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -60,7 +60,6 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
-  const parcelRootStreamManager = useRootStreamManager(ceramic);
 
   const parcelContent = parcelRootStreamManager
     ? parcelRootStreamManager.getStreamContent()
