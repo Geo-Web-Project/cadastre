@@ -103,7 +103,7 @@ export function GalleryModal({
           </Row>
         </Container>
       </Modal.Header>
-      {mediaGalleryData != null ? (
+      {mediaGalleryStreamManager != null ? (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
             <p>
