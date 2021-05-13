@@ -7,7 +7,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN, CONTENT_ROOT_SCHEMA_DOCID } from "../../lib/constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -22,13 +22,12 @@ export function ActionForm({
   performAction,
   actionData,
   setActionData,
-  ceramic,
+  parcelRootStreamManager,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const {
-    parcelContentDoc,
     parcelName,
     parcelWebContentURI,
     displayNewForSalePrice,
@@ -148,28 +147,19 @@ export function ActionForm({
   }
 
   async function submit() {
-    async function _updateContentRootDoc() {
-      let doc;
-      if (parcelContentDoc) {
-        doc = parcelContentDoc;
-        await doc.change({
-          content: { name: parcelName, webContent: parcelWebContentURI },
-        });
-      } else {
-        doc = await ceramic.createDocument("tile", {
-          content: { name: parcelName, webContent: parcelWebContentURI },
-          metadata: {
-            schema: CONTENT_ROOT_SCHEMA_DOCID,
-          },
-        });
-        updateActionData({ parcelContentDoc: doc });
-      }
-
-      return doc.id;
+    if (!parcelRootStreamManager) {
+      console.error("ParcelContentManager not found");
+      return;
     }
+
     updateActionData({ isActing: true });
-    const rootCID = await _updateContentRootDoc();
-    performAction(rootCID);
+    const newStreamId = await parcelRootStreamManager.createOrUpdateStream({
+      name: parcelName,
+      webContent: parcelWebContentURI,
+    });
+    performAction(newStreamId, () => {
+      return parcelRootStreamManager.getStreamId();
+    });
   }
 
   let [
@@ -190,7 +180,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || ceramic == null;
+  let isLoading = loading || parcelRootStreamManager == null;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {

@@ -6,8 +6,7 @@ import Card from "react-bootstrap/Card";
 import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
 import Modal from "react-bootstrap/Modal";
 import { PAYMENT_TOKEN_FAUCET_URL } from "../lib/constants";
-import Web3 from "web3";
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({ children, eventKey, callback }) {
@@ -39,7 +38,7 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
   const handleShow = () => setShow(true);
 
   function _mintToken() {
-    paymentTokenContract.mockMint(account, Web3.utils.toWei("1000"), {
+    paymentTokenContract.mockMint(account, ethers.utils.parseEther("1000"), {
       from: account,
     });
   }

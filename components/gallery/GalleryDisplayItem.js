@@ -15,17 +15,26 @@ const DISPLAY_TYPES = {
 
 export function GalleryDisplayItem({
   ipfs,
-  data,
+  mediaGalleryItemStreamManager,
   index,
-  removeMediaGalleryItemAt,
   pinningData,
   updatePinningData,
   pinningServiceEndpoint,
   pinningServiceAccessToken,
+  selectedMediaGalleryItemId,
+  setSelectedMediaGalleryItemId,
 }) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isUnpinning, setIsUnpinning] = React.useState(false);
+  const [isRemoving, setIsRemoving] = React.useState(false);
+  const isEditing = selectedMediaGalleryItemId
+    ? selectedMediaGalleryItemId.toString() ==
+      mediaGalleryItemStreamManager.getStreamId().toString()
+    : false;
 
+  const shouldHighlight = !isRemoving && (isHovered || isEditing);
+
+  const data = mediaGalleryItemStreamManager.getStreamContent();
   const cid = data.contentUrl.replace("ipfs://", "");
   const pinningDataItem = pinningData[cid];
   const pinningStatus = pinningDataItem ? pinningDataItem.status : null;
@@ -57,6 +66,25 @@ export function GalleryDisplayItem({
       break;
   }
 
+  if (isRemoving) {
+    pinningStatusView = <Col className="text-info">Removing {spinner}</Col>;
+  }
+
+  async function removeMediaGalleryItem() {
+    setIsRemoving(true);
+    await mediaGalleryItemStreamManager.removeFromMediaGallery();
+
+    await unpinCid(
+      pinningData,
+      pinningServiceEndpoint,
+      pinningServiceAccessToken,
+      cid,
+      updatePinningData
+    );
+
+    setIsRemoving(false);
+  }
+
   async function handlePin() {
     await pinCid(
       ipfs,
@@ -82,12 +110,16 @@ export function GalleryDisplayItem({
     setIsUnpinning(false);
   }
 
+  function handleEdit() {
+    setSelectedMediaGalleryItemId(mediaGalleryItemStreamManager.getStreamId());
+  }
+
   return (
     <Container
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`text-center p-3 rounded ${
-        isHovered ? "border border-secondary" : ""
+        shouldHighlight ? "border border-secondary" : ""
       }`}
     >
       <Row>
@@ -105,10 +137,11 @@ export function GalleryDisplayItem({
       <Row className="text-center">
         <Col>
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
+          <p>{data.encodingFormat}</p>
         </Col>
       </Row>
       <Row className="text-center mb-3">{pinningStatusView}</Row>
-      <Row style={{ visibility: isHovered ? "visible" : "hidden" }}>
+      <Row style={{ visibility: shouldHighlight ? "visible" : "hidden" }}>
         {isPinned ? (
           <Col>
             <Button variant="info" onClick={handleUnpin} disabled={isUnpinning}>
@@ -124,12 +157,12 @@ export function GalleryDisplayItem({
           </Col>
         ) : null}
         <Col>
-          <Button
-            variant="danger"
-            onClick={() => {
-              removeMediaGalleryItemAt(index);
-            }}
-          >
+          <Button variant="info" onClick={handleEdit} disabled={isEditing}>
+            Edit
+          </Button>
+        </Col>
+        <Col>
+          <Button variant="danger" onClick={removeMediaGalleryItem}>
             Delete
           </Button>
         </Col>

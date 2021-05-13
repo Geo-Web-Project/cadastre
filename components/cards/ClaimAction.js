@@ -27,7 +27,7 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  ceramic,
+  parcelRootStreamManager,
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
@@ -52,11 +52,7 @@ function ClaimAction({
     setActionData(_updateData(updatedValues));
   }
 
-  const {
-    displayNewForSalePrice,
-    displayNetworkFeePayment,
-    parcelContentDoc,
-  } = actionData;
+  const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
 
   React.useEffect(() => {
     if (data == null || data.landParcel == null) {
@@ -156,7 +152,7 @@ function ClaimAction({
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        ceramic={ceramic}
+        parcelRootStreamManager={parcelRootStreamManager}
       />
       <FaucetInfo
         paymentTokenContract={paymentTokenContract}
