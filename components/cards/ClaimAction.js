@@ -27,6 +27,7 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  parcelRootStreamManager,
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
