@@ -6,27 +6,26 @@ import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
-import { pinCid } from "../../lib/pinning";
+import { usePinningManager } from "../../lib/PinningManager";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryForm({
+  ceramic,
   ipfs,
   updatePinningData,
-  pinningServiceEndpoint,
-  pinningServiceAccessToken,
-  setPinningServiceEndpoint,
-  setPinningServiceAccessToken,
   mediaGalleryStreamManager,
   selectedMediaGalleryItemManager,
   setSelectedMediaGalleryItemId,
 }) {
-  const [pinningService, setPinningService] = React.useState("pinata");
+  const [pinningService, setPinningService] = React.useState("buckets");
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+  const pinningManager = usePinningManager(ceramic);
+
   const cid = mediaGalleryItem.contentUrl
     ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
     : "";
@@ -114,8 +113,7 @@ export function GalleryForm({
     setDetectedFileFormat(null);
     setFileFormat(null);
     setMediaGalleryItem({});
-    setPinningService("pinata");
-    setPinningServiceEndpoint(PINATA_API_ENDPOINT);
+    setPinningService("buckets");
 
     setSelectedMediaGalleryItemId(null);
   }
@@ -138,10 +136,7 @@ export function GalleryForm({
     clearForm();
 
     // Asyncronously add pin
-    pinCid(
-      ipfs,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
+    pinningManager.pinCid(
       mediaGalleryItem.name,
       mediaGalleryItem.contentUrl.replace("ipfs://", ""),
       updatePinningData
@@ -185,11 +180,7 @@ export function GalleryForm({
   }
 
   let isReadyToAdd =
-    mediaGalleryItem.contentUrl &&
-    mediaGalleryItem.name &&
-    pinningServiceEndpoint &&
-    pinningServiceAccessToken &&
-    !isSaving;
+    mediaGalleryItem.contentUrl && mediaGalleryItem.name && !isSaving;
 
   const spinner = (
     <div
@@ -285,53 +276,8 @@ export function GalleryForm({
               onChange={onSelectPinningService}
               custom
             >
-              <option value="pinata">
-                Pinata Pinning Service (Requires Credentials)
-              </option>
-              <option value="custom">Custom Pinning Service</option>
+              <option value="buckets">Geo Web Free (Default)</option>
             </Form.Control>
-          </Col>
-        </Row>
-        <Row className="px-3">
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Control
-              style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white"
-              type="text"
-              placeholder="Pinning Service API Endpoint"
-              value={pinningServiceEndpoint}
-              readOnly={pinningService == "pinata"}
-              onChange={(e) => {
-                setPinningServiceEndpoint(e.target.value);
-              }}
-            />
-          </Col>
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Control
-              style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white"
-              type="text"
-              placeholder="JWT Access Token"
-              value={pinningServiceAccessToken}
-              onChange={(e) => {
-                setPinningServiceAccessToken(e.target.value);
-              }}
-            />
-          </Col>
-          <Col
-            className="mb-3"
-            style={{
-              visibility: pinningService == "pinata" ? "visible" : "hidden",
-            }}
-          >
-            <a
-              href="https://pinata.cloud/documentation#PinningServicesAPI"
-              target="_blank"
-              rel="noreferrer"
-              className="text-light"
-            >
-              <i>See Pinata’s documentation for details on configuration.</i>
-            </a>
           </Col>
         </Row>
         <Row className="px-3 text-right">

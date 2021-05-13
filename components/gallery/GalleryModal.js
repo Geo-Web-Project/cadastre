@@ -13,7 +13,6 @@ import {
   MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
   MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
-import { unpinCid } from "../../lib/pinning";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
@@ -22,19 +21,11 @@ export function GalleryModal({
   setInteractionState,
   parcelRootStreamManager,
   ipfs,
+  ceramic,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
-
-  const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
-    PINATA_API_ENDPOINT
-  );
-
-  const [
-    pinningServiceAccessToken,
-    setPinningServiceAccessToken,
-  ] = React.useState("");
 
   const mediaGalleryStreamManager = useMediaGalleryStreamManager(
     parcelRootStreamManager
@@ -112,12 +103,9 @@ export function GalleryModal({
             </p>
             <div className="border border-secondary rounded p-3">
               <GalleryForm
+                ceramic={ceramic}
                 ipfs={ipfs}
                 updatePinningData={updatePinningData}
-                pinningServiceEndpoint={pinningServiceEndpoint}
-                pinningServiceAccessToken={pinningServiceAccessToken}
-                setPinningServiceEndpoint={setPinningServiceEndpoint}
-                setPinningServiceAccessToken={setPinningServiceAccessToken}
                 mediaGalleryStreamManager={mediaGalleryStreamManager}
                 selectedMediaGalleryItemManager={
                   selectedMediaGalleryItemManager
