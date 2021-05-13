@@ -14,18 +14,12 @@ const DISPLAY_TYPES = {
 };
 
 export function GalleryDisplayItem({
-  ipfs,
   mediaGalleryItemStreamManager,
   index,
-  pinningData,
-  updatePinningData,
-  pinningServiceEndpoint,
-  pinningServiceAccessToken,
   selectedMediaGalleryItemId,
   setSelectedMediaGalleryItemId,
 }) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const [isUnpinning, setIsUnpinning] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
   const isEditing = selectedMediaGalleryItemId
     ? selectedMediaGalleryItemId.toString() ==
@@ -35,11 +29,6 @@ export function GalleryDisplayItem({
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
 
   const data = mediaGalleryItemStreamManager.getStreamContent();
-  const cid = data.contentUrl.replace("ipfs://", "");
-  const pinningDataItem = pinningData[cid];
-  const pinningStatus = pinningDataItem ? pinningDataItem.status : null;
-  const isPinned = pinningStatus == "pinned";
-  const isReadyToPin = pinningStatus == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -47,67 +36,15 @@ export function GalleryDisplayItem({
     </div>
   );
 
-  let pinningStatusView;
-  switch (pinningStatus) {
-    case "pinned":
-      pinningStatusView = <Col className="text-primary">Pinned</Col>;
-      break;
-    case "queued":
-      pinningStatusView = <Col className="text-info">Pinning {spinner}</Col>;
-      break;
-    case "pinning":
-      pinningStatusView = <Col className="text-info">Pinning {spinner}</Col>;
-      break;
-    case "failed":
-      pinningStatusView = <Col className="text-danger">Pinning Failed</Col>;
-      break;
-    default:
-      pinningStatusView = <Col className="text-warning">Not Pinned</Col>;
-      break;
-  }
-
+  let statusView;
   if (isRemoving) {
-    pinningStatusView = <Col className="text-info">Removing {spinner}</Col>;
+    statusView = <Col className="text-info">Removing {spinner}</Col>;
   }
 
   async function removeMediaGalleryItem() {
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
-
-    await unpinCid(
-      pinningData,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      cid,
-      updatePinningData
-    );
-
     setIsRemoving(false);
-  }
-
-  async function handlePin() {
-    await pinCid(
-      ipfs,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      data.name,
-      cid,
-      updatePinningData
-    );
-  }
-
-  async function handleUnpin() {
-    setIsUnpinning(true);
-
-    await unpinCid(
-      pinningData,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      cid,
-      updatePinningData
-    );
-
-    setIsUnpinning(false);
   }
 
   function handleEdit() {
@@ -137,25 +74,10 @@ export function GalleryDisplayItem({
       <Row className="text-center">
         <Col>
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
-          <p>{data.encodingFormat}</p>
         </Col>
       </Row>
-      <Row className="text-center mb-3">{pinningStatusView}</Row>
+      <Row className="text-center mb-3">{statusView}</Row>
       <Row style={{ visibility: shouldHighlight ? "visible" : "hidden" }}>
-        {isPinned ? (
-          <Col>
-            <Button variant="info" onClick={handleUnpin} disabled={isUnpinning}>
-              Unpin
-            </Button>
-          </Col>
-        ) : null}
-        {isReadyToPin ? (
-          <Col>
-            <Button variant="info" onClick={handlePin}>
-              Pin
-            </Button>
-          </Col>
-        ) : null}
         <Col>
           <Button variant="info" onClick={handleEdit} disabled={isEditing}>
             Edit
