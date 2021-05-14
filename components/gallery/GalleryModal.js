@@ -42,7 +42,6 @@ export function GalleryModal({
     selectedMediaGalleryItemManager,
     setSelectedMediaGalleryItemManager,
   ] = React.useState(null);
-  const [storageLink, setStorageLink] = React.useState(null);
 
   // Only update when ID changes
   React.useEffect(() => {
@@ -53,25 +52,42 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
   }, [selectedMediaGalleryItemId]);
 
-  const pinningManager = usePinningManager(ceramic);
+  const pinningManager = usePinningManager(ceramic, ipfs);
+  const [storageLink, setStorageLink] = React.useState(null);
+  const [storageUsed, setStorageUsed] = React.useState(null);
+  const storageCapacity = pinningManager
+    ? pinningManager.getStorageLimit()
+    : null;
+
+  let storageDisplayStr;
+  if (storageUsed && storageCapacity) {
+    // storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB of ${(
+    //   storageCapacity / 1000000
+    // ).toFixed(1)} MB Used`;
+    storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB Used`;
+  }
 
   React.useEffect(() => {
     if (!pinningManager) {
       return;
     }
 
-    async function updateStorageLink() {
+    async function _update() {
       const _storageLink = await pinningManager.getLink();
       setStorageLink(_storageLink);
+
+      const _storageUsed = await pinningManager.getStorageUsed();
+      setStorageUsed(_storageUsed);
     }
 
-    updateStorageLink();
+    _update();
   }, [pinningManager]);
 
   const isLoading =
     mediaGalleryStreamManager == null ||
     pinningManager == null ||
-    storageLink == null;
+    storageLink == null ||
+    storageUsed == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -135,8 +151,13 @@ export function GalleryModal({
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
-              <a href={storageLink} target="_blank" rel="noreferrer">
-                View Storage
+              <a
+                className="text-light"
+                href={storageLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {storageDisplayStr}
               </a>
             </div>
           </Modal.Body>
