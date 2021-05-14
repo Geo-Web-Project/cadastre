@@ -86,8 +86,7 @@ export function GalleryModal({
   const isLoading =
     mediaGalleryStreamManager == null ||
     pinningManager == null ||
-    storageLink == null ||
-    storageUsed == null;
+    storageLink == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -151,14 +150,18 @@ export function GalleryModal({
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
-              <a
-                className="text-light"
-                href={storageLink}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {storageDisplayStr}
-              </a>
+              {storageDisplayStr ? (
+                <a
+                  className="text-light"
+                  href={storageLink}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {storageDisplayStr}
+                </a>
+              ) : (
+                spinner
+              )}
             </div>
           </Modal.Body>
         </>
