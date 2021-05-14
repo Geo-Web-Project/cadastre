@@ -13,6 +13,7 @@ const DISPLAY_TYPES = {
 };
 
 export function GalleryDisplayItem({
+  pinningManager,
   mediaGalleryItemStreamManager,
   index,
   selectedMediaGalleryItemId,
@@ -41,8 +42,11 @@ export function GalleryDisplayItem({
   }
 
   async function removeMediaGalleryItem() {
+    const cid = data.contentUrl.replace("ipfs://", "");
+
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
+    await pinningManager.unpinCid(cid);
     setIsRemoving(false);
   }
 

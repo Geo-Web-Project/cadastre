@@ -15,6 +15,7 @@ import {
 } from "../../lib/constants";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { usePinningManager } from "../../lib/PinningManager";
 
 export function GalleryModal({
   show,
@@ -51,17 +52,9 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
   }, [selectedMediaGalleryItemId]);
 
-  // Store pinning data in-memory for now
-  const [pinningData, setPinningData] = React.useState({});
-  function updatePinningData(updatedValues) {
-    function _updateData(updatedValues) {
-      return (prevState) => {
-        return { ...prevState, ...updatedValues };
-      };
-    }
+  const pinningManager = usePinningManager(ceramic);
 
-    setPinningData(_updateData(updatedValues));
-  }
+  const isLoading = mediaGalleryStreamManager == null || pinningManager == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -94,7 +87,14 @@ export function GalleryModal({
           </Row>
         </Container>
       </Modal.Header>
-      {mediaGalleryStreamManager != null ? (
+      {isLoading ? (
+        <Modal.Body className="bg-dark p-5 text-light text-center">
+          {pinningManager == null ? (
+            <p>Provisioning Storage For Media Gallery</p>
+          ) : null}
+          {spinner}
+        </Modal.Body>
+      ) : (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
             <p>
@@ -103,9 +103,8 @@ export function GalleryModal({
             </p>
             <div className="border border-secondary rounded p-3">
               <GalleryForm
-                ceramic={ceramic}
+                pinningManager={pinningManager}
                 ipfs={ipfs}
-                updatePinningData={updatePinningData}
                 mediaGalleryStreamManager={mediaGalleryStreamManager}
                 selectedMediaGalleryItemManager={
                   selectedMediaGalleryItemManager
@@ -113,6 +112,7 @@ export function GalleryModal({
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
               <GalleryDisplayGrid
+                pinningManager={pinningManager}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
@@ -121,10 +121,6 @@ export function GalleryModal({
             </div>
           </Modal.Body>
         </>
-      ) : (
-        <Modal.Body className="bg-dark p-5 text-light text-center">
-          {spinner}
-        </Modal.Body>
       )}
     </Modal>
   );

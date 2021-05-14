@@ -6,13 +6,11 @@ import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
-import { usePinningManager } from "../../lib/PinningManager";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryForm({
-  ceramic,
+  pinningManager,
   ipfs,
-  updatePinningData,
   mediaGalleryStreamManager,
   selectedMediaGalleryItemManager,
   setSelectedMediaGalleryItemId,
@@ -24,7 +22,6 @@ export function GalleryForm({
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
-  const pinningManager = usePinningManager(ceramic);
 
   const cid = mediaGalleryItem.contentUrl
     ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
@@ -136,10 +133,7 @@ export function GalleryForm({
     clearForm();
 
     // Asyncronously add pin
-    pinningManager.pinCid(
-      mediaGalleryItem.contentUrl.replace("ipfs://", ""),
-      updatePinningData
-    );
+    pinningManager.pinCid(mediaGalleryItem.contentUrl.replace("ipfs://", ""));
 
     setIsSaving(false);
   }
@@ -237,7 +231,9 @@ export function GalleryForm({
                 disabled={detectedFileFormat != null}
                 custom
               >
-                <option selected>Select a File Format</option>
+                <option value="" selected>
+                  Select a File Format
+                </option>
                 <option value="model/gltf-binary">
                   .glb (model/gltf-binary)
                 </option>
