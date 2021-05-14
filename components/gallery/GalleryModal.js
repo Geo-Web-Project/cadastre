@@ -42,6 +42,7 @@ export function GalleryModal({
     selectedMediaGalleryItemManager,
     setSelectedMediaGalleryItemManager,
   ] = React.useState(null);
+  const [storageLink, setStorageLink] = React.useState(null);
 
   // Only update when ID changes
   React.useEffect(() => {
@@ -54,7 +55,23 @@ export function GalleryModal({
 
   const pinningManager = usePinningManager(ceramic);
 
-  const isLoading = mediaGalleryStreamManager == null || pinningManager == null;
+  React.useEffect(() => {
+    if (!pinningManager) {
+      return;
+    }
+
+    async function updateStorageLink() {
+      const _storageLink = await pinningManager.getLink();
+      setStorageLink(_storageLink);
+    }
+
+    updateStorageLink();
+  }, [pinningManager]);
+
+  const isLoading =
+    mediaGalleryStreamManager == null ||
+    pinningManager == null ||
+    storageLink == null;
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -101,7 +118,7 @@ export function GalleryModal({
               Add content to this structured gallery for easy display on the{" "}
               <a>Geo Web Spatial Browser.</a>
             </p>
-            <div className="border border-secondary rounded p-3">
+            <div className="border border-secondary rounded p-3 text-center">
               <GalleryForm
                 pinningManager={pinningManager}
                 ipfs={ipfs}
@@ -118,6 +135,9 @@ export function GalleryModal({
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
+              <a href={storageLink} target="_blank" rel="noreferrer">
+                View Storage
+              </a>
             </div>
           </Modal.Body>
         </>

@@ -187,7 +187,7 @@ export function GalleryForm({
 
   return (
     <>
-      <Form id="galleryForm" className="pt-2">
+      <Form id="galleryForm" className="pt-2 text-left">
         <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <InputGroup>
