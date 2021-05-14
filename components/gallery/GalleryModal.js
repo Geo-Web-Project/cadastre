@@ -43,6 +43,12 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager,
   ] = React.useState(null);
 
+  const spinner = (
+    <div className="spinner-border" role="status">
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+
   // Only update when ID changes
   React.useEffect(() => {
     const _selectedMediaGalleryItemManager =
@@ -65,6 +71,8 @@ export function GalleryModal({
     //   storageCapacity / 1000000
     // ).toFixed(1)} MB Used`;
     storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB Used`;
+  } else {
+    storageDisplayStr = <>{spinner} MB Used</>;
   }
 
   React.useEffect(() => {
@@ -87,12 +95,6 @@ export function GalleryModal({
     mediaGalleryStreamManager == null ||
     pinningManager == null ||
     storageLink == null;
-
-  const spinner = (
-    <div className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
-    </div>
-  );
 
   return (
     <Modal
@@ -150,18 +152,14 @@ export function GalleryModal({
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
-              {storageDisplayStr ? (
-                <a
-                  className="text-light"
-                  href={storageLink}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {storageDisplayStr}
-                </a>
-              ) : (
-                spinner
-              )}
+              <a
+                className="text-light"
+                href={storageLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {storageDisplayStr}
+              </a>
             </div>
           </Modal.Body>
         </>
