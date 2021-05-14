@@ -270,6 +270,7 @@ export function GalleryForm({
               style={{ backgroundColor: "#111320", border: "none" }}
               onChange={onSelectPinningService}
               custom
+              disabled
             >
               <option value="buckets">Geo Web Free (Default)</option>
             </Form.Control>
