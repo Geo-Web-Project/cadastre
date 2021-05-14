@@ -137,7 +137,6 @@ export function GalleryForm({
 
     // Asyncronously add pin
     pinningManager.pinCid(
-      mediaGalleryItem.name,
       mediaGalleryItem.contentUrl.replace("ipfs://", ""),
       updatePinningData
     );
