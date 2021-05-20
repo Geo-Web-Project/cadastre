@@ -34,14 +34,10 @@ export function GalleryModal({
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager
   );
-  const [
-    selectedMediaGalleryItemId,
-    setSelectedMediaGalleryItemId,
-  ] = React.useState(null);
-  const [
-    selectedMediaGalleryItemManager,
-    setSelectedMediaGalleryItemManager,
-  ] = React.useState(null);
+  const [selectedMediaGalleryItemId, setSelectedMediaGalleryItemId] =
+    React.useState(null);
+  const [selectedMediaGalleryItemManager, setSelectedMediaGalleryItemManager] =
+    React.useState(null);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -89,7 +85,7 @@ export function GalleryModal({
     }
 
     _update();
-  }, [pinningManager]);
+  }, [pinningManager, mediaGalleryItems]);
 
   const isLoading =
     mediaGalleryStreamManager == null ||
