@@ -82,6 +82,8 @@ export function GalleryModal({
 
       const _storageUsed = await pinningManager.getStorageUsed();
       setStorageUsed(_storageUsed);
+
+      await pinningManager.archive();
     }
 
     _update();
