@@ -91,7 +91,7 @@ function AuctionInfo({
         <br />{" "}
         {isLoading
           ? spinner
-          : `${ethers.utils.format(auctionValue)} ${PAYMENT_TOKEN}`}
+          : `${ethers.utils.formatEther(auctionValue)} ${PAYMENT_TOKEN}`}
       </p>
       <p className="text-truncate">
         <span className="font-weight-bold">Auction End:</span>
