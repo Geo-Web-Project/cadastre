@@ -6,9 +6,11 @@
         "@apollo/client": "^3.2.5",
         "@ceramicnetwork/3id-did-resolver": "^1.2.2",
         "@ceramicnetwork/http-client": "^1.0.2",
+        "@ceramicstudio/idx": "^0.12.0",
         "@testing-library/jest-dom": "^5.11.4",
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
+        "@textile/hub": "^6.1.2",
         "bootstrap": "^4.5.3",
         "dids": "^2.1.0",
         "dotenv": "^8.2.0",
@@ -33,7 +35,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "export": "next export"
+        "export": "next export",
+        "test": "jest"
     },
     "eslintConfig": {
         "extends": [
@@ -55,5 +58,17 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
+    },
+    "devDependencies": {
+        "@babel/plugin-transform-runtime": "^7.14.3",
+        "@babel/preset-env": "^7.14.2",
+        "@babel/preset-react": "^7.13.13",
+        "babel-jest": "^26.6.3",
+        "jest": "^26.6.3",
+        "jest-environment-idx": "^0.6.1",
+        "react-test-renderer": "^17.0.2"
+    },
+    "jest": {
+        "testEnvironment": "jest-environment-idx"
     }
 }

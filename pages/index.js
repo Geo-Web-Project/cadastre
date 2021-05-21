@@ -1,6 +1,6 @@
 import Map from "../components/Map";
 import FAQ from "../components/FAQ";
-import { useState, useEffect } from "react";
+import React from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -38,9 +38,9 @@ export const injected = new InjectedConnector({
 function useEagerConnect() {
   const { activate, active } = useWeb3React();
 
-  const [tried, setTried] = useState(false);
+  const [tried, setTried] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     injected.isAuthorized().then((isAuthorized) => {
       if (isAuthorized) {
         activate(injected, undefined, true).catch(() => {
@@ -53,7 +53,7 @@ function useEagerConnect() {
   }, []); // intentionally only running on mount (make sure it's only mounted once :))
 
   // if the connection worked, wait until we get confirmation of that to flip the flag
-  useEffect(() => {
+  React.useEffect(() => {
     if (!tried && active) {
       setTried(true);
     }
@@ -76,12 +76,12 @@ function IndexPage() {
   } = context;
 
   const triedEager = useEagerConnect();
-  const [adminContract, setAdminContract] = useState(null);
-  const [paymentTokenContract, setPaymentTokenContract] = useState(null);
-  const [ceramic, setCeramic] = useState(null);
-  const [ipfs, setIPFS] = useState(null);
+  const [adminContract, setAdminContract] = React.useState(null);
+  const [paymentTokenContract, setPaymentTokenContract] = React.useState(null);
+  const [ceramic, setCeramic] = React.useState(null);
+  const [ipfs, setIPFS] = React.useState(null);
 
-  useEffect(async () => {
+  React.useEffect(async () => {
     if (active == false) {
       return;
     }
@@ -128,7 +128,7 @@ function IndexPage() {
   }, [active, account]);
 
   // Setup Contracts on App Load
-  useEffect(() => {
+  React.useEffect(() => {
     if (library == null) {
       return;
     }

@@ -13,28 +13,20 @@ import {
   MEDIA_GALLERY_ITEM_SCHEMA_DOCID,
   MEDIA_GALLERY_SCHEMA_DOCID,
 } from "../../lib/constants";
-import { unpinCid } from "../../lib/pinning";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { usePinningManager } from "../../lib/PinningManager";
 
 export function GalleryModal({
   show,
   setInteractionState,
   parcelRootStreamManager,
   ipfs,
+  ceramic,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
-
-  const [pinningServiceEndpoint, setPinningServiceEndpoint] = React.useState(
-    PINATA_API_ENDPOINT
-  );
-
-  const [
-    pinningServiceAccessToken,
-    setPinningServiceAccessToken,
-  ] = React.useState("");
 
   const mediaGalleryStreamManager = useMediaGalleryStreamManager(
     parcelRootStreamManager
@@ -42,14 +34,16 @@ export function GalleryModal({
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager
   );
-  const [
-    selectedMediaGalleryItemId,
-    setSelectedMediaGalleryItemId,
-  ] = React.useState(null);
-  const [
-    selectedMediaGalleryItemManager,
-    setSelectedMediaGalleryItemManager,
-  ] = React.useState(null);
+  const [selectedMediaGalleryItemId, setSelectedMediaGalleryItemId] =
+    React.useState(null);
+  const [selectedMediaGalleryItemManager, setSelectedMediaGalleryItemManager] =
+    React.useState(null);
+
+  const spinner = (
+    <div className="spinner-border" role="status">
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
 
   // Only update when ID changes
   React.useEffect(() => {
@@ -60,23 +54,45 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
   }, [selectedMediaGalleryItemId]);
 
-  // Store pinning data in-memory for now
-  const [pinningData, setPinningData] = React.useState({});
-  function updatePinningData(updatedValues) {
-    function _updateData(updatedValues) {
-      return (prevState) => {
-        return { ...prevState, ...updatedValues };
-      };
-    }
+  const pinningManager = usePinningManager(ceramic, ipfs);
+  const [storageLink, setStorageLink] = React.useState(null);
+  const [storageUsed, setStorageUsed] = React.useState(null);
+  const storageCapacity = pinningManager
+    ? pinningManager.getStorageLimit()
+    : null;
 
-    setPinningData(_updateData(updatedValues));
+  let storageDisplayStr;
+  if (storageUsed && storageCapacity) {
+    // storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB of ${(
+    //   storageCapacity / 1000000
+    // ).toFixed(1)} MB Used`;
+    storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB Used`;
+  } else {
+    storageDisplayStr = <>{spinner} MB Used</>;
   }
 
-  const spinner = (
-    <div className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
-    </div>
-  );
+  React.useEffect(() => {
+    if (!pinningManager) {
+      return;
+    }
+
+    async function _update() {
+      const _storageLink = await pinningManager.getLink();
+      setStorageLink(_storageLink);
+
+      const _storageUsed = await pinningManager.getStorageUsed();
+      setStorageUsed(_storageUsed);
+
+      await pinningManager.archive();
+    }
+
+    _update();
+  }, [pinningManager, mediaGalleryItems]);
+
+  const isLoading =
+    mediaGalleryStreamManager == null ||
+    pinningManager == null ||
+    storageLink == null;
 
   return (
     <Modal
@@ -103,21 +119,24 @@ export function GalleryModal({
           </Row>
         </Container>
       </Modal.Header>
-      {mediaGalleryStreamManager != null ? (
+      {isLoading ? (
+        <Modal.Body className="bg-dark p-5 text-light text-center">
+          {pinningManager == null ? (
+            <p>Provisioning Storage For Media Gallery</p>
+          ) : null}
+          {spinner}
+        </Modal.Body>
+      ) : (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
             <p>
               Add content to this structured gallery for easy display on the{" "}
               <a>Geo Web Spatial Browser.</a>
             </p>
-            <div className="border border-secondary rounded p-3">
+            <div className="border border-secondary rounded p-3 text-center">
               <GalleryForm
+                pinningManager={pinningManager}
                 ipfs={ipfs}
-                updatePinningData={updatePinningData}
-                pinningServiceEndpoint={pinningServiceEndpoint}
-                pinningServiceAccessToken={pinningServiceAccessToken}
-                setPinningServiceEndpoint={setPinningServiceEndpoint}
-                setPinningServiceAccessToken={setPinningServiceAccessToken}
                 mediaGalleryStreamManager={mediaGalleryStreamManager}
                 selectedMediaGalleryItemManager={
                   selectedMediaGalleryItemManager
@@ -125,23 +144,23 @@ export function GalleryModal({
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
               <GalleryDisplayGrid
-                ipfs={ipfs}
+                pinningManager={pinningManager}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
-                pinningData={pinningData}
-                updatePinningData={updatePinningData}
-                pinningServiceEndpoint={pinningServiceEndpoint}
-                pinningServiceAccessToken={pinningServiceAccessToken}
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
               />
+              <a
+                className="text-light"
+                href={storageLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {storageDisplayStr}
+              </a>
             </div>
           </Modal.Body>
         </>
-      ) : (
-        <Modal.Body className="bg-dark p-5 text-light text-center">
-          {spinner}
-        </Modal.Body>
       )}
     </Modal>
   );

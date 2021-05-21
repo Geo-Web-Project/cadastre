@@ -6,27 +6,23 @@ import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
-import { pinCid } from "../../lib/pinning";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryForm({
+  pinningManager,
   ipfs,
-  updatePinningData,
-  pinningServiceEndpoint,
-  pinningServiceAccessToken,
-  setPinningServiceEndpoint,
-  setPinningServiceAccessToken,
   mediaGalleryStreamManager,
   selectedMediaGalleryItemManager,
   setSelectedMediaGalleryItemId,
 }) {
-  const [pinningService, setPinningService] = React.useState("pinata");
+  const [pinningService, setPinningService] = React.useState("buckets");
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+
   const cid = mediaGalleryItem.contentUrl
     ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
     : "";
@@ -114,8 +110,7 @@ export function GalleryForm({
     setDetectedFileFormat(null);
     setFileFormat(null);
     setMediaGalleryItem({});
-    setPinningService("pinata");
-    setPinningServiceEndpoint(PINATA_API_ENDPOINT);
+    setPinningService("buckets");
 
     setSelectedMediaGalleryItemId(null);
   }
@@ -138,14 +133,7 @@ export function GalleryForm({
     clearForm();
 
     // Asyncronously add pin
-    pinCid(
-      ipfs,
-      pinningServiceEndpoint,
-      pinningServiceAccessToken,
-      mediaGalleryItem.name,
-      mediaGalleryItem.contentUrl.replace("ipfs://", ""),
-      updatePinningData
-    );
+    pinningManager.pinCid(mediaGalleryItem.contentUrl.replace("ipfs://", ""));
 
     setIsSaving(false);
   }
@@ -185,11 +173,7 @@ export function GalleryForm({
   }
 
   let isReadyToAdd =
-    mediaGalleryItem.contentUrl &&
-    mediaGalleryItem.name &&
-    pinningServiceEndpoint &&
-    pinningServiceAccessToken &&
-    !isSaving;
+    mediaGalleryItem.contentUrl && mediaGalleryItem.name && !isSaving;
 
   const spinner = (
     <div
@@ -203,7 +187,7 @@ export function GalleryForm({
 
   return (
     <>
-      <Form id="galleryForm" className="pt-2">
+      <Form id="galleryForm" className="pt-2 text-left">
         <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <InputGroup>
@@ -247,7 +231,9 @@ export function GalleryForm({
                 disabled={detectedFileFormat != null}
                 custom
               >
-                <option selected>Select a File Format</option>
+                <option value="" selected>
+                  Select a File Format
+                </option>
                 <option value="model/gltf-binary">
                   .glb (model/gltf-binary)
                 </option>
@@ -284,54 +270,10 @@ export function GalleryForm({
               style={{ backgroundColor: "#111320", border: "none" }}
               onChange={onSelectPinningService}
               custom
+              disabled
             >
-              <option value="pinata">
-                Pinata Pinning Service (Requires Credentials)
-              </option>
-              <option value="custom">Custom Pinning Service</option>
+              <option value="buckets">Geo Web Free (Default)</option>
             </Form.Control>
-          </Col>
-        </Row>
-        <Row className="px-3">
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Control
-              style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white"
-              type="text"
-              placeholder="Pinning Service API Endpoint"
-              value={pinningServiceEndpoint}
-              readOnly={pinningService == "pinata"}
-              onChange={(e) => {
-                setPinningServiceEndpoint(e.target.value);
-              }}
-            />
-          </Col>
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Control
-              style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white"
-              type="text"
-              placeholder="JWT Access Token"
-              value={pinningServiceAccessToken}
-              onChange={(e) => {
-                setPinningServiceAccessToken(e.target.value);
-              }}
-            />
-          </Col>
-          <Col
-            className="mb-3"
-            style={{
-              visibility: pinningService == "pinata" ? "visible" : "hidden",
-            }}
-          >
-            <a
-              href="https://pinata.cloud/documentation#PinningServicesAPI"
-              target="_blank"
-              rel="noreferrer"
-              className="text-light"
-            >
-              <i>See Pinata’s documentation for details on configuration.</i>
-            </a>
           </Col>
         </Row>
         <Row className="px-3 text-right">
