@@ -18,16 +18,34 @@ function HomeContent ()
             <p>{"Why should I care? "}</p> 
             <p>{"Web 2.0 is controlled by massive corporations who’s incentives don’t align with the common person’s. We see the impact of this in our economy, politics, and social well-being today. The internet will only increase in importance as augmented reality and digital content begin to prevade the physical world. The infrastructure that defines this REALITY shouldn’t governed by private, for-profit corporations. "}</p> 
             <p>{"The Web 3.0 movement (including the Geo Web) is looking to reverse these ills of centralization. We believe that the Geo Web’s permissionless, community-owned internet infrastructure can help create a better future with augmented SHARED reality."}</p> 
-            <p>{" If you’re still here reading... props. You can dive even deeper on Geo Web vision at docs.geoweb.network/. Otherwise, connect your wallet, and go explore the Geo Web! */'"}</p> 
+            <p>{"If you’re still here reading... props. You can dive even deeper on Geo Web vision at docs.geoweb.network/. Otherwise, connect your wallet, and go explore the Geo Web! */'"}</p> 
         </>
     )
 }
 
+function WalletPrompt()
+{   
+    return(
+        <>
+            <img className="connection-logo"/>
+
+            <p>{"To start please connect your "}</p> 
+            <p>{"Web3 wallet."}</p> 
+            <p>{"Note: The Cadastre uses IDX profiles to seamlessly manage the keys for linked content under your wallet address. After connecting your wallet, you’ll also be asked to connect/migrate/create your profile via 3ID Connect."}</p> 
+        </>
+    )
+}
 
 function Home()
 {
     return (
-        <HomeContent />
+        <>
+            <>
+                <video src={""} width="560" height="340"/>
+                <HomeContent />
+            </>
+            <WalletPrompt />
+        </>
     );
 }
 
