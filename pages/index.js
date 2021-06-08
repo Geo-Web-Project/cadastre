@@ -1,3 +1,4 @@
+import Home from "../components/Home";
 import Map from "../components/Map";
 import FAQ from "../components/FAQ";
 import React from "react";
@@ -166,9 +167,9 @@ function IndexPage() {
           className="border-bottom border-purple"
         >
           <Col sm="1" className="text-center">
-            <Badge pill variant="secondary" className="py-2 px-3">
+            {/* <Badge pill variant="secondary" className="py-2 px-3">
               <span style={{ fontWeight: 600 }}>TESTNET</span>
-            </Badge>
+            </Badge> */}
           </Col>
           <Col sm="1" className="p-0">
             <FAQ
@@ -233,7 +234,9 @@ function IndexPage() {
               ipfs={ipfs}
             ></Map>
           </Row>
-        ) : null}
+        ) : 
+        <Home />
+      }
       </Container>
     </>
   );
