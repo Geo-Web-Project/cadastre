@@ -18,7 +18,6 @@ const newParcelQuery = gql`
 
 function ClaimAction({
   adminContract,
-  paymentTokenContract,
   adminAddress,
   account,
   claimBase1Coord,
@@ -31,9 +30,8 @@ function ClaimAction({
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
-  const [getNewParcel, { loading, data, stopPolling }] = useLazyQuery(
-    newParcelQuery
-  );
+  const [getNewParcel, { loading, data, stopPolling }] =
+    useLazyQuery(newParcelQuery);
 
   const [actionData, setActionData] = React.useState({
     isActing: false,
@@ -106,9 +104,11 @@ function ClaimAction({
         baseCoord.toString(10),
         path,
         calculateWeiSubtotalField(displayNewForSalePrice),
-        calculateWeiSubtotalField(displayNetworkFeePayment),
         rootCID.toString(),
-        { from: account }
+        {
+          from: account,
+          value: calculateWeiSubtotalField(displayNetworkFeePayment),
+        }
       )
       .then((resp) => {
         return resp.wait();
@@ -154,11 +154,7 @@ function ClaimAction({
         setActionData={setActionData}
         parcelRootStreamManager={parcelRootStreamManager}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

@@ -12,7 +12,6 @@ function PurchaseAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  paymentTokenContract,
   adminAddress,
   auctionValue,
   parcelRootStreamManager,
@@ -109,9 +108,8 @@ function PurchaseAction({
         parcelData.landParcel.id,
         actionData.transactionSubtotal,
         calculateWeiSubtotalField(displayNewForSalePrice),
-        calculateWeiSubtotalField(displayNetworkFeePayment),
         rootCID.toString(),
-        { from: account }
+        { from: account, value: actionData.transactionSubtotal }
       );
       const receipt = await resp.wait();
       updateActionData({ isActing: false });
@@ -135,11 +133,7 @@ function PurchaseAction({
         actionData={actionData}
         setActionData={setActionData}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

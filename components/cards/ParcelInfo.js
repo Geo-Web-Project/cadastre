@@ -46,7 +46,6 @@ function ParcelInfo({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  paymentTokenContract,
   adminAddress,
   ceramic,
   ipfs,
@@ -343,7 +342,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               parcelRootStreamManager={parcelRootStreamManager}
             />
@@ -358,7 +356,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
               parcelRootStreamManager={parcelRootStreamManager}

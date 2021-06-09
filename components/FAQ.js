@@ -203,17 +203,6 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                       <a href={PAYMENT_TOKEN_FAUCET_URL}>Kovan ETH</a> (testnet
                       token—no value) to pay for gas fees
                     </li>
-                    <li>
-                      <a href="#" onClick={_mintToken}>
-                        Kovan GEO
-                      </a>{" "}
-                      (testnet token—no value)
-                    </li>
-                    <li>
-                      <a href="#" onClick={_approve}>
-                        Authorize the Cadastre to interact with your GEO
-                      </a>
-                    </li>
                   </ul>
                 </Card.Body>
               </Accordion.Collapse>
