@@ -303,12 +303,12 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Doc CID:</span>{" "}
+                <span className="font-weight-bold">Stream ID:</span>{" "}
                 {parcelContentStreamId == null ? (
                   spinner
                 ) : (
                   <a
-                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${parcelContentStreamId}`}
+                    href={`https://tiles.ceramic.community/document/${parcelContentStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
