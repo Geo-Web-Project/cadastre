@@ -14,6 +14,8 @@ import {
   ADMIN_CONTRACT_ADDRESS,
   CERAMIC_API_ENDPOINT,
   IPFS_BOOTSTRAP_PEER,
+  THREE_ID_CONNECT_IFRAME_URL,
+  THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
@@ -29,7 +31,6 @@ const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
-const erc20ABI = require("../contracts/ERC20Mock.json");
 
 export const injected = new InjectedConnector({
   supportedChainIds: [NETWORK_ID],
@@ -77,7 +78,6 @@ function IndexPage() {
 
   const triedEager = useEagerConnect();
   const [adminContract, setAdminContract] = React.useState(null);
-  const [paymentTokenContract, setPaymentTokenContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
 
@@ -99,7 +99,10 @@ function IndexPage() {
 
     // Add provider to Ceramic DID
     const ethProvider = await connector.getProvider();
-    const threeIdConnect = new ThreeIdConnect();
+    const threeIdConnect = new ThreeIdConnect(
+      THREE_ID_CONNECT_IFRAME_URL,
+      THREE_ID_CONNECT_MANAGEMENT_URL
+    );
 
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);
@@ -142,15 +145,6 @@ function IndexPage() {
       );
       let _adminContractWithSigner = _adminContract.connect(signer);
       setAdminContract(_adminContractWithSigner);
-
-      let _paymentTokenContractAddress = await _adminContract.paymentTokenContract();
-      let _paymentContract = new ethers.Contract(
-        _paymentTokenContractAddress,
-        erc20ABI,
-        library
-      );
-      let _paymentContractWithSigner = _paymentContract.connect(signer);
-      setPaymentTokenContract(_paymentContractWithSigner);
     }
     contractsSetup();
   }, [library]);
@@ -171,11 +165,7 @@ function IndexPage() {
             </Badge>
           </Col>
           <Col sm="1" className="p-0">
-            <FAQ
-              account={account}
-              paymentTokenContract={paymentTokenContract}
-              adminAddress={ADMIN_CONTRACT_ADDRESS}
-            />
+            <FAQ account={account} adminAddress={ADMIN_CONTRACT_ADDRESS} />
           </Col>
           <Col sm={{ span: 8, offset: 0 }} className="text-center p-2 mx-auto">
             <div
@@ -227,7 +217,6 @@ function IndexPage() {
             <Map
               account={account}
               adminContract={adminContract}
-              paymentTokenContract={paymentTokenContract}
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}

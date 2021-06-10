@@ -2,7 +2,7 @@
     "name": "geo-web-cadastre",
     "version": "0.1.0",
     "dependencies": {
-        "@3id/connect": "^0.1.4",
+        "@3id/connect": "^0.1.5",
         "@apollo/client": "^3.2.5",
         "@ceramicnetwork/3id-did-resolver": "^1.2.6",
         "@ceramicnetwork/http-client": "^1.0.6",
