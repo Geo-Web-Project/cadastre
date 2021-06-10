@@ -90,12 +90,19 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                     rights for anchoring digital content to physical land.
                   </p>
                   <p>
-                    Users interact with Geo Web content through a browser on a
-                    smart device that uses geolocation to retrieve content
-                    relevant to the user’s physical environment. Content
-                    discovery is frictionless and orderly. We think the Geo Web
-                    can become especially useful as we transition to more
-                    always-on smart devices like smartwatches and smartglasses.
+                    Users interact with Geo Web content through a{" "}
+                    <a
+                      href="https://browse.geoweb.eth.link/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      spatial browser
+                    </a>{" "}
+                    that uses GPS to retrieve content anchored to their current
+                    location. Content discovery is frictionless and orderly. We
+                    think the Geo Web can become especially useful as always-on
+                    smart devices like smartwatches and smartglasses are widely
+                    adopted.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
@@ -108,33 +115,40 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                 <Card.Body>
                   <p>
                     A <i>cadastre</i> is a register of property showing the
-                    extent, value, and ownership of land. This Cadastre UI is
-                    your home for viewing, claiming, transferring, and managing
-                    digital land parcels on the Geo Web.
+                    extent, value, and ownership of land. This Cadastre
+                    interface is your home for viewing, claiming, transferring,
+                    and managing digital land parcels on the Geo Web.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="2">
-                How do I buy Geo Web land? What is SALSA?
+                How do I buy Geo Web land? What is partial common ownership?
               </ContextAwareToggle>
               <Accordion.Collapse eventKey="2">
                 <Card.Body>
                   <p>
                     The Geo Web’s land market is administered under a system
-                    called <i>Self-Assessed Licenses Sold via Auction</i>{" "}
-                    (SALSA). It’s a blend between private and collective
-                    ownership. Land parcels are licensed rather than sold
-                    outright to market participants.
+                    called{" "}
+                    <a
+                      href="https://docs.geoweb.network/concepts/partial-common-ownership"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      partial common ownership
+                    </a>
+                    . It’s a blend between private and communal ownership. Geo
+                    Web land parcels are licensed rather than sold outright to
+                    market participants.
                   </p>
                   <p>
-                    Licensors pay an annual 10% network fee (this rate will be
-                    studied and adjusted over time) based on their own public,
-                    self-assessed value of the parcel. To help make sure parcels
-                    aren’t underpriced and “squatted” on, any other market
-                    participant can force transfer of a land parcel by paying
-                    the current licensor their self-assessed value.{" "}
+                    Licensors pay an annual network fee (10% on this testnet)
+                    based on their own public, self-assessed value of the
+                    parcel. To help make sure parcels aren’t underpriced and
+                    “squatted” on, any other market participant can force
+                    transfer of a land parcel by paying the current licensor
+                    their self-assessed value.
                   </p>
                   <p>
                     It might seem a little{" "}
@@ -145,20 +159,16 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                     >
                       radical
                     </a>
-                    , but we believe this system that creates the right
+                    , but we believe that this system creates the right
                     incentives, opportunities, and efficiency to globally scale
-                    the Geo Web network without a centralized authority.{" "}
-                  </p>
-                  <p>
-                    All management functions of Geo Web land can be executed
-                    from this UI.
+                    the Geo Web network without a centralized authority.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="3">
-                What are SALSA fees used for?
+                What are network fees used for?
               </ContextAwareToggle>
               <Accordion.Collapse eventKey="3">
                 <Card.Body>
@@ -170,11 +180,11 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                     When the Geo Web moves to a production network, network fees
                     will be transparently allocated to incentivize
                     permissionless, positive-sum value creation on the network.
-                    SALSA funds provide the opportunity to reward everything
+                    Network funds provide the opportunity to reward everything
                     from core protocol development to content creation to
                     onboarding new landowners to simply being an active user.
-                    This is intended to be managed through one or more
-                    decentralized autonomous organizations (DAOs).
+                    This is intended to be managed in a credibly neutral way and
+                    with progressively decentralized governance.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
@@ -188,20 +198,66 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                   <ul>
                     <li>A modern web browser</li>
                     <li>
+                      A Ethereum/web3 wallet (
                       <a
                         href="https://metamask.io/download.html"
                         target="_blank"
                         rel="noreferrer"
                       >
-                        The MetaMask web3 plugin
-                      </a>{" "}
-                      & an active account (other wallets and forms of identity
-                      to come)
+                        MetaMask
+                      </a>
+                      ,{" "}
+                      <a
+                        href="https://walletconnect.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        WalletConnect
+                      </a>
+                      ,{" "}
+                      <a
+                        href="https://toruswallet.io/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Torus
+                      </a>
+                      ,{" "}
+                      <a
+                        href="https://portis.io/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Portis
+                      </a>
+                      , or{" "}
+                      <a
+                        href="https://fortmatic.com/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Formatic
+                      </a>
+                      )
                     </li>
-                    <li>Connection to the Kovan test network in your wallet</li>
                     <li>
-                      <a href={PAYMENT_TOKEN_FAUCET_URL}>Kovan ETH</a> (testnet
-                      token—no value) to pay for gas fees
+                      Kovan ETH (
+                      <a
+                        href="https://faucet.kovan.network/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Claim for free with your GitHub ID
+                      </a>{" "}
+                      or{" "}
+                      <a
+                        href="https://discord.com/invite/reXgPru7ck"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        join our Discord and ask our team to send you some
+                      </a>
+                      )
                     </li>
                   </ul>
                 </Card.Body>
@@ -246,9 +302,63 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
             </Card>
             <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="6">
-                What are the use cases?
+                What can I do with my land parcel?
               </ContextAwareToggle>
               <Accordion.Collapse eventKey="6">
+                <Card.Body>
+                  <p>
+                    Land holders can name their land, add a URI link, and anchor
+                    3D/AR content in a media gallery by navigating to and
+                    interacting with one of their parcels.
+                  </p>
+
+                  <p>
+                    The Geo Web leverages{" "}
+                    <a
+                      href="https://ceramic.network/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ceramic
+                    </a>{" "}
+                    and{" "}
+                    <a href="https://ipfs.io/" target="_blank" rel="noreferrer">
+                      IPFS
+                    </a>{" "}
+                    for its content layer. The Cadastre automatically generates
+                    and links a root Ceramic stream for each claimed parcel to
+                    manage this linked content.
+                  </p>
+
+                  <p>
+                    We’ve set up free automatic content pinning (
+                    <a
+                      href="https://docs.textile.io/buckets/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Textile Buckets
+                    </a>
+                    ) and archive functionality (
+                    <a
+                      href="https://filecoin.io/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Filecoin
+                    </a>
+                    ) to make this initial experience really simple. There are
+                    limits on these services and in the long-run will open up
+                    the experience for customization and open integration.
+                  </p>
+                </Card.Body>
+              </Accordion.Collapse>
+            </Card>
+            <Card className="bg-transparent border-dark text-light">
+              <ContextAwareToggle eventKey="7">
+                What are the use cases?
+              </ContextAwareToggle>
+              <Accordion.Collapse eventKey="7">
                 <Card.Body>
                   <p>
                     The Geo Web’s protocols are designed to be agnostic and
@@ -258,8 +368,8 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                   </p>
 
                   <p>
-                    Digital art, games, micro-applications, audio files, and
-                    other media can be anchored to specific geolocations to
+                    NFTs, Digital art, games, micro-applications, audio files,
+                    and other media can be anchored to specific geolocations to
                     augment the physical environment. This augmentation layer is
                     deterministic and shared for all Geo Web users. Let your
                     imagination run wild with what you could do with digital
@@ -275,73 +385,58 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
-              <ContextAwareToggle eventKey="7">
+              <ContextAwareToggle eventKey="8">
                 What stage of development is the Geo Web in?
               </ContextAwareToggle>
-              <Accordion.Collapse eventKey="7">
+              <Accordion.Collapse eventKey="8">
                 <Card.Body>
                   <p>
-                    We are actively building the beta version of the Geo Web
-                    smart contracts, Cadastre, and browsers. The actions and use
+                    Beta/testnet. We are actively working on the initial,
+                    mainnet-ready Geo Web smart contracts, supporting
+                    infrastructure, Cadastre, and browser. The actions and use
                     cases that you build on this testnet will help make the
                     product better and inform our roadmap. So, let it rip! Hit
-                    us up if you have feedback at{" "}
-                    <a href="mailto:info@geoweb.network">info@geoweb.network</a>
-                    .
+                    us up{" "}
+                    <a
+                      href="https://discord.com/invite/reXgPru7ck"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      in our Discord
+                    </a>{" "}
+                    if you have feedback.
                   </p>
 
                   <p>
                     Note: Even though the Geo Web is on testnet, it{" "}
                     <i>can work</i> for real world use cases. The economic
-                    incentives just aren’t there to keep the market in balance.
-                  </p>
-                </Card.Body>
-              </Accordion.Collapse>
-            </Card>
-            <Card className="bg-transparent border-dark text-light">
-              <ContextAwareToggle eventKey="8">
-                Does the Geo Web have its own crypto/utility token?
-              </ContextAwareToggle>
-              <Accordion.Collapse eventKey="8">
-                <Card.Body>
-                  <p>
-                    For this Kovan testnet application, we created a ERC-20
-                    token, GEO. There are currently no limits on its supply and
-                    it is only useful for transacting on the Geo Web Cadastre.
-                    You can claim more kGEO{" "}
-                    <a href="#" onClick={_mintToken}>
-                      here
-                    </a>
-                    . Kovan gas fees require kETH (
-                    <a href={PAYMENT_TOKEN_FAUCET_URL}>claim here</a>).
-                  </p>
-
-                  <p>
-                    We’re actively evaluating our token needs for production: we
-                    may launch our own token, use ETH, a stablecoin, or a Layer
-                    2 solution like xDAI. We’re more focused on the user
-                    experience and tradeoffs in complexity over creating our own
-                    token.
+                    incentives just aren’t the same.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="9">
-                Who owns/controls/makes money from the Geo Web?
+                Does the Geo Web have its own token?
               </ContextAwareToggle>
               <Accordion.Collapse eventKey="9">
                 <Card.Body>
-                  <p>
-                    Depending on how you look at things it’s either no one,
-                    everyone, or the network itself.
-                  </p>
+                  <p>No.</p>
+                </Card.Body>
+              </Accordion.Collapse>
+            </Card>
+            <Card className="bg-transparent border-dark text-light">
+              <ContextAwareToggle eventKey="10">
+                Who owns/controls/makes money from the Geo Web?
+              </ContextAwareToggle>
+              <Accordion.Collapse eventKey="10">
+                <Card.Body>
+                  <p>The Geo Web is a public good, so we all own it.</p>
 
                   <p>
-                    The Geo Web is envisioned as an open-source public good
-                    network. Currently, our small team has the keys to all of
-                    the smart contracts out of necessity. As the technology and
-                    the network matures, we will progressively decentralize the
+                    The core team will initially have the ability to modify the
+                    core infrastructure out of necessity. As the technology and
+                    the network matures, we will progressively decentralize this
                     decision making authority. Our goal is to “Exit to
                     Community” at which time, all Geo Web governance will be
                     handled through democratic (for financial decisions) and
@@ -349,23 +444,59 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                   </p>
 
                   <p>
-                    The network itself will generate funds through its SALSA
-                    system, but no one person, team, or entity will have control
-                    of that cash flow. We hope lots of people make money (by
-                    creating value) on the Geo Web.
+                    The network itself will generate funds through its partial
+                    common ownership system, but no one person, team, or entity
+                    will have control of that cash flow. We hope lots of people
+                    make money (by creating value) on the Geo Web.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
-              <ContextAwareToggle eventKey="10">
-                THIS IS AWESOME! How can I learn more? How can I get involved?
+              <ContextAwareToggle eventKey="11">
+                How can I learn more? How can I get involved?
               </ContextAwareToggle>
-              <Accordion.Collapse eventKey="10">
+              <Accordion.Collapse eventKey="11">
                 <Card.Body>
                   <p>
-                    Yeah it is! We’re always looking for contributors, feedback,
-                    and questions.
+                    We’re an open org/project. We’re always looking for
+                    contributors, feedback, and questions.
+                  </p>
+
+                  <p>
+                    Jump in our{" "}
+                    <a
+                      href="https://discord.com/invite/reXgPru7ck"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Discord
+                    </a>
+                    , explore our{" "}
+                    <a
+                      href="https://github.com/Geo-Web-Project"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Github repos
+                    </a>
+                    , or engage with us on{" "}
+                    <a
+                      href="https://twitter.com/thegeoweb"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Twitter
+                    </a>
+                    . Discord and Github engagement can even earn you
+                    <a
+                      href="https://geo-web-project.github.io/sourcecred-instance/#/explorer"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      SourceCred-based payouts
+                    </a>
+                    !
                   </p>
 
                   <p>
