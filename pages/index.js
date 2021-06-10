@@ -14,6 +14,8 @@ import {
   ADMIN_CONTRACT_ADDRESS,
   CERAMIC_API_ENDPOINT,
   IPFS_BOOTSTRAP_PEER,
+  THREE_ID_CONNECT_IFRAME_URL,
+  THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
@@ -97,7 +99,10 @@ function IndexPage() {
 
     // Add provider to Ceramic DID
     const ethProvider = await connector.getProvider();
-    const threeIdConnect = new ThreeIdConnect();
+    const threeIdConnect = new ThreeIdConnect(
+      THREE_ID_CONNECT_IFRAME_URL,
+      THREE_ID_CONNECT_MANAGEMENT_URL
+    );
 
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);
