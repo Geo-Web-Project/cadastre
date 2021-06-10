@@ -166,11 +166,11 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple"
         >
-          <Col sm="1" className="text-center">
-            {/* <Badge pill variant="secondary" className="py-2 px-3">
+          {/*<Col sm="1" className="text-center">
+             <Badge pill variant="secondary" className="py-2 px-3">
               <span style={{ fontWeight: 600 }}>TESTNET</span>
-            </Badge> */}
-          </Col>
+            </Badge> 
+          </Col>*/}
           <Col sm="1" className="p-0">
             <FAQ
               account={account}
@@ -200,6 +200,7 @@ function IndexPage() {
                 style={{ height: "100px" }}
                 onClick={() => activate(injected)}
               >
+                <img src="vector.png" width="40" />
                 Connect Wallet
               </Button>
             ) : (

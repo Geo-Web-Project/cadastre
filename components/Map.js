@@ -362,7 +362,7 @@ function Map({
           ceramic={ceramic}
           ipfs={ipfs}
         ></Sidebar>
-      ) : null}
+      ) : null}gridLayer
       <Col sm="9" className="px-0">
         <ReactMapGL
           {...viewport}
