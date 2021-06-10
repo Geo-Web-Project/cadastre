@@ -46,7 +46,6 @@ function ParcelInfo({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  paymentTokenContract,
   adminAddress,
   ceramic,
   ipfs,
@@ -304,12 +303,12 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Doc CID:</span>{" "}
+                <span className="font-weight-bold">Stream ID:</span>{" "}
                 {parcelContentStreamId == null ? (
                   spinner
                 ) : (
                   <a
-                    href={`https://gateway-clay.ceramic.network/api/v0/documents/${parcelContentStreamId}`}
+                    href={`https://gateway.ceramic.network/api/v0/streams/${parcelContentStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
@@ -343,7 +342,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               parcelRootStreamManager={parcelRootStreamManager}
             />
@@ -358,7 +356,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              paymentTokenContract={paymentTokenContract}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
               parcelRootStreamManager={parcelRootStreamManager}

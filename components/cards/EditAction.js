@@ -13,7 +13,6 @@ function EditAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  paymentTokenContract,
   adminAddress,
   parcelRootStreamManager,
 }) {
@@ -117,13 +116,13 @@ function EditAction({
     }
 
     let newForSalePrice = ethers.utils.parseEther(displayNewForSalePrice);
+    let paymentValue =
+      displayNetworkFeePayment.length > 0 ? networkFeePayment : 0;
     adminContract
-      .updateValue(
-        parcelData.landParcel.id,
-        newForSalePrice,
-        displayNetworkFeePayment.length > 0 ? networkFeePayment : 0,
-        { from: account }
-      )
+      .updateValue(parcelData.landParcel.id, newForSalePrice, {
+        from: account,
+        value: paymentValue,
+      })
       .then((resp) => {
         return resp.wait();
       })
@@ -149,11 +148,7 @@ function EditAction({
         setActionData={setActionData}
         parcelRootStreamManager={parcelRootStreamManager}
       />
-      <FaucetInfo
-        paymentTokenContract={paymentTokenContract}
-        account={account}
-        adminAddress={adminAddress}
-      ></FaucetInfo>
+      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
   );
 }

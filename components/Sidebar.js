@@ -16,7 +16,6 @@ function Sidebar({
   adminAddress,
   adminContract,
   account,
-  paymentTokenContract,
   interactionState,
   setInteractionState,
   claimBase1Coord,
@@ -27,12 +26,10 @@ function Sidebar({
   ipfs,
 }) {
   const parcelRootStreamManager = useRootStreamManager(ceramic);
-  const [perSecondFeeNumerator, setPerSecondFeeNumerator] = React.useState(
-    null
-  );
-  const [perSecondFeeDenominator, setPerSecondFeeDenominator] = React.useState(
-    null
-  );
+  const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
+    React.useState(null);
+  const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
+    React.useState(null);
 
   React.useEffect(() => {
     adminContract.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
@@ -58,7 +55,6 @@ function Sidebar({
         setSelectedParcelId={setSelectedParcelId}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        paymentTokenContract={paymentTokenContract}
         adminAddress={adminAddress}
         ceramic={ceramic}
         ipfs={ipfs}
@@ -76,7 +72,6 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            paymentTokenContract={paymentTokenContract}
             adminAddress={adminAddress}
             parcelRootStreamManager={parcelRootStreamManager}
           ></ClaimAction>
