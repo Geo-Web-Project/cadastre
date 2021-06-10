@@ -488,7 +488,7 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                     >
                       Twitter
                     </a>
-                    . Discord and Github engagement can even earn you
+                    . Discord and Github engagement can even earn you{" "}
                     <a
                       href="https://geo-web-project.github.io/sourcecred-instance/#/explorer"
                       target="_blank"
