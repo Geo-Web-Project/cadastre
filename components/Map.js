@@ -354,7 +354,7 @@ function Map({ adminAddress, adminContract, account, ceramic, ipfs }) {
           ceramic={ceramic}
           ipfs={ipfs}
         ></Sidebar>
-      ) : null}gridLayer
+      ) : null}
       <Col sm="9" className="px-0">
         <ReactMapGL
           {...viewport}
