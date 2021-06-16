@@ -162,16 +162,13 @@ export function ActionForm({
     });
   }
 
-  let [
-    newExpirationDate,
-    isDateInvalid,
-    isDateWarning,
-  ] = _calculateNewExpiration(
-    displayCurrentForSalePrice,
-    currentExpirationTimestamp,
-    displayNewForSalePrice,
-    displayNetworkFeePayment
-  );
+  let [newExpirationDate, isDateInvalid, isDateWarning] =
+    _calculateNewExpiration(
+      displayCurrentForSalePrice,
+      currentExpirationTimestamp,
+      displayNewForSalePrice,
+      displayNetworkFeePayment
+    );
 
   let isInvalid =
     isForSalePriceInvalid ||
@@ -376,7 +373,8 @@ export function ActionForm({
             <Image src="notice.svg" />
           </Col>
           <Col className="font-italic">
-            You will need to confirm this transaction in Metamask.
+            Claims, transfers, changes to For Sale Prices, and network fee
+            payments require confirmation in your Web3 wallet.
           </Col>
         </Row>
       </Card.Footer>

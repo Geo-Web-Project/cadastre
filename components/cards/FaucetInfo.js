@@ -13,32 +13,16 @@ function FaucetInfo({ account, adminAddress }) {
     <Card border="secondary" className="bg-dark my-5">
       <Card.Body>
         <Card.Title className="text-primary font-weight-bold">
-          Transaction Requirements
+          Claim kETH
         </Card.Title>
         <Card.Text className="font-italic">
+          <p>You need Kovan ETH to transact on this Cadastre Testnet.</p>
           <p>
-            Geo Web testnet transactions require {PAYMENT_TOKEN}. Follow the
-            steps below to claim tokens & provide the necessary authorization to
-            successfully transact:
+            Get free kETH from the{" "}
+            <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
+              Kovan Faucet with your Github ID.
+            </a>
           </p>
-          <ol className="px-3">
-            <li>
-              <Button
-                variant="link"
-                href={PAYMENT_TOKEN_FAUCET_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="text-light font-weight-bold"
-                style={{ textDecoration: "underline" }}
-              >
-                Claim {PAYMENT_TOKEN}
-                {""}
-                <span className="text-decoration-none mx-1">
-                  <Image src="link.svg" />
-                </span>
-              </Button>{" "}
-            </li>
-          </ol>
         </Card.Text>
       </Card.Body>
     </Card>

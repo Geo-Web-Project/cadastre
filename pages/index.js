@@ -1,3 +1,4 @@
+import Home from "../components/Home";
 import Map from "../components/Map";
 import FAQ from "../components/FAQ";
 import React from "react";
@@ -159,11 +160,11 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple"
         >
-          <Col sm="1" className="text-center">
-            <Badge pill variant="secondary" className="py-2 px-3">
+          {/*<Col sm="1" className="text-center">
+             <Badge pill variant="secondary" className="py-2 px-3">
               <span style={{ fontWeight: 600 }}>TESTNET</span>
-            </Badge>
-          </Col>
+            </Badge> 
+          </Col>*/}
           <Col sm="1" className="p-0">
             <FAQ account={account} adminAddress={ADMIN_CONTRACT_ADDRESS} />
           </Col>
@@ -189,6 +190,7 @@ function IndexPage() {
                 style={{ height: "100px" }}
                 onClick={() => activate(injected)}
               >
+                <img src="vector.png" width="40" style={{marginRight: 20}} />
                 Connect Wallet
               </Button>
             ) : (
@@ -222,7 +224,9 @@ function IndexPage() {
               ipfs={ipfs}
             ></Map>
           </Row>
-        ) : null}
+        ) : 
+        <Home />
+      }
       </Container>
     </>
   );
