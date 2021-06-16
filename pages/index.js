@@ -190,7 +190,7 @@ function IndexPage() {
                 style={{ height: "100px" }}
                 onClick={() => activate(injected)}
               >
-                <img src="vector.png" width="40" />
+                <img src="vector.png" width="40" style={{marginRight: 20}} />
                 Connect Wallet
               </Button>
             ) : (
