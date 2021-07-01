@@ -24,7 +24,37 @@ import KeyDidResolver from "key-did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
-import { InjectedConnector } from "@web3-react/injected-connector";
+import { 
+  InjectedConnector,
+  NoEthereumProviderError,
+  UserRejectedRequestError as UserRejectedRequestErrorInjected
+} from "@web3-react/injected-connector";
+
+import {
+  URI_AVAILABLE,
+  UserRejectedRequestError as UserRejectedRequestErrorWalletConnect
+} from "@web3-react/walletconnect-connector";
+import { UserRejectedRequestError as UserRejectedRequestErrorFrame } from "@web3-react/frame-connector";
+import { Web3Provider } from "@ethersproject/providers";
+import { formatEther } from "@ethersproject/units";
+
+import {
+  injected,
+  network,
+  walletconnect,
+  walletlink,
+  ledger,
+  trezor,
+  frame,
+  fortmatic,
+  portis,
+  squarelink,
+  torus,
+  authereum
+} from "../connectors";
+import { useEagerConnect, useInactiveListener } from "./hooks";
+import { Spinner } from "./Spinner";
+
 import { ethers } from "ethers";
 import { DID } from "dids";
 
@@ -33,9 +63,6 @@ const { httpClient, jsIpfs } = providers;
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
-export const injected = new InjectedConnector({
-  supportedChainIds: [NETWORK_ID],
-});
 
 function useEagerConnect() {
   const { activate, active } = useWeb3React();

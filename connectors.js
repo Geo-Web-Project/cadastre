@@ -11,6 +11,8 @@ import { SquarelinkConnector } from "@web3-react/squarelink-connector";
 import { TorusConnector } from "@web3-react/torus-connector";
 import { AuthereumConnector } from "@web3-react/authereum-connector";
 
+import { NETWORK_ID } from "./lib/constants";
+
 const POLLING_INTERVAL = 12000;
 const RPC_URLS = {
   1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213",
@@ -18,7 +20,7 @@ const RPC_URLS = {
 };
 
 export const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42]
+  supportedChainIds: [NETWORK_ID]
 });
 
 export const network = new NetworkConnector({
