@@ -22,7 +22,7 @@ import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
 import KeyDidResolver from "key-did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
-import { useWeb3React } from "@web3-react/core";
+import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
