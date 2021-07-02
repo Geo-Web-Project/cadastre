@@ -52,7 +52,7 @@ import {
   torus,
   authereum
 } from "../connectors";
-import { useEagerConnect, useInactiveListener } from "./hooks";
+import { useEagerConnect, useInactiveListener } from "../hooks";
 import { Spinner } from "./Spinner";
 
 import { ethers } from "ethers";
@@ -63,6 +63,43 @@ const { httpClient, jsIpfs } = providers;
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
+const connectorsByName = {
+  Injected: injected,
+  Network: network,
+  WalletConnect: walletconnect,
+  WalletLink: walletlink,
+  Ledger: ledger,
+  Trezor: trezor,
+  Frame: frame,
+  Fortmatic: fortmatic,
+  Portis: portis,
+  Squarelink: squarelink,
+  Torus: torus,
+  Authereum: authereum
+};
+
+function getErrorMessage(error) {
+  if (error instanceof NoEthereumProviderError) {
+    return "No Ethereum browser extension detected, install MetaMask on desktop or visit from a dApp browser on mobile.";
+  } else if (error instanceof UnsupportedChainIdError) {
+    return "You're connected to an unsupported network.";
+  } else if (
+    error instanceof UserRejectedRequestErrorInjected ||
+    error instanceof UserRejectedRequestErrorWalletConnect ||
+    error instanceof UserRejectedRequestErrorFrame
+  ) {
+    return "Please authorize this website to access your Ethereum account.";
+  } else {
+    console.error(error);
+    return "An unknown error occurred. Check the console for more details.";
+  }
+}
+
+function getLibrary(provider) {
+  const library = new Web3Provider(provider);
+  library.pollingInterval = 8000;
+  return library;
+}
 
 function useEagerConnect() {
   const { activate, active } = useWeb3React();
@@ -92,6 +129,14 @@ function useEagerConnect() {
 }
 
 function IndexPage() {
+  return (
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <IndexPageContent />
+    </Web3ReactProvider>
+  );
+}
+
+function IndexPageContent() {
   const context = useWeb3React();
   const {
     connector,
@@ -108,6 +153,16 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
+
+  // handle logic to recognize the connector currently being activated
+  const [activatingConnector, setActivatingConnector] = React.useState();
+  React.useEffect(() => {
+    console.log('running')
+    if (activatingConnector && activatingConnector === connector) {
+      setActivatingConnector(undefined);
+    }
+  }, [activatingConnector, connector]);
+
 
   React.useEffect(async () => {
     if (active == false) {
