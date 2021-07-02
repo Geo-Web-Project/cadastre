@@ -28,6 +28,18 @@ import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
 import { DID } from "dids";
 
+import Web3Modal from "web3modal";
+import { providerOptions } from "../providers";
+
+const web3Modal = new Web3Modal({
+  network: "kovan", // optional
+  cacheProvider: true, // optional
+  providerOptions // required
+});
+
+let provider; // Chosen wallet provider given by the dialog window
+let selectedAccount; // Address of the selected account
+
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
 
@@ -99,7 +111,8 @@ function IndexPage() {
     ceramic.setDID(did);
 
     // Add provider to Ceramic DID
-    const ethProvider = await connector.getProvider();
+    const ethProvider = provider;
+    //const ethProvider = await connector.getProvider();
     const threeIdConnect = new ThreeIdConnect(
       THREE_ID_CONNECT_IFRAME_URL,
       THREE_ID_CONNECT_MANAGEMENT_URL
@@ -188,7 +201,10 @@ function IndexPage() {
                 variant="outline-primary"
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
-                onClick={() => activate(injected)}
+                onClick={async() => {
+                  provider = await web3Modal.connect();
+                  //activate(injected);
+                }}
               >
                 <img src="vector.png" width="40" style={{marginRight: 20}} />
                 Connect Wallet
@@ -200,7 +216,19 @@ function IndexPage() {
                 variant="outline-danger"
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
-                onClick={() => deactivate()}
+                onClick={async() => {
+                  // TODO: Which providers have close method?
+                  if(provider.close) {
+                    await provider.close();
+                    // Cached provider is cleared for WalletConnect session
+                    await web3Modal.clearCachedProvider();
+                    provider = null;
+                  }
+
+                  selectedAccount = null;
+                  //deactivate()
+                }
+                }
               >
                 Disconnect Wallet{" "}
                 <Badge pill variant="secondary" className="py-2 px-3">
