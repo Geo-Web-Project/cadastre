@@ -308,7 +308,7 @@ function ParcelInfo({
                   spinner
                 ) : (
                   <a
-                    href={`https://gateway.ceramic.network/api/v0/streams/${parcelContentStreamId}`}
+                    href={`https://tiles.ceramic.community/document/${parcelContentStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
