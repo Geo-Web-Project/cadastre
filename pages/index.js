@@ -28,17 +28,14 @@ import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
 import { DID } from "dids";
 
-import Web3Modal from "web3modal";
+//import Web3Modal from "web3modal";
 import { providerOptions } from "../providers";
 
-const web3Modal = new Web3Modal({
+let walletOptions = {
   network: "kovan", // optional
   cacheProvider: true, // optional
   providerOptions // required
-});
-
-let provider; // Chosen wallet provider given by the dialog window
-let selectedAccount; // Address of the selected account
+};
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -93,9 +90,31 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
+  const [web3Modal, setWeb3Modal] = React.useState(null);
+  const [wactivate, setWactivate] = React.useState(false);
+  const [provider, setProvider] = React.useState(null); // Chosen wallet provider given by the dialog window
+  const [selectedAccount, setSelectedAccount] = React.useState(null);; // Address of the selected account
+
+  React.useEffect(() => {
+    if (!web3Modal) {
+        try {
+            import("web3modal").then(Web3Modal => {
+                setWeb3Modal(new Web3Modal.default({
+                  walletOptions
+                }))
+            })
+        } catch (e) {
+            console.log('Error while creating Web3Modal');
+        }
+    }
+  }, [])
 
   React.useEffect(async () => {
     if (active == false) {
+      return;
+    }
+
+    if(wactivate == false) {
       return;
     }
 
@@ -142,7 +161,7 @@ function IndexPage() {
     });
 
     setIPFS(ipfs);
-  }, [active, account]);
+  }, [active, account, wactivate]);
 
   // Setup Contracts on App Load
   React.useEffect(() => {
@@ -202,7 +221,9 @@ function IndexPage() {
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
                 onClick={async() => {
-                  provider = await web3Modal.connect();
+                  var _provider = await web3Modal.connect();
+                  setProvider(_provider);
+                  setWactivate(true);
                   //activate(injected);
                 }}
               >
@@ -222,10 +243,11 @@ function IndexPage() {
                     await provider.close();
                     // Cached provider is cleared for WalletConnect session
                     await web3Modal.clearCachedProvider();
-                    provider = null;
+                    setProvider(null);
                   }
 
-                  selectedAccount = null;
+                  setSelectedAccount(null);
+                  setWactivate(false);
                   //deactivate()
                 }
                 }
