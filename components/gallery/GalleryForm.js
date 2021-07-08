@@ -33,7 +33,8 @@ export function GalleryForm({
       return;
     }
 
-    const mediaGalleryItemContent = selectedMediaGalleryItemManager.getStreamContent();
+    const mediaGalleryItemContent =
+      selectedMediaGalleryItemManager.getStreamContent();
     setMediaGalleryItem(mediaGalleryItemContent ?? {});
 
     if (mediaGalleryItemContent) {
@@ -128,12 +129,14 @@ export function GalleryForm({
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
         mediaGalleryItem
       );
+
+      // Pin item
+      const cid = mediaGalleryItem.contentUrl.replace("ipfs://", "");
+      const name = `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+      await pinningManager.pinCid(name, cid);
     }
 
     clearForm();
-
-    // Asyncronously add pin
-    pinningManager.pinCid(mediaGalleryItem.contentUrl.replace("ipfs://", ""));
 
     setIsSaving(false);
   }

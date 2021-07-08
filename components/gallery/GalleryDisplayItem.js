@@ -46,7 +46,8 @@ export function GalleryDisplayItem({
 
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
-    await pinningManager.unpinCid(cid);
+    const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+    await pinningManager.unpinCid(name);
     setIsRemoving(false);
   }
 

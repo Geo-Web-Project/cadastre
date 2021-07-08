@@ -190,7 +190,7 @@ function IndexPage() {
                 style={{ height: "100px" }}
                 onClick={() => activate(injected)}
               >
-                <img src="vector.png" width="40" style={{marginRight: 20}} />
+                <img src="vector.png" width="40" style={{ marginRight: 20 }} />
                 Connect Wallet
               </Button>
             ) : (
@@ -224,9 +224,9 @@ function IndexPage() {
               ipfs={ipfs}
             ></Map>
           </Row>
-        ) : 
-        <Home />
-      }
+        ) : (
+          <Home />
+        )}
       </Container>
     </>
   );
