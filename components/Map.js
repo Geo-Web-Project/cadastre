@@ -98,7 +98,14 @@ export function coordToFeature(gwCoord) {
   };
 }
 
-function Map({ adminAddress, adminContract, account, ceramic, ipfs }) {
+function Map({
+  adminAddress,
+  adminContract,
+  account,
+  ceramic,
+  ipfs,
+  pinningManager,
+}) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -353,6 +360,7 @@ function Map({ adminAddress, adminContract, account, ceramic, ipfs }) {
           setSelectedParcelId={setSelectedParcelId}
           ceramic={ceramic}
           ipfs={ipfs}
+          pinningManager={pinningManager}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">

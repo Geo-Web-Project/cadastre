@@ -27,6 +27,7 @@ import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
 import { DID } from "dids";
+import { usePinningManager } from "../lib/PinningManager";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -81,6 +82,7 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
+  const pinningManager = usePinningManager(ceramic, ipfs);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -222,6 +224,7 @@ function IndexPage() {
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}
+              pinningManager={pinningManager}
             ></Map>
           </Row>
         ) : (
