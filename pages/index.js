@@ -79,7 +79,7 @@ function IndexPage() {
     connector,
     library,
     chainId,
-    account,
+    //account,
     activate,
     deactivate,
     active,
@@ -93,7 +93,8 @@ function IndexPage() {
   const [web3Modal, setWeb3Modal] = React.useState(null);
   const [wactivate, setWactivate] = React.useState(false);
   const [provider, setProvider] = React.useState(null); // Chosen wallet provider given by the dialog window
-  const [selectedAccount, setSelectedAccount] = React.useState(null);; // Address of the selected account
+  //let provider = null;
+  const [account, setAccount] = React.useState("");; // Address of the selected account
 
   React.useEffect(() => {
     if (!web3Modal) {
@@ -109,6 +110,8 @@ function IndexPage() {
     }
   }, [])
 
+  let getProvider = () => { return provider }
+
   React.useEffect(async () => {
     if (active == false) {
       return;
@@ -117,7 +120,7 @@ function IndexPage() {
     if(wactivate == false) {
       return;
     }
-
+     
     // Create Ceramic and DID with resolvers
     const ceramic = new CeramicClient(CERAMIC_API_ENDPOINT);
 
@@ -129,15 +132,20 @@ function IndexPage() {
     const did = new DID({ resolver });
     ceramic.setDID(did);
 
+    debugger;
     // Add provider to Ceramic DID
-    const ethProvider = provider;
+    const ethProvider = getProvider();
+    const accounts = await ethProvider.request({ method: "eth_accounts" });
+    setAccount(accounts[0]);
+
     //const ethProvider = await connector.getProvider();
     const threeIdConnect = new ThreeIdConnect(
       THREE_ID_CONNECT_IFRAME_URL,
       THREE_ID_CONNECT_MANAGEMENT_URL
     );
 
-    const authProvider = new EthereumAuthProvider(ethProvider, account);
+    //new providers.Web3Provider(provider)
+    const authProvider = new EthereumAuthProvider(ethProvider, accounts[0]); //account
     await threeIdConnect.connect(authProvider);
 
     const didProvider = await threeIdConnect.getDidProvider();
@@ -213,7 +221,7 @@ function IndexPage() {
             </div>
           </Col>
           <Col sm={{ span: 2, offset: 0 }} className="p-0">
-            {active == false ? (
+            {wactivate == false ? (
               <Button
                 target="_blank"
                 rel="noreferrer"
@@ -223,6 +231,7 @@ function IndexPage() {
                 onClick={async() => {
                   var _provider = await web3Modal.connect();
                   setProvider(_provider);
+                  //provider = _provider;
                   setWactivate(true);
                   //activate(injected);
                 }}
@@ -238,18 +247,25 @@ function IndexPage() {
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
                 onClick={async() => {
-                  // TODO: Which providers have close method?
-                  if(provider.close) {
-                    await provider.close();
-                    // Cached provider is cleared for WalletConnect session
-                    await web3Modal.clearCachedProvider();
-                    setProvider(null);
+                  debugger;
+                  try{
+                    // TODO: Which providers have close method?
+                    if(provider.close) {
+                      await provider.close();
+                      // Cached provider is cleared for WalletConnect session
+                      await web3Modal.clearCachedProvider();
+                      setProvider(null);
+                      //provider = null;
+                    }
+                  }
+                  catch(e){
+                    console.error(e);
                   }
 
-                  setSelectedAccount(null);
+                  setAccount("");
                   setWactivate(false);
                   //deactivate()
-                }
+                  }
                 }
               >
                 Disconnect Wallet{" "}
@@ -264,7 +280,7 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        {active ? (
+        {wactivate ? (
           <Row>
             <Map
               account={account}
