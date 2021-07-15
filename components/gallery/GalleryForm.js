@@ -94,7 +94,11 @@ export function GalleryForm({
 
     setDetectedFileFormat(format);
 
+    // Manually preload synchronously
+    ipfs.preload.stop();
     const added = await ipfs.add(file);
+    ipfs.preload.start();
+    await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
       "@type": "3DModel",

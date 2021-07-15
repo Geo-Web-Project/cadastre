@@ -118,17 +118,21 @@ function IndexPage() {
     setCeramic(ceramic);
 
     const { ipfs, provider, apiAddress } = await getIpfs({
-      loadHttpClientModule: () => require("ipfs-http-client"),
       providers: [
         httpClient({
+          loadHttpClientModule: () => require("ipfs-http-client"),
           apiAddress: "/ip4/127.0.0.1/tcp/5001",
         }),
         jsIpfs({
           loadJsIpfsModule: () => require("ipfs-core"),
-          options: { Bootstrap: [IPFS_BOOTSTRAP_PEER] },
         }),
       ],
     });
+
+    console.log("IPFS API is provided by: " + provider);
+    if (provider === "httpClient") {
+      console.log("HTTP API address: " + apiAddress);
+    }
 
     setIPFS(ipfs);
   }, [active, account]);
