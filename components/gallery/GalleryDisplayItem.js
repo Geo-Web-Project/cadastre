@@ -26,6 +26,7 @@ export function GalleryDisplayItem({
 }) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
+  const [pinState, setPinState] = React.useState(null);
   const isEditing = selectedMediaGalleryItemId
     ? selectedMediaGalleryItemId.toString() ==
       mediaGalleryItemStreamManager.getStreamId().toString()
@@ -34,14 +35,36 @@ export function GalleryDisplayItem({
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
 
   const data = mediaGalleryItemStreamManager.getStreamContent();
-  var pinState;
   const cid = data.contentUrl.replace("ipfs://", "");
   const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
-  if (pinningManager.isPinned(name)) {
-    pinState = STATE_PINNED;
-  } else {
-    pinState = STATE_PINNING;
-  }
+
+  React.useEffect(() => {
+    if (!pinningManager) {
+      return;
+    }
+
+    if (pinningManager.isPinned(name)) {
+      setPinState(STATE_PINNED);
+    } else {
+      setPinState(STATE_PINNING);
+    }
+  }, [pinningManager]);
+
+  // Trigger preload
+  React.useEffect(() => {
+    async function triggerPreload() {
+      try {
+        await pinningManager._ipfs.preload(cid);
+      } catch (err) {
+        console.error(err);
+        setPinState(STATE_NOT_FOUND);
+      }
+    }
+
+    if (pinState == STATE_PINNING) {
+      triggerPreload();
+    }
+  }, [pinState]);
 
   const spinner = (
     <div className="spinner-border" role="status">
