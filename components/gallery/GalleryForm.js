@@ -20,6 +20,7 @@ export function GalleryForm({
   const [fileFormat, setFileFormat] = React.useState(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [didFail, setDidFail] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
 
@@ -116,19 +117,18 @@ export function GalleryForm({
     setFileFormat(null);
     setMediaGalleryItem({});
     setPinningService("buckets");
+    setDidFail(false);
 
     setSelectedMediaGalleryItemId(null);
   }
 
   async function addToGallery() {
     setIsSaving(true);
+    setDidFail(false);
 
     if (mediaGalleryItem) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
         mediaGalleryStreamManager.ceramic
-      );
-      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
-        mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
         mediaGalleryItem
@@ -137,7 +137,20 @@ export function GalleryForm({
       // Pin item
       const cid = mediaGalleryItem.contentUrl.replace("ipfs://", "");
       const name = `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
-      await pinningManager.pinCid(name, cid);
+
+      try {
+        await pinningManager.pinCid(name, cid);
+      } catch (err) {
+        setDidFail(true);
+        setIsSaving(false);
+        return;
+      }
+
+      // Add to gallery after pin
+      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
+        mediaGalleryStreamManager
+      );
+      await _mediaGalleryItemStreamManager.addToMediaGallery();
     }
 
     clearForm();
@@ -304,6 +317,11 @@ export function GalleryForm({
               </Button>
             )}
           </Col>
+          {didFail ? (
+            <Col className="text-danger">
+              Failed to add item. An unknown error occurred.
+            </Col>
+          ) : null}
         </Row>
       </Form>
     </>

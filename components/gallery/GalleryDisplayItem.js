@@ -37,18 +37,22 @@ export function GalleryDisplayItem({
   const data = mediaGalleryItemStreamManager.getStreamContent();
   const cid = data.contentUrl.replace("ipfs://", "");
   const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+  const isPinned = pinningManager ? pinningManager.isPinned(name) : false;
+  const failedPins = pinningManager ? pinningManager.failedPins : new Set();
 
   React.useEffect(() => {
     if (!pinningManager) {
       return;
     }
 
-    if (pinningManager.isPinned(name)) {
+    if (isPinned) {
       setPinState(STATE_PINNED);
+    } else if (failedPins.has(name)) {
+      setPinState(STATE_FAILED);
     } else {
       setPinState(STATE_PINNING);
     }
-  }, [pinningManager]);
+  }, [pinningManager, failedPins, isPinned]);
 
   // Trigger preload
   React.useEffect(() => {
