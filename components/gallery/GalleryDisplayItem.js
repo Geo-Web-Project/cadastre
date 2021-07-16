@@ -12,6 +12,11 @@ const DISPLAY_TYPES = {
   AudioObject: "Audio",
 };
 
+const STATE_PINNED = 0;
+const STATE_PINNING = 1;
+const STATE_FAILED = 2;
+const STATE_NOT_FOUND = 3;
+
 export function GalleryDisplayItem({
   pinningManager,
   mediaGalleryItemStreamManager,
@@ -29,6 +34,14 @@ export function GalleryDisplayItem({
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
 
   const data = mediaGalleryItemStreamManager.getStreamContent();
+  var pinState;
+  const cid = data.contentUrl.replace("ipfs://", "");
+  const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+  if (pinningManager.isPinned(name)) {
+    pinState = STATE_PINNED;
+  } else {
+    pinState = STATE_PINNING;
+  }
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -39,14 +52,17 @@ export function GalleryDisplayItem({
   let statusView;
   if (isRemoving) {
     statusView = <Col className="text-info">Removing {spinner}</Col>;
+  } else if (pinState == STATE_PINNING) {
+    statusView = <Col className="text-info">Pinning {spinner}</Col>;
+  } else if (pinState == STATE_FAILED) {
+    statusView = <Col className="text-danger">Pin Failed</Col>;
+  } else if (pinState == STATE_NOT_FOUND) {
+    statusView = <Col className="text-danger">File Not Found</Col>;
   }
 
   async function removeMediaGalleryItem() {
-    const cid = data.contentUrl.replace("ipfs://", "");
-
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
-    const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
     await pinningManager.unpinCid(name);
     setIsRemoving(false);
   }
@@ -81,7 +97,11 @@ export function GalleryDisplayItem({
         </Col>
       </Row>
       <Row className="text-center mb-3">{statusView}</Row>
-      <Row style={{ visibility: shouldHighlight ? "visible" : "hidden" }}>
+      <Row
+        style={{
+          visibility: shouldHighlight ? "visible" : "hidden",
+        }}
+      >
         <Col>
           <Button variant="info" onClick={handleEdit} disabled={isEditing}>
             Edit
@@ -90,6 +110,15 @@ export function GalleryDisplayItem({
         <Col>
           <Button variant="danger" onClick={removeMediaGalleryItem}>
             Delete
+          </Button>
+        </Col>
+        <Col
+          style={{
+            display: pinState == STATE_FAILED ? "inline" : "none",
+          }}
+        >
+          <Button variant="secondary" onClick={removeMediaGalleryItem}>
+            Retrigger Pin
           </Button>
         </Col>
       </Row>
