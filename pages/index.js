@@ -9,6 +9,8 @@ import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import Modal from 'react-bootstrap/Modal';
+
 import {
   NETWORK_NAME,
   NETWORK_ID,
@@ -53,7 +55,7 @@ import {
   authereum
 } from "../connectors";
 import { useEagerConnect, useInactiveListener } from "../hooks";
-import { Spinner } from "./Spinner";
+import { Spinner } from "../components/spinner";
 
 import { ethers } from "ethers";
 import { DID } from "dids";
@@ -101,6 +103,7 @@ function getLibrary(provider) {
   return library;
 }
 
+/*
 function useEagerConnect() {
   const { activate, active } = useWeb3React();
 
@@ -118,6 +121,7 @@ function useEagerConnect() {
     });
   }, []); // intentionally only running on mount (make sure it's only mounted once :))
 
+
   // if the connection worked, wait until we get confirmation of that to flip the flag
   React.useEffect(() => {
     if (!tried && active) {
@@ -127,6 +131,7 @@ function useEagerConnect() {
 
   return tried;
 }
+*/
 
 function IndexPage() {
   return (
@@ -163,6 +168,83 @@ function IndexPageContent() {
     }
   }, [activatingConnector, connector]);
 
+  // handle logic to connect in reaction to certain events on the injected ethereum provider, if it exists
+  useInactiveListener(!triedEager || !!activatingConnector);
+
+  // set up block listener
+  const [blockNumber, setBlockNumber] = React.useState();
+  
+  React.useEffect(() => {
+    console.log('running')
+    if (library) {
+      let stale = false;
+
+      console.log('fetching block number!!')
+      library
+        .getBlockNumber()
+        .then(blockNumber => {
+          if (!stale) {
+            setBlockNumber(blockNumber);
+          }
+        })
+        .catch(() => {
+          if (!stale) {
+            setBlockNumber(null);
+          }
+        });
+
+      const updateBlockNumber = blockNumber => {
+        setBlockNumber(blockNumber);
+      };
+      library.on("block", updateBlockNumber);
+
+      return () => {
+        library.removeListener("block", updateBlockNumber);
+        stale = true;
+        setBlockNumber(undefined);
+      };
+    }
+  }, [library, chainId]);
+
+  // fetch eth balance of the connected account
+  const [ethBalance, setEthBalance] = React.useState();
+  React.useEffect(() => {
+    console.log('running')
+    if (library && account) {
+      let stale = false;
+
+      library
+        .getBalance(account)
+        .then(balance => {
+          if (!stale) {
+            setEthBalance(balance);
+          }
+        })
+        .catch(() => {
+          if (!stale) {
+            setEthBalance(null);
+          }
+        });
+
+      return () => {
+        stale = true;
+        setEthBalance(undefined);
+      };
+    }
+  }, [library, account, chainId]);
+
+  // log the walletconnect URI
+  React.useEffect(() => {
+    console.log('running')
+    const logURI = uri => {
+      console.log("WalletConnect URI", uri);
+    };
+    walletconnect.on(URI_AVAILABLE, logURI);
+
+    return () => {
+      walletconnect.off(URI_AVAILABLE, logURI);
+    };
+  }, []);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -231,6 +313,91 @@ function IndexPageContent() {
     }
     contractsSetup();
   }, [library]);
+  
+
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const WalletModal = () => {
+
+    return(
+      <Modal show={show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>Pick your Wallet</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div
+          style={{
+            display: "grid",
+            gridGap: "1rem",
+            gridTemplateColumns: "1fr 1fr",
+            maxWidth: "20rem",
+            margin: "auto"
+          }}
+        >
+          {Object.keys(connectorsByName).map(name => {
+            const currentConnector = connectorsByName[name];
+            const activating = currentConnector === activatingConnector;
+            const connected = currentConnector === connector;
+            const disabled =
+              !triedEager || !!activatingConnector || connected || !!error;
+
+            return (
+              <button
+                style={{
+                  height: "3rem",
+                  borderRadius: "1rem",
+                  borderColor: activating
+                    ? "orange"
+                    : connected
+                    ? "green"
+                    : "unset",
+                  cursor: disabled ? "unset" : "pointer",
+                  position: "relative"
+                }}
+                disabled={disabled}
+                key={name}
+                onClick={() => {
+                  setActivatingConnector(currentConnector);
+                  activate(connectorsByName[name]);
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    color: "black",
+                    margin: "0 0 0 1rem"
+                  }}
+                >
+                  {activating && (
+                    <Spinner
+                      color={"black"}
+                      style={{ height: "25%", marginLeft: "-1rem" }}
+                    />
+                  )}
+                  {connected && (
+                    <span role="img" aria-label="check">
+                      ✅
+                    </span>
+                  )}
+                </div>
+                {name}
+              </button>
+            );
+          })}
+        </div>
+      </Modal.Body>
+      </Modal>
+      
+    );
+  }
 
   return (
     <>
@@ -262,6 +429,9 @@ function IndexPageContent() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
+
+          <WalletModal />
+
           <Col sm={{ span: 2, offset: 0 }} className="p-0">
             {active == false ? (
               <Button
@@ -270,7 +440,11 @@ function IndexPageContent() {
                 variant="outline-primary"
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
-                onClick={() => activate(injected)}
+                onClick={() => {
+                    //activate(injected)
+                    handleShow();
+                  }
+                }
               >
                 <img src="vector.png" width="40" style={{marginRight: 20}} />
                 Connect Wallet
@@ -282,7 +456,10 @@ function IndexPageContent() {
                 variant="outline-danger"
                 className="text-light font-weight-bold border-dark"
                 style={{ height: "100px" }}
-                onClick={() => deactivate()}
+                onClick={() => {
+                  deactivate();
+                }
+              }
               >
                 Disconnect Wallet{" "}
                 <Badge pill variant="secondary" className="py-2 px-3">
