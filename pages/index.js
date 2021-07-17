@@ -67,17 +67,17 @@ const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
 const connectorsByName = {
   Injected: injected,
-  Network: network,
+  //Network: network,
   WalletConnect: walletconnect,
-  WalletLink: walletlink,
-  Ledger: ledger,
-  Trezor: trezor,
-  Frame: frame,
+  //WalletLink: walletlink,
+  //Ledger: ledger,
+  //Trezor: trezor,
+  //Frame: frame,
   Fortmatic: fortmatic,
   Portis: portis,
-  Squarelink: squarelink,
+  //Squarelink: squarelink,
   Torus: torus,
-  Authereum: authereum
+  //Authereum: authereum
 };
 
 function getErrorMessage(error) {
@@ -315,7 +315,7 @@ function IndexPageContent() {
   }, [library]);
   
 
-  const [show, setShow] = useState(false);
+  const [show, setShow] = React.useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
