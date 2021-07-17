@@ -42,19 +42,19 @@ import { formatEther } from "@ethersproject/units";
 
 import {
   injected,
-  network,
   walletconnect,
-  walletlink,
-  ledger,
-  trezor,
-  frame,
   fortmatic,
   portis,
-  squarelink,
-  torus,
-  authereum
-} from "../connectors";
-import { useEagerConnect, useInactiveListener } from "../hooks";
+  torus
+  //network,
+  //walletlink,
+  //ledger,
+  //trezor,
+  //frame,
+  //squarelink,
+  //authereum
+} from "../lib/wallets/connectors";
+import { useEagerConnect, useInactiveListener } from "../lib/wallets/hooks";
 import { Spinner } from "../components/spinner";
 
 import { ethers } from "ethers";
@@ -67,16 +67,16 @@ const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
 const connectorsByName = {
   Injected: injected,
-  //Network: network,
   WalletConnect: walletconnect,
+  Fortmatic: fortmatic,
+  Portis: portis,
+  Torus: torus,
+  //Network: network,
   //WalletLink: walletlink,
   //Ledger: ledger,
   //Trezor: trezor,
   //Frame: frame,
-  Fortmatic: fortmatic,
-  Portis: portis,
   //Squarelink: squarelink,
-  Torus: torus,
   //Authereum: authereum
 };
 
