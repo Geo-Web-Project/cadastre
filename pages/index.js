@@ -295,6 +295,7 @@ function IndexPageContent() {
     setIPFS(ipfs);
   }, [active, account]);
 
+  
   // Setup Contracts on App Load
   React.useEffect(() => {
     if (library == null) {
