@@ -170,6 +170,11 @@ export function GalleryDisplayItem({
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
         </Col>
       </Row>
+      {!shouldHighlight && pinState == STATE_PINNING ? (
+        <Row>
+          <p>Note: You may navigate from this page & pinning will continue.</p>
+        </Row>
+      ) : null}
       <Row
         style={{
           visibility: shouldHighlight ? "visible" : "hidden",
