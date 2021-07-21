@@ -56,13 +56,23 @@ export function GalleryDisplayItem({
 
   // Trigger preload
   React.useEffect(() => {
-    async function triggerPreload() {
-      try {
-        await pinningManager._ipfs.preload(cid);
-      } catch (err) {
-        console.error(err);
-        setPinState(STATE_NOT_FOUND);
-      }
+    function triggerPreload() {
+      var success = false;
+      pinningManager._ipfs
+        .preload(cid)
+        .then(() => {
+          success = true;
+        })
+        .catch((err) => {
+          console.error(err);
+          setPinState(STATE_NOT_FOUND);
+        });
+
+      setTimeout(() => {
+        if (!success) {
+          setPinState(STATE_NOT_FOUND);
+        }
+      }, 10000);
     }
 
     if (pinState == STATE_PINNING) {
@@ -92,6 +102,10 @@ export function GalleryDisplayItem({
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
     await pinningManager.unpinCid(name);
     setIsRemoving(false);
+  }
+
+  async function retriggerPin() {
+    await pinningManager.retryPin(name);
   }
 
   function handleEdit() {
@@ -129,6 +143,17 @@ export function GalleryDisplayItem({
           visibility: shouldHighlight ? "visible" : "hidden",
         }}
       >
+        <Col
+          className="mb-3"
+          xs="12"
+          style={{
+            display: pinState == STATE_FAILED ? "inline" : "none",
+          }}
+        >
+          <Button variant="secondary" onClick={retriggerPin}>
+            Retrigger Pin
+          </Button>
+        </Col>
         <Col>
           <Button variant="info" onClick={handleEdit} disabled={isEditing}>
             Edit
@@ -137,15 +162,6 @@ export function GalleryDisplayItem({
         <Col>
           <Button variant="danger" onClick={removeMediaGalleryItem}>
             Delete
-          </Button>
-        </Col>
-        <Col
-          style={{
-            display: pinState == STATE_FAILED ? "inline" : "none",
-          }}
-        >
-          <Button variant="secondary" onClick={removeMediaGalleryItem}>
-            Retrigger Pin
           </Button>
         </Col>
       </Row>
