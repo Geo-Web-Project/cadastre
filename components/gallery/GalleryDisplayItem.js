@@ -90,11 +90,24 @@ export function GalleryDisplayItem({
   if (isRemoving) {
     statusView = <Col className="text-info">Removing {spinner}</Col>;
   } else if (pinState == STATE_PINNING) {
-    statusView = <Col className="text-info">Pinning {spinner}</Col>;
+    statusView = (
+      <Col className="text-white">
+        <h4>Pinning</h4>
+        {spinner}
+      </Col>
+    );
   } else if (pinState == STATE_FAILED) {
-    statusView = <Col className="text-danger">Pin Failed</Col>;
+    statusView = (
+      <Col className="text-white mt-4">
+        <h4>Pin Failed</h4>
+      </Col>
+    );
   } else if (pinState == STATE_NOT_FOUND) {
-    statusView = <Col className="text-danger">File Not Found</Col>;
+    statusView = (
+      <Col className="text-white mt-4">
+        <h4>File Not Found</h4>
+      </Col>
+    );
   }
 
   async function removeMediaGalleryItem() {
@@ -121,7 +134,7 @@ export function GalleryDisplayItem({
       }`}
     >
       <Row>
-        <Col>
+        <Col style={statusView ? { opacity: "0.3" } : null}>
           <h1 style={{ fontSize: "1.5em" }}>
             {index + 1}. {data.name}
           </h1>
@@ -129,15 +142,34 @@ export function GalleryDisplayItem({
       </Row>
       <Row>
         <Col>
-          <Image src="file.png" />
+          <Image
+            style={statusView ? { opacity: "0.3" } : null}
+            src="file.png"
+          />
+          <div
+            className="text-center position-absolute align-middle"
+            style={{
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "100%",
+              height: "100%",
+              textAlign: "center",
+              verticalAlign: "middle",
+            }}
+          >
+            {statusView}
+          </div>
         </Col>
       </Row>
-      <Row className="text-center">
+      <Row
+        className="text-center"
+        style={statusView ? { opacity: "0.3" } : null}
+      >
         <Col>
           <p>{DISPLAY_TYPES[data["@type"]]}</p>
         </Col>
       </Row>
-      <Row className="text-center mb-3">{statusView}</Row>
       <Row
         style={{
           visibility: shouldHighlight ? "visible" : "hidden",
