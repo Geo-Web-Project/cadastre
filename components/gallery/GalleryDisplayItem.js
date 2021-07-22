@@ -38,6 +38,7 @@ export function GalleryDisplayItem({
   const cid = data.contentUrl.replace("ipfs://", "");
   const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
   const isPinned = pinningManager ? pinningManager.isPinned(name) : false;
+  const isQueued = pinningManager ? pinningManager.isQueued(name) : false;
   const failedPins = pinningManager ? pinningManager.failedPins : new Set();
 
   React.useEffect(() => {
@@ -51,8 +52,14 @@ export function GalleryDisplayItem({
       setPinState(STATE_FAILED);
     } else {
       setPinState(STATE_PINNING);
+
+      // If not queued, trigger pin again
+      if (!isQueued) {
+        console.log(`Object ${name} is not in queue. Pinning again...`);
+        pinningManager.pinCid(name, cid);
+      }
     }
-  }, [pinningManager, failedPins, isPinned]);
+  }, [pinningManager, failedPins, isPinned, isQueued]);
 
   // Trigger preload
   React.useEffect(() => {
