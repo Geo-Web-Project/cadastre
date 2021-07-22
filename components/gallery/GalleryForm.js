@@ -7,6 +7,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { useFirebase } from "../../lib/Firebase";
 
 export function GalleryForm({
   pinningManager,
@@ -23,6 +24,7 @@ export function GalleryForm({
   const [didFail, setDidFail] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+  const { firebasePerf } = useFirebase();
 
   const cid = mediaGalleryItem.contentUrl
     ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
@@ -126,6 +128,9 @@ export function GalleryForm({
     setIsSaving(true);
     setDidFail(false);
 
+    const trace = firebasePerf.trace("add_media_item_to_gallery");
+    trace.start();
+
     if (mediaGalleryItem) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
         mediaGalleryStreamManager.ceramic
@@ -154,6 +159,8 @@ export function GalleryForm({
     }
 
     clearForm();
+
+    trace.stop();
 
     setIsSaving(false);
   }

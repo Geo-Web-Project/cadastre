@@ -28,8 +28,7 @@ import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
 import { DID } from "dids";
 import { usePinningManager } from "../lib/PinningManager";
-import firebase from "firebase/app";
-import "firebase/performance";
+import { useFirebase } from "../lib/Firebase";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -39,15 +38,6 @@ const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 export const injected = new InjectedConnector({
   supportedChainIds: [NETWORK_ID],
 });
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBlEYHLq02ZfZsXQ5I0MXq2nf3QCXWM_14",
-  authDomain: "geo-web-cadastre.firebaseapp.com",
-  projectId: "geo-web-cadastre",
-  storageBucket: "geo-web-cadastre.appspot.com",
-  messagingSenderId: "890300523540",
-  appId: "1:890300523540:web:271b68c3f5d1ea87dd7301",
-};
 
 function useEagerConnect() {
   const { activate, active } = useWeb3React();
@@ -93,8 +83,8 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
-  const [firebaseLib, setFirebase] = React.useState(null);
-  const pinningManager = usePinningManager(ceramic, ipfs, firebaseLib);
+  const { firebasePerf } = useFirebase();
+  const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -147,11 +137,6 @@ function IndexPage() {
     }
 
     setIPFS(ipfs);
-
-    // Initialized Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    setFirebase(firebase);
   }, [active, account]);
 
   // Setup Contracts on App Load
