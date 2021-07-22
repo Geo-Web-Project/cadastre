@@ -93,7 +93,8 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
-  const pinningManager = usePinningManager(ceramic, ipfs);
+  const [firebaseLib, setFirebase] = React.useState(null);
+  const pinningManager = usePinningManager(ceramic, ipfs, firebaseLib);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -150,7 +151,7 @@ function IndexPage() {
     // Initialized Firebase
     firebase.initializeApp(firebaseConfig);
 
-    const perf = firebase.performance();
+    setFirebase(firebase);
   }, [active, account]);
 
   // Setup Contracts on App Load
