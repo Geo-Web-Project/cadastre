@@ -7,6 +7,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { useFirebase } from "../../lib/Firebase";
 
 export function GalleryForm({
   pinningManager,
@@ -20,8 +21,10 @@ export function GalleryForm({
   const [fileFormat, setFileFormat] = React.useState(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [didFail, setDidFail] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+  const { firebasePerf } = useFirebase();
 
   const cid = mediaGalleryItem.contentUrl
     ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
@@ -33,7 +36,8 @@ export function GalleryForm({
       return;
     }
 
-    const mediaGalleryItemContent = selectedMediaGalleryItemManager.getStreamContent();
+    const mediaGalleryItemContent =
+      selectedMediaGalleryItemManager.getStreamContent();
     setMediaGalleryItem(mediaGalleryItemContent ?? {});
 
     if (mediaGalleryItemContent) {
@@ -93,7 +97,11 @@ export function GalleryForm({
 
     setDetectedFileFormat(format);
 
+    // Manually preload synchronously
+    ipfs.preload.stop();
     const added = await ipfs.add(file);
+    ipfs.preload.start();
+    await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
       "@type": "3DModel",
@@ -111,29 +119,48 @@ export function GalleryForm({
     setFileFormat(null);
     setMediaGalleryItem({});
     setPinningService("buckets");
+    setDidFail(false);
 
     setSelectedMediaGalleryItemId(null);
   }
 
   async function addToGallery() {
     setIsSaving(true);
+    setDidFail(false);
+
+    const trace = firebasePerf.trace("add_media_item_to_gallery");
+    trace.start();
 
     if (mediaGalleryItem) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
         mediaGalleryStreamManager.ceramic
       );
-      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
-        mediaGalleryStreamManager
-      );
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
         mediaGalleryItem
       );
+
+      // Pin item
+      const cid = mediaGalleryItem.contentUrl.replace("ipfs://", "");
+      const name = `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+
+      try {
+        await pinningManager.pinCid(name, cid);
+      } catch (err) {
+        setDidFail(true);
+        setIsSaving(false);
+        return;
+      }
+
+      // Add to gallery after pin
+      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
+        mediaGalleryStreamManager
+      );
+      await _mediaGalleryItemStreamManager.addToMediaGallery();
     }
 
     clearForm();
 
-    // Asyncronously add pin
-    pinningManager.pinCid(mediaGalleryItem.contentUrl.replace("ipfs://", ""));
+    trace.stop();
 
     setIsSaving(false);
   }
@@ -297,6 +324,11 @@ export function GalleryForm({
               </Button>
             )}
           </Col>
+          {didFail ? (
+            <Col className="text-danger">
+              Failed to add item. An unknown error occurred.
+            </Col>
+          ) : null}
         </Row>
       </Form>
     </>

@@ -15,7 +15,6 @@ import {
 } from "../../lib/constants";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
-import { usePinningManager } from "../../lib/PinningManager";
 
 export function GalleryModal({
   show,
@@ -23,6 +22,7 @@ export function GalleryModal({
   parcelRootStreamManager,
   ipfs,
   ceramic,
+  pinningManager,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
@@ -54,7 +54,6 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
   }, [selectedMediaGalleryItemId]);
 
-  const pinningManager = usePinningManager(ceramic, ipfs);
   const [storageLink, setStorageLink] = React.useState(null);
   const [storageUsed, setStorageUsed] = React.useState(null);
   const storageCapacity = pinningManager
@@ -82,8 +81,6 @@ export function GalleryModal({
 
       const _storageUsed = await pinningManager.getStorageUsed();
       setStorageUsed(_storageUsed);
-
-      await pinningManager.archive();
     }
 
     _update();

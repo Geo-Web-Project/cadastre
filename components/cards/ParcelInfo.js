@@ -50,6 +50,7 @@ function ParcelInfo({
   ceramic,
   ipfs,
   parcelRootStreamManager,
+  pinningManager,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -370,6 +371,7 @@ function ParcelInfo({
         setInteractionState={setInteractionState}
         parcelRootStreamManager={parcelRootStreamManager}
         ceramic={ceramic}
+        pinningManager={pinningManager}
       ></GalleryModal>
     </>
   );

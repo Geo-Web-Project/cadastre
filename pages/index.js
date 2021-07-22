@@ -27,6 +27,8 @@ import { truncateStr } from "../lib/truncate";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { ethers } from "ethers";
 import { DID } from "dids";
+import { usePinningManager } from "../lib/PinningManager";
+import { useFirebase } from "../lib/Firebase";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -81,6 +83,8 @@ function IndexPage() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
+  const { firebasePerf } = useFirebase();
+  const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -116,17 +120,21 @@ function IndexPage() {
     setCeramic(ceramic);
 
     const { ipfs, provider, apiAddress } = await getIpfs({
-      loadHttpClientModule: () => require("ipfs-http-client"),
       providers: [
         httpClient({
+          loadHttpClientModule: () => require("ipfs-http-client"),
           apiAddress: "/ip4/127.0.0.1/tcp/5001",
         }),
         jsIpfs({
           loadJsIpfsModule: () => require("ipfs-core"),
-          options: { Bootstrap: [IPFS_BOOTSTRAP_PEER] },
         }),
       ],
     });
+
+    console.log("IPFS API is provided by: " + provider);
+    if (provider === "httpClient") {
+      console.log("HTTP API address: " + apiAddress);
+    }
 
     setIPFS(ipfs);
   }, [active, account]);
@@ -190,7 +198,7 @@ function IndexPage() {
                 style={{ height: "100px" }}
                 onClick={() => activate(injected)}
               >
-                <img src="vector.png" width="40" style={{marginRight: 20}} />
+                <img src="vector.png" width="40" style={{ marginRight: 20 }} />
                 Connect Wallet
               </Button>
             ) : (
@@ -222,11 +230,12 @@ function IndexPage() {
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}
+              pinningManager={pinningManager}
             ></Map>
           </Row>
-        ) : 
-        <Home />
-      }
+        ) : (
+          <Home />
+        )}
       </Container>
     </>
   );
