@@ -88,7 +88,12 @@ export function GalleryDisplayItem({
 
   let statusView;
   if (isRemoving) {
-    statusView = <Col className="text-info">Removing {spinner}</Col>;
+    statusView = (
+      <Col className="text-white">
+        <h4>Removing</h4>
+        {spinner}
+      </Col>
+    );
   } else if (pinState == STATE_PINNING) {
     statusView = (
       <Col className="text-white">
