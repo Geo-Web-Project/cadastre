@@ -326,9 +326,12 @@ function IndexPageContent() {
     if(show) {
     return(
 
-      <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "220%", 
+      <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "800px", 
         background: "#202333", color: "#FFFFFF", fontStyle: "normal", fontWeight: "normal" }} >
       
+      <div style={{position: "absolute", right: '8%', top: '2%', fontWeight: 'bold', cursor: "pointer" }}
+        onClick={handleClose} >{'X'}</div>
+
       <div>
         <div style={{ display: "grid", gridGap: "1rem", background: "#202333", color: "#FFFFFF", 
             fontStyle: "normal", fontWeight: "normal", marginTop: 70, width: "90%", marginLeft: "5%"
@@ -345,7 +348,7 @@ function IndexPageContent() {
               <button
                 style={{
                   height: "3rem",
-                  borderRadius: "1rem",
+                  borderRadius: "8px",
                   borderColor: activating
                     ? "orange"
                     : connected
@@ -353,8 +356,11 @@ function IndexPageContent() {
                     : "unset",
                   cursor: disabled ? "unset" : "pointer",
                   position: "relative",
-                  background: "#202333",
+                  background: "#4B5588",
                   color: "white",
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  alignItems: "center"
                 }}
                 disabled={disabled}
                 key={name}
@@ -363,21 +369,12 @@ function IndexPageContent() {
                   activate(connectorsByName[name]);
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "0",
-                    left: "0",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    color: "black",
-                    margin: "0 0 0 1rem"
-                  }}
-                >
+                <img src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
+                {name}
+                <div style={{ color: "black", margin: "0 0 0 3rem" }} >
                   {activating && (
                     <Spinner
-                      color={"black"}
+                      color={"white"}
                       style={{ height: "25%", marginLeft: "-1rem" }}
                     />
                   )}
@@ -387,7 +384,7 @@ function IndexPageContent() {
                     </span>
                   )}
                 </div>
-                {name}
+
               </button>
             );
           })}
