@@ -323,19 +323,15 @@ function IndexPageContent() {
 
   const WalletModal = () => {
 
+    if(show) {
     return(
-      <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Pick your Wallet</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div
-          style={{
-            display: "grid",
-            gridGap: "1rem",
-            gridTemplateColumns: "1fr 1fr",
-            maxWidth: "20rem",
-            margin: "auto"
+
+      <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "220%", 
+        background: "#202333", color: "#FFFFFF", fontStyle: "normal", fontWeight: "normal" }} >
+      
+      <div>
+        <div style={{ display: "grid", gridGap: "1rem", background: "#202333", color: "#FFFFFF", 
+            fontStyle: "normal", fontWeight: "normal", marginTop: 70, width: "90%", marginLeft: "5%"
           }}
         >
           {Object.keys(connectorsByName).map(name => {
@@ -356,7 +352,9 @@ function IndexPageContent() {
                     ? "green"
                     : "unset",
                   cursor: disabled ? "unset" : "pointer",
-                  position: "relative"
+                  position: "relative",
+                  background: "#202333",
+                  color: "white",
                 }}
                 disabled={disabled}
                 key={name}
@@ -394,10 +392,14 @@ function IndexPageContent() {
             );
           })}
         </div>
-      </Modal.Body>
-      </Modal>
+      </div>
+      </ div>
       
     );
+    }
+    else{
+      return null;
+    }
   }
 
   return (
