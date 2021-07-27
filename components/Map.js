@@ -369,7 +369,7 @@ function Map({
           width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
           height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/satellite-streets-v11"
+          mapStyle="mapbox://styles/mapbox/satellite-v9"
           mapOptions={{
             renderWorldCopies: false,
           }}
