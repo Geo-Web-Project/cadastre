@@ -24,6 +24,7 @@ function Sidebar({
   setSelectedParcelId,
   ceramic,
   ipfs,
+  pinningManager,
 }) {
   const parcelRootStreamManager = useRootStreamManager(ceramic);
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -59,6 +60,7 @@ function Sidebar({
         ceramic={ceramic}
         ipfs={ipfs}
         parcelRootStreamManager={parcelRootStreamManager}
+        pinningManager={pinningManager}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
