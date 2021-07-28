@@ -331,19 +331,18 @@ function IndexPageContent() {
 
   const WalletModal = () => {
 
+    if(show) {
     return(
-      <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Pick your Wallet</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div
-          style={{
-            display: "grid",
-            gridGap: "1rem",
-            gridTemplateColumns: "1fr 1fr",
-            maxWidth: "20rem",
-            margin: "auto"
+
+      <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "800px", 
+        background: "#202333", color: "#FFFFFF", fontStyle: "normal", fontWeight: "normal" }} >
+      
+      <div style={{position: "absolute", right: '8%', top: '2%', fontWeight: 'bold', cursor: "pointer" }}
+        onClick={handleClose} >{'X'}</div>
+
+      <div>
+        <div style={{ display: "grid", gridGap: "1rem", background: "#202333", color: "#FFFFFF", 
+            fontStyle: "normal", fontWeight: "normal", marginTop: 70, width: "90%", marginLeft: "5%"
           }}
         >
           {Object.keys(connectorsByName).map(name => {
@@ -357,14 +356,19 @@ function IndexPageContent() {
               <button
                 style={{
                   height: "3rem",
-                  borderRadius: "1rem",
+                  borderRadius: "8px",
                   borderColor: activating
                     ? "orange"
                     : connected
                     ? "green"
                     : "unset",
                   cursor: disabled ? "unset" : "pointer",
-                  position: "relative"
+                  position: "relative",
+                  background: "#4B5588",
+                  color: "white",
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  alignItems: "center"
                 }}
                 disabled={disabled}
                 key={name}
@@ -373,21 +377,12 @@ function IndexPageContent() {
                   activate(connectorsByName[name]);
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "0",
-                    left: "0",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    color: "black",
-                    margin: "0 0 0 1rem"
-                  }}
-                >
+                <img src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
+                {name}
+                <div style={{ color: "black", margin: "0 0 0 3rem" }} >
                   {activating && (
                     <Spinner
-                      color={"black"}
+                      color={"white"}
                       style={{ height: "25%", marginLeft: "-1rem" }}
                     />
                   )}
@@ -397,15 +392,19 @@ function IndexPageContent() {
                     </span>
                   )}
                 </div>
-                {name}
+
               </button>
             );
           })}
         </div>
-      </Modal.Body>
-      </Modal>
+      </div>
+      </ div>
       
     );
+    }
+    else{
+      return null;
+    }
   }
 
   return (
