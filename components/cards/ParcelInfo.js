@@ -50,6 +50,7 @@ function ParcelInfo({
   ceramic,
   ipfs,
   parcelRootStreamManager,
+  pinningManager,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -308,7 +309,7 @@ function ParcelInfo({
                   spinner
                 ) : (
                   <a
-                    href={`https://gateway.ceramic.network/api/v0/streams/${parcelContentStreamId}`}
+                    href={`https://tiles.ceramic.community/document/${parcelContentStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
@@ -370,6 +371,7 @@ function ParcelInfo({
         setInteractionState={setInteractionState}
         parcelRootStreamManager={parcelRootStreamManager}
         ceramic={ceramic}
+        pinningManager={pinningManager}
       ></GalleryModal>
     </>
   );

@@ -59,6 +59,8 @@ import { Spinner } from "../components/spinner";
 
 import { ethers } from "ethers";
 import { DID } from "dids";
+import { usePinningManager } from "../lib/PinningManager";
+import { useFirebase } from "../lib/Firebase";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -158,6 +160,8 @@ function IndexPageContent() {
   const [adminContract, setAdminContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
+  const { firebasePerf } = useFirebase();
+  const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
 
   // handle logic to recognize the connector currently being activated
   const [activatingConnector, setActivatingConnector] = React.useState();
@@ -280,17 +284,21 @@ function IndexPageContent() {
     setCeramic(ceramic);
 
     const { ipfs, provider, apiAddress } = await getIpfs({
-      loadHttpClientModule: () => require("ipfs-http-client"),
       providers: [
         httpClient({
+          loadHttpClientModule: () => require("ipfs-http-client"),
           apiAddress: "/ip4/127.0.0.1/tcp/5001",
         }),
         jsIpfs({
           loadJsIpfsModule: () => require("ipfs-core"),
-          options: { Bootstrap: [IPFS_BOOTSTRAP_PEER] },
         }),
       ],
     });
+
+    console.log("IPFS API is provided by: " + provider);
+    if (provider === "httpClient") {
+      console.log("HTTP API address: " + apiAddress);
+    }
 
     setIPFS(ipfs);
   }, [active, account]);
@@ -512,11 +520,12 @@ function IndexPageContent() {
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}
+              pinningManager={pinningManager}
             ></Map>
           </Row>
-        ) : 
-        <Home />
-      }
+        ) : (
+          <Home />
+        )}
       </Container>
     </>
   );
