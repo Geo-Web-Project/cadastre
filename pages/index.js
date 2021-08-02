@@ -347,7 +347,7 @@ function IndexPageContent() {
             return (
               <button
                 style={{
-                  height: "3rem",
+                  height: "48px",
                   borderRadius: "8px",
                   borderColor: activating
                     ? "orange"
@@ -358,8 +358,6 @@ function IndexPageContent() {
                   position: "relative",
                   background: "#4B5588",
                   color: "white",
-                  display: "flex",
-                  justifyContent: "space-evenly",
                   alignItems: "center"
                 }}
                 disabled={disabled}
@@ -368,10 +366,13 @@ function IndexPageContent() {
                   setActivatingConnector(currentConnector);
                   activate(connectorsByName[name]);
                 }}
-              >
-                <img src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
-                {name}
-                <div style={{ color: "black", margin: "0 0 0 3rem" }} >
+              > 
+                
+                <img style={{position: "absolute", left: 20, height: 32, top: 8}} src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
+                
+                <span style={{position: "absolute", textAlign: "left", left: 80, height: 24, top: 12, fontWeight: "bold"}}>{name}</span>
+                
+                <div style={{ color: "black", position: "absolute", float: "right", right: 20, height: 24, top: 12 }} >
                   {activating && (
                     <Spinner
                       color={"white"}
@@ -398,6 +399,71 @@ function IndexPageContent() {
       return null;
     }
   }
+
+  const Connector = () => {
+    console.log("chainId : " + chainId);
+    console.log("isActive : " + active);
+    if(!active) {
+      return(
+      <Button
+        target="_blank"
+        rel="noreferrer"
+        variant="outline-primary"
+        className="text-light font-weight-bold border-dark"
+        style={{ height: "100px" }}
+        onClick={() => {
+            //activate(injected)
+            handleShow();
+          }
+        }
+      >
+        <img src="vector.png" width="40" style={{marginRight: 20}} />
+        Connect Wallet
+      </Button>
+      ) 
+    }
+    else if(active && chainId!==42){
+      return(
+      <Button
+      target="_blank"
+      rel="noreferrer"
+      variant="outline-danger"
+      className="text-light font-weight-bold border-dark"
+      style={{ height: "100px", backgroundColor: "red" }}
+      onClick={() => {
+        //activate(injected)
+        handleShow();
+      }
+    }
+      >
+        <img src="vector.png" width="40" style={{marginRight: 0}} />
+        Wrong Network
+      </Button>
+      )
+    }
+    else if(active && chainId === 42){
+      return (
+      <Button
+        target="_blank"
+        rel="noreferrer"
+        variant="outline-danger"
+        className="text-light font-weight-bold border-dark"
+        style={{ height: "100px" }}
+        onClick={() => {
+          deactivate();
+        }
+      }
+      >
+        Disconnect Wallet{" "}
+        <Badge pill variant="secondary" className="py-2 px-3">
+          <span style={{ fontWeight: 600 }}>
+            {truncateStr(account, 20)}
+          </span>
+        </Badge>
+      </Button>
+    )
+    }
+  } 
 
   return (
     <>
@@ -433,47 +499,12 @@ function IndexPageContent() {
           <WalletModal />
 
           <Col sm={{ span: 2, offset: 0 }} className="p-0">
-            {active == false ? (
-              <Button
-                target="_blank"
-                rel="noreferrer"
-                variant="outline-primary"
-                className="text-light font-weight-bold border-dark"
-                style={{ height: "100px" }}
-                onClick={() => {
-                    //activate(injected)
-                    handleShow();
-                  }
-                }
-              >
-                <img src="vector.png" width="40" style={{marginRight: 20}} />
-                Connect Wallet
-              </Button>
-            ) : (
-              <Button
-                target="_blank"
-                rel="noreferrer"
-                variant="outline-danger"
-                className="text-light font-weight-bold border-dark"
-                style={{ height: "100px" }}
-                onClick={() => {
-                  deactivate();
-                }
-              }
-              >
-                Disconnect Wallet{" "}
-                <Badge pill variant="secondary" className="py-2 px-3">
-                  <span style={{ fontWeight: 600 }}>
-                    {truncateStr(account, 20)}
-                  </span>
-                </Badge>
-              </Button>
-            )}
+            <Connector />
           </Col>
         </Navbar>
       </Container>
       <Container fluid>
-        {active ? (
+        { (active && chainId === 42)? (
           <Row>
             <Map
               account={account}
