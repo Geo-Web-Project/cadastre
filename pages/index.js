@@ -365,11 +365,11 @@ function IndexPageContent() {
                 style={{
                   height: "48px",
                   borderRadius: "8px",
-                  borderColor: activating
-                    ? "orange"
-                    : connected
-                    ? "green"
-                    : "unset",
+                  // borderColor: activating
+                  //   ? "orange"
+                  //   : connected
+                  //   ? "green"
+                  //   : "unset",
                   cursor: disabled ? "unset" : "pointer",
                   position: "relative",
                   background: (active && chainId!==42)?"#707179":"#4B5588",
