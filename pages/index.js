@@ -337,6 +337,14 @@ function IndexPageContent() {
       <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "800px", 
         background: "#202333", color: "#FFFFFF", fontStyle: "normal", fontWeight: "normal" }} >
       
+      { 
+        (active && chainId !== 42)?
+        <div style={{position: "absolute", top: '2%', width: "80%", marginLeft: "5%" }} >
+          {'Select the Kovan network in your wallet.'}
+        </div>
+        :null
+      }
+
       <div style={{position: "absolute", right: '8%', top: '2%', fontWeight: 'bold', cursor: "pointer" }}
         onClick={handleClose} >{'X'}</div>
 
@@ -364,7 +372,7 @@ function IndexPageContent() {
                     : "unset",
                   cursor: disabled ? "unset" : "pointer",
                   position: "relative",
-                  background: "#4B5588",
+                  background: (active && chainId!==42)?"#707179":"#4B5588",
                   color: "white",
                   alignItems: "center"
                 }}
@@ -376,7 +384,7 @@ function IndexPageContent() {
                 }}
               > 
                 
-                <img style={{position: "absolute", left: 20, height: 32, top: 8}} src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
+                <img style={{position: "absolute", left: 20, height: 32, width: 32, top: 8}} src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
                 
                 <span style={{position: "absolute", textAlign: "left", left: 80, height: 24, top: 12, fontWeight: "bold"}}>{name}</span>
                 
