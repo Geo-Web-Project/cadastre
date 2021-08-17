@@ -255,6 +255,10 @@ function IndexPageContent() {
       return;
     }
 
+    if(active && chainId === 42) {
+      handleClose();
+    }
+
     // Create Ceramic and DID with resolvers
     const ceramic = new CeramicClient(CERAMIC_API_ENDPOINT);
 
@@ -364,7 +368,8 @@ function IndexPageContent() {
               <button
                 style={{
                   height: "48px",
-                  borderRadius: "8px",
+                  border: "none",
+                  borderRadius: "2px",
                   // borderColor: activating
                   //   ? "orange"
                   //   : connected
@@ -386,7 +391,7 @@ function IndexPageContent() {
                 
                 <img style={{position: "absolute", left: 20, height: 32, width: 32, top: 8}} src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
                 
-                <span style={{position: "absolute", textAlign: "left", left: 80, height: 24, top: 12, fontWeight: "bold"}}>{name}</span>
+                <span style={{position: "absolute", textAlign: "left", left: 80, height: 24, top: 12, fontWeight: "bold"}}>{name === "Injected" ? "MetaMask" : name}</span>
                 
                 <div style={{ color: "black", position: "absolute", float: "right", right: 20, height: 24, top: 12 }} >
                   {activating && (
@@ -395,10 +400,14 @@ function IndexPageContent() {
                       style={{ height: "25%", marginLeft: "-1rem" }}
                     />
                   )}
-                  {connected && (
-                    <span role="img" aria-label="check">
-                      ✅
-                    </span>
+                  {(connected && chainId!==42) && (
+                    <span role="img" style={{
+                      height: "12px",
+                      width: "12px",
+                      backgroundColor: "#ff0000",
+                      borderRadius: "50%",
+                      display: "inline-block",
+                    }} />
                   )}
                 </div>
 
