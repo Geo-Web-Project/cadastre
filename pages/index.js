@@ -9,6 +9,8 @@ import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import Modal from 'react-bootstrap/Modal';
+
 import {
   NETWORK_NAME,
   NETWORK_ID,
@@ -22,9 +24,39 @@ import CeramicClient from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
 import KeyDidResolver from "key-did-resolver";
 import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
-import { useWeb3React } from "@web3-react/core";
+import { Web3ReactProvider, useWeb3React, UnsupportedChainIdError } from "@web3-react/core";
 import { truncateStr } from "../lib/truncate";
-import { InjectedConnector } from "@web3-react/injected-connector";
+import { 
+  InjectedConnector,
+  NoEthereumProviderError,
+  UserRejectedRequestError as UserRejectedRequestErrorInjected
+} from "@web3-react/injected-connector";
+
+import {
+  URI_AVAILABLE,
+  UserRejectedRequestError as UserRejectedRequestErrorWalletConnect
+} from "@web3-react/walletconnect-connector";
+import { UserRejectedRequestError as UserRejectedRequestErrorFrame } from "@web3-react/frame-connector";
+import { Web3Provider } from "@ethersproject/providers";
+import { formatEther } from "@ethersproject/units";
+
+import {
+  injected,
+  walletconnect,
+  fortmatic,
+  portis,
+  torus
+  //network,
+  //walletlink,
+  //ledger,
+  //trezor,
+  //frame,
+  //squarelink,
+  //authereum
+} from "../lib/wallets/connectors";
+import { useEagerConnect, useInactiveListener } from "../lib/wallets/hooks";
+import { Spinner } from "../components/spinner";
+
 import { ethers } from "ethers";
 import { DID } from "dids";
 import { usePinningManager } from "../lib/PinningManager";
@@ -35,10 +67,45 @@ const { httpClient, jsIpfs } = providers;
 
 const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
-export const injected = new InjectedConnector({
-  supportedChainIds: [NETWORK_ID],
-});
+const connectorsByName = {
+  Injected: injected,
+  WalletConnect: walletconnect,
+  Fortmatic: fortmatic,
+  Portis: portis,
+  Torus: torus,
+  //Network: network,
+  //WalletLink: walletlink,
+  //Ledger: ledger,
+  //Trezor: trezor,
+  //Frame: frame,
+  //Squarelink: squarelink,
+  //Authereum: authereum
+};
 
+function getErrorMessage(error) {
+  if (error instanceof NoEthereumProviderError) {
+    return "No Ethereum browser extension detected, install MetaMask on desktop or visit from a dApp browser on mobile.";
+  } else if (error instanceof UnsupportedChainIdError) {
+    return "You're connected to an unsupported network.";
+  } else if (
+    error instanceof UserRejectedRequestErrorInjected ||
+    error instanceof UserRejectedRequestErrorWalletConnect ||
+    error instanceof UserRejectedRequestErrorFrame
+  ) {
+    return "Please authorize this website to access your Ethereum account.";
+  } else {
+    console.error(error);
+    return "An unknown error occurred. Check the console for more details.";
+  }
+}
+
+function getLibrary(provider) {
+  const library = new Web3Provider(provider);
+  library.pollingInterval = 8000;
+  return library;
+}
+
+/*
 function useEagerConnect() {
   const { activate, active } = useWeb3React();
 
@@ -56,6 +123,7 @@ function useEagerConnect() {
     });
   }, []); // intentionally only running on mount (make sure it's only mounted once :))
 
+
   // if the connection worked, wait until we get confirmation of that to flip the flag
   React.useEffect(() => {
     if (!tried && active) {
@@ -65,8 +133,17 @@ function useEagerConnect() {
 
   return tried;
 }
+*/
 
 function IndexPage() {
+  return (
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <IndexPageContent />
+    </Web3ReactProvider>
+  );
+}
+
+function IndexPageContent() {
   const context = useWeb3React();
   const {
     connector,
@@ -86,9 +163,100 @@ function IndexPage() {
   const { firebasePerf } = useFirebase();
   const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
 
+  // handle logic to recognize the connector currently being activated
+  const [activatingConnector, setActivatingConnector] = React.useState();
+  React.useEffect(() => {
+    console.log('running')
+    if (activatingConnector && activatingConnector === connector) {
+      setActivatingConnector(undefined);
+    }
+  }, [activatingConnector, connector]);
+
+  // handle logic to connect in reaction to certain events on the injected ethereum provider, if it exists
+  useInactiveListener(!triedEager || !!activatingConnector);
+
+  // set up block listener
+  const [blockNumber, setBlockNumber] = React.useState();
+  
+  React.useEffect(() => {
+    console.log('running')
+    if (library) {
+      let stale = false;
+
+      console.log('fetching block number!!')
+      library
+        .getBlockNumber()
+        .then(blockNumber => {
+          if (!stale) {
+            setBlockNumber(blockNumber);
+          }
+        })
+        .catch(() => {
+          if (!stale) {
+            setBlockNumber(null);
+          }
+        });
+
+      const updateBlockNumber = blockNumber => {
+        setBlockNumber(blockNumber);
+      };
+      library.on("block", updateBlockNumber);
+
+      return () => {
+        library.removeListener("block", updateBlockNumber);
+        stale = true;
+        setBlockNumber(undefined);
+      };
+    }
+  }, [library, chainId]);
+
+  // fetch eth balance of the connected account
+  const [ethBalance, setEthBalance] = React.useState();
+  React.useEffect(() => {
+    console.log('running')
+    if (library && account) {
+      let stale = false;
+
+      library
+        .getBalance(account)
+        .then(balance => {
+          if (!stale) {
+            setEthBalance(balance);
+          }
+        })
+        .catch(() => {
+          if (!stale) {
+            setEthBalance(null);
+          }
+        });
+
+      return () => {
+        stale = true;
+        setEthBalance(undefined);
+      };
+    }
+  }, [library, account, chainId]);
+
+  // log the walletconnect URI
+  React.useEffect(() => {
+    console.log('running')
+    const logURI = uri => {
+      console.log("WalletConnect URI", uri);
+    };
+    walletconnect.on(URI_AVAILABLE, logURI);
+
+    return () => {
+      walletconnect.off(URI_AVAILABLE, logURI);
+    };
+  }, []);
+
   React.useEffect(async () => {
     if (active == false) {
       return;
+    }
+
+    if(active && chainId === 42) {
+      handleClose();
     }
 
     // Create Ceramic and DID with resolvers
@@ -139,6 +307,7 @@ function IndexPage() {
     setIPFS(ipfs);
   }, [active, account]);
 
+  
   // Setup Contracts on App Load
   React.useEffect(() => {
     if (library == null) {
@@ -157,6 +326,169 @@ function IndexPage() {
     }
     contractsSetup();
   }, [library]);
+  
+
+  const [show, setShow] = React.useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const WalletModal = () => {
+
+    if(show) {
+    return(
+
+      <div style = {{position: "absolute", right: 0, top: "100px", width: "22%", height: "800px", 
+        background: "#202333", color: "#FFFFFF", fontStyle: "normal", fontWeight: "normal" }} >
+      
+      { 
+        (active && chainId !== 42)?
+        <div style={{position: "absolute", top: '2%', width: "80%", marginLeft: "5%" }} >
+          {'Select the Kovan network in your wallet.'}
+        </div>
+        :null
+      }
+
+      <div style={{position: "absolute", right: '8%', top: '2%', fontWeight: 'bold', cursor: "pointer" }}
+        onClick={handleClose} >{'X'}</div>
+
+      <div>
+        <div style={{ display: "grid", gridGap: "1rem", background: "#202333", color: "#FFFFFF", 
+            fontStyle: "normal", fontWeight: "normal", marginTop: 70, width: "90%", marginLeft: "5%"
+          }}
+        >
+          {Object.keys(connectorsByName).map(name => {
+            const currentConnector = connectorsByName[name];
+            const activating = currentConnector === activatingConnector;
+            const connected = currentConnector === connector;
+            const disabled =
+              !triedEager || !!activatingConnector || connected || !!error;
+
+            return (
+              <button
+                style={{
+                  height: "48px",
+                  border: "none",
+                  borderRadius: "2px",
+                  // borderColor: activating
+                  //   ? "orange"
+                  //   : connected
+                  //   ? "green"
+                  //   : "unset",
+                  cursor: disabled ? "unset" : "pointer",
+                  position: "relative",
+                  background: (active && chainId!==42)?"#707179":"#4B5588",
+                  color: "white",
+                  alignItems: "center"
+                }}
+                disabled={disabled}
+                key={name}
+                onClick={() => {
+                  setActivatingConnector(currentConnector);
+                  activate(connectorsByName[name]);
+                }}
+              > 
+                
+                <img style={{position: "absolute", left: 20, height: 32, width: 32, top: 8}} src={ ( name === "Injected" ? "MetaMask" : name ) + ".png"} />
+                
+                <span style={{position: "absolute", textAlign: "left", left: 80, height: 24, top: 12, fontWeight: "bold"}}>{name === "Injected" ? "MetaMask" : name}</span>
+                
+                <div style={{ color: "black", position: "absolute", float: "right", right: 20, height: 24, top: 12 }} >
+                  {activating && (
+                    <Spinner
+                      color={"white"}
+                      style={{ height: "25%", marginLeft: "-1rem" }}
+                    />
+                  )}
+                  {(connected && chainId!==42) && (
+                    <span role="img" style={{
+                      height: "12px",
+                      width: "12px",
+                      backgroundColor: "#ff0000",
+                      borderRadius: "50%",
+                      display: "inline-block",
+                    }} />
+                  )}
+                </div>
+
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      </ div>
+      
+    );
+    }
+    else{
+      return null;
+    }
+  }
+
+  const Connector = () => {
+    console.log("chainId : " + chainId);
+    console.log("isActive : " + active);
+    if(!active) {
+      return(
+      <Button
+        target="_blank"
+        rel="noreferrer"
+        variant="outline-primary"
+        className="text-light font-weight-bold border-dark"
+        style={{ height: "100px" }}
+        onClick={() => {
+            //activate(injected)
+            handleShow();
+          }
+        }
+      >
+        <img src="vector.png" width="40" style={{marginRight: 20}} />
+        Connect Wallet
+      </Button>
+      ) 
+    }
+    else if(active && chainId!==42){
+      return(
+      <Button
+      target="_blank"
+      rel="noreferrer"
+      variant="outline-danger"
+      className="text-light font-weight-bold border-dark"
+      style={{ height: "100px", backgroundColor: "red" }}
+      onClick={() => {
+        //activate(injected)
+        handleShow();
+      }
+    }
+      >
+        <img src="vector.png" width="40" style={{marginRight: 0}} />
+        Wrong Network
+      </Button>
+      )
+    }
+    else if(active && chainId === 42){
+      return (
+      <Button
+        target="_blank"
+        rel="noreferrer"
+        variant="outline-danger"
+        className="text-light font-weight-bold border-dark"
+        style={{ height: "100px" }}
+        onClick={() => {
+          deactivate();
+        }
+      }
+      >
+        Disconnect Wallet{" "}
+        <Badge pill variant="secondary" className="py-2 px-3">
+          <span style={{ fontWeight: 600 }}>
+            {truncateStr(account, 20)}
+          </span>
+        </Badge>
+      </Button>
+    )
+    }
+  } 
 
   return (
     <>
@@ -188,41 +520,16 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
+
+          <WalletModal />
+
           <Col sm={{ span: 2, offset: 0 }} className="p-0">
-            {active == false ? (
-              <Button
-                target="_blank"
-                rel="noreferrer"
-                variant="outline-primary"
-                className="text-light font-weight-bold border-dark"
-                style={{ height: "100px" }}
-                onClick={() => activate(injected)}
-              >
-                <img src="vector.png" width="40" style={{ marginRight: 20 }} />
-                Connect Wallet
-              </Button>
-            ) : (
-              <Button
-                target="_blank"
-                rel="noreferrer"
-                variant="outline-danger"
-                className="text-light font-weight-bold border-dark"
-                style={{ height: "100px" }}
-                onClick={() => deactivate()}
-              >
-                Disconnect Wallet{" "}
-                <Badge pill variant="secondary" className="py-2 px-3">
-                  <span style={{ fontWeight: 600 }}>
-                    {truncateStr(account, 20)}
-                  </span>
-                </Badge>
-              </Button>
-            )}
+            <Connector />
           </Col>
         </Navbar>
       </Container>
       <Container fluid>
-        {active ? (
+        { (active && chainId === 42)? (
           <Row>
             <Map
               account={account}
