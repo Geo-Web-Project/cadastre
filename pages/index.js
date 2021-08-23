@@ -1,5 +1,6 @@
 import Home from "../components/Home";
 import Map from "../components/Map";
+import Profile from "../components/profile/Profile";
 import FAQ from "../components/FAQ";
 import React from "react";
 import Container from "react-bootstrap/Container";
@@ -467,26 +468,7 @@ function IndexPageContent() {
       )
     }
     else if(active && chainId === 42){
-      return (
-      <Button
-        target="_blank"
-        rel="noreferrer"
-        variant="outline-danger"
-        className="text-light font-weight-bold border-dark"
-        style={{ height: "100px" }}
-        onClick={() => {
-          deactivate();
-        }
-      }
-      >
-        Disconnect Wallet{" "}
-        <Badge pill variant="secondary" className="py-2 px-3">
-          <span style={{ fontWeight: 600 }}>
-            {truncateStr(account, 20)}
-          </span>
-        </Badge>
-      </Button>
-    )
+      return <Profile />
     }
   } 
 
