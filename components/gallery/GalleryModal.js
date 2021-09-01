@@ -91,6 +91,20 @@ export function GalleryModal({
     pinningManager == null ||
     storageLink == null;
 
+  const handleResetPinset = () => {
+    pinningManager.reset();
+  };
+
+  const pinsetNotFoundModal = (
+    <Modal.Body className="bg-dark p-5 text-light text-center">
+      <Row>
+        <Button size="lg" onClick={handleResetPinset} variant="danger">
+          Reset Pinset
+        </Button>
+      </Row>
+    </Modal.Body>
+  );
+
   return (
     <Modal
       show={show}
@@ -123,6 +137,8 @@ export function GalleryModal({
           ) : null}
           {spinner}
         </Modal.Body>
+      ) : pinningManager.latestQueuedLinks() == null ? (
+        pinsetNotFoundModal
       ) : (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
