@@ -97,11 +97,18 @@ export function GalleryModal({
 
   const pinsetNotFoundModal = (
     <Modal.Body className="bg-dark p-5 text-light text-center">
-      <Row>
-        <Button size="lg" onClick={handleResetPinset} variant="danger">
-          Reset Pinset
-        </Button>
-      </Row>
+      <p className="px-5">
+        The pinset associated to your DID could not be found. If you have
+        constrained connectivity, please refresh this page and try again.
+      </p>
+      <p className="px-5 mb-5">
+        If you keep getting this message, your pinset may have been corrupted or
+        lost (the Geo Web is a beta product). Please reset your pinset below and
+        re-add your desired content.
+      </p>
+      <Button size="lg" onClick={handleResetPinset} variant="danger">
+        Reset Pinset
+      </Button>
     </Modal.Body>
   );
 
