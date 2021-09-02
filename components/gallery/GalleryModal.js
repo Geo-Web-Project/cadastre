@@ -91,6 +91,27 @@ export function GalleryModal({
     pinningManager == null ||
     storageLink == null;
 
+  const handleResetPinset = () => {
+    pinningManager.reset();
+  };
+
+  const pinsetNotFoundModal = (
+    <Modal.Body className="bg-dark p-5 text-light text-center">
+      <p className="px-5">
+        The pinset associated to your DID could not be found. If you have
+        constrained connectivity, please refresh this page and try again.
+      </p>
+      <p className="px-5 mb-5">
+        If you keep getting this message, your pinset may have been corrupted or
+        lost (the Geo Web is a beta product). Please reset your pinset below and
+        re-add your desired content.
+      </p>
+      <Button size="lg" onClick={handleResetPinset} variant="danger">
+        Reset Pinset
+      </Button>
+    </Modal.Body>
+  );
+
   return (
     <Modal
       show={show}
@@ -123,6 +144,8 @@ export function GalleryModal({
           ) : null}
           {spinner}
         </Modal.Body>
+      ) : pinningManager.latestQueuedLinks() == null ? (
+        pinsetNotFoundModal
       ) : (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
