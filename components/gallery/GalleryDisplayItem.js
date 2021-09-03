@@ -59,7 +59,7 @@ export function GalleryDisplayItem({
         pinningManager.pinCid(name, cid);
       }
     }
-  }, [pinningManager, failedPins, isPinned, isQueued]);
+  }, [pinningManager, failedPins.size, isPinned, isQueued]);
 
   // Trigger preload
   React.useEffect(() => {
