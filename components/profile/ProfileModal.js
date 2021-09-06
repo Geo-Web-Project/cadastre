@@ -61,7 +61,7 @@ function ProfileModal(props) {
                 <span style={{position: "absolute", top: "55%", left: "7%", color: "#FFFFFF"}}>{`Unclaimed Transfer Proceeds: ${pendingWithdrawAmt} ETH`}</span>
 
                 <Button disabled={false} style={{ position: "absolute", left: "66.92%", top: "72%", width: 140, height: 26, background: "#2FC1C1", borderRadius: 5, 
-                    fontSize: 15, lineHeight: 15, color: "#FFFFFF" }} />
+                    fontSize: 15, lineHeight: 15, color: "#FFFFFF" }} onClick={()=>adminContract.withdraw()}/>
                 
                 <span style={{position: "absolute", width: 142, height: 9, left: "72%", top: "72%", bottom: "32.65%", color: "#FFFFFF"}}>
                     {`Claim Proceeds`}</span>
