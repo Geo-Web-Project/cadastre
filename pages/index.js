@@ -1,16 +1,15 @@
 import Home from "../components/Home";
 import Map from "../components/Map";
 import Profile from "../components/profile/Profile";
+import ProfileModal from "../components/profile/ProfileModal"; 
 import FAQ from "../components/FAQ";
 import React from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
-import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import Modal from 'react-bootstrap/Modal';
 
 import {
   NETWORK_NAME,
@@ -47,13 +46,6 @@ import {
   fortmatic,
   portis,
   torus
-  //network,
-  //walletlink,
-  //ledger,
-  //trezor,
-  //frame,
-  //squarelink,
-  //authereum
 } from "../lib/wallets/connectors";
 import { useEagerConnect, useInactiveListener } from "../lib/wallets/hooks";
 import { Spinner } from "../components/spinner";
@@ -73,14 +65,7 @@ const connectorsByName = {
   WalletConnect: walletconnect,
   Fortmatic: fortmatic,
   Portis: portis,
-  Torus: torus,
-  //Network: network,
-  //WalletLink: walletlink,
-  //Ledger: ledger,
-  //Trezor: trezor,
-  //Frame: frame,
-  //Squarelink: squarelink,
-  //Authereum: authereum
+  Torus: torus
 };
 
 function getErrorMessage(error) {
@@ -106,35 +91,6 @@ function getLibrary(provider) {
   return library;
 }
 
-/*
-function useEagerConnect() {
-  const { activate, active } = useWeb3React();
-
-  const [tried, setTried] = React.useState(false);
-
-  React.useEffect(() => {
-    injected.isAuthorized().then((isAuthorized) => {
-      if (isAuthorized) {
-        activate(injected, undefined, true).catch(() => {
-          setTried(true);
-        });
-      } else {
-        setTried(true);
-      }
-    });
-  }, []); // intentionally only running on mount (make sure it's only mounted once :))
-
-
-  // if the connection worked, wait until we get confirmation of that to flip the flag
-  React.useEffect(() => {
-    if (!tried && active) {
-      setTried(true);
-    }
-  }, [tried, active]);
-
-  return tried;
-}
-*/
 
 function IndexPage() {
   return (
@@ -163,6 +119,12 @@ function IndexPageContent() {
   const [ipfs, setIPFS] = React.useState(null);
   const { firebasePerf } = useFirebase();
   const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
+
+  const [showProfile, setShowProfile] = React.useState(false);
+  const handleCloseProfile  = () => setShowProfile(false);
+  const handleShowProfile = () => setShowProfile(true);
+  
+  const [pendingWithdrawAmt, setPendingWithdrawAmt] = React.useState("0");
 
   // handle logic to recognize the connector currently being activated
   const [activatingConnector, setActivatingConnector] = React.useState();
@@ -324,6 +286,12 @@ function IndexPageContent() {
       );
       let _adminContractWithSigner = _adminContract.connect(signer);
       setAdminContract(_adminContractWithSigner);
+
+      _adminContract.pendingWithdrawals(account).then(amt=>{
+        console.log(amt)
+        setPendingWithdrawAmt(amt.toString());
+      });
+
     }
     contractsSetup();
   }, [library]);
@@ -427,8 +395,7 @@ function IndexPageContent() {
   }
 
   const Connector = () => {
-    console.log("chainId : " + chainId);
-    console.log("isActive : " + active);
+    
     if(!active) {
       return(
       <Button
@@ -468,7 +435,7 @@ function IndexPageContent() {
       )
     }
     else if(active && chainId === 42){
-      return <Profile />
+      return <Profile ethBalance={ethBalance} account={account} handleShowProfile={handleShowProfile} />
     }
   } 
 
@@ -526,6 +493,8 @@ function IndexPageContent() {
           <Home />
         )}
       </Container>
+      <ProfileModal ethBalance={ethBalance} account={account} showProfile={showProfile} handleCloseProfile={handleCloseProfile}
+        deactivate={deactivate} pendingWithdrawAmt={pendingWithdrawAmt} adminContract={adminContract} />
     </>
   );
 }
