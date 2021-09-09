@@ -91,8 +91,13 @@ export function GalleryModal({
     pinningManager == null ||
     storageLink == null;
 
-  const handleResetPinset = () => {
-    pinningManager.reset();
+  const [isResetting, setIsResetting] = React.useState(false);
+
+  const handleResetPinset = async () => {
+    setIsResetting(true);
+    await pinningManager.reset();
+    setIsResetting(false);
+    handleClose();
   };
 
   const pinsetNotFoundModal = (
@@ -106,8 +111,13 @@ export function GalleryModal({
         lost (the Geo Web is a beta product). Please reset your pinset below and
         re-add your desired content.
       </p>
-      <Button size="lg" onClick={handleResetPinset} variant="danger">
-        Reset Pinset
+      <Button
+        size="lg"
+        onClick={handleResetPinset}
+        variant="danger"
+        disabled={isResetting}
+      >
+        {isResetting ? spinner : "Reset Pinset"}
       </Button>
     </Modal.Body>
   );
