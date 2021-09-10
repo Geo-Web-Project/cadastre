@@ -5,7 +5,11 @@ import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
 import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
 import Modal from "react-bootstrap/Modal";
-import { PAYMENT_TOKEN_FAUCET_URL } from "../lib/constants";
+import {
+  PAYMENT_TOKEN_FAUCET_URL,
+  NETWORK_NAME,
+  PAYMENT_TOKEN,
+} from "../lib/constants";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 
@@ -241,9 +245,9 @@ function FAQ({ account, paymentTokenContract, adminAddress }) {
                       )
                     </li>
                     <li>
-                      Kovan ETH (
+                      {PAYMENT_TOKEN} (
                       <a
-                        href="https://faucet.kovan.network/"
+                        href={PAYMENT_TOKEN_FAUCET_URL}
                         target="_blank"
                         rel="noreferrer"
                       >

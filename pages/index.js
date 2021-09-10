@@ -368,7 +368,7 @@ function IndexPageContent() {
             fontWeight: "normal",
           }}
         >
-          {active && chainId !== 42 ? (
+          {active && chainId !== NETWORK_ID ? (
             <div
               style={{
                 position: "absolute",
@@ -377,7 +377,7 @@ function IndexPageContent() {
                 marginLeft: "5%",
               }}
             >
-              {"Select the Kovan network in your wallet."}
+              {`Select the ${NETWORK_NAME} network in your wallet.`}
             </div>
           ) : null}
 
@@ -429,7 +429,9 @@ function IndexPageContent() {
                       cursor: disabled ? "unset" : "pointer",
                       position: "relative",
                       background:
-                        active && chainId !== 42 ? "#707179" : "#4B5588",
+                        active && chainId !== NETWORK_ID
+                          ? "#707179"
+                          : "#4B5588",
                       color: "white",
                       alignItems: "center",
                     }}
@@ -480,7 +482,7 @@ function IndexPageContent() {
                           style={{ height: "25%", marginLeft: "-1rem" }}
                         />
                       )}
-                      {connected && chainId !== 42 && (
+                      {connected && chainId !== NETWORK_ID && (
                         <span
                           role="img"
                           style={{
@@ -506,8 +508,8 @@ function IndexPageContent() {
   };
 
   const Connector = () => {
-    console.log("chainId : " + chainId);
-    console.log("isActive : " + active);
+    console.debug("chainId : " + chainId);
+    console.debug("isActive : " + active);
     if (!active) {
       return (
         <Button
@@ -525,7 +527,7 @@ function IndexPageContent() {
           Connect Wallet
         </Button>
       );
-    } else if (active && chainId !== 42) {
+    } else if (active && chainId !== NETWORK_ID) {
       return (
         <Button
           target="_blank"
@@ -542,7 +544,7 @@ function IndexPageContent() {
           Wrong Network
         </Button>
       );
-    } else if (active && chainId === 42) {
+    } else if (active && chainId === NETWORK_ID) {
       return (
         <Button
           target="_blank"
@@ -602,7 +604,7 @@ function IndexPageContent() {
         </Navbar>
       </Container>
       <Container fluid>
-        {active && chainId === 42 ? (
+        {active && chainId === NETWORK_ID ? (
           <Row>
             <Map
               account={account}
