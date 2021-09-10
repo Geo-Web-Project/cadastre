@@ -47,10 +47,10 @@ import { formatEther } from "@ethersproject/units";
 
 import {
   injected,
-  // walletconnect,
-  // fortmatic,
-  // portis,
-  // torus,
+  walletconnect,
+  fortmatic,
+  portis,
+  torus,
   //network,
   //walletlink,
   //ledger,
@@ -74,10 +74,10 @@ const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
 
 const connectorsByName = {
   Injected: injected,
-  // WalletConnect: walletconnect,
-  // Fortmatic: fortmatic,
-  // Portis: portis,
-  // Torus: torus,
+  WalletConnect: walletconnect,
+  Fortmatic: fortmatic,
+  Portis: portis,
+  Torus: torus,
   //Network: network,
   //WalletLink: walletlink,
   //Ledger: ledger,
@@ -243,17 +243,17 @@ function IndexPageContent() {
   }, [library, account, chainId]);
 
   // log the walletconnect URI
-  // React.useEffect(() => {
-  //   console.log("running");
-  //   const logURI = (uri) => {
-  //     console.log("WalletConnect URI", uri);
-  //   };
-  //   walletconnect.on(URI_AVAILABLE, logURI);
+  React.useEffect(() => {
+    console.log("running");
+    const logURI = (uri) => {
+      console.log("WalletConnect URI", uri);
+    };
+    walletconnect.on(URI_AVAILABLE, logURI);
 
-  //   return () => {
-  //     walletconnect.off(URI_AVAILABLE, logURI);
-  //   };
-  // }, []);
+    return () => {
+      walletconnect.off(URI_AVAILABLE, logURI);
+    };
+  }, []);
 
   React.useEffect(async () => {
     if (active == false) {
@@ -508,8 +508,8 @@ function IndexPageContent() {
   };
 
   const Connector = () => {
-    console.log("chainId : " + chainId);
-    console.log("isActive : " + active);
+    console.debug("chainId : " + chainId);
+    console.debug("isActive : " + active);
     if (!active) {
       return (
         <Button
