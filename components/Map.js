@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMapGL from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
@@ -155,7 +155,7 @@ function Map({
     (interactionState == STATE_CLAIM_SELECTING ||
       interactionState == STATE_CLAIM_SELECTED);
 
-  function _onViewportChange(nextViewport) {
+  const _onViewportChange = useCallback((nextViewport) => {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
     }
@@ -168,17 +168,18 @@ function Map({
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
-  }
+  }, []);
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
-  function _onGeocoderViewportChange(newViewport) {
+  const _onGeocoderViewportChange = useCallback((newViewport) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
       return _onViewportChange({
         ...newViewport,
         ...geocoderDefaultOverrides
       });
-  }
+  }, [_onViewportChange]);
+
 
   function onHover(event) {
     if (event.features == null || viewport.zoom < 5) {
@@ -385,7 +386,7 @@ function Map({
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "16vh", left: "40vw", zIndex: 1 }}
+          style={{ position: "absolute", top: "18vh", right: "-26vw", zIndex: 1 }}
         />
         <ReactMapGL
           ref={mapRef}
