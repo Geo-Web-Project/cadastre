@@ -104,7 +104,6 @@ function ClaimAction({
         baseCoord.toString(10),
         path,
         calculateWeiSubtotalField(displayNewForSalePrice),
-        rootCID.toString(),
         {
           from: account,
           value: calculateWeiSubtotalField(displayNetworkFeePayment),
