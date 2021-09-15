@@ -77,7 +77,7 @@ function EditAction({
     updateLicenseContract();
   }, [adminContract]);
 
-  function _edit(newStreamId) {
+  async function _edit() {
     updateActionData({ isActing: true });
 
     // Check for changes
@@ -91,49 +91,33 @@ function EditAction({
       networkFeeIsUnchanged
     ) {
       // Content change only
-
-      if (newStreamId) {
-        // Requires stream ID update
-        licenseContract
-          .setContent(parcelData.landParcel.id, newStreamId.toString())
-          .then((resp) => {
-            return resp.wait();
-          })
-          .then(async function (receipt) {
-            updateActionData({ isActing: false });
-            refetchParcelData();
-            setInteractionState(STATE_PARCEL_SELECTED);
-          })
-          .catch((error) => {
-            console.error(error);
-            updateActionData({ isActing: false, didFail: true });
-          });
-      } else {
-        updateActionData({ isActing: false });
-        setInteractionState(STATE_PARCEL_SELECTED);
-      }
+      updateActionData({ isActing: false });
+      setInteractionState(STATE_PARCEL_SELECTED);
       return;
     }
 
     let newForSalePrice = ethers.utils.parseEther(displayNewForSalePrice);
     let paymentValue =
       displayNetworkFeePayment.length > 0 ? networkFeePayment : 0;
-    adminContract
-      .updateValue(parcelData.landParcel.id, newForSalePrice, {
-        from: account,
-        value: paymentValue,
-      })
-      .then((resp) => {
-        return resp.wait();
-      })
-      .then(async function (receipt) {
-        updateActionData({ isActing: false });
-        refetchParcelData();
-        setInteractionState(STATE_PARCEL_SELECTED);
-      })
-      .catch((error) => {
-        updateActionData({ isActing: false, didFail: true });
-      });
+
+    try {
+      const resp = await adminContract.updateValue(
+        parcelData.landParcel.id,
+        newForSalePrice,
+        {
+          from: account,
+          value: paymentValue,
+        }
+      );
+
+      await resp.wait();
+
+      updateActionData({ isActing: false });
+      refetchParcelData();
+      setInteractionState(STATE_PARCEL_SELECTED);
+    } catch (error) {
+      updateActionData({ isActing: false, didFail: true });
+    }
   }
 
   return (

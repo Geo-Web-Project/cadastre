@@ -4,6 +4,8 @@ import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { useRootStreamManager } from "../lib/stream-managers/RootStreamManager";
+import { createNftDidUrl } from "nft-did-resolver";
+import { NETWORK_ID } from "../lib/constants";
 
 import {
   STATE_VIEWING,
@@ -26,7 +28,14 @@ function Sidebar({
   ipfs,
   pinningManager,
 }) {
-  const parcelRootStreamManager = useRootStreamManager(ceramic);
+  const didNFT = createNftDidUrl({
+    chainId: `eip155:${NETWORK_ID}`,
+    namespace: "erc721",
+    contract: adminAddress.toLowerCase(),
+    tokenId: selectedParcelId,
+  });
+
+  const parcelRootStreamManager = useRootStreamManager(ceramic, didNFT);
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =

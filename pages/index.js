@@ -10,8 +10,6 @@ import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { createNftDidUrl } from "nft-did-resolver";
-import { TileDocument } from "@ceramicnetwork/stream-tile";
 import {
   NETWORK_NAME,
   NETWORK_ID,
@@ -292,18 +290,6 @@ function IndexPageContent() {
     await ceramic.did.authenticate();
 
     setCeramic(ceramic);
-
-    const didNFT = createNftDidUrl({
-      chainId: "eip155:4",
-      namespace: "erc721",
-      contract: "0xD7403e9a7E80ec3cb87182c8c664A609dF21041A".toLowerCase(),
-      tokenId: "0",
-    });
-    const tile = await TileDocument.create(ceramic, null, {
-      controllers: [didNFT],
-      deterministic: true,
-    });
-    console.log(tile.id.toString());
 
     const { ipfs, provider, apiAddress } = await getIpfs({
       providers: [

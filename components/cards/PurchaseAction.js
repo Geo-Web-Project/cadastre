@@ -98,20 +98,17 @@ function PurchaseAction({
     existingNetworkFeeBalance,
   ]);
 
-  async function _purchase(newStreamId, getCurrentStreamId) {
+  async function _purchase() {
     updateActionData({ isActing: true });
-
-    const rootCID = newStreamId ?? getCurrentStreamId();
 
     try {
       const resp = await adminContract.purchaseLicense(
         parcelData.landParcel.id,
         actionData.transactionSubtotal,
         calculateWeiSubtotalField(displayNewForSalePrice),
-        rootCID.toString(),
         { from: account, value: actionData.transactionSubtotal }
       );
-      const receipt = await resp.wait();
+      await resp.wait();
       updateActionData({ isActing: false });
       refetchParcelData();
       setInteractionState(STATE_PARCEL_SELECTED);

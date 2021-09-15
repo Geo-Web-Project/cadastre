@@ -8,6 +8,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
+import { createNftDidUrl } from "nft-did-resolver";
+import { NETWORK_ID } from "../../lib/constants";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -153,13 +155,31 @@ export function ActionForm({
     }
 
     updateActionData({ isActing: true });
-    const newStreamId = await parcelRootStreamManager.createOrUpdateStream({
-      name: parcelName,
-      webContent: parcelWebContentURI,
-    });
-    performAction(newStreamId, () => {
-      return parcelRootStreamManager.getStreamId();
-    });
+
+    // Perform action
+    const parcelId = await performAction();
+
+    const licenseAddress = await adminContract.licenseContract();
+
+    if (parcelId) {
+      const didNFT = createNftDidUrl({
+        chainId: `eip155:${NETWORK_ID}`,
+        namespace: "erc721",
+        contract: licenseAddress.toString().toLowerCase(),
+        tokenId: parcelId,
+      });
+
+      console.log(`didNFT: ${didNFT}`);
+
+      // Create stream
+      await parcelRootStreamManager.createOrUpdateStream(
+        {
+          name: parcelName,
+          webContent: parcelWebContentURI,
+        },
+        didNFT
+      );
+    }
   }
 
   let [newExpirationDate, isDateInvalid, isDateWarning] =

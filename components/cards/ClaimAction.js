@@ -74,12 +74,8 @@ function ClaimAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  function _claim(rootCID) {
+  async function _claim() {
     updateActionData({ isActing: true });
-    if (rootCID == null) {
-      updateActionData({ isActing: false, didFail: true });
-      return;
-    }
 
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -98,8 +94,8 @@ function ClaimAction({
       path = [BigNumber.from(0)];
     }
 
-    adminContract
-      .claim(
+    try {
+      const resp = await adminContract.claim(
         account,
         baseCoord.toString(10),
         path,
@@ -108,36 +104,31 @@ function ClaimAction({
           from: account,
           value: calculateWeiSubtotalField(displayNetworkFeePayment),
         }
-      )
-      .then((resp) => {
-        return resp.wait();
-      })
-      .then((receipt) => {
-        const filter = adminContract.filters.LicenseInfoUpdated(
-          null,
-          null,
-          null
-        );
-        return adminContract.queryFilter(
-          filter,
-          receipt.blockNumber,
-          receipt.blockNumber
-        );
-      })
-      .then((res) => {
-        let licenseId = res[0].args[0];
-        let _newParcelId = `0x${new BN(licenseId.toString()).toString(16)}`;
-        setNewParcelId(_newParcelId);
+      );
 
-        getNewParcel({
-          variables: { id: _newParcelId },
-          pollInterval: 2000,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        updateActionData({ isActing: false, didFail: true });
+      const receipt = await resp.wait();
+
+      const filter = adminContract.filters.LicenseInfoUpdated(null, null, null);
+      const res = await adminContract.queryFilter(
+        filter,
+        receipt.blockNumber,
+        receipt.blockNumber
+      );
+
+      let licenseId = res[0].args[0];
+      let _newParcelId = `0x${new BN(licenseId.toString()).toString(16)}`;
+      setNewParcelId(_newParcelId);
+
+      getNewParcel({
+        variables: { id: _newParcelId },
+        pollInterval: 2000,
       });
+
+      return licenseId;
+    } catch (error) {
+      console.log(error);
+      updateActionData({ isActing: false, didFail: true });
+    }
   }
 
   return (
