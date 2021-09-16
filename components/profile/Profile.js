@@ -25,7 +25,7 @@ function Profile(props) {
 
             <span style={{ position: "absolute", left: "15%", top: "20%", bottom: "20%",
                 fontFamily: "Abel", fontStyle: "normal", fontWeight: "normal", fontSize: 18, lineHeight: 15,
-                display: "flex", alignItems: "center", textAlign: "center", color: "#FFFFFF" }} >
+                display: "flex", alignItems: "center", textAlign: "center", color: "#FFFFFF", cursor: "pointer" }} >
                     {truncateEth(balance, 3) + " ETH"}
             </span>
 
@@ -35,7 +35,7 @@ function Profile(props) {
 
             <span style={{ position: "absolute", left: "61.52%", right: "7.58", top: "20%", bottom: "20%",
                 fontFamily: "Abel", fontStyle: "normal", fontWeight: "normal", fontSize: 18, lineHeight: 15, 
-                display: "flex", alignItems: "center", textAlign: "center", color: "#FFFFFF"}} > 
+                display: "flex", alignItems: "center", textAlign: "center", color: "#FFFFFF", cursor: "pointer" }} > 
                     {truncateStr(addr,14)} 
             </span>
             

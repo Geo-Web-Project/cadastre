@@ -47,9 +47,10 @@ function ProfileModal(props) {
                     </span>
 
                     <button type="button" style={{ background: "rgba(255, 255, 255, 0.43)", border: "1px solid #FFFFFF", boxSizing: "border-box", borderEadius: 5, 
-                        width: 96, height: 22, marginLeft: 10, fontSize: 15, lineHeight: 15, color: "#FFFFFF" }} onClick={ () => deactivateProfile() } >
-                    
-                    </button>
+                        width: 96, height: 22, marginLeft: 10, fontSize: 15, lineHeight: 15, color: "#FFFFFF" }} onClick={ () => deactivateProfile() } />
+
+                    <span style={{position: "absolute", width: 142, height: 9, left: "79%", top: "45%", color: "#FFFFFF", cursor: "pointer"}}>
+                    {`Disconnect`}</span>
 
                 </div>
             
@@ -58,12 +59,14 @@ function ProfileModal(props) {
 
                 <span style={{position: "absolute", top: "45%", left: "7%", color: "#FFFFFF"}}>{`Wallet Balance: ${balance} ETH`}</span>
                         
-                <span style={{position: "absolute", top: "55%", left: "7%", color: "#FFFFFF"}}>{`Unclaimed Transfer Proceeds: ${pendingWithdrawAmt} ETH`}</span>
+                <span style={{position: "absolute", top: "55%", left: "7%", color: "#FFFFFF"}}>
+                    {`Unclaimed Transfer Proceeds: ${ethers.utils.formatEther(pendingWithdrawAmt)} ETH`}
+                </span>
 
-                <Button disabled={false} style={{ position: "absolute", left: "66.92%", top: "72%", width: 140, height: 26, background: "#2FC1C1", borderRadius: 5, 
+                <Button style={{ position: "absolute", left: "66.92%", top: "72%", width: 140, height: 26, background: "#2FC1C1", borderRadius: 5, 
                     fontSize: 15, lineHeight: 15, color: "#FFFFFF" }} onClick={()=>adminContract.withdraw()}/>
                 
-                <span style={{position: "absolute", width: 142, height: 9, left: "72%", top: "72%", bottom: "32.65%", color: "#FFFFFF"}}>
+                <span style={{position: "absolute", width: 142, height: 9, left: "72%", top: "72%", bottom: "32.65%", color: "#FFFFFF", cursor: "pointer"}}>
                     {`Claim Proceeds`}</span>
 
             </Modal.Body>
