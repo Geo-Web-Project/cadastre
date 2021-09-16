@@ -166,7 +166,7 @@ export function ActionForm({
         chainId: `eip155:${NETWORK_ID}`,
         namespace: "erc721",
         contract: licenseAddress.toString().toLowerCase(),
-        tokenId: parcelId,
+        tokenId: parcelId.toString(),
       });
 
       console.log(`didNFT: ${didNFT}`);
