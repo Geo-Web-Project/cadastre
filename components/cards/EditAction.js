@@ -93,8 +93,6 @@ function EditAction({
       networkFeeIsUnchanged
     ) {
       // Content change only
-      updateActionData({ isActing: false });
-      setInteractionState(STATE_PARCEL_SELECTED);
       return;
     }
 
@@ -114,7 +112,6 @@ function EditAction({
 
       await resp.wait();
 
-      updateActionData({ isActing: false });
       refetchParcelData();
       setInteractionState(STATE_PARCEL_SELECTED);
     } catch (error) {
@@ -133,6 +130,7 @@ function EditAction({
         actionData={actionData}
         setActionData={setActionData}
         parcelIndexManager={parcelIndexManager}
+        setInteractionState={setInteractionState}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>

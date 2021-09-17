@@ -143,6 +143,7 @@ function ClaimAction({
         actionData={actionData}
         setActionData={setActionData}
         parcelIndexManager={parcelIndexManager}
+        setInteractionState={setInteractionState}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>

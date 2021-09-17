@@ -7,6 +7,7 @@ import { useParcelIndexManager } from "../lib/stream-managers/ParcelIndexManager
 import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
+import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 
 import {
   STATE_VIEWING,
@@ -30,6 +31,8 @@ function Sidebar({
   pinningManager,
 }) {
   const parcelIndexManager = useParcelIndexManager(ceramic);
+  const basicProfileStreamManager =
+    useBasicProfileStreamManager(parcelIndexManager);
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
@@ -45,7 +48,7 @@ function Sidebar({
   }, [adminContract]);
 
   React.useEffect(() => {
-    if (!adminContract || !parcelIndexManager) {
+    if (!adminContract || !parcelIndexManager || !basicProfileStreamManager) {
       return;
     }
 
@@ -60,9 +63,12 @@ function Sidebar({
           tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
         });
 
+        await parcelIndexManager.setExistingStreamId(null);
+        await basicProfileStreamManager.setExistingStreamId(null);
         await parcelIndexManager.setController(didNFT);
       } else {
         await parcelIndexManager.setController(null);
+        await basicProfileStreamManager.setExistingStreamId(null);
       }
     }
 
@@ -88,6 +94,7 @@ function Sidebar({
         ceramic={ceramic}
         ipfs={ipfs}
         parcelIndexManager={parcelIndexManager}
+        basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}

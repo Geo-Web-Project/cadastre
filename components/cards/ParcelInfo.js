@@ -22,7 +22,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
-import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -50,6 +49,7 @@ function ParcelInfo({
   ceramic,
   ipfs,
   parcelIndexManager,
+  basicProfileStreamManager,
   pinningManager,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
@@ -61,8 +61,6 @@ function ParcelInfo({
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
 
-  const basicProfileStreamManager =
-    useBasicProfileStreamManager(parcelIndexManager);
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
     : null;
@@ -71,10 +69,7 @@ function ParcelInfo({
     ? parcelIndexManager.getStreamId()
     : null;
   let isLoading =
-    loading ||
-    perSecondFeeNumerator == null ||
-    perSecondFeeDenominator == null ||
-    parcelContent == null;
+    loading || perSecondFeeNumerator == null || perSecondFeeDenominator == null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();
@@ -223,7 +218,7 @@ function ParcelInfo({
     title = (
       <>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {isLoading ? spinner : parcelContent.name}
+          {!parcelContent ? spinner : parcelContent.name}
         </h1>
       </>
     );
@@ -267,16 +262,14 @@ function ParcelInfo({
           interactionState == STATE_EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
-                {isLoading ? (
-                  spinner
-                ) : (
+                {!parcelContent ? null : hrefWebContent ? (
                   <a
                     href={hrefWebContent}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
                   >{`[${hrefWebContent}]`}</a>
-                )}
+                ) : null}
               </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Parcel ID:</span>{" "}

@@ -10,6 +10,7 @@ import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID } from "../../lib/constants";
+import { STATE_PARCEL_SELECTED } from "../Map";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -25,6 +26,7 @@ export function ActionForm({
   actionData,
   setActionData,
   parcelIndexManager,
+  setInteractionState,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -173,10 +175,17 @@ export function ActionForm({
       await parcelIndexManager.setController(didNFT);
     }
 
-    await parcelIndexManager.set("basicProfile", {
-      name: parcelName,
-      url: parcelWebContentURI,
-    });
+    let content = {};
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
+    await parcelIndexManager.set("basicProfile", content);
+
+    updateActionData({ isActing: false });
+    setInteractionState(STATE_PARCEL_SELECTED);
   }
 
   let [newExpirationDate, isDateInvalid, isDateWarning] =

@@ -109,9 +109,7 @@ function PurchaseAction({
         { from: account, value: actionData.transactionSubtotal }
       );
       await resp.wait();
-      updateActionData({ isActing: false });
       refetchParcelData();
-      setInteractionState(STATE_PARCEL_SELECTED);
     } catch (error) {
       console.error(error);
       updateActionData({ isActing: false, didFail: true });
@@ -129,6 +127,7 @@ function PurchaseAction({
         parcelIndexManager={parcelIndexManager}
         actionData={actionData}
         setActionData={setActionData}
+        setInteractionState={setInteractionState}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>
