@@ -24,7 +24,7 @@ export function ActionForm({
   performAction,
   actionData,
   setActionData,
-  parcelRootStreamManager,
+  parcelIndexManager,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -149,7 +149,7 @@ export function ActionForm({
   }
 
   async function submit() {
-    if (!parcelRootStreamManager) {
+    if (!parcelIndexManager) {
       console.error("ParcelContentManager not found");
       return;
     }
@@ -165,21 +165,18 @@ export function ActionForm({
       const didNFT = createNftDidUrl({
         chainId: `eip155:${NETWORK_ID}`,
         namespace: "erc721",
-        contract: licenseAddress.toString().toLowerCase(),
-        tokenId: parcelId.toString(),
+        contract: licenseAddress.toLowerCase(),
+        tokenId: parcelId,
       });
 
-      console.log(`didNFT: ${didNFT}`);
-
       // Create stream
-      await parcelRootStreamManager.createOrUpdateStream(
-        {
-          name: parcelName,
-          webContent: parcelWebContentURI,
-        },
-        didNFT
-      );
+      await parcelIndexManager.setController(didNFT);
     }
+
+    await parcelIndexManager.set("basicProfile", {
+      name: parcelName,
+      url: parcelWebContentURI,
+    });
   }
 
   let [newExpirationDate, isDateInvalid, isDateWarning] =
@@ -197,7 +194,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || parcelRootStreamManager == null;
+  let isLoading = loading || parcelIndexManager == null;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {

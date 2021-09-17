@@ -14,14 +14,14 @@ function EditAction({
   refetchParcelData,
   setInteractionState,
   adminAddress,
-  parcelRootStreamManager,
+  parcelIndexManager,
 }) {
   const [licenseContract, setLicenseContract] = React.useState(null);
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
-  const parcelContent = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamContent()
+  const parcelContent = parcelIndexManager
+    ? parcelIndexManager.getStreamContent()
     : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
@@ -130,7 +130,7 @@ function EditAction({
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
-        parcelRootStreamManager={parcelRootStreamManager}
+        parcelIndexManager={parcelIndexManager}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>

@@ -14,7 +14,7 @@ function PurchaseAction({
   setInteractionState,
   adminAddress,
   auctionValue,
-  parcelRootStreamManager,
+  parcelIndexManager,
   existingNetworkFeeBalance,
 }) {
   function _calculateNetworkFeeBalance(
@@ -42,8 +42,8 @@ function PurchaseAction({
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
-  const parcelContent = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamContent()
+  const parcelContent = parcelIndexManager
+    ? parcelIndexManager.getStreamContent()
     : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
@@ -126,7 +126,7 @@ function PurchaseAction({
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_purchase}
-        parcelRootStreamManager={parcelRootStreamManager}
+        parcelIndexManager={parcelIndexManager}
         actionData={actionData}
         setActionData={setActionData}
       />

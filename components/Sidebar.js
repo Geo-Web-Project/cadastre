@@ -3,9 +3,10 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import { useRootStreamManager } from "../lib/stream-managers/RootStreamManager";
+import { useParcelIndexManager } from "../lib/stream-managers/ParcelIndexManager";
 import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID } from "../lib/constants";
+import BN from "bn.js";
 
 import {
   STATE_VIEWING,
@@ -28,14 +29,7 @@ function Sidebar({
   ipfs,
   pinningManager,
 }) {
-  const didNFT = createNftDidUrl({
-    chainId: `eip155:${NETWORK_ID}`,
-    namespace: "erc721",
-    contract: adminAddress.toLowerCase(),
-    tokenId: selectedParcelId,
-  });
-
-  const parcelRootStreamManager = useRootStreamManager(ceramic, didNFT);
+  const parcelIndexManager = useParcelIndexManager(ceramic);
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
@@ -49,6 +43,31 @@ function Sidebar({
       setPerSecondFeeDenominator(_perSecondFeeDenominator);
     });
   }, [adminContract]);
+
+  React.useEffect(() => {
+    if (!adminContract || !parcelIndexManager) {
+      return;
+    }
+
+    async function updateParcelIndexManager() {
+      const licenseAddress = await adminContract.licenseContract();
+
+      if (selectedParcelId) {
+        const didNFT = createNftDidUrl({
+          chainId: `eip155:${NETWORK_ID}`,
+          namespace: "erc721",
+          contract: licenseAddress.toLowerCase(),
+          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+        });
+
+        await parcelIndexManager.setController(didNFT);
+      } else {
+        await parcelIndexManager.setController(null);
+      }
+    }
+
+    updateParcelIndexManager();
+  }, [parcelIndexManager, selectedParcelId, adminContract]);
 
   return (
     <Col
@@ -68,7 +87,7 @@ function Sidebar({
         adminAddress={adminAddress}
         ceramic={ceramic}
         ipfs={ipfs}
-        parcelRootStreamManager={parcelRootStreamManager}
+        parcelIndexManager={parcelIndexManager}
         pinningManager={pinningManager}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
@@ -84,7 +103,7 @@ function Sidebar({
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             adminAddress={adminAddress}
-            parcelRootStreamManager={parcelRootStreamManager}
+            parcelIndexManager={parcelIndexManager}
           ></ClaimAction>
         </>
       ) : null}

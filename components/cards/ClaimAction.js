@@ -26,7 +26,7 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  parcelRootStreamManager,
+  parcelIndexManager,
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
@@ -142,7 +142,7 @@ function ClaimAction({
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        parcelRootStreamManager={parcelRootStreamManager}
+        parcelIndexManager={parcelIndexManager}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
     </>

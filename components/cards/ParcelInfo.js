@@ -28,7 +28,6 @@ const parcelQuery = gql`
     landParcel(id: $id) {
       id
       license {
-        rootCID
         owner
         value
         expirationTimestamp
@@ -49,7 +48,7 @@ function ParcelInfo({
   adminAddress,
   ceramic,
   ipfs,
-  parcelRootStreamManager,
+  parcelIndexManager,
   pinningManager,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
@@ -61,11 +60,11 @@ function ParcelInfo({
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
 
-  const parcelContent = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamContent()
+  const parcelContent = parcelIndexManager
+    ? parcelIndexManager.getStreamContent()
     : null;
-  const parcelContentStreamId = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamId()
+  const parcelContentStreamId = parcelIndexManager
+    ? parcelIndexManager.getStreamId()
     : null;
   let isLoading =
     loading ||
@@ -94,12 +93,6 @@ function ParcelInfo({
         perSecondFeeNumerator &&
         perSecondFeeDenominator
       ) {
-        if (data.landParcel.license.rootCID && parcelRootStreamManager) {
-          await parcelRootStreamManager.setExistingStreamId(
-            data.landParcel.license.rootCID
-          );
-        }
-
         if (networkFeeBalance == null) {
           setInterval(() => {
             setNetworkFeeBalance(
@@ -115,7 +108,7 @@ function ParcelInfo({
     data,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    parcelRootStreamManager,
+    parcelIndexManager,
   ]);
 
   const spinner = (
@@ -344,7 +337,7 @@ function ParcelInfo({
               parcelData={data}
               refetchParcelData={refetch}
               adminAddress={adminAddress}
-              parcelRootStreamManager={parcelRootStreamManager}
+              parcelIndexManager={parcelIndexManager}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -359,7 +352,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               adminAddress={adminAddress}
               auctionValue={auctionValue}
-              parcelRootStreamManager={parcelRootStreamManager}
+              parcelIndexManager={parcelIndexManager}
               existingNetworkFeeBalance={networkFeeBalance}
             />
           ) : null}
@@ -369,7 +362,7 @@ function ParcelInfo({
         ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
-        parcelRootStreamManager={parcelRootStreamManager}
+        parcelIndexManager={parcelIndexManager}
         ceramic={ceramic}
         pinningManager={pinningManager}
       ></GalleryModal>
