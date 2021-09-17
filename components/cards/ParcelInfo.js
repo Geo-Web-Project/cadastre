@@ -22,6 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
+import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -60,10 +61,13 @@ function ParcelInfo({
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
 
-  const parcelContent = parcelIndexManager
-    ? parcelIndexManager.getStreamContent()
+  const basicProfileStreamManager =
+    useBasicProfileStreamManager(parcelIndexManager);
+  const parcelContent = basicProfileStreamManager
+    ? basicProfileStreamManager.getStreamContent()
     : null;
-  const parcelContentStreamId = parcelIndexManager
+
+  const parcelIndexStreamId = parcelIndexManager
     ? parcelIndexManager.getStreamId()
     : null;
   let isLoading =
@@ -148,13 +152,13 @@ function ParcelInfo({
   // Translate ipfs:// to case-insensitive base
   if (
     parcelContent &&
-    parcelContent.webContent &&
-    parcelContent.webContent.startsWith("ipfs://")
+    parcelContent.url &&
+    parcelContent.url.startsWith("ipfs://")
   ) {
-    const cid = new CID(parcelContent.webContent.split("ipfs://")[1]);
+    const cid = new CID(parcelContent.url.split("ipfs://")[1]);
     hrefWebContent = `ipfs://${cid.toV1().toBaseEncodedString("base32")}`;
   } else if (parcelContent) {
-    hrefWebContent = parcelContent.webContent;
+    hrefWebContent = parcelContent.url;
   }
 
   let cancelButton = (
@@ -297,16 +301,16 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Stream ID:</span>{" "}
-                {parcelContentStreamId == null ? (
+                <span className="font-weight-bold">Index Stream ID:</span>{" "}
+                {parcelIndexStreamId == null ? (
                   spinner
                 ) : (
                   <a
-                    href={`https://tiles.ceramic.community/document/${parcelContentStreamId}`}
+                    href={`https://tiles.ceramic.community/document/${parcelIndexStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`ceramic://${parcelContentStreamId}`}</a>
+                  >{`ceramic://${parcelIndexStreamId}`}</a>
                 )}
               </p>
               {isExpired ? (
@@ -338,6 +342,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               adminAddress={adminAddress}
               parcelIndexManager={parcelIndexManager}
+              basicProfileStreamManager={basicProfileStreamManager}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (

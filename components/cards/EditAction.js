@@ -15,13 +15,15 @@ function EditAction({
   setInteractionState,
   adminAddress,
   parcelIndexManager,
+  basicProfileStreamManager,
 }) {
   const [licenseContract, setLicenseContract] = React.useState(null);
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
-  const parcelContent = parcelIndexManager
-    ? parcelIndexManager.getStreamContent()
+
+  const parcelContent = basicProfileStreamManager
+    ? basicProfileStreamManager.getStreamContent()
     : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
@@ -34,7 +36,7 @@ function EditAction({
       ? displayCurrentForSalePrice
       : "",
     parcelName: parcelContent ? parcelContent.name : null,
-    parcelWebContentURI: parcelContent ? parcelContent.webContent : null,
+    parcelWebContentURI: parcelContent ? parcelContent.url : null,
   });
 
   function updateActionData(updatedValues) {
