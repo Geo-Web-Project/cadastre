@@ -63,7 +63,6 @@ import { Spinner } from "../components/spinner";
 
 import { ethers } from "ethers";
 import { DID } from "dids";
-import { usePinningManager } from "../lib/PinningManager";
 import { useFirebase } from "../lib/Firebase";
 
 const { getIpfs, providers } = require("ipfs-provider");
@@ -165,7 +164,6 @@ function IndexPageContent() {
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
   const { firebasePerf } = useFirebase();
-  const pinningManager = usePinningManager(ceramic, ipfs, firebasePerf);
 
   // handle logic to recognize the connector currently being activated
   const [activatingConnector, setActivatingConnector] = React.useState();
@@ -608,7 +606,7 @@ function IndexPageContent() {
               ceramic={ceramic}
               adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}
-              pinningManager={pinningManager}
+              firebasePerf={firebasePerf}
             ></Map>
           </Row>
         ) : (

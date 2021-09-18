@@ -104,7 +104,7 @@ function Map({
   account,
   ceramic,
   ipfs,
-  pinningManager,
+  firebasePerf,
 }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
@@ -360,7 +360,7 @@ function Map({
           setSelectedParcelId={setSelectedParcelId}
           ceramic={ceramic}
           ipfs={ipfs}
-          pinningManager={pinningManager}
+          firebasePerf={firebasePerf}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">

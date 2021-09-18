@@ -146,6 +146,7 @@ export function GalleryForm({
       try {
         await pinningManager.pinCid(name, cid);
       } catch (err) {
+        console.error(err);
         setDidFail(true);
         setIsSaving(false);
         return;

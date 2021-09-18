@@ -8,7 +8,7 @@ import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
 import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
-
+import { usePinningManager } from "../lib/PinningManager";
 import {
   STATE_VIEWING,
   STATE_CLAIM_SELECTING,
@@ -28,11 +28,18 @@ function Sidebar({
   setSelectedParcelId,
   ceramic,
   ipfs,
-  pinningManager,
+  firebasePerf,
 }) {
   const parcelIndexManager = useParcelIndexManager(ceramic);
   const basicProfileStreamManager =
     useBasicProfileStreamManager(parcelIndexManager);
+  const pinningManager = usePinningManager(
+    ceramic,
+    ipfs,
+    firebasePerf,
+    parcelIndexManager
+  );
+
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
