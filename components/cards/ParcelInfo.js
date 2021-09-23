@@ -218,7 +218,11 @@ function ParcelInfo({
     title = (
       <>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {!parcelContent ? spinner : parcelContent.name}
+          {!basicProfileStreamManager
+            ? spinner
+            : parcelContent
+            ? parcelContent.name
+            : "[No Name Found]"}
         </h1>
       </>
     );
