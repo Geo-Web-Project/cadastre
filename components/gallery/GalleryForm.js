@@ -133,7 +133,8 @@ export function GalleryForm({
 
     if (mediaGalleryItem) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
-        mediaGalleryStreamManager.ceramic
+        mediaGalleryStreamManager.ceramic,
+        mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
         mediaGalleryItem
