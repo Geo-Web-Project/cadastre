@@ -355,6 +355,7 @@ function ParcelInfo({
               adminAddress={adminAddress}
               auctionValue={auctionValue}
               parcelIndexManager={parcelIndexManager}
+              basicProfileStreamManager={basicProfileStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
             />
           ) : null}

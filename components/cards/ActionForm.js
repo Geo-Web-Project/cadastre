@@ -26,6 +26,7 @@ export function ActionForm({
   actionData,
   setActionData,
   parcelIndexManager,
+  basicProfileStreamManager,
   setInteractionState,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
@@ -182,7 +183,7 @@ export function ActionForm({
     if (parcelWebContentURI) {
       content["url"] = parcelWebContentURI;
     }
-    await parcelIndexManager.set("basicProfile", content);
+    await basicProfileStreamManager.createOrUpdateStream(content);
 
     updateActionData({ isActing: false });
     setInteractionState(STATE_PARCEL_SELECTED);

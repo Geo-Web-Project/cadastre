@@ -130,6 +130,7 @@ function EditAction({
         actionData={actionData}
         setActionData={setActionData}
         parcelIndexManager={parcelIndexManager}
+        basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>

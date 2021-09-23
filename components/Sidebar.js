@@ -91,6 +91,7 @@ function Sidebar({
             perSecondFeeDenominator={perSecondFeeDenominator}
             adminAddress={adminAddress}
             parcelIndexManager={parcelIndexManager}
+            basicProfileStreamManager={basicProfileStreamManager}
           ></ClaimAction>
         </>
       ) : null}

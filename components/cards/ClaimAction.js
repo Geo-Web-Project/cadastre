@@ -27,6 +27,7 @@ function ClaimAction({
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   parcelIndexManager,
+  basicProfileStreamManager,
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
@@ -143,6 +144,7 @@ function ClaimAction({
         actionData={actionData}
         setActionData={setActionData}
         parcelIndexManager={parcelIndexManager}
+        basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
       />
       <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>

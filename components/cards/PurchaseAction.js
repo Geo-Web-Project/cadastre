@@ -15,6 +15,7 @@ function PurchaseAction({
   adminAddress,
   auctionValue,
   parcelIndexManager,
+  basicProfileStreamManager,
   existingNetworkFeeBalance,
 }) {
   function _calculateNetworkFeeBalance(
@@ -125,6 +126,7 @@ function PurchaseAction({
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_purchase}
         parcelIndexManager={parcelIndexManager}
+        basicProfileStreamManager={basicProfileStreamManager}
         actionData={actionData}
         setActionData={setActionData}
         setInteractionState={setInteractionState}
