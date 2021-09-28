@@ -386,7 +386,7 @@ function Map({
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "18vh", right: "-26vw", zIndex: 1 }}
+          style={{ position: "absolute", top: "18vh", left: "81vw", zIndex: 1 }}
         />
         <ReactMapGL
           ref={mapRef}
