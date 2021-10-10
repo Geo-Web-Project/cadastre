@@ -168,7 +168,7 @@ function Map({
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
-  }, []);
+  });
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
   const _onGeocoderViewportChange = useCallback((newViewport) => {
