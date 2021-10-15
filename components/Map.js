@@ -155,7 +155,11 @@ function Map({
     (interactionState == STATE_CLAIM_SELECTING ||
       interactionState == STATE_CLAIM_SELECTED);
 
-  const _onViewportChange = useCallback((nextViewport) => {
+  const _onViewportSearch = useCallback((nextViewport) => {
+    setViewport(nextViewport);
+  }, []);
+  
+  function _onViewportChange(nextViewport) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
     }
@@ -168,17 +172,17 @@ function Map({
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
-  }, [_onViewportChange]);
+  }
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
   const _onGeocoderViewportChange = useCallback((newViewport) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
-      return _onViewportChange({
+      return _onViewportSearch({
         ...newViewport,
         ...geocoderDefaultOverrides
       });
-  }, [_onViewportChange]);
+  }, [_onViewportSearch]);
 
 
   function onHover(event) {
