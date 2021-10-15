@@ -18,9 +18,9 @@ function FaucetInfo({ account, adminAddress }) {
         <Card.Text className="font-italic">
           <p>You need Kovan ETH to transact on this Cadastre Testnet.</p>
           <p>
-            Get free kETH from the{" "}
+            Get free kETH from this{" "}
             <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              Kovan Faucet with your Github ID.
+              Kovan Faucet.
             </a>
           </p>
         </Card.Text>
