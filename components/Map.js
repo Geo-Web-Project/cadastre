@@ -1,6 +1,7 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMapGL from "react-map-gl";
+import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 import GridHoverSource from "./sources/GridHoverSource";
@@ -8,6 +9,9 @@ import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
+
+import "mapbox-gl/dist/mapbox-gl.css";
+import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -112,6 +116,10 @@ function Map({
     },
   });
 
+
+  const geocoderContainerRef = useRef();
+  const mapRef = useRef();
+
   // Fetch more until none left
   useEffect(() => {
     if (data == null || data.geoWebCoordinates.length == 0) {
@@ -147,6 +155,10 @@ function Map({
     (interactionState == STATE_CLAIM_SELECTING ||
       interactionState == STATE_CLAIM_SELECTED);
 
+  const _onViewportSearch = useCallback((nextViewport) => {
+    setViewport(nextViewport);
+  }, []);
+  
   function _onViewportChange(nextViewport) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
@@ -161,6 +173,17 @@ function Map({
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
   }
+
+  // if using Geocoder default settings, you can just use handleViewportChange directly
+  const _onGeocoderViewportChange = useCallback((newViewport) => {
+      const geocoderDefaultOverrides = { transitionDuration: 1000 };
+
+      return _onViewportSearch({
+        ...newViewport,
+        ...geocoderDefaultOverrides
+      });
+  }, [_onViewportSearch]);
+
 
   function onHover(event) {
     if (event.features == null || viewport.zoom < 5) {
@@ -364,7 +387,13 @@ function Map({
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
+        <div
+          id="geocoder"
+          ref={geocoderContainerRef}
+          style={{ position: "absolute", top: "18vh", left: "81vw", zIndex: 1 }}
+        />
         <ReactMapGL
+          ref={mapRef}
           {...viewport}
           width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
           height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
@@ -391,6 +420,13 @@ function Map({
             isValidClaim={isValidClaim}
             setIsValidClaim={setIsValidClaim}
           ></ClaimSource>
+          <Geocoder
+            mapRef={mapRef}
+            containerRef={geocoderContainerRef}
+            onViewportChange={_onGeocoderViewportChange}
+            mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+            position="top-right"
+          />
         </ReactMapGL>
       </Col>
     </>
