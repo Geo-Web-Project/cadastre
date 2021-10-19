@@ -20,7 +20,7 @@ function FaucetInfo({ account, adminAddress }) {
           <p>
             Get free {PAYMENT_TOKEN} from this{" "}
             <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              Faucet.
+              faucet.
             </a>
           </p>
         </Card.Text>
