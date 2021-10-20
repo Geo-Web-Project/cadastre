@@ -18,9 +18,9 @@ function FaucetInfo({ account, adminAddress }) {
         <Card.Text className="font-italic">
           <p>You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.</p>
           <p>
-            Get free {PAYMENT_TOKEN} from the{" "}
+            Get free {PAYMENT_TOKEN} from this{" "}
             <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              Faucet with your Github ID.
+              faucet.
             </a>
           </p>
         </Card.Text>
