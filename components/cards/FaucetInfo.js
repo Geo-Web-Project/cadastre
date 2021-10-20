@@ -13,14 +13,14 @@ function FaucetInfo({ account, adminAddress }) {
     <Card border="secondary" className="bg-dark my-5">
       <Card.Body>
         <Card.Title className="text-primary font-weight-bold">
-          Claim kETH
+          Claim {PAYMENT_TOKEN}
         </Card.Title>
         <Card.Text className="font-italic">
-          <p>You need Kovan ETH to transact on this Cadastre Testnet.</p>
+          <p>You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.</p>
           <p>
-            Get free kETH from the{" "}
+            Get free {PAYMENT_TOKEN} from this{" "}
             <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              Kovan Faucet with your Github ID.
+              faucet.
             </a>
           </p>
         </Card.Text>
