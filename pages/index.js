@@ -502,8 +502,8 @@ function IndexPageContent() {
   };
 
   const Connector = () => {
-    console.debug("chainId : " + chainId);
-    console.debug("isActive : " + active);
+    //console.debug("chainId : " + chainId);
+    //console.debug("isActive : " + active);
     if (!active) {
       return (
         <Button
