@@ -9,6 +9,8 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
+import { galleryFileFormats } from "./GalleryFileFormat";
+
 export function GalleryForm({
   pinningManager,
   ipfs,
@@ -261,12 +263,13 @@ export function GalleryForm({
                 <option value="" selected>
                   Select a File Format
                 </option>
-                <option value="model/gltf-binary">
-                  .glb (model/gltf-binary)
-                </option>
-                <option value="model/vnd.usdz+zip">
-                  .usdz (model/vnd.usdz+zip)
-                </option>
+
+                {galleryFileFormats.map((_format)=>(
+                  <option value={_format.encoding}>
+                    `{_format.extension} (${_format.extension})`
+                  </option>
+                ))}
+
               </Form.Control>
             </div>
           </Col>
