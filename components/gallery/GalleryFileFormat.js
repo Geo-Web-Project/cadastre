@@ -1,11 +1,28 @@
-export default galleryFileFormats = [
-    { extension: ".glb", encoding: "model/gltf-binary" },
-    { extension: ".usdz", encoding: "model/vnd.usdz+zip" },
-    { extension: ".mp3", encoding: "audio/mpeg" },
-    { extension: ".mp4", encoding: "audio/mp4" },
-    { extension: ".jpeg", encoding: "image/jpeg" },
-    { extension: ".gif", encoding: "image/gif" },
-    { extension: ".png", encoding: "image/png" },
-    { extension: ".svg", encoding: "image/svg+xml" },
-    { extension: ".mpeg", encoding: "video/mpeg" },
+const galleryFileFormats = [
+    { extension: ".glb", encoding: "model/gltf-binary", type: "3DModel" },
+    { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" },
+    { extension: ".mp3", encoding: "audio/mpeg", type: "AudioObject" },
+    { extension: ".mp4", encoding: "audio/mp4", type: "AudioObject" },
+    { extension: ".jpeg", encoding: "image/jpeg", type: "ImageObject" },
+    { extension: ".gif", encoding: "image/gif", type: "ImageObject" },
+    { extension: ".png", encoding: "image/png", type: "ImageObject" },
+    { extension: ".svg", encoding: "image/svg+xml", type: "ImageObject" },
+    { extension: ".mpeg", encoding: "video/mpeg", type: "VideoObject" },
 ]
+ 
+const getFormat = (_filename) => {
+    
+    let _extension = "." + _filename.split(".").pop();
+    let _format = {};
+
+    galleryFileFormats.forEach((e)=>{
+        if(e.extension === _extension){
+            _format.encoding = e.encoding;
+            _format.type = e.type;
+        }
+    })
+
+    return _format;
+}
+
+export { galleryFileFormats, getFormat }

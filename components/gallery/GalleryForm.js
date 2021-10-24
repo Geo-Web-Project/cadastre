@@ -9,7 +9,7 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
-import { galleryFileFormats } from "./GalleryFileFormat";
+import { galleryFileFormats, getFormat } from "./GalleryFileFormat";
 
 export function GalleryForm({
   pinningManager,
@@ -90,14 +90,10 @@ export function GalleryForm({
 
     setIsUploading(true);
 
-    let format;
-    if (file.name.endsWith(".glb")) {
-      format = "model/gltf-binary";
-    } else if (file.name.endsWith(".usdz")) {
-      format = "model/vnd.usdz+zip";
-    }
+    let {encoding, type} = getFormat(file.name)
+    debugger;
 
-    setDetectedFileFormat(format);
+    setDetectedFileFormat(encoding);
 
     // Manually preload synchronously
     ipfs.preload.stop();
@@ -106,9 +102,9 @@ export function GalleryForm({
     await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
-      "@type": "3DModel",
+      "@type": type,
       contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
-      encodingFormat: format,
+      encodingFormat: encoding,
     });
 
     setIsUploading(false);
@@ -266,7 +262,7 @@ export function GalleryForm({
 
                 {galleryFileFormats.map((_format)=>(
                   <option value={_format.encoding}>
-                    `{_format.extension} (${_format.extension})`
+                    {_format.extension} ({_format.encoding})
                   </option>
                 ))}
 
