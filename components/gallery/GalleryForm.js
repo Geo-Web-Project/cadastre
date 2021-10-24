@@ -58,6 +58,7 @@ export function GalleryForm({
   }
 
   function updateContentUrl(event) {
+    debugger;
     const cid = event.target.value;
 
     if (!cid || cid.length == 0) {
@@ -91,7 +92,6 @@ export function GalleryForm({
     setIsUploading(true);
 
     let {encoding, type} = getFormat(file.name)
-    debugger;
 
     setDetectedFileFormat(encoding);
 

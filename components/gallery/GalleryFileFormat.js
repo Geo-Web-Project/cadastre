@@ -8,6 +8,7 @@ const galleryFileFormats = [
     { extension: ".png", encoding: "image/png", type: "ImageObject" },
     { extension: ".svg", encoding: "image/svg+xml", type: "ImageObject" },
     { extension: ".mpeg", encoding: "video/mpeg", type: "VideoObject" },
+    { extension: ".mp4", encoding: "video/mp4", type: "VideoObject" }
 ]
  
 const getFormat = (_filename) => {
