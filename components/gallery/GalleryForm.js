@@ -9,7 +9,7 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
-import { galleryFileFormats, getFormat } from "./GalleryFileFormat";
+import { galleryFileFormats, getFormat, getFormatCS } from "./GalleryFileFormat";
 
 export function GalleryForm({
   pinningManager,
@@ -58,7 +58,7 @@ export function GalleryForm({
   }
 
   function updateContentUrl(event) {
-    debugger;
+    
     const cid = event.target.value;
 
     if (!cid || cid.length == 0) {
@@ -84,6 +84,8 @@ export function GalleryForm({
     event.preventDefault();
 
     const file = event.target.files[0];
+
+    debugger
 
     if (!file) {
       return;
@@ -229,7 +231,7 @@ export function GalleryForm({
                 <FormFile.Input
                   id="uploadCid"
                   style={{ backgroundColor: "#111320", border: "none" }}
-                  accept=".glb, .usdz"
+                  accept={getFormatCS()}
                   disabled={isUploading || selectedMediaGalleryItemManager}
                   onChange={captureFile}
                   hidden

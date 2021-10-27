@@ -26,4 +26,10 @@ const getFormat = (_filename) => {
     return _format;
 }
 
-export { galleryFileFormats, getFormat }
+const getFormatCS = () => {
+
+    let _formats = galleryFileFormats.map(f => {return f.extension} )
+    return _formats.toString()
+}
+
+export { galleryFileFormats, getFormat, getFormatCS }
