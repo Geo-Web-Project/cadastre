@@ -10,6 +10,9 @@ import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
 
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Button from "react-bootstrap/Button";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
@@ -119,6 +122,15 @@ function Map({
 
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
+
+
+  const [mapstyle, setMapstyle] = React.useState("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
+
+  const handleMapstyle = (newStyle) => {
+    if(newStyle === "satellite") setMapstyle("mapbox://styles/mapbox/satellite-streets-v11")
+    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln")
+  };
+
 
   // Fetch more until none left
   useEffect(() => {
@@ -398,7 +410,7 @@ function Map({
           width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
           height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+          mapStyle={mapstyle}
           mapOptions={{
             renderWorldCopies: false,
           }}
@@ -429,6 +441,12 @@ function Map({
           />
         </ReactMapGL>
       </Col>
+
+      <ButtonGroup style={{position: "absolute", bottom: "2%", right: "2%" }} aria-label="Basic example">
+        <Button variant="secondary" onClick={()=>handleMapstyle("satellite")} >Satellite</Button>
+        <Button variant="secondary" onClick={()=>handleMapstyle("street")} >Street</Button>
+      </ButtonGroup>
+    );
     </>
   );
 }
