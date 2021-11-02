@@ -125,10 +125,13 @@ function Map({
 
 
   const [mapstyle, setMapstyle] = React.useState("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
+  const [mapStyleName, setMapStyleName] = React.useState("street")
 
   const handleMapstyle = (newStyle) => {
     if(newStyle === "satellite") setMapstyle("mapbox://styles/mapbox/satellite-streets-v11")
     else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln")
+
+    setMapStyleName(newStyle);
   };
 
 
@@ -442,9 +445,14 @@ function Map({
         </ReactMapGL>
       </Col>
 
-      <ButtonGroup style={{position: "absolute", bottom: "2%", right: "2%" }} aria-label="Basic example">
-        <Button variant="secondary" onClick={()=>handleMapstyle("satellite")} >Satellite</Button>
-        <Button variant="secondary" onClick={()=>handleMapstyle("street")} >Street</Button>
+      <ButtonGroup style={{position: "absolute", bottom: "2%", right: "2%", backgroundColor: "#202333", radius: 12 }} 
+      aria-label="Basic example">
+        <Button style={{ backgroundColor: mapStyleName==="street"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("street")} >
+          <img src={"street_ic.png"} style={{ height:30, width: 30 }} />
+        </Button>
+        <Button style={{ backgroundColor: mapStyleName==="satellite"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("satellite")} >
+          <img src={"satellite_ic.png"} style={{ height:30, width: 30 }} />
+        </Button>
       </ButtonGroup>
     );
     </>
