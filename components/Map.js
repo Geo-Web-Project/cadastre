@@ -445,7 +445,7 @@ function Map({
         </ReactMapGL>
       </Col>
 
-      <ButtonGroup style={{position: "absolute", bottom: "2%", right: "2%", backgroundColor: "#202333", radius: 12 }} 
+      <ButtonGroup style={{position: "absolute", bottom: "4%", right: "2%", radius: 12 }} 
       aria-label="Basic example">
         <Button style={{ backgroundColor: mapStyleName==="street"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("street")} >
           <img src={"street_ic.png"} style={{ height:30, width: 30 }} />
