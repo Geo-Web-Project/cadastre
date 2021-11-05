@@ -1,12 +1,14 @@
 import * as React from "react";
 import { ethers, BigNumber } from "ethers";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
+import {
+  ActionForm,
+  calculateWeiSubtotalField,
+  fromValueToRate,
+} from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-const erc721LicenseABI = require("../../contracts/ERC721License.json");
 
 function EditAction({
-  adminContract,
   collectorContract,
   account,
   perSecondFeeNumerator,
@@ -18,7 +20,6 @@ function EditAction({
   parcelIndexManager,
   basicProfileStreamManager,
 }) {
-  const [licenseContract, setLicenseContract] = React.useState(null);
   const displayCurrentForSalePrice = ethers.utils.formatEther(
     ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
   );
@@ -60,26 +61,6 @@ function EditAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  React.useEffect(() => {
-    if (!adminContract) {
-      return;
-    }
-
-    async function updateLicenseContract() {
-      const _licenseContract = new ethers.Contract(
-        await adminContract.licenseContract(),
-        erc721LicenseABI,
-        adminContract.provider
-      );
-      let _licenseContractWithSigner = _licenseContract.connect(
-        adminContract.provider.getSigner()
-      );
-      setLicenseContract(_licenseContractWithSigner);
-    }
-
-    updateLicenseContract();
-  }, [adminContract]);
-
   async function _edit() {
     updateActionData({ isActing: true });
 
@@ -102,9 +83,14 @@ function EditAction({
       displayNetworkFeePayment.length > 0 ? networkFeePayment : 0;
 
     try {
-      const resp = await adminContract.updateValue(
-        parcelData.landParcel.id,
+      const newContributionRate = fromValueToRate(
         newForSalePrice,
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+      const resp = await collectorContract.setContributionRate(
+        parcelData.landParcel.id,
+        newContributionRate,
         {
           from: account,
           value: paymentValue,

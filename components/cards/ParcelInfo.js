@@ -329,7 +329,6 @@ function ParcelInfo({
           )}
           {interactionState == STATE_PARCEL_EDITING ? (
             <EditAction
-              adminContract={adminContract}
               collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
