@@ -23,7 +23,6 @@ const newParcelQuery = gql`
 function ClaimAction({
   claimerContract,
   collectorContract,
-  adminAddress,
   account,
   claimBase1Coord,
   claimBase2Coord,
@@ -158,7 +157,7 @@ function ClaimAction({
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }

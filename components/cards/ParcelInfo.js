@@ -39,7 +39,6 @@ const parcelQuery = gql`
 
 function ParcelInfo({
   account,
-  adminContract,
   collectorContract,
   purchaserContract,
   interactionState,
@@ -48,7 +47,6 @@ function ParcelInfo({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  adminAddress,
   ceramic,
   ipfs,
   parcelIndexManager,
@@ -314,7 +312,7 @@ function ParcelInfo({
                 <>
                   <hr className="border-secondary" />
                   <AuctionInfo
-                    adminContract={adminContract}
+                    purchaserContract={purchaserContract}
                     licenseInfo={data.landParcel.license}
                     auctionValue={auctionValue}
                     setAuctionValue={setAuctionValue}
@@ -337,7 +335,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
             />
@@ -353,7 +350,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
               auctionValue={auctionValue}
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}

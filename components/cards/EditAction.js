@@ -16,7 +16,6 @@ function EditAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  adminAddress,
   parcelIndexManager,
   basicProfileStreamManager,
 }) {
@@ -120,7 +119,7 @@ function EditAction({
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }

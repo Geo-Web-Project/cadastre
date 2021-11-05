@@ -14,7 +14,6 @@ import {
 } from "./Map";
 
 function Sidebar({
-  adminAddress,
   adminContract,
   claimerContract,
   collectorContract,
@@ -66,7 +65,6 @@ function Sidebar({
     >
       <ParcelInfo
         account={account}
-        adminContract={adminContract}
         collectorContract={collectorContract}
         purchaserContract={purchaserContract}
         interactionState={interactionState}
@@ -75,7 +73,6 @@ function Sidebar({
         setSelectedParcelId={setSelectedParcelId}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        adminAddress={adminAddress}
         ceramic={ceramic}
         ipfs={ipfs}
         parcelIndexManager={parcelIndexManager}
@@ -95,7 +92,6 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            adminAddress={adminAddress}
             parcelIndexManager={parcelIndexManager}
             basicProfileStreamManager={basicProfileStreamManager}
           ></ClaimAction>

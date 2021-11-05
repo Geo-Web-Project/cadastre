@@ -19,7 +19,6 @@ function PurchaseAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  adminAddress,
   auctionValue,
   parcelIndexManager,
   basicProfileStreamManager,
@@ -131,7 +130,7 @@ function PurchaseAction({
         setActionData={setActionData}
         setInteractionState={setInteractionState}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }
