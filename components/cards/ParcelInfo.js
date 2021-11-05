@@ -29,7 +29,7 @@ const parcelQuery = gql`
       id
       license {
         owner
-        value
+        contributionRate
         expirationTimestamp
       }
     }
@@ -77,21 +77,14 @@ function ParcelInfo({
       .mul(1000)
       .sub(now)
       .div(1000)
-      .mul(BigNumber.from(license.value))
-      .mul(perSecondFeeNumerator.toNumber())
-      .div(perSecondFeeDenominator.toNumber());
+      .mul(BigNumber.from(license.contributionRate));
 
     return networkFeeBalance < 0 ? BigNumber.from(0) : networkFeeBalance;
   }
 
   useEffect(() => {
     async function updateContent() {
-      if (
-        data &&
-        data.landParcel &&
-        perSecondFeeNumerator &&
-        perSecondFeeDenominator
-      ) {
+      if (data && data.landParcel) {
         if (networkFeeBalance == null) {
           setInterval(() => {
             setNetworkFeeBalance(
@@ -103,12 +96,7 @@ function ParcelInfo({
     }
 
     updateContent();
-  }, [
-    data,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator,
-    parcelIndexManager,
-  ]);
+  }, [data, parcelIndexManager]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -121,11 +109,18 @@ function ParcelInfo({
   let networkFeeBalanceDisplay;
   let licenseOwner;
   let isExpired;
-  if (data && data.landParcel) {
+  if (
+    data &&
+    data.landParcel &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+  ) {
+    const value = data.landParcel.license.contributionRate
+      .mul(perSecondFeeDenominator)
+      .div(perSecondFeeNumerator);
     forSalePrice = (
       <>
-        {ethers.utils.formatEther(data.landParcel.license.value)}{" "}
-        {PAYMENT_TOKEN}{" "}
+        {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
       </>
     );
     if (networkFeeBalance != null) {
