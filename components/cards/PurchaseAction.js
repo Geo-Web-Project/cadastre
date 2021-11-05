@@ -8,7 +8,6 @@ import {
 } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
-import { fromRateToValue } from "./ActionForm";
 
 function PurchaseAction({
   purchaserContract,

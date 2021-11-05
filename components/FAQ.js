@@ -35,25 +35,11 @@ function ContextAwareToggle({ children, eventKey, callback }) {
   );
 }
 
-function FAQ({ account, paymentTokenContract, adminAddress }) {
+function FAQ() {
   const [show, setShow] = React.useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-
-  function _mintToken() {
-    paymentTokenContract.mockMint(account, ethers.utils.parseEther("1000"), {
-      from: account,
-    });
-  }
-
-  function _approve() {
-    paymentTokenContract.approve(
-      adminAddress,
-      BigNumber.from(2).pow(BigNumber.from(256)).sub(BigNumber.from(1)),
-      { from: account }
-    );
-  }
 
   return (
     <>

@@ -617,7 +617,7 @@ function IndexPageContent() {
             </Badge> 
           </Col>*/}
           <Col sm="1" className="p-0">
-            <FAQ account={account} adminAddress={ADMIN_CONTRACT_ADDRESS} />
+            <FAQ />
           </Col>
           <Col sm={{ span: 8, offset: 0 }} className="text-center p-2 mx-auto">
             <div
