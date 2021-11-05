@@ -13,7 +13,11 @@ import Modal from "react-bootstrap/Modal";
 import {
   NETWORK_NAME,
   NETWORK_ID,
-  ADMIN_CONTRACT_ADDRESS,
+  LICENSE_CONTRACT_ADDRESS,
+  ACCOUNTANT_CONTRACT_ADDRESS,
+  CLAIMER_CONTRACT_ADDRESS,
+  COLLECTOR_CONTRACT_ADDRESS,
+  PURCHASER_CONTRACT_ADDRESS,
   CERAMIC_API_ENDPOINT,
   IPFS_BOOTSTRAP_PEER,
   IPFS_PRELOAD_NODE,
@@ -68,7 +72,11 @@ import { useFirebase } from "../lib/Firebase";
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
 
-const geoWebAdminABI = require("../contracts/GeoWebAdmin_v0.json");
+const AccountantABI = require("../contracts/Accountant.json");
+const ETHPurchaserABI = require("../contracts/ETHPurchaser.json");
+const ETHExpirationCollectorABI = require("../contracts/ETHExpirationCollector.json");
+const ERC721LicenseABI = require("../contracts/ERC721License.json");
+const SimpleETHClaimerABI = require("../contracts/SimpleETHClaimer.json");
 
 const connectorsByName = {
   Injected: injected,
@@ -160,7 +168,11 @@ function IndexPageContent() {
   } = context;
 
   const triedEager = useEagerConnect();
-  const [adminContract, setAdminContract] = React.useState(null);
+  const [licenseContract, setLicenseContract] = React.useState(null);
+  const [accountantContract, setAccountantContract] = React.useState(null);
+  const [claimerContract, setClaimerContract] = React.useState(null);
+  const [collectorContract, setCollectorContract] = React.useState(null);
+  const [purchaserContract, setPurchaserContract] = React.useState(null);
   const [ceramic, setCeramic] = React.useState(null);
   const [ipfs, setIPFS] = React.useState(null);
   const { firebasePerf } = useFirebase();
@@ -330,13 +342,43 @@ function IndexPageContent() {
     async function contractsSetup() {
       const signer = library.getSigner();
 
-      let _adminContract = new ethers.Contract(
-        ADMIN_CONTRACT_ADDRESS,
-        geoWebAdminABI,
+      let _accountantContract = new ethers.Contract(
+        ACCOUNTANT_CONTRACT_ADDRESS,
+        AccountantABI,
         library
       );
-      let _adminContractWithSigner = _adminContract.connect(signer);
-      setAdminContract(_adminContractWithSigner);
+      setAccountantContract(_accountantContract);
+
+      let _licenseContract = new ethers.Contract(
+        LICENSE_CONTRACT_ADDRESS,
+        ERC721LicenseABI,
+        library
+      );
+      setLicenseContract(_licenseContract);
+
+      let _claimerContract = new ethers.Contract(
+        CLAIMER_CONTRACT_ADDRESS,
+        SimpleETHClaimerABI,
+        library
+      );
+      let _claimerContractWithSigner = _claimerContract.connect(signer);
+      setClaimerContract(_claimerContractWithSigner);
+
+      let _purchaserContract = new ethers.Contract(
+        PURCHASER_CONTRACT_ADDRESS,
+        ETHPurchaserABI,
+        library
+      );
+      let _purchaserContractWithSigner = _purchaserContract.connect(signer);
+      setPurchaserContract(_purchaserContractWithSigner);
+
+      let _collectorContract = new ethers.Contract(
+        COLLECTOR_CONTRACT_ADDRESS,
+        ETHExpirationCollectorABI,
+        library
+      );
+      let _collectorContractWithSigner = _collectorContract.connect(signer);
+      setCollectorContract(_collectorContractWithSigner);
     }
     contractsSetup();
   }, [library]);
@@ -601,10 +643,13 @@ function IndexPageContent() {
         {active && chainId === NETWORK_ID ? (
           <Row>
             <Map
+              licenseContract={licenseContract}
+              accountantContract={accountantContract}
+              claimerContract={claimerContract}
+              collectorContract={collectorContract}
+              purchaserContract={purchaserContract}
               account={account}
-              adminContract={adminContract}
               ceramic={ceramic}
-              adminAddress={ADMIN_CONTRACT_ADDRESS}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
             ></Map>

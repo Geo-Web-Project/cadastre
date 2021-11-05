@@ -14,7 +14,8 @@ import {
 } from "./Map";
 
 function Sidebar({
-  adminContract,
+  licenseContract,
+  accountantContract,
   claimerContract,
   collectorContract,
   purchaserContract,
@@ -31,7 +32,7 @@ function Sidebar({
 }) {
   const parcelIndexManager = useParcelIndexManager(
     ceramic,
-    adminContract,
+    licenseContract.address,
     selectedParcelId
   );
   const basicProfileStreamManager =
@@ -49,13 +50,17 @@ function Sidebar({
     React.useState(null);
 
   React.useEffect(() => {
-    adminContract.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
-      setPerSecondFeeNumerator(_perSecondFeeNumerator);
-    });
-    adminContract.perSecondFeeDenominator().then((_perSecondFeeDenominator) => {
-      setPerSecondFeeDenominator(_perSecondFeeDenominator);
-    });
-  }, [adminContract]);
+    accountantContract
+      .perSecondFeeNumerator()
+      .then((_perSecondFeeNumerator) => {
+        setPerSecondFeeNumerator(_perSecondFeeNumerator);
+      });
+    accountantContract
+      .perSecondFeeDenominator()
+      .then((_perSecondFeeDenominator) => {
+        setPerSecondFeeDenominator(_perSecondFeeDenominator);
+      });
+  }, [accountantContract]);
 
   return (
     <Col
