@@ -41,6 +41,7 @@ function ParcelInfo({
   account,
   adminContract,
   collectorContract,
+  purchaserContract,
   interactionState,
   setInteractionState,
   selectedParcelId,
@@ -344,7 +345,7 @@ function ParcelInfo({
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
             <PurchaseAction
-              adminContract={adminContract}
+              purchaserContract={purchaserContract}
               collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}

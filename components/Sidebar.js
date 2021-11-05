@@ -18,6 +18,7 @@ function Sidebar({
   adminContract,
   claimerContract,
   collectorContract,
+  purchaserContract,
   account,
   interactionState,
   setInteractionState,
@@ -67,6 +68,7 @@ function Sidebar({
         account={account}
         adminContract={adminContract}
         collectorContract={collectorContract}
+        purchaserContract={purchaserContract}
         interactionState={interactionState}
         setInteractionState={setInteractionState}
         selectedParcelId={selectedParcelId}
