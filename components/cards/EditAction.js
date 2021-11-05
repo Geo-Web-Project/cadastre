@@ -4,6 +4,7 @@ import { STATE_PARCEL_SELECTED } from "../Map";
 import {
   ActionForm,
   calculateWeiSubtotalField,
+  fromRateToValue,
   fromValueToRate,
 } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
@@ -18,10 +19,15 @@ function EditAction({
   setInteractionState,
   parcelIndexManager,
   basicProfileStreamManager,
+  licenseAddress,
 }) {
-  const displayCurrentForSalePrice = ethers.utils.formatEther(
-    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
+  const currentForSalePrice = fromRateToValue(
+    BigNumber.from(parcelData.landParcel.license.contributionRate),
+    perSecondFeeNumerator,
+    perSecondFeeDenominator
   );
+  const displayCurrentForSalePrice =
+    ethers.utils.formatEther(currentForSalePrice);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
@@ -118,6 +124,7 @@ function EditAction({
         parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
+        licenseAddress={licenseAddress}
       />
       <FaucetInfo></FaucetInfo>
     </>

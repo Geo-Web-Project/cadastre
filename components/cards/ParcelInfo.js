@@ -52,6 +52,7 @@ function ParcelInfo({
   parcelIndexManager,
   basicProfileStreamManager,
   pinningManager,
+  licenseAddress,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -117,7 +118,7 @@ function ParcelInfo({
     perSecondFeeDenominator
   ) {
     const value = fromRateToValue(
-      data.landParcel.license.contributionRate,
+      BigNumber.from(data.landParcel.license.contributionRate),
       perSecondFeeNumerator,
       perSecondFeeDenominator
     );
@@ -337,6 +338,7 @@ function ParcelInfo({
               refetchParcelData={refetch}
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
+              licenseAddress={licenseAddress}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
@@ -354,6 +356,7 @@ function ParcelInfo({
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
+              licenseAddress={licenseAddress}
             />
           ) : null}
         </Col>

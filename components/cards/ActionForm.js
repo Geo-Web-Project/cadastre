@@ -154,7 +154,7 @@ export function ActionForm({
 
   async function submit() {
     if (!parcelIndexManager) {
-      console.error("ParcelContentManager not found");
+      console.error("ParcelIndexManager not found");
       return;
     }
 
@@ -168,7 +168,7 @@ export function ActionForm({
         chainId: `eip155:${NETWORK_ID}`,
         namespace: "erc721",
         contract: licenseAddress.toLowerCase(),
-        tokenId: parcelId,
+        tokenId: parcelId.toString(),
       });
 
       // Create stream

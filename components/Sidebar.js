@@ -83,6 +83,7 @@ function Sidebar({
         parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
+        licenseAddress={licenseContract.address}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
@@ -99,6 +100,7 @@ function Sidebar({
             perSecondFeeDenominator={perSecondFeeDenominator}
             parcelIndexManager={parcelIndexManager}
             basicProfileStreamManager={basicProfileStreamManager}
+            licenseAddress={licenseContract.address}
           ></ClaimAction>
         </>
       ) : null}

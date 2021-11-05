@@ -22,12 +22,20 @@ function PurchaseAction({
   parcelIndexManager,
   basicProfileStreamManager,
   existingNetworkFeeBalance,
+  licenseAddress,
 }) {
   const _currentForSalePriceWei =
-    auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
+    auctionValue > 0
+      ? auctionValue
+      : fromRateToValue(
+          BigNumber.from(parcelData.landParcel.license.contributionRate),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        );
   const displayCurrentForSalePrice = ethers.utils.formatEther(
-    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
+    _currentForSalePriceWei
   );
+
   const parcelContent = parcelIndexManager
     ? parcelIndexManager.getStreamContent()
     : null;
@@ -67,7 +75,7 @@ function PurchaseAction({
 
   React.useEffect(() => {
     const value = fromRateToValue(
-      parcelData.landParcel.license.contributionRate,
+      BigNumber.from(parcelData.landParcel.license.contributionRate),
       perSecondFeeNumerator,
       perSecondFeeDenominator
     );
@@ -100,7 +108,7 @@ function PurchaseAction({
       perSecondFeeDenominator
     );
     try {
-      const resp = await purchaserContract.purchaseLicense(
+      const resp = await purchaserContract.purchase(
         parcelData.landParcel.id,
         account,
         actionData.transactionSubtotal,
@@ -128,6 +136,7 @@ function PurchaseAction({
         actionData={actionData}
         setActionData={setActionData}
         setInteractionState={setInteractionState}
+        licenseAddress={licenseAddress}
       />
       <FaucetInfo></FaucetInfo>
     </>
