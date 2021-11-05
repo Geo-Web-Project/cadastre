@@ -1,48 +1,41 @@
 import * as React from "react";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
+import {
+  ActionForm,
+  calculateWeiSubtotalField,
+  fromRateToValue,
+  fromValueToRate,
+} from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
 
 function PurchaseAction({
-  adminContract,
+  purchaserContract,
+  collectorContract,
   account,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   parcelData,
   refetchParcelData,
   setInteractionState,
-  adminAddress,
   auctionValue,
   parcelIndexManager,
   basicProfileStreamManager,
   existingNetworkFeeBalance,
+  licenseAddress,
 }) {
-  function _calculateNetworkFeeBalance(
-    existingExpirationTimestamp,
-    existingForSalePriceWei
-  ) {
-    let now = new Date();
-    let existingTimeBalance = existingExpirationTimestamp
-      ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
-      : 0;
-
-    existingTimeBalance = Math.max(existingTimeBalance, 0);
-
-    let existingPerSecondFee = new BN(
-      existingForSalePriceWei ? existingForSalePriceWei : 0
-    )
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
-
-    return existingPerSecondFee.muln(existingTimeBalance);
-  }
-
   const _currentForSalePriceWei =
-    auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
+    auctionValue > 0
+      ? auctionValue
+      : fromRateToValue(
+          BigNumber.from(parcelData.landParcel.license.contributionRate),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        );
   const displayCurrentForSalePrice = ethers.utils.formatEther(
-    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
+    _currentForSalePriceWei
   );
+
   const parcelContent = parcelIndexManager
     ? parcelIndexManager.getStreamContent()
     : null;
@@ -81,8 +74,12 @@ function PurchaseAction({
   } = actionData;
 
   React.useEffect(() => {
-    const currentForSalePriceWei =
-      auctionValue > 0 ? auctionValue : parcelData.landParcel.license.value;
+    const value = fromRateToValue(
+      BigNumber.from(parcelData.landParcel.license.contributionRate),
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+    const currentForSalePriceWei = auctionValue > 0 ? auctionValue : value;
 
     // Add a 1% buffer
     let _transactionSubtotal = BigNumber.from(currentForSalePriceWei)
@@ -97,16 +94,25 @@ function PurchaseAction({
     auctionValue,
     parcelData,
     existingNetworkFeeBalance,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
   ]);
 
   async function _purchase() {
     updateActionData({ isActing: true });
 
+    const newValue = calculateWeiSubtotalField(displayNewForSalePrice);
+    const newContributionRate = fromValueToRate(
+      newValue,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
     try {
-      const resp = await adminContract.purchaseLicense(
+      const resp = await purchaserContract.purchase(
         parcelData.landParcel.id,
+        account,
         actionData.transactionSubtotal,
-        calculateWeiSubtotalField(displayNewForSalePrice),
+        newContributionRate,
         { from: account, value: actionData.transactionSubtotal }
       );
       await resp.wait();
@@ -121,7 +127,7 @@ function PurchaseAction({
     <>
       <ActionForm
         title="Transfer"
-        adminContract={adminContract}
+        collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_purchase}
@@ -130,8 +136,9 @@ function PurchaseAction({
         actionData={actionData}
         setActionData={setActionData}
         setInteractionState={setInteractionState}
+        licenseAddress={licenseAddress}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }

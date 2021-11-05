@@ -14,8 +14,11 @@ import {
 } from "./Map";
 
 function Sidebar({
-  adminAddress,
-  adminContract,
+  licenseContract,
+  accountantContract,
+  claimerContract,
+  collectorContract,
+  purchaserContract,
   account,
   interactionState,
   setInteractionState,
@@ -29,7 +32,7 @@ function Sidebar({
 }) {
   const parcelIndexManager = useParcelIndexManager(
     ceramic,
-    adminContract,
+    licenseContract.address,
     selectedParcelId
   );
   const basicProfileStreamManager =
@@ -47,13 +50,17 @@ function Sidebar({
     React.useState(null);
 
   React.useEffect(() => {
-    adminContract.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
-      setPerSecondFeeNumerator(_perSecondFeeNumerator);
-    });
-    adminContract.perSecondFeeDenominator().then((_perSecondFeeDenominator) => {
-      setPerSecondFeeDenominator(_perSecondFeeDenominator);
-    });
-  }, [adminContract]);
+    accountantContract
+      .perSecondFeeNumerator()
+      .then((_perSecondFeeNumerator) => {
+        setPerSecondFeeNumerator(_perSecondFeeNumerator);
+      });
+    accountantContract
+      .perSecondFeeDenominator()
+      .then((_perSecondFeeDenominator) => {
+        setPerSecondFeeDenominator(_perSecondFeeDenominator);
+      });
+  }, [accountantContract]);
 
   return (
     <Col
@@ -63,25 +70,27 @@ function Sidebar({
     >
       <ParcelInfo
         account={account}
-        adminContract={adminContract}
+        collectorContract={collectorContract}
+        purchaserContract={purchaserContract}
         interactionState={interactionState}
         setInteractionState={setInteractionState}
         selectedParcelId={selectedParcelId}
         setSelectedParcelId={setSelectedParcelId}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        adminAddress={adminAddress}
         ceramic={ceramic}
         ipfs={ipfs}
         parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
+        licenseAddress={licenseContract.address}
       ></ParcelInfo>
       {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE_CLAIM_SELECTED ? (
         <>
           <ClaimAction
-            adminContract={adminContract}
+            claimerContract={claimerContract}
+            collectorContract={collectorContract}
             account={account}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
@@ -89,9 +98,9 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            adminAddress={adminAddress}
             parcelIndexManager={parcelIndexManager}
             basicProfileStreamManager={basicProfileStreamManager}
+            licenseAddress={licenseContract.address}
           ></ClaimAction>
         </>
       ) : null}

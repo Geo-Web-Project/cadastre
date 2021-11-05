@@ -22,6 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
+import { fromRateToValue } from "./ActionForm";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -29,7 +30,7 @@ const parcelQuery = gql`
       id
       license {
         owner
-        value
+        contributionRate
         expirationTimestamp
       }
     }
@@ -38,19 +39,20 @@ const parcelQuery = gql`
 
 function ParcelInfo({
   account,
-  adminContract,
+  collectorContract,
+  purchaserContract,
   interactionState,
   setInteractionState,
   selectedParcelId,
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  adminAddress,
   ceramic,
   ipfs,
   parcelIndexManager,
   basicProfileStreamManager,
   pinningManager,
+  licenseAddress,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -77,21 +79,14 @@ function ParcelInfo({
       .mul(1000)
       .sub(now)
       .div(1000)
-      .mul(BigNumber.from(license.value))
-      .mul(perSecondFeeNumerator.toNumber())
-      .div(perSecondFeeDenominator.toNumber());
+      .mul(BigNumber.from(license.contributionRate));
 
     return networkFeeBalance < 0 ? BigNumber.from(0) : networkFeeBalance;
   }
 
   useEffect(() => {
     async function updateContent() {
-      if (
-        data &&
-        data.landParcel &&
-        perSecondFeeNumerator &&
-        perSecondFeeDenominator
-      ) {
+      if (data && data.landParcel) {
         if (networkFeeBalance == null) {
           setInterval(() => {
             setNetworkFeeBalance(
@@ -103,12 +98,7 @@ function ParcelInfo({
     }
 
     updateContent();
-  }, [
-    data,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator,
-    parcelIndexManager,
-  ]);
+  }, [data, parcelIndexManager]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -121,11 +111,20 @@ function ParcelInfo({
   let networkFeeBalanceDisplay;
   let licenseOwner;
   let isExpired;
-  if (data && data.landParcel) {
+  if (
+    data &&
+    data.landParcel &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+  ) {
+    const value = fromRateToValue(
+      BigNumber.from(data.landParcel.license.contributionRate),
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
     forSalePrice = (
       <>
-        {ethers.utils.formatEther(data.landParcel.license.value)}{" "}
-        {PAYMENT_TOKEN}{" "}
+        {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
       </>
     );
     if (networkFeeBalance != null) {
@@ -314,7 +313,7 @@ function ParcelInfo({
                 <>
                   <hr className="border-secondary" />
                   <AuctionInfo
-                    adminContract={adminContract}
+                    purchaserContract={purchaserContract}
                     licenseInfo={data.landParcel.license}
                     auctionValue={auctionValue}
                     setAuctionValue={setAuctionValue}
@@ -329,7 +328,7 @@ function ParcelInfo({
           )}
           {interactionState == STATE_PARCEL_EDITING ? (
             <EditAction
-              adminContract={adminContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}
@@ -337,14 +336,15 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
+              licenseAddress={licenseAddress}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
             <PurchaseAction
-              adminContract={adminContract}
+              purchaserContract={purchaserContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}
@@ -352,11 +352,11 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
               auctionValue={auctionValue}
               parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
+              licenseAddress={licenseAddress}
             />
           ) : null}
         </Col>

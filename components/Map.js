@@ -103,8 +103,11 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map({
-  adminAddress,
-  adminContract,
+  licenseContract,
+  accountantContract,
+  claimerContract,
+  collectorContract,
+  purchaserContract,
   account,
   ceramic,
   ipfs,
@@ -115,7 +118,6 @@ function Map({
       lastBlock: 0,
     },
   });
-
 
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
@@ -158,7 +160,7 @@ function Map({
   const _onViewportSearch = useCallback((nextViewport) => {
     setViewport(nextViewport);
   }, []);
-  
+
   function _onViewportChange(nextViewport) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
@@ -175,15 +177,17 @@ function Map({
   }
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
-  const _onGeocoderViewportChange = useCallback((newViewport) => {
+  const _onGeocoderViewportChange = useCallback(
+    (newViewport) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
       return _onViewportSearch({
         ...newViewport,
-        ...geocoderDefaultOverrides
+        ...geocoderDefaultOverrides,
       });
-  }, [_onViewportSearch]);
-
+    },
+    [_onViewportSearch]
+  );
 
   function onHover(event) {
     if (event.features == null || viewport.zoom < 5) {
@@ -372,8 +376,11 @@ function Map({
     <>
       {interactionState != STATE_VIEWING ? (
         <Sidebar
-          adminAddress={adminAddress}
-          adminContract={adminContract}
+          licenseContract={licenseContract}
+          accountantContract={accountantContract}
+          claimerContract={claimerContract}
+          collectorContract={collectorContract}
+          purchaserContract={purchaserContract}
           account={account}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
@@ -424,7 +431,9 @@ function Map({
             mapRef={mapRef}
             containerRef={geocoderContainerRef}
             onViewportChange={_onGeocoderViewportChange}
-            mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+            mapboxApiAccessToken={
+              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN
+            }
             position="top-right"
           />
         </ReactMapGL>
