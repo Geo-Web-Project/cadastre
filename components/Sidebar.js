@@ -16,6 +16,8 @@ import {
 function Sidebar({
   adminAddress,
   adminContract,
+  claimerContract,
+  collectorContract,
   account,
   interactionState,
   setInteractionState,
@@ -64,6 +66,7 @@ function Sidebar({
       <ParcelInfo
         account={account}
         adminContract={adminContract}
+        collectorContract={collectorContract}
         interactionState={interactionState}
         setInteractionState={setInteractionState}
         selectedParcelId={selectedParcelId}
@@ -81,7 +84,8 @@ function Sidebar({
       {interactionState == STATE_CLAIM_SELECTED ? (
         <>
           <ClaimAction
-            adminContract={adminContract}
+            claimerContract={claimerContract}
+            collectorContract={collectorContract}
             account={account}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}

@@ -18,7 +18,7 @@ const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
 export function ActionForm({
   title,
-  adminContract,
+  collectorContract,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   loading,
@@ -28,6 +28,7 @@ export function ActionForm({
   parcelIndexManager,
   basicProfileStreamManager,
   setInteractionState,
+  licenseAddress,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -162,8 +163,6 @@ export function ActionForm({
     // Perform action
     const parcelId = await performAction();
 
-    const licenseAddress = await adminContract.licenseContract();
-
     if (parcelId) {
       const didNFT = createNftDidUrl({
         chainId: `eip155:${NETWORK_ID}`,
@@ -221,14 +220,19 @@ export function ActionForm({
   }
 
   React.useEffect(() => {
-    if (adminContract == null) {
+    if (collectorContract == null) {
       return;
     }
 
-    adminContract.minInitialValue().then((minInitialValue) => {
-      setMinInitialValue(ethers.utils.formatEther(minInitialValue.toString()));
+    collectorContract.minContributionRate().then((minContributionRate) => {
+      const _minInitialValue = fromRateToValue(
+        minContributionRate,
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+      setMinInitialValue(ethers.utils.formatEther(_minInitialValue.toString()));
     });
-  }, [adminContract]);
+  }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
 
   React.useEffect(() => {
     if (!isActing) {
@@ -417,4 +421,22 @@ export function calculateWeiSubtotalField(displayValue) {
   } else {
     return BigNumber.from(0);
   }
+}
+
+export function fromRateToValue(
+  contributionRate,
+  perSecondFeeNumerator,
+  perSecondFeeDenominator
+) {
+  return contributionRate
+    .mul(perSecondFeeDenominator)
+    .div(perSecondFeeNumerator);
+}
+
+export function fromValueToRate(
+  value,
+  perSecondFeeNumerator,
+  perSecondFeeDenominator
+) {
+  return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
 }

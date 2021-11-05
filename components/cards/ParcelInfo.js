@@ -22,6 +22,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
+import { fromRateToValue } from "./ActionForm";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -39,6 +40,7 @@ const parcelQuery = gql`
 function ParcelInfo({
   account,
   adminContract,
+  collectorContract,
   interactionState,
   setInteractionState,
   selectedParcelId,
@@ -115,9 +117,11 @@ function ParcelInfo({
     perSecondFeeNumerator &&
     perSecondFeeDenominator
   ) {
-    const value = data.landParcel.license.contributionRate
-      .mul(perSecondFeeDenominator)
-      .div(perSecondFeeNumerator);
+    const value = fromRateToValue(
+      data.landParcel.license.contributionRate,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
     forSalePrice = (
       <>
         {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
@@ -325,6 +329,7 @@ function ParcelInfo({
           {interactionState == STATE_PARCEL_EDITING ? (
             <EditAction
               adminContract={adminContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}
@@ -340,6 +345,7 @@ function ParcelInfo({
           {interactionState == STATE_PARCEL_PURCHASING ? (
             <PurchaseAction
               adminContract={adminContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}

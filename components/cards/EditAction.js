@@ -7,6 +7,7 @@ const erc721LicenseABI = require("../../contracts/ERC721License.json");
 
 function EditAction({
   adminContract,
+  collectorContract,
   account,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
@@ -123,7 +124,7 @@ function EditAction({
     <>
       <ActionForm
         title="Edit"
-        adminContract={adminContract}
+        collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_edit}

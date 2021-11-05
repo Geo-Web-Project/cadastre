@@ -1,7 +1,11 @@
 import * as React from "react";
 import { STATE_PARCEL_SELECTED } from "../Map";
 import { gql, useLazyQuery } from "@apollo/client";
-import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
+import {
+  ActionForm,
+  calculateWeiSubtotalField,
+  fromValueToRate,
+} from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
 import BN from "bn.js";
@@ -17,7 +21,8 @@ const newParcelQuery = gql`
 `;
 
 function ClaimAction({
-  adminContract,
+  claimerContract,
+  collectorContract,
   adminAddress,
   account,
   claimBase1Coord,
@@ -96,11 +101,17 @@ function ClaimAction({
     }
 
     try {
-      const resp = await adminContract.claim(
+      const newValue = calculateWeiSubtotalField(displayNewForSalePrice);
+      const newContributionRate = fromValueToRate(
+        newValue,
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+      const resp = await claimerContract.claim(
         account,
         baseCoord.toString(10),
         path,
-        calculateWeiSubtotalField(displayNewForSalePrice),
+        newContributionRate,
         {
           from: account,
           value: calculateWeiSubtotalField(displayNetworkFeePayment),
@@ -109,8 +120,8 @@ function ClaimAction({
 
       const receipt = await resp.wait();
 
-      const filter = adminContract.filters.LicenseInfoUpdated(null, null, null);
-      const res = await adminContract.queryFilter(
+      const filter = claimerContract.filters.ParcelClaimed(null, null);
+      const res = await claimerContract.queryFilter(
         filter,
         receipt.blockNumber,
         receipt.blockNumber
@@ -136,7 +147,7 @@ function ClaimAction({
     <>
       <ActionForm
         title="Claim"
-        adminContract={adminContract}
+        collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         loading={loading}
