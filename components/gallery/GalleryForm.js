@@ -85,8 +85,6 @@ export function GalleryForm({
 
     const file = event.target.files[0];
 
-    debugger
-
     if (!file) {
       return;
     }
@@ -94,6 +92,9 @@ export function GalleryForm({
     setIsUploading(true);
 
     let {encoding, type} = getFormat(file.name)
+
+    if(encoding === ".mp4")
+      type = file.type
 
     setDetectedFileFormat(encoding);
 
