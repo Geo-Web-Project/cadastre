@@ -33,6 +33,7 @@ function ClaimAction({
   parcelIndexManager,
   basicProfileStreamManager,
   licenseAddress,
+  ceramic,
 }) {
   const [newParcelId, setNewParcelId] = React.useState(null);
 
@@ -158,6 +159,7 @@ function ClaimAction({
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
         licenseAddress={licenseAddress}
+        ceramic={ceramic}
       />
       <FaucetInfo></FaucetInfo>
     </>

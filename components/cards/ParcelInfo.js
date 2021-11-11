@@ -71,7 +71,10 @@ function ParcelInfo({
     ? parcelIndexManager.getStreamId()
     : null;
   let isLoading =
-    loading || perSecondFeeNumerator == null || perSecondFeeDenominator == null;
+    loading ||
+    data == null ||
+    perSecondFeeNumerator == null ||
+    perSecondFeeDenominator == null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();

@@ -9,8 +9,11 @@ import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { createNftDidUrl } from "nft-did-resolver";
-import { NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID, publishedModel } from "../../lib/constants";
 import { STATE_PARCEL_SELECTED } from "../Map";
+import { ParcelIndexManager } from "../../lib/stream-managers/ParcelIndexManager";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { DIDDataStore } from "@glazed/did-datastore";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -29,6 +32,7 @@ export function ActionForm({
   basicProfileStreamManager,
   setInteractionState,
   licenseAddress,
+  ceramic,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -153,15 +157,18 @@ export function ActionForm({
   }
 
   async function submit() {
-    if (!parcelIndexManager) {
-      console.error("ParcelIndexManager not found");
-      return;
-    }
-
     updateActionData({ isActing: true });
 
     // Perform action
     const parcelId = await performAction();
+
+    let content = {};
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
 
     if (parcelId) {
       const didNFT = createNftDidUrl({
@@ -171,18 +178,20 @@ export function ActionForm({
         tokenId: parcelId.toString(),
       });
 
-      // Create stream
-      await parcelIndexManager.setController(didNFT);
-    }
+      // Create new ParcelIndexManager and BasicProfileStreamManager
+      const dataStore = new DIDDataStore({ ceramic, model: publishedModel });
+      const _parcelIndexManager = new ParcelIndexManager(ceramic, dataStore);
+      await _parcelIndexManager.setController(didNFT);
 
-    let content = {};
-    if (parcelName) {
-      content["name"] = parcelName;
+      const _basicProfileStreamManager = new BasicProfileStreamManager(
+        _parcelIndexManager
+      );
+      await _basicProfileStreamManager.createOrUpdateStream(content);
+      console.log("Done Updating.");
+    } else {
+      // Use existing BasicProfileStreamManager
+      await basicProfileStreamManager.createOrUpdateStream(content);
     }
-    if (parcelWebContentURI) {
-      content["url"] = parcelWebContentURI;
-    }
-    await basicProfileStreamManager.createOrUpdateStream(content);
 
     updateActionData({ isActing: false });
     setInteractionState(STATE_PARCEL_SELECTED);
@@ -203,7 +212,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || parcelIndexManager == null;
+  let isLoading = loading;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {

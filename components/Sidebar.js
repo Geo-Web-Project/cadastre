@@ -35,6 +35,7 @@ function Sidebar({
     licenseContract.address,
     selectedParcelId
   );
+  console.log(parcelIndexManager);
   const basicProfileStreamManager =
     useBasicProfileStreamManager(parcelIndexManager);
   const pinningManager = usePinningManager(
@@ -101,6 +102,7 @@ function Sidebar({
             parcelIndexManager={parcelIndexManager}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
+            ceramic={ceramic}
           ></ClaimAction>
         </>
       ) : null}
