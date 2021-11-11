@@ -35,7 +35,6 @@ function Sidebar({
     licenseContract.address,
     selectedParcelId
   );
-  console.log(parcelIndexManager);
   const basicProfileStreamManager =
     useBasicProfileStreamManager(parcelIndexManager);
   const pinningManager = usePinningManager(

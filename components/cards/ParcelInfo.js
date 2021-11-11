@@ -70,11 +70,6 @@ function ParcelInfo({
   const parcelIndexStreamId = parcelIndexManager
     ? parcelIndexManager.getStreamId()
     : null;
-  let isLoading =
-    loading ||
-    data == null ||
-    perSecondFeeNumerator == null ||
-    perSecondFeeDenominator == null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();
@@ -144,6 +139,13 @@ function ParcelInfo({
     ).toUTCString();
     licenseOwner = data.landParcel.license.owner;
   }
+
+  let isLoading =
+    loading ||
+    data == null ||
+    licenseOwner == null ||
+    perSecondFeeNumerator == null ||
+    perSecondFeeDenominator == null;
 
   let hrefWebContent;
   // Translate ipfs:// to case-insensitive base

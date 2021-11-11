@@ -14,6 +14,7 @@ import { STATE_PARCEL_SELECTED } from "../Map";
 import { ParcelIndexManager } from "../../lib/stream-managers/ParcelIndexManager";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
+import BN from "bn.js";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -33,6 +34,7 @@ export function ActionForm({
   setInteractionState,
   licenseAddress,
   ceramic,
+  setSelectedParcelId,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -159,8 +161,15 @@ export function ActionForm({
   async function submit() {
     updateActionData({ isActing: true });
 
-    // Perform action
-    const parcelId = await performAction();
+    let parcelId;
+    try {
+      // Perform action
+      parcelId = await performAction();
+    } catch (err) {
+      console.error(err);
+      updateActionData({ isActing: false, didFail: true });
+      return;
+    }
 
     let content = {};
     if (parcelName) {
@@ -187,7 +196,7 @@ export function ActionForm({
         _parcelIndexManager
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
-      console.log("Done Updating.");
+      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
     } else {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
