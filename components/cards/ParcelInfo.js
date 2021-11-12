@@ -50,6 +50,7 @@ function ParcelInfo({
   ceramic,
   ipfs,
   dataStore,
+  didNFT,
   basicProfileStreamManager,
   pinningManager,
   licenseAddress,
@@ -96,6 +97,7 @@ function ParcelInfo({
     async function updateStreamId() {
       if (!dataStore) {
         setParcelIndexStreamId(null);
+        return;
       }
 
       const doc = await dataStore._createIDXDoc(dataStore.id);
@@ -378,6 +380,7 @@ function ParcelInfo({
         setInteractionState={setInteractionState}
         dataStore={dataStore}
         ceramic={ceramic}
+        didNFT={didNFT}
         pinningManager={pinningManager}
       ></GalleryModal>
     </>

@@ -20,6 +20,7 @@ export function GalleryModal({
   show,
   setInteractionState,
   dataStore,
+  didNFT,
   ipfs,
   pinningManager,
 }) {
@@ -27,7 +28,10 @@ export function GalleryModal({
     setInteractionState(STATE_PARCEL_SELECTED);
   };
 
-  const mediaGalleryStreamManager = useMediaGalleryStreamManager(dataStore);
+  const mediaGalleryStreamManager = useMediaGalleryStreamManager(
+    dataStore,
+    didNFT
+  );
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager
   );

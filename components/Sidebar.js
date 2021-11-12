@@ -44,16 +44,9 @@ function Sidebar({
 
     async function updateDataStore() {
       if (selectedParcelId) {
-        const didNFT = createNftDidUrl({
-          chainId: `eip155:${NETWORK_ID}`,
-          namespace: "erc721",
-          contract: licenseContract.address.toLowerCase(),
-          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-        });
         const _dataStore = new DIDDataStore({
           ceramic,
           model: publishedModel,
-          id: didNFT,
         });
         setDataStore(_dataStore);
       } else {
@@ -64,8 +57,24 @@ function Sidebar({
     updateDataStore();
   }, [ceramic, selectedParcelId]);
 
-  const basicProfileStreamManager = useBasicProfileStreamManager(dataStore);
-  const pinningManager = usePinningManager(dataStore, ipfs, firebasePerf);
+  const didNFT = selectedParcelId
+    ? createNftDidUrl({
+        chainId: `eip155:${NETWORK_ID}`,
+        namespace: "erc721",
+        contract: licenseContract.address.toLowerCase(),
+        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+      })
+    : null;
+  const basicProfileStreamManager = useBasicProfileStreamManager(
+    dataStore,
+    didNFT
+  );
+  const pinningManager = usePinningManager(
+    dataStore,
+    didNFT,
+    ipfs,
+    firebasePerf
+  );
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
@@ -104,6 +113,7 @@ function Sidebar({
         ceramic={ceramic}
         dataStore={dataStore}
         ipfs={ipfs}
+        didNFT={didNFT}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
         licenseAddress={licenseContract.address}
