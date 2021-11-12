@@ -286,7 +286,10 @@ function IndexPageContent() {
 
     // Add provider to Ceramic DID
     const ethProvider = await connector.getProvider();
-    const threeIdConnect = new ThreeIdConnect();
+    const threeIdConnect = new ThreeIdConnect(
+      THREE_ID_CONNECT_IFRAME_URL,
+      THREE_ID_CONNECT_MANAGEMENT_URL
+    );
 
     const authProvider = new EthereumAuthProvider(ethProvider, account);
     await threeIdConnect.connect(authProvider);

@@ -100,7 +100,7 @@ function ParcelInfo({
         return;
       }
 
-      const doc = await dataStore._createIDXDoc(dataStore.id);
+      const doc = await dataStore._createIDXDoc(didNFT);
       setParcelIndexStreamId(doc.id.toString());
     }
 
