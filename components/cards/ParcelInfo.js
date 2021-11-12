@@ -63,12 +63,11 @@ function ParcelInfo({
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
   const [timer, setTimer] = React.useState(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState(null);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
     : null;
-
-  const parcelIndexStreamId = dataStore ? dataStore.id : null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();
@@ -94,7 +93,17 @@ function ParcelInfo({
       }
     }
 
+    async function updateStreamId() {
+      if (!dataStore) {
+        setParcelIndexStreamId(null);
+      }
+
+      const doc = await dataStore._createIDXDoc(dataStore.id);
+      setParcelIndexStreamId(doc.id.toString());
+    }
+
     updateContent();
+    updateStreamId();
   }, [data, dataStore]);
 
   const spinner = (
