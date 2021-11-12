@@ -3,7 +3,6 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import { useParcelIndexManager } from "../lib/stream-managers/ParcelIndexManager";
 import { usePinningManager } from "../lib/PinningManager";
 import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 import {

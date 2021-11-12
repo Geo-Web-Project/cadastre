@@ -11,7 +11,6 @@ import { PAYMENT_TOKEN } from "../../lib/constants";
 import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID, publishedModel } from "../../lib/constants";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import { ParcelIndexManager } from "../../lib/stream-managers/ParcelIndexManager";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
