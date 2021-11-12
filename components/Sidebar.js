@@ -12,6 +12,10 @@ import {
   STATE_CLAIM_SELECTED,
   STATE_PARCEL_SELECTED,
 } from "./Map";
+import { NETWORK_ID, publishedModel } from "../lib/constants";
+import BN from "bn.js";
+import { createNftDidUrl } from "nft-did-resolver";
+import { DIDDataStore } from "@glazed/did-datastore";
 
 function Sidebar({
   licenseContract,
@@ -30,19 +34,39 @@ function Sidebar({
   ipfs,
   firebasePerf,
 }) {
-  const parcelIndexManager = useParcelIndexManager(
-    ceramic,
-    licenseContract.address,
-    selectedParcelId
-  );
-  const basicProfileStreamManager =
-    useBasicProfileStreamManager(parcelIndexManager);
-  const pinningManager = usePinningManager(
-    ceramic,
-    ipfs,
-    firebasePerf,
-    parcelIndexManager
-  );
+  const [dataStore, setDataStore] = React.useState(null);
+  React.useEffect(() => {
+    if (ceramic == null) {
+      console.error("Ceramic instance not found");
+      return;
+    }
+
+    setDataStore(null);
+
+    async function updateDataStore() {
+      if (selectedParcelId) {
+        const didNFT = createNftDidUrl({
+          chainId: `eip155:${NETWORK_ID}`,
+          namespace: "erc721",
+          contract: licenseContract.address.toLowerCase(),
+          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+        });
+        const _dataStore = new DIDDataStore({
+          ceramic,
+          model: publishedModel,
+          id: didNFT,
+        });
+        setDataStore(_dataStore);
+      } else {
+        setDataStore(null);
+      }
+    }
+
+    updateDataStore();
+  }, [ceramic, selectedParcelId]);
+
+  const basicProfileStreamManager = useBasicProfileStreamManager(dataStore);
+  const pinningManager = usePinningManager(dataStore, ipfs, firebasePerf);
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState(null);
@@ -79,8 +103,8 @@ function Sidebar({
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         ceramic={ceramic}
+        dataStore={dataStore}
         ipfs={ipfs}
-        parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
         licenseAddress={licenseContract.address}
@@ -98,7 +122,6 @@ function Sidebar({
             setSelectedParcelId={setSelectedParcelId}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            parcelIndexManager={parcelIndexManager}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
             ceramic={ceramic}

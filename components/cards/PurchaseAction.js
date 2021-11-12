@@ -19,7 +19,6 @@ function PurchaseAction({
   refetchParcelData,
   setInteractionState,
   auctionValue,
-  parcelIndexManager,
   basicProfileStreamManager,
   existingNetworkFeeBalance,
   licenseAddress,
@@ -36,8 +35,8 @@ function PurchaseAction({
     _currentForSalePriceWei
   );
 
-  const parcelContent = parcelIndexManager
-    ? parcelIndexManager.getStreamContent()
+  const parcelContent = basicProfileStreamManager
+    ? basicProfileStreamManager.getStreamContent()
     : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
@@ -107,20 +106,15 @@ function PurchaseAction({
       perSecondFeeNumerator,
       perSecondFeeDenominator
     );
-    try {
-      const resp = await purchaserContract.purchase(
-        parcelData.landParcel.id,
-        account,
-        actionData.transactionSubtotal,
-        newContributionRate,
-        { from: account, value: actionData.transactionSubtotal }
-      );
-      await resp.wait();
-      refetchParcelData();
-    } catch (error) {
-      console.error(error);
-      updateActionData({ isActing: false, didFail: true });
-    }
+    const resp = await purchaserContract.purchase(
+      parcelData.landParcel.id,
+      account,
+      actionData.transactionSubtotal,
+      newContributionRate,
+      { from: account, value: actionData.transactionSubtotal }
+    );
+    await resp.wait();
+    refetchParcelData();
   }
 
   return (
@@ -131,7 +125,6 @@ function PurchaseAction({
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_purchase}
-        parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         actionData={actionData}
         setActionData={setActionData}

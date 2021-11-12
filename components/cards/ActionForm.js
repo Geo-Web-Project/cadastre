@@ -29,7 +29,6 @@ export function ActionForm({
   performAction,
   actionData,
   setActionData,
-  parcelIndexManager,
   basicProfileStreamManager,
   setInteractionState,
   licenseAddress,
@@ -187,13 +186,15 @@ export function ActionForm({
         tokenId: parcelId.toString(),
       });
 
-      // Create new ParcelIndexManager and BasicProfileStreamManager
-      const dataStore = new DIDDataStore({ ceramic, model: publishedModel });
-      const _parcelIndexManager = new ParcelIndexManager(ceramic, dataStore);
-      await _parcelIndexManager.setController(didNFT);
+      // Create new DIDDataStore and BasicProfileStreamManager
+      const dataStore = new DIDDataStore({
+        ceramic,
+        model: publishedModel,
+        id: didNFT,
+      });
 
       const _basicProfileStreamManager = new BasicProfileStreamManager(
-        _parcelIndexManager
+        dataStore
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);

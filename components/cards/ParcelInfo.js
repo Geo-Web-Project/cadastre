@@ -49,7 +49,7 @@ function ParcelInfo({
   perSecondFeeDenominator,
   ceramic,
   ipfs,
-  parcelIndexManager,
+  dataStore,
   basicProfileStreamManager,
   pinningManager,
   licenseAddress,
@@ -67,9 +67,7 @@ function ParcelInfo({
     ? basicProfileStreamManager.getStreamContent()
     : null;
 
-  const parcelIndexStreamId = parcelIndexManager
-    ? parcelIndexManager.getStreamId()
-    : null;
+  const parcelIndexStreamId = dataStore ? dataStore.id : null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();
@@ -96,7 +94,7 @@ function ParcelInfo({
     }
 
     updateContent();
-  }, [data, parcelIndexManager]);
+  }, [data, dataStore]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -341,7 +339,6 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
               licenseAddress={licenseAddress}
             />
@@ -358,7 +355,6 @@ function ParcelInfo({
               parcelData={data}
               refetchParcelData={refetch}
               auctionValue={auctionValue}
-              parcelIndexManager={parcelIndexManager}
               basicProfileStreamManager={basicProfileStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
               licenseAddress={licenseAddress}
@@ -370,7 +366,7 @@ function ParcelInfo({
         ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
-        parcelIndexManager={parcelIndexManager}
+        dataStore={dataStore}
         ceramic={ceramic}
         pinningManager={pinningManager}
       ></GalleryModal>

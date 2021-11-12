@@ -19,7 +19,6 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  parcelIndexManager,
   basicProfileStreamManager,
   licenseAddress,
   ceramic,
@@ -112,7 +111,6 @@ function ClaimAction({
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
         licenseAddress={licenseAddress}

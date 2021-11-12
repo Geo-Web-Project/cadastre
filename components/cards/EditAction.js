@@ -17,7 +17,6 @@ function EditAction({
   parcelData,
   refetchParcelData,
   setInteractionState,
-  parcelIndexManager,
   basicProfileStreamManager,
   licenseAddress,
 }) {
@@ -87,28 +86,24 @@ function EditAction({
     let paymentValue =
       displayNetworkFeePayment.length > 0 ? networkFeePayment : 0;
 
-    try {
-      const newContributionRate = fromValueToRate(
-        newForSalePrice,
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      );
-      const resp = await collectorContract.setContributionRate(
-        parcelData.landParcel.id,
-        newContributionRate,
-        {
-          from: account,
-          value: paymentValue,
-        }
-      );
+    const newContributionRate = fromValueToRate(
+      newForSalePrice,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+    const resp = await collectorContract.setContributionRate(
+      parcelData.landParcel.id,
+      newContributionRate,
+      {
+        from: account,
+        value: paymentValue,
+      }
+    );
 
-      await resp.wait();
+    await resp.wait();
 
-      refetchParcelData();
-      setInteractionState(STATE_PARCEL_SELECTED);
-    } catch (error) {
-      updateActionData({ isActing: false, didFail: true });
-    }
+    refetchParcelData();
+    setInteractionState(STATE_PARCEL_SELECTED);
   }
 
   return (
@@ -121,7 +116,6 @@ function EditAction({
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
-        parcelIndexManager={parcelIndexManager}
         basicProfileStreamManager={basicProfileStreamManager}
         setInteractionState={setInteractionState}
         licenseAddress={licenseAddress}

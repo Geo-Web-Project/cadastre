@@ -19,17 +19,15 @@ import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryI
 export function GalleryModal({
   show,
   setInteractionState,
-  parcelIndexManager,
+  dataStore,
   ipfs,
-  ceramic,
   pinningManager,
 }) {
   const handleClose = () => {
     setInteractionState(STATE_PARCEL_SELECTED);
   };
 
-  const mediaGalleryStreamManager =
-    useMediaGalleryStreamManager(parcelIndexManager);
+  const mediaGalleryStreamManager = useMediaGalleryStreamManager(dataStore);
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager
   );
