@@ -62,6 +62,7 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
+  const [timer, setTimer] = React.useState(null);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
@@ -83,13 +84,13 @@ function ParcelInfo({
   useEffect(() => {
     async function updateContent() {
       if (data && data.landParcel) {
-        if (networkFeeBalance == null) {
-          setInterval(() => {
-            setNetworkFeeBalance(
-              _calculateNetworkFeeBalance(data.landParcel.license)
-            );
-          }, 500);
-        }
+        clearInterval(timer);
+        const _timer = setInterval(() => {
+          setNetworkFeeBalance(
+            _calculateNetworkFeeBalance(data.landParcel.license)
+          );
+        }, 500);
+        setTimer(_timer);
       }
     }
 
