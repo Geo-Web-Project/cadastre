@@ -103,7 +103,6 @@ function EditAction({
     await resp.wait();
 
     refetchParcelData();
-    setInteractionState(STATE_PARCEL_SELECTED);
   }
 
   return (
