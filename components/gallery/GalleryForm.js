@@ -96,7 +96,7 @@ export function GalleryForm({
     if(encoding === ".mp4")
       type = file.type
 
-    setDetectedFileFormat(encoding);
+    //setDetectedFileFormat(encoding);
 
     // Manually preload synchronously
     ipfs.preload.stop();
