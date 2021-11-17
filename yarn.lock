@@ -2734,6 +2734,18 @@
     uint8arrays "^2.0.5"
     varint "^6.0.0"
 
+"@ceramicnetwork/streamid@^1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/streamid/-/streamid-1.3.3.tgz#6df74621a1b55398d76fec224db069e52615da6f"
+  integrity sha512-0jGeWZAieOp6WQSd2W1KLYu2daHYH86bCvzXccE3kACw1uUMjJPfQv39xAaTx0ig0fummD3v1/PSrOV9fd5R3w==
+  dependencies:
+    cids "~1.1.6"
+    ipld-dag-cbor "^0.17.0"
+    multibase "~4.0.2"
+    typescript-memoize "^1.0.0-alpha.4"
+    uint8arrays "^2.0.5"
+    varint "^6.0.0"
+
 "@ceramicnetwork/transport-postmessage@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/transport-postmessage/-/transport-postmessage-0.3.0.tgz#5c573a785cc7a96e0a4bd7b643749ab6c3917de3"
@@ -3807,12 +3819,12 @@
   dependencies:
     "@glazed/tile-loader" "^0.1.0"
 
-"@glazed/did-datastore@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@glazed/did-datastore/-/did-datastore-0.2.0.tgz#856c948f4cfa6de9f23d28bf49a14ad7e06c6961"
-  integrity sha512-2kUQiWfiU5kZR5/FcXrOxuHX+ym7P9XlhTBFBy6KyTndcBwXeyxcZu8lS3G+/G1i+X/VJY/HvMO/rQkEaj6BFA==
+"@glazed/did-datastore@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@glazed/did-datastore/-/did-datastore-0.2.1.tgz#1aa530949a77cad94dfbe15df9e6fccc2878ad28"
+  integrity sha512-zs79OTtO8s/dlJ6iI2KHF5G9D3sKS13X3lJUP+dDBUYqcDVlWCYZUcD26ove/4Q8UNRHWu7lypzvxoKiOSoBsw==
   dependencies:
-    "@ceramicnetwork/streamid" "^1.3.1"
+    "@ceramicnetwork/streamid" "^1.3.3"
     "@glazed/constants" "^0.1.1"
     "@glazed/datamodel" "^0.2.0"
     "@glazed/tile-loader" "^0.1.0"
