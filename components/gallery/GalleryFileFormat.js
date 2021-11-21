@@ -32,4 +32,10 @@ const getFormatCS = () => {
     return _formats.toString()
 }
 
-export { galleryFileFormats, getFormat, getFormatCS }
+const getFormatType = (encoding) => {
+
+    let _type = galleryFileFormats.filter(file => file.encoding === encoding);
+    return _type[0]["type"]
+}
+
+export { galleryFileFormats, getFormat, getFormatCS, getFormatType }

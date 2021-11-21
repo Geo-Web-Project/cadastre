@@ -9,7 +9,7 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
-import { galleryFileFormats, getFormat, getFormatCS } from "./GalleryFileFormat";
+import { galleryFileFormats, getFormat, getFormatCS, getFormatType } from "./GalleryFileFormat";
 
 export function GalleryForm({
   pinningManager,
@@ -73,7 +73,7 @@ export function GalleryForm({
     }
 
     updateMediaGalleryItem({
-      "@type": "3DModel",
+      //"@type": "3DModel",
       contentUrl: `ipfs://${cid}`,
       encodingFormat: fileFormat,
     });
@@ -105,7 +105,7 @@ export function GalleryForm({
     await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
-      "@type": type,
+      //"@type": type,
       contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
       encodingFormat: encoding,
     });
@@ -184,7 +184,8 @@ export function GalleryForm({
     setFileFormat(event.target.value);
 
     updateMediaGalleryItem({
-      encodingFormat: event.target.value,
+      "@type": getFormatType(event.target.value),
+      encodingFormat: event.target.value
     });
   }
 
