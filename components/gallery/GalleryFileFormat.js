@@ -1,14 +1,14 @@
 const galleryFileFormats = [
+    { extension: ".gif", encoding: "image/gif", type: "ImageObject" },
     { extension: ".glb", encoding: "model/gltf-binary", type: "3DModel" },
-    { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" },
+    { extension: ".jpeg", encoding: "image/jpeg", type: "ImageObject" },
     { extension: ".mp3", encoding: "audio/mpeg", type: "AudioObject" },
     { extension: ".mp4", encoding: "audio/mp4", type: "AudioObject" },
-    { extension: ".jpeg", encoding: "image/jpeg", type: "ImageObject" },
-    { extension: ".gif", encoding: "image/gif", type: "ImageObject" },
+    { extension: ".mp4", encoding: "video/mp4", type: "VideoObject" },
+    { extension: ".mpeg", encoding: "video/mpeg", type: "VideoObject" },
     { extension: ".png", encoding: "image/png", type: "ImageObject" },
     { extension: ".svg", encoding: "image/svg+xml", type: "ImageObject" },
-    { extension: ".mpeg", encoding: "video/mpeg", type: "VideoObject" },
-    { extension: ".mp4", encoding: "video/mp4", type: "VideoObject" }
+    { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" }
 ]
  
 const getFormat = (_filename) => {
@@ -33,8 +33,8 @@ const getFormatCS = () => {
 }
 
 const getFormatType = (encoding) => {
-
-    let _type = galleryFileFormats.filter(file => file.encoding === encoding);
+    
+    let _type = galleryFileFormats.filter(f => {return f.encoding === encoding });
     return _type[0]["type"]
 }
 
