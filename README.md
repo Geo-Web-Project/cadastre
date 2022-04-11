@@ -9,11 +9,12 @@ Create a .env file in the Cadastre folder with this line of code and your new to
 NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN={{your_mapbox_token}}
 ```
 
-Install Node Version 16 if you don't have it
+Install Node Version 16 if you don't have it.
 If you have a Mac, you can use this command
 ```
 brew install node@16
 ```
+Otherwise download from [node](https://nodejs.org/en/download)
 
 For the first time setup, run yarn to download all your dependencies
 ```
