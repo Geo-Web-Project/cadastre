@@ -257,6 +257,7 @@ export function GalleryForm({
                 style={{ backgroundColor: "#111320", border: "none" }}
                 onChange={onSelectFileFormat}
                 value={detectedFileFormat ?? fileFormat}
+                required
                 disabled={detectedFileFormat != null}
                 custom
               >
