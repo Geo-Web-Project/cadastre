@@ -22,15 +22,15 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
+import { fromRateToValue } from "./ActionForm";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
     landParcel(id: $id) {
       id
       license {
-        rootCID
         owner
-        value
+        contributionRate
         expirationTimestamp
       }
     }
@@ -39,18 +39,21 @@ const parcelQuery = gql`
 
 function ParcelInfo({
   account,
-  adminContract,
+  collectorContract,
+  purchaserContract,
   interactionState,
   setInteractionState,
   selectedParcelId,
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  adminAddress,
   ceramic,
   ipfs,
-  parcelRootStreamManager,
+  dataStore,
+  didNFT,
+  basicProfileStreamManager,
   pinningManager,
+  licenseAddress,
 }) {
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
@@ -60,18 +63,12 @@ function ParcelInfo({
 
   const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
   const [auctionValue, setAuctionValue] = React.useState(null);
+  const [timer, setTimer] = React.useState(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState(null);
 
-  const parcelContent = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamContent()
+  const parcelContent = basicProfileStreamManager
+    ? basicProfileStreamManager.getStreamContent()
     : null;
-  const parcelContentStreamId = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamId()
-    : null;
-  let isLoading =
-    loading ||
-    perSecondFeeNumerator == null ||
-    perSecondFeeDenominator == null ||
-    parcelContent == null;
 
   function _calculateNetworkFeeBalance(license) {
     let now = Date.now();
@@ -79,44 +76,37 @@ function ParcelInfo({
       .mul(1000)
       .sub(now)
       .div(1000)
-      .mul(BigNumber.from(license.value))
-      .mul(perSecondFeeNumerator.toNumber())
-      .div(perSecondFeeDenominator.toNumber());
+      .mul(BigNumber.from(license.contributionRate));
 
     return networkFeeBalance < 0 ? BigNumber.from(0) : networkFeeBalance;
   }
 
   useEffect(() => {
     async function updateContent() {
-      if (
-        data &&
-        data.landParcel &&
-        perSecondFeeNumerator &&
-        perSecondFeeDenominator
-      ) {
-        if (data.landParcel.license.rootCID && parcelRootStreamManager) {
-          await parcelRootStreamManager.setExistingStreamId(
-            data.landParcel.license.rootCID
+      if (data && data.landParcel) {
+        clearInterval(timer);
+        const _timer = setInterval(() => {
+          setNetworkFeeBalance(
+            _calculateNetworkFeeBalance(data.landParcel.license)
           );
-        }
-
-        if (networkFeeBalance == null) {
-          setInterval(() => {
-            setNetworkFeeBalance(
-              _calculateNetworkFeeBalance(data.landParcel.license)
-            );
-          }, 500);
-        }
+        }, 500);
+        setTimer(_timer);
       }
     }
 
+    async function updateStreamId() {
+      if (!dataStore) {
+        setParcelIndexStreamId(null);
+        return;
+      }
+
+      const doc = await dataStore._createIDXDoc(didNFT);
+      setParcelIndexStreamId(doc.id.toString());
+    }
+
     updateContent();
-  }, [
-    data,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator,
-    parcelRootStreamManager,
-  ]);
+    updateStreamId();
+  }, [data, dataStore]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -129,11 +119,20 @@ function ParcelInfo({
   let networkFeeBalanceDisplay;
   let licenseOwner;
   let isExpired;
-  if (data && data.landParcel) {
+  if (
+    data &&
+    data.landParcel &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+  ) {
+    const value = fromRateToValue(
+      BigNumber.from(data.landParcel.license.contributionRate),
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
     forSalePrice = (
       <>
-        {ethers.utils.formatEther(data.landParcel.license.value)}{" "}
-        {PAYMENT_TOKEN}{" "}
+        {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
       </>
     );
     if (networkFeeBalance != null) {
@@ -151,17 +150,24 @@ function ParcelInfo({
     licenseOwner = data.landParcel.license.owner;
   }
 
+  let isLoading =
+    loading ||
+    data == null ||
+    licenseOwner == null ||
+    perSecondFeeNumerator == null ||
+    perSecondFeeDenominator == null;
+
   let hrefWebContent;
   // Translate ipfs:// to case-insensitive base
   if (
     parcelContent &&
-    parcelContent.webContent &&
-    parcelContent.webContent.startsWith("ipfs://")
+    parcelContent.url &&
+    parcelContent.url.startsWith("ipfs://")
   ) {
-    const cid = new CID(parcelContent.webContent.split("ipfs://")[1]);
+    const cid = new CID(parcelContent.url.split("ipfs://")[1]);
     hrefWebContent = `ipfs://${cid.toV1().toBaseEncodedString("base32")}`;
   } else if (parcelContent) {
-    hrefWebContent = parcelContent.webContent;
+    hrefWebContent = parcelContent.url;
   }
 
   let cancelButton = (
@@ -226,7 +232,11 @@ function ParcelInfo({
     title = (
       <>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {isLoading ? spinner : parcelContent.name}
+          {!basicProfileStreamManager
+            ? spinner
+            : parcelContent
+            ? parcelContent.name
+            : "[No Name Found]"}
         </h1>
       </>
     );
@@ -270,16 +280,14 @@ function ParcelInfo({
           interactionState == STATE_EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
-                {isLoading ? (
-                  spinner
-                ) : (
+                {!parcelContent ? null : hrefWebContent ? (
                   <a
                     href={hrefWebContent}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
                   >{`[${hrefWebContent}]`}</a>
-                )}
+                ) : null}
               </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Parcel ID:</span>{" "}
@@ -304,23 +312,23 @@ function ParcelInfo({
                   : networkFeeBalanceDisplay}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Stream ID:</span>{" "}
-                {parcelContentStreamId == null ? (
+                <span className="font-weight-bold">Index Stream ID:</span>{" "}
+                {parcelIndexStreamId == null ? (
                   spinner
                 ) : (
                   <a
-                    href={`https://tiles.ceramic.community/document/${parcelContentStreamId}`}
+                    href={`https://tiles.ceramic.community/document/${parcelIndexStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`ceramic://${parcelContentStreamId}`}</a>
+                  >{`ceramic://${parcelIndexStreamId}`}</a>
                 )}
               </p>
               {isExpired ? (
                 <>
                   <hr className="border-secondary" />
                   <AuctionInfo
-                    adminContract={adminContract}
+                    purchaserContract={purchaserContract}
                     licenseInfo={data.landParcel.license}
                     auctionValue={auctionValue}
                     setAuctionValue={setAuctionValue}
@@ -335,7 +343,7 @@ function ParcelInfo({
           )}
           {interactionState == STATE_PARCEL_EDITING ? (
             <EditAction
-              adminContract={adminContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}
@@ -343,13 +351,14 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
-              parcelRootStreamManager={parcelRootStreamManager}
+              basicProfileStreamManager={basicProfileStreamManager}
+              licenseAddress={licenseAddress}
             />
           ) : null}
           {interactionState == STATE_PARCEL_PURCHASING ? (
             <PurchaseAction
-              adminContract={adminContract}
+              purchaserContract={purchaserContract}
+              collectorContract={collectorContract}
               account={account}
               setInteractionState={setInteractionState}
               setSelectedParcelId={setSelectedParcelId}
@@ -357,10 +366,10 @@ function ParcelInfo({
               perSecondFeeDenominator={perSecondFeeDenominator}
               parcelData={data}
               refetchParcelData={refetch}
-              adminAddress={adminAddress}
               auctionValue={auctionValue}
-              parcelRootStreamManager={parcelRootStreamManager}
+              basicProfileStreamManager={basicProfileStreamManager}
               existingNetworkFeeBalance={networkFeeBalance}
+              licenseAddress={licenseAddress}
             />
           ) : null}
         </Col>
@@ -369,8 +378,9 @@ function ParcelInfo({
         ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
-        parcelRootStreamManager={parcelRootStreamManager}
+        dataStore={dataStore}
         ceramic={ceramic}
+        didNFT={didNFT}
         pinningManager={pinningManager}
       ></GalleryModal>
     </>
