@@ -5,15 +5,25 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
-import { SUBGRAPH_URL } from "../lib/constants";
-import { Web3ReactProvider } from "@web3-react/core";
-import { ethers } from "ethers";
-
+import { CERAMIC_URL, CONNECT_NETWORK, SUBGRAPH_URL } from "../lib/constants";
+import { Provider as MultiAuth } from "@ceramicstudio/multiauth";
 import "../styles.scss";
+import {
+  injected,
+  walletconnect,
+  fortmatic,
+  portis,
+  torus,
+} from "../lib/wallets/connectors";
+import { Provider } from "@self.id/framework";
 
-function getLibrary(provider, connector) {
-  return new ethers.providers.Web3Provider(provider);
-}
+const connectors = [
+  { key: "injected", connector: injected },
+  { key: "walletconnect", connector: walletconnect },
+  { key: "fortmatic", connector: fortmatic },
+  { key: "portis", connector: portis },
+  { key: "torus", connector: torus },
+];
 
 export default function App({ Component, pageProps }) {
   const client = new ApolloClient({
@@ -37,10 +47,14 @@ export default function App({ Component, pageProps }) {
   });
 
   return (
-    <Web3ReactProvider getLibrary={getLibrary}>
-      <ApolloProvider client={client}>
-        <Component {...pageProps} />
-      </ApolloProvider>
-    </Web3ReactProvider>
+    <Provider
+      client={{ ceramic: CERAMIC_URL, connectNetwork: CONNECT_NETWORK }}
+    >
+      <MultiAuth providers={[{ key: "ethereum", connectors }]}>
+        <ApolloProvider client={client}>
+          <Component {...pageProps} />
+        </ApolloProvider>
+      </MultiAuth>
+    </Provider>
   );
 }
