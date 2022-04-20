@@ -25,10 +25,10 @@ import {
   THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import { truncateStr } from "../lib/truncate";
-import CeramicClient from "@ceramicnetwork/http-client";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
-import KeyDidResolver from "key-did-resolver";
-import ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import * as KeyDidResolver from "key-did-resolver";
+import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
 
 import { ethers } from "ethers";
@@ -63,8 +63,6 @@ function IndexPage() {
   const [ipfs, setIPFS] = React.useState(null);
   const [library, setLibrary] = React.useState(null);
   const { firebasePerf } = useFirebase();
-
-  console.log(ceramic);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -109,7 +107,7 @@ function IndexPage() {
       await threeIdConnect.connect(
         new EthereumAuthProvider(
           authState.connected.provider.state.provider,
-          authState.connected.accountID.toString()
+          authState.connected.accountID.address
         )
       );
 
