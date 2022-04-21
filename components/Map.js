@@ -10,6 +10,9 @@ import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
 
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Button from "react-bootstrap/Button";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
@@ -103,12 +106,15 @@ export function coordToFeature(gwCoord) {
 }
 
 function Map({
-  adminAddress,
-  adminContract,
+  licenseContract,
+  accountantContract,
+  claimerContract,
+  collectorContract,
+  purchaserContract,
   account,
   ceramic,
   ipfs,
-  pinningManager,
+  firebasePerf,
 }) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
@@ -116,9 +122,20 @@ function Map({
     },
   });
 
-
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
+
+
+  const [mapstyle, setMapstyle] = React.useState("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
+  const [mapStyleName, setMapStyleName] = React.useState("street")
+
+  const handleMapstyle = (newStyle) => {
+    if(newStyle === "satellite") setMapstyle("mapbox://styles/mapbox/satellite-streets-v11")
+    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln")
+
+    setMapStyleName(newStyle);
+  };
+
 
   // Fetch more until none left
   useEffect(() => {
@@ -158,7 +175,7 @@ function Map({
   const _onViewportSearch = useCallback((nextViewport) => {
     setViewport(nextViewport);
   }, []);
-  
+
   function _onViewportChange(nextViewport) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
@@ -175,15 +192,17 @@ function Map({
   }
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
-  const _onGeocoderViewportChange = useCallback((newViewport) => {
+  const _onGeocoderViewportChange = useCallback(
+    (newViewport) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
       return _onViewportSearch({
         ...newViewport,
-        ...geocoderDefaultOverrides
+        ...geocoderDefaultOverrides,
       });
-  }, [_onViewportSearch]);
-
+    },
+    [_onViewportSearch]
+  );
 
   function onHover(event) {
     if (event.features == null || viewport.zoom < 5) {
@@ -372,8 +391,11 @@ function Map({
     <>
       {interactionState != STATE_VIEWING ? (
         <Sidebar
-          adminAddress={adminAddress}
-          adminContract={adminContract}
+          licenseContract={licenseContract}
+          accountantContract={accountantContract}
+          claimerContract={claimerContract}
+          collectorContract={collectorContract}
+          purchaserContract={purchaserContract}
           account={account}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
@@ -383,7 +405,7 @@ function Map({
           setSelectedParcelId={setSelectedParcelId}
           ceramic={ceramic}
           ipfs={ipfs}
-          pinningManager={pinningManager}
+          firebasePerf={firebasePerf}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
@@ -398,7 +420,7 @@ function Map({
           width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
           height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+          mapStyle={mapstyle}
           mapOptions={{
             renderWorldCopies: false,
           }}
@@ -424,11 +446,24 @@ function Map({
             mapRef={mapRef}
             containerRef={geocoderContainerRef}
             onViewportChange={_onGeocoderViewportChange}
-            mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+            mapboxApiAccessToken={
+              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN
+            }
             position="top-right"
           />
         </ReactMapGL>
       </Col>
+
+      <ButtonGroup style={{position: "absolute", bottom: "4%", right: "2%", radius: 12 }} 
+      aria-label="Basic example">
+        <Button style={{ backgroundColor: mapStyleName==="street"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("street")} >
+          <img src={"street_ic.png"} style={{ height:30, width: 30 }} />
+        </Button>
+        <Button style={{ backgroundColor: mapStyleName==="satellite"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("satellite")} >
+          <img src={"satellite_ic.png"} style={{ height:30, width: 30 }} />
+        </Button>
+      </ButtonGroup>
+    );
     </>
   );
 }

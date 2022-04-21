@@ -20,7 +20,7 @@ function HomeContent() {
       }}
     >
       <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"The Geo Web is an augmented reality metaverse."}
+        {"The Geo Web is an augmented reality metaworld."}
       </p>
       <p style={{ fontSize: "14px", lineHeight: "22px" }}>
         {
@@ -74,7 +74,7 @@ function HomeContent() {
       </p>
       <p style={{ fontSize: "14px", lineHeight: "22px" }}>
         {
-          "If you’re still here reading... props. You can dive even deeper on Geo Web vision at docs.geoweb.network/. Otherwise, connect your wallet, and go explore the Geo Web!"
+          "If you’re still here reading... props. You can dive even deeper on Geo Web vision at https://docs.geoweb.network/. Otherwise, connect your wallet, and go explore the Geo Web!"
         }
       </p>
     </div>

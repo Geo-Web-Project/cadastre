@@ -9,6 +9,8 @@ import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
+import { galleryFileFormats, getFormat, getFormatCS, getFormatType } from "./GalleryFileFormat";
+
 export function GalleryForm({
   pinningManager,
   ipfs,
@@ -56,6 +58,7 @@ export function GalleryForm({
   }
 
   function updateContentUrl(event) {
+    
     const cid = event.target.value;
 
     if (!cid || cid.length == 0) {
@@ -70,7 +73,7 @@ export function GalleryForm({
     }
 
     updateMediaGalleryItem({
-      "@type": "3DModel",
+      //"@type": "3DModel",
       contentUrl: `ipfs://${cid}`,
       encodingFormat: fileFormat,
     });
@@ -88,14 +91,12 @@ export function GalleryForm({
 
     setIsUploading(true);
 
-    let format;
-    if (file.name.endsWith(".glb")) {
-      format = "model/gltf-binary";
-    } else if (file.name.endsWith(".usdz")) {
-      format = "model/vnd.usdz+zip";
-    }
+    let {encoding, type} = getFormat(file.name)
 
-    setDetectedFileFormat(format);
+    if(encoding === ".mp4")
+      type = file.type
+
+    //setDetectedFileFormat(encoding);
 
     // Manually preload synchronously
     ipfs.preload.stop();
@@ -104,9 +105,9 @@ export function GalleryForm({
     await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
-      "@type": "3DModel",
+      //"@type": type,
       contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
-      encodingFormat: format,
+      encodingFormat: encoding,
     });
 
     setIsUploading(false);
@@ -133,7 +134,8 @@ export function GalleryForm({
 
     if (mediaGalleryItem) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
-        mediaGalleryStreamManager.ceramic
+        mediaGalleryStreamManager.ceramic,
+        mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
         mediaGalleryItem
@@ -146,6 +148,7 @@ export function GalleryForm({
       try {
         await pinningManager.pinCid(name, cid);
       } catch (err) {
+        console.error(err);
         setDidFail(true);
         setIsSaving(false);
         return;
@@ -183,7 +186,8 @@ export function GalleryForm({
     setFileFormat(event.target.value);
 
     updateMediaGalleryItem({
-      encodingFormat: event.target.value,
+      "@type": getFormatType(event.target.value),
+      encodingFormat: event.target.value
     });
   }
 
@@ -231,7 +235,7 @@ export function GalleryForm({
                 <FormFile.Input
                   id="uploadCid"
                   style={{ backgroundColor: "#111320", border: "none" }}
-                  accept=".glb, .usdz"
+                  accept={getFormatCS()}
                   disabled={isUploading || selectedMediaGalleryItemManager}
                   onChange={captureFile}
                   hidden
@@ -255,18 +259,20 @@ export function GalleryForm({
                 style={{ backgroundColor: "#111320", border: "none" }}
                 onChange={onSelectFileFormat}
                 value={detectedFileFormat ?? fileFormat}
+                required
                 disabled={detectedFileFormat != null}
                 custom
               >
                 <option value="" selected>
                   Select a File Format
                 </option>
-                <option value="model/gltf-binary">
-                  .glb (model/gltf-binary)
-                </option>
-                <option value="model/vnd.usdz+zip">
-                  .usdz (model/vnd.usdz+zip)
-                </option>
+
+                {galleryFileFormats.map((_format)=>(
+                  <option value={_format.encoding}>
+                    {_format.extension} ({_format.encoding})
+                  </option>
+                ))}
+
               </Form.Control>
             </div>
           </Col>

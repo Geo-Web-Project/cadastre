@@ -8,6 +8,12 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
+import { createNftDidUrl } from "nft-did-resolver";
+import { NETWORK_ID, publishedModel } from "../../lib/constants";
+import { STATE_PARCEL_SELECTED } from "../Map";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { DIDDataStore } from "@glazed/did-datastore";
+import BN from "bn.js";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -15,14 +21,18 @@ const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
 export function ActionForm({
   title,
-  adminContract,
+  collectorContract,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   loading,
   performAction,
   actionData,
   setActionData,
-  parcelRootStreamManager,
+  basicProfileStreamManager,
+  setInteractionState,
+  licenseAddress,
+  ceramic,
+  setSelectedParcelId,
 }) {
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
@@ -147,19 +157,53 @@ export function ActionForm({
   }
 
   async function submit() {
-    if (!parcelRootStreamManager) {
-      console.error("ParcelContentManager not found");
+    updateActionData({ isActing: true });
+
+    let parcelId;
+    try {
+      // Perform action
+      parcelId = await performAction();
+    } catch (err) {
+      console.error(err);
+      updateActionData({ isActing: false, didFail: true });
       return;
     }
 
-    updateActionData({ isActing: true });
-    const newStreamId = await parcelRootStreamManager.createOrUpdateStream({
-      name: parcelName,
-      webContent: parcelWebContentURI,
-    });
-    performAction(newStreamId, () => {
-      return parcelRootStreamManager.getStreamId();
-    });
+    let content = {};
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
+
+    if (parcelId) {
+      const didNFT = createNftDidUrl({
+        chainId: `eip155:${NETWORK_ID}`,
+        namespace: "erc721",
+        contract: licenseAddress.toLowerCase(),
+        tokenId: parcelId.toString(),
+      });
+
+      // Create new DIDDataStore and BasicProfileStreamManager
+      const dataStore = new DIDDataStore({
+        ceramic,
+        model: publishedModel,
+        id: didNFT,
+      });
+
+      const _basicProfileStreamManager = new BasicProfileStreamManager(
+        dataStore
+      );
+      await _basicProfileStreamManager.createOrUpdateStream(content);
+      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
+    } else {
+      // Use existing BasicProfileStreamManager
+      await basicProfileStreamManager.createOrUpdateStream(content);
+    }
+
+    updateActionData({ isActing: false });
+    setInteractionState(STATE_PARCEL_SELECTED);
   }
 
   let [newExpirationDate, isDateInvalid, isDateWarning] =
@@ -177,7 +221,7 @@ export function ActionForm({
     !displayNewForSalePrice ||
     (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
-  let isLoading = loading || parcelRootStreamManager == null;
+  let isLoading = loading;
 
   let expirationDateErrorMessage;
   if (displayCurrentForSalePrice == null && isDateInvalid) {
@@ -194,14 +238,19 @@ export function ActionForm({
   }
 
   React.useEffect(() => {
-    if (adminContract == null) {
+    if (collectorContract == null) {
       return;
     }
 
-    adminContract.minInitialValue().then((minInitialValue) => {
-      setMinInitialValue(ethers.utils.formatEther(minInitialValue.toString()));
+    collectorContract.minContributionRate().then((minContributionRate) => {
+      const _minInitialValue = fromRateToValue(
+        minContributionRate,
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+      setMinInitialValue(ethers.utils.formatEther(_minInitialValue.toString()));
     });
-  }, [adminContract]);
+  }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
 
   React.useEffect(() => {
     if (!isActing) {
@@ -390,4 +439,22 @@ export function calculateWeiSubtotalField(displayValue) {
   } else {
     return BigNumber.from(0);
   }
+}
+
+export function fromRateToValue(
+  contributionRate,
+  perSecondFeeNumerator,
+  perSecondFeeDenominator
+) {
+  return contributionRate
+    .mul(perSecondFeeDenominator)
+    .div(perSecondFeeNumerator);
+}
+
+export function fromValueToRate(
+  value,
+  perSecondFeeNumerator,
+  perSecondFeeDenominator
+) {
+  return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
 }

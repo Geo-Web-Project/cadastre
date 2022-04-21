@@ -8,20 +8,15 @@ import Container from "react-bootstrap/Container";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import {
-  PINATA_API_ENDPOINT,
-  MEDIA_GALLERY_ITEM_SCHEMA_STREAMID,
-  MEDIA_GALLERY_SCHEMA_STREAMID,
-} from "../../lib/constants";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
 import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
 export function GalleryModal({
   show,
   setInteractionState,
-  parcelRootStreamManager,
+  dataStore,
+  didNFT,
   ipfs,
-  ceramic,
   pinningManager,
 }) {
   const handleClose = () => {
@@ -29,7 +24,8 @@ export function GalleryModal({
   };
 
   const mediaGalleryStreamManager = useMediaGalleryStreamManager(
-    parcelRootStreamManager
+    dataStore,
+    didNFT
   );
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
     mediaGalleryStreamManager

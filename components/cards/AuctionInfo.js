@@ -31,7 +31,7 @@ function _calculateTimeString(remaining) {
 }
 
 function AuctionInfo({
-  adminContract,
+  purchaserContract,
   licenseInfo,
   auctionValue,
   setAuctionValue,
@@ -40,11 +40,11 @@ function AuctionInfo({
   let [auctionTimeRemaining, setAuctionTimeRemaining] = React.useState(null);
 
   React.useEffect(async () => {
-    if (!adminContract) {
+    if (!purchaserContract) {
       return;
     }
 
-    let _auctionLength = await adminContract.dutchAuctionLengthInSeconds();
+    let _auctionLength = await purchaserContract.dutchAuctionLengthInSeconds();
     setAuctionLength(_auctionLength);
 
     // Set timer
@@ -65,7 +65,7 @@ function AuctionInfo({
         setAuctionValue(newAuctionValue);
       }, 500);
     }
-  }, [adminContract]);
+  }, [purchaserContract]);
 
   let auctionEndDate;
   if (auctionLength && licenseInfo) {

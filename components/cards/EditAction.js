@@ -1,27 +1,35 @@
 import * as React from "react";
 import { ethers, BigNumber } from "ethers";
 import { STATE_PARCEL_SELECTED } from "../Map";
-import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
+import {
+  ActionForm,
+  calculateWeiSubtotalField,
+  fromRateToValue,
+  fromValueToRate,
+} from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-const erc721LicenseABI = require("../../contracts/ERC721License.json");
 
 function EditAction({
-  adminContract,
+  collectorContract,
   account,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   parcelData,
   refetchParcelData,
   setInteractionState,
-  adminAddress,
-  parcelRootStreamManager,
+  basicProfileStreamManager,
+  licenseAddress,
 }) {
-  const [licenseContract, setLicenseContract] = React.useState(null);
-  const displayCurrentForSalePrice = ethers.utils.formatEther(
-    ethers.utils.parseUnits(parcelData.landParcel.license.value, "wei")
+  const currentForSalePrice = fromRateToValue(
+    BigNumber.from(parcelData.landParcel.license.contributionRate),
+    perSecondFeeNumerator,
+    perSecondFeeDenominator
   );
-  const parcelContent = parcelRootStreamManager
-    ? parcelRootStreamManager.getStreamContent()
+  const displayCurrentForSalePrice =
+    ethers.utils.formatEther(currentForSalePrice);
+
+  const parcelContent = basicProfileStreamManager
+    ? basicProfileStreamManager.getStreamContent()
     : null;
   const [actionData, setActionData] = React.useState({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
@@ -34,7 +42,7 @@ function EditAction({
       ? displayCurrentForSalePrice
       : "",
     parcelName: parcelContent ? parcelContent.name : null,
-    parcelWebContentURI: parcelContent ? parcelContent.webContent : null,
+    parcelWebContentURI: parcelContent ? parcelContent.url : null,
   });
 
   function updateActionData(updatedValues) {
@@ -57,27 +65,7 @@ function EditAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  React.useEffect(() => {
-    if (!adminContract) {
-      return;
-    }
-
-    async function updateLicenseContract() {
-      const _licenseContract = new ethers.Contract(
-        await adminContract.licenseContract(),
-        erc721LicenseABI,
-        adminContract.provider
-      );
-      let _licenseContractWithSigner = _licenseContract.connect(
-        adminContract.provider.getSigner()
-      );
-      setLicenseContract(_licenseContractWithSigner);
-    }
-
-    updateLicenseContract();
-  }, [adminContract]);
-
-  function _edit(newStreamId) {
+  async function _edit() {
     updateActionData({ isActing: true });
 
     // Check for changes
@@ -91,64 +79,47 @@ function EditAction({
       networkFeeIsUnchanged
     ) {
       // Content change only
-
-      if (newStreamId) {
-        // Requires stream ID update
-        licenseContract
-          .setContent(parcelData.landParcel.id, newStreamId.toString())
-          .then((resp) => {
-            return resp.wait();
-          })
-          .then(async function (receipt) {
-            updateActionData({ isActing: false });
-            refetchParcelData();
-            setInteractionState(STATE_PARCEL_SELECTED);
-          })
-          .catch((error) => {
-            console.error(error);
-            updateActionData({ isActing: false, didFail: true });
-          });
-      } else {
-        updateActionData({ isActing: false });
-        setInteractionState(STATE_PARCEL_SELECTED);
-      }
       return;
     }
 
     let newForSalePrice = ethers.utils.parseEther(displayNewForSalePrice);
     let paymentValue =
       displayNetworkFeePayment.length > 0 ? networkFeePayment : 0;
-    adminContract
-      .updateValue(parcelData.landParcel.id, newForSalePrice, {
+
+    const newContributionRate = fromValueToRate(
+      newForSalePrice,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+    const resp = await collectorContract.setContributionRate(
+      parcelData.landParcel.id,
+      newContributionRate,
+      {
         from: account,
         value: paymentValue,
-      })
-      .then((resp) => {
-        return resp.wait();
-      })
-      .then(async function (receipt) {
-        updateActionData({ isActing: false });
-        refetchParcelData();
-        setInteractionState(STATE_PARCEL_SELECTED);
-      })
-      .catch((error) => {
-        updateActionData({ isActing: false, didFail: true });
-      });
+      }
+    );
+
+    await resp.wait();
+
+    refetchParcelData();
   }
 
   return (
     <>
       <ActionForm
         title="Edit"
-        adminContract={adminContract}
+        collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
-        parcelRootStreamManager={parcelRootStreamManager}
+        basicProfileStreamManager={basicProfileStreamManager}
+        setInteractionState={setInteractionState}
+        licenseAddress={licenseAddress}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }

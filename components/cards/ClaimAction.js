@@ -1,24 +1,17 @@
 import * as React from "react";
-import { STATE_PARCEL_SELECTED } from "../Map";
-import { gql, useLazyQuery } from "@apollo/client";
-import { ActionForm, calculateWeiSubtotalField } from "./ActionForm";
+import {
+  ActionForm,
+  calculateWeiSubtotalField,
+  fromValueToRate,
+} from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
-import BN from "bn.js";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-const newParcelQuery = gql`
-  query LandParcel($id: String) {
-    landParcel(id: $id) {
-      id
-    }
-  }
-`;
-
 function ClaimAction({
-  adminContract,
-  adminAddress,
+  claimerContract,
+  collectorContract,
   account,
   claimBase1Coord,
   claimBase2Coord,
@@ -26,13 +19,10 @@ function ClaimAction({
   setSelectedParcelId,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  parcelRootStreamManager,
+  basicProfileStreamManager,
+  licenseAddress,
+  ceramic,
 }) {
-  const [newParcelId, setNewParcelId] = React.useState(null);
-
-  const [getNewParcel, { loading, data, stopPolling }] =
-    useLazyQuery(newParcelQuery);
-
   const [actionData, setActionData] = React.useState({
     isActing: false,
     didFail: false,
@@ -53,20 +43,6 @@ function ClaimAction({
   const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
 
   React.useEffect(() => {
-    if (data == null || data.landParcel == null) {
-      return;
-    }
-    // Stop polling for new parcel
-    stopPolling();
-
-    // Load new parcel
-    setSelectedParcelId(newParcelId);
-    setInteractionState(STATE_PARCEL_SELECTED);
-
-    updateActionData({ isActing: false });
-  }, [data]);
-
-  React.useEffect(() => {
     let _transactionSubtotal = calculateWeiSubtotalField(
       displayNetworkFeePayment
     );
@@ -74,12 +50,8 @@ function ClaimAction({
     updateActionData({ transactionSubtotal: _transactionSubtotal });
   }, [displayNetworkFeePayment]);
 
-  function _claim(rootCID) {
+  async function _claim() {
     updateActionData({ isActing: true });
-    if (rootCID == null) {
-      updateActionData({ isActing: false, didFail: true });
-      return;
-    }
 
     let baseCoord = GeoWebCoordinate.make_gw_coord(
       claimBase1Coord.x,
@@ -98,63 +70,54 @@ function ClaimAction({
       path = [BigNumber.from(0)];
     }
 
-    adminContract
-      .claim(
-        account,
-        baseCoord.toString(10),
-        path,
-        calculateWeiSubtotalField(displayNewForSalePrice),
-        rootCID.toString(),
-        {
-          from: account,
-          value: calculateWeiSubtotalField(displayNetworkFeePayment),
-        }
-      )
-      .then((resp) => {
-        return resp.wait();
-      })
-      .then((receipt) => {
-        const filter = adminContract.filters.LicenseInfoUpdated(
-          null,
-          null,
-          null
-        );
-        return adminContract.queryFilter(
-          filter,
-          receipt.blockNumber,
-          receipt.blockNumber
-        );
-      })
-      .then((res) => {
-        let licenseId = res[0].args[0];
-        let _newParcelId = `0x${new BN(licenseId.toString()).toString(16)}`;
-        setNewParcelId(_newParcelId);
+    const newValue = calculateWeiSubtotalField(displayNewForSalePrice);
+    const newContributionRate = fromValueToRate(
+      newValue,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+    const resp = await claimerContract.claim(
+      account,
+      baseCoord.toString(10),
+      path,
+      newContributionRate,
+      {
+        from: account,
+        value: calculateWeiSubtotalField(displayNetworkFeePayment),
+      }
+    );
 
-        getNewParcel({
-          variables: { id: _newParcelId },
-          pollInterval: 2000,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        updateActionData({ isActing: false, didFail: true });
-      });
+    const receipt = await resp.wait();
+
+    const filter = claimerContract.filters.ParcelClaimed(null, null);
+    const res = await claimerContract.queryFilter(
+      filter,
+      receipt.blockNumber,
+      receipt.blockNumber
+    );
+
+    let licenseId = res[0].args[0];
+    return licenseId;
   }
 
   return (
     <>
       <ActionForm
         title="Claim"
-        adminContract={adminContract}
+        collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        loading={loading}
+        loading={false}
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        parcelRootStreamManager={parcelRootStreamManager}
+        basicProfileStreamManager={basicProfileStreamManager}
+        setInteractionState={setInteractionState}
+        licenseAddress={licenseAddress}
+        ceramic={ceramic}
+        setSelectedParcelId={setSelectedParcelId}
       />
-      <FaucetInfo account={account} adminAddress={adminAddress}></FaucetInfo>
+      <FaucetInfo></FaucetInfo>
     </>
   );
 }
