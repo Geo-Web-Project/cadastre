@@ -241,7 +241,12 @@ function IndexPage() {
         </Button>
       );
     } else {
-      return <Profile account={authState.connected.accountID.address} />;
+      return (
+        <Profile
+          account={authState.connected.accountID.address}
+          disconnectWallet={disconnectWallet}
+        />
+      );
     }
   };
 
@@ -276,7 +281,7 @@ function IndexPage() {
             </div>
           </Col>
 
-          <Col sm={{ span: 2, offset: 0 }} className="p-0">
+          <Col className="p-0">
             <Connector />
           </Col>
         </Navbar>
