@@ -77,12 +77,12 @@ function IndexPage() {
 
     const lib = getLibrary(_authState?.provider.state.provider);
     setLibrary(lib);
-    setFrameworkForSdkRedux(NETWORK_ID, () =>
-      Framework.create({
-        chainId: NETWORK_ID,
-        provider: lib,
-      })
-    );
+
+    const framework = await Framework.create({
+      chainId: NETWORK_ID,
+      provider: lib,
+    });
+    setFrameworkForSdkRedux(NETWORK_ID, framework);
     // await connect(
     //   new EthereumAuthProvider(
     //     _authState.provider.state.provider,
