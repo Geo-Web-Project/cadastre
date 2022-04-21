@@ -6,7 +6,10 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 import { SUBGRAPH_URL } from "../lib/constants";
-import { Provider as MultiAuth } from "@ceramicstudio/multiauth";
+import {
+  Provider as MultiAuth,
+  PartialConnectorConfig,
+} from "@ceramicstudio/multiauth";
 import "../styles.scss";
 import {
   injected,
@@ -15,16 +18,17 @@ import {
   // portis,
   torus,
 } from "../lib/wallets/connectors";
+import { wrapper } from "../redux/store";
 
-const connectors = [
+const connectors = new Array<PartialConnectorConfig>(
   { key: "injected", connector: injected },
   { key: "walletConnect", connector: walletconnect },
   // { key: "fortmatic", connector: fortmatic },
   // { key: "portis", connector: portis },
-  { key: "torus", connector: torus },
-];
+  { key: "torus", connector: torus }
+);
 
-export default function App({ Component, pageProps }) {
+export function App({ Component, pageProps }) {
   const client = new ApolloClient({
     link: new HttpLink({
       uri: SUBGRAPH_URL,
@@ -53,3 +57,5 @@ export default function App({ Component, pageProps }) {
     </MultiAuth>
   );
 }
+
+export default wrapper.withRedux(App);

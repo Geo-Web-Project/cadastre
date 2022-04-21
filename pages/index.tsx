@@ -36,6 +36,9 @@ import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
+import { Framework } from "@superfluid-finance/sdk-core";
+import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
 
@@ -65,7 +68,15 @@ function IndexPage() {
   const connectWallet = async () => {
     const _authState = await activate();
     await switchNetwork(_authState.provider.state.provider);
-    setLibrary(getLibrary(_authState.provider.state.provider));
+
+    const lib = getLibrary(_authState.provider.state.provider);
+    setLibrary(lib);
+    setFrameworkForSdkRedux(NETWORK_ID, () =>
+      Framework.create({
+        chainId: NETWORK_ID,
+        provider: lib,
+      })
+    );
     // await connect(
     //   new EthereumAuthProvider(
     //     _authState.provider.state.provider,
@@ -80,7 +91,7 @@ function IndexPage() {
   };
 
   React.useEffect(() => {
-    if (!authState.connected) {
+    if (authState.status !== "connected") {
       return;
     }
 
@@ -205,11 +216,10 @@ function IndexPage() {
   }, [library]);
 
   const Connector = () => {
-    if (!authState.connected) {
+    if (authState.status !== "connected") {
       return (
         <Button
           target="_blank"
-          rel="noreferrer"
           variant="outline-primary"
           className="text-light font-weight-bold border-dark"
           style={{ height: "100px" }}
@@ -226,7 +236,6 @@ function IndexPage() {
       return (
         <Button
           target="_blank"
-          rel="noreferrer"
           variant="outline-danger"
           className="text-light font-weight-bold border-dark"
           style={{ height: "100px" }}
@@ -282,7 +291,7 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        {authState.connected ? (
+        {authState.status === "connected" ? (
           <Row>
             <Map
               licenseContract={licenseContract}
