@@ -10,7 +10,6 @@ import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import Profile from "../components/profile/Profile";
-import ProfileModal from "../components/profile/ProfileModal";
 import {
   NETWORK_NAME,
   NETWORK_ID,
@@ -34,7 +33,7 @@ import * as KeyDidResolver from "key-did-resolver";
 import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
 
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
@@ -72,12 +71,6 @@ function IndexPage() {
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-
-  const [showProfile, setShowProfile] = React.useState(false);
-  const handleCloseProfile = () => setShowProfile(false);
-  const handleShowProfile = () => setShowProfile(true);
-
-  const [pendingWithdrawAmt, setPendingWithdrawAmt] = React.useState("0");
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -248,13 +241,7 @@ function IndexPage() {
         </Button>
       );
     } else {
-      return (
-        <Profile
-          ethBalance={ethBalance}
-          account={account}
-          handleShowProfile={handleShowProfile}
-        />
-      );
+      return <Profile account={authState.connected.accountID.address} />;
     }
   };
 
@@ -313,15 +300,6 @@ function IndexPage() {
           <Home />
         )}
       </Container>
-      <ProfileModal
-        ethBalance={ethBalance}
-        account={account}
-        showProfile={showProfile}
-        handleCloseProfile={handleCloseProfile}
-        deactivate={deactivate}
-        pendingWithdrawAmt={pendingWithdrawAmt}
-        adminContract={adminContract}
-      />
     </>
   );
 }

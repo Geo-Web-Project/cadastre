@@ -1,7 +1,7 @@
 import * as React from "react";
 
 // <!-- By Sam Herbert (@sherb), for everyone. More @ http://goo.gl/7AJzbL -->
-export function Spinner({ color, ...rest }) {
+export function Spinner({ color, ...rest }: { color: any }) {
   return (
     <svg
       width="38"
