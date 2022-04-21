@@ -11,16 +11,16 @@ import "../styles.scss";
 import {
   injected,
   walletconnect,
-  fortmatic,
-  portis,
+  // fortmatic,
+  // portis,
   torus,
 } from "../lib/wallets/connectors";
 
 const connectors = [
   { key: "injected", connector: injected },
-  { key: "walletconnect", connector: walletconnect },
-  { key: "fortmatic", connector: fortmatic },
-  { key: "portis", connector: portis },
+  { key: "walletConnect", connector: walletconnect },
+  // { key: "fortmatic", connector: fortmatic },
+  // { key: "portis", connector: portis },
   { key: "torus", connector: torus },
 ];
 
