@@ -36,6 +36,9 @@ import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
+import { Framework } from "@superfluid-finance/sdk-core";
+import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
 
@@ -45,27 +48,41 @@ const ETHExpirationCollectorABI = require("../contracts/ETHExpirationCollector.j
 const ERC721LicenseABI = require("../contracts/ERC721License.json");
 const SimpleETHClaimerABI = require("../contracts/SimpleETHClaimer.json");
 
-function getLibrary(provider) {
+function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
 }
 
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] = React.useState(null);
-  const [accountantContract, setAccountantContract] = React.useState(null);
-  const [claimerContract, setClaimerContract] = React.useState(null);
-  const [collectorContract, setCollectorContract] = React.useState(null);
-  const [purchaserContract, setPurchaserContract] = React.useState(null);
-  const [ceramic, setCeramic] = React.useState(null);
+  const [licenseContract, setLicenseContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [accountantContract, setAccountantContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [claimerContract, setClaimerContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [collectorContract, setCollectorContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [purchaserContract, setPurchaserContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState(null);
-  const [library, setLibrary] = React.useState(null);
+  const [library, setLibrary] =
+    React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
 
   const connectWallet = async () => {
     const _authState = await activate();
-    await switchNetwork(_authState.provider.state.provider);
-    setLibrary(getLibrary(_authState.provider.state.provider));
+    await switchNetwork(_authState?.provider.state.provider);
+
+    const lib = getLibrary(_authState?.provider.state.provider);
+    setLibrary(lib);
+
+    const framework = await Framework.create({
+      chainId: NETWORK_ID,
+      provider: lib,
+    });
+    setFrameworkForSdkRedux(NETWORK_ID, framework);
     // await connect(
     //   new EthereumAuthProvider(
     //     _authState.provider.state.provider,
@@ -80,7 +97,7 @@ function IndexPage() {
   };
 
   React.useEffect(() => {
-    if (!authState.connected) {
+    if (authState.status !== "connected") {
       return;
     }
 
@@ -111,8 +128,8 @@ function IndexPage() {
 
       const didProvider = await threeIdConnect.getDidProvider();
 
-      await ceramic.did.setProvider(didProvider);
-      await ceramic.did.authenticate();
+      await ceramic?.did?.setProvider(didProvider);
+      await ceramic?.did?.authenticate();
 
       setCeramic(ceramic);
 
@@ -157,10 +174,11 @@ function IndexPage() {
 
   // Setup Contracts on App Load
   React.useEffect(() => {
-    if (library == null) {
-      return;
-    }
     async function contractsSetup() {
+      if (library == null) {
+        return;
+      }
+
       const signer = library.getSigner();
 
       let _accountantContract = new ethers.Contract(
@@ -205,11 +223,10 @@ function IndexPage() {
   }, [library]);
 
   const Connector = () => {
-    if (!authState.connected) {
+    if (authState.status !== "connected") {
       return (
         <Button
           target="_blank"
-          rel="noreferrer"
           variant="outline-primary"
           className="text-light font-weight-bold border-dark"
           style={{ height: "100px" }}
@@ -226,7 +243,6 @@ function IndexPage() {
       return (
         <Button
           target="_blank"
-          rel="noreferrer"
           variant="outline-danger"
           className="text-light font-weight-bold border-dark"
           style={{ height: "100px" }}
@@ -282,7 +298,7 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        {authState.connected ? (
+        {authState.status === "connected" ? (
           <Row>
             <Map
               licenseContract={licenseContract}
