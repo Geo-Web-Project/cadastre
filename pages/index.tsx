@@ -48,28 +48,34 @@ const ETHExpirationCollectorABI = require("../contracts/ETHExpirationCollector.j
 const ERC721LicenseABI = require("../contracts/ERC721License.json");
 const SimpleETHClaimerABI = require("../contracts/SimpleETHClaimer.json");
 
-function getLibrary(provider) {
+function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
 }
 
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] = React.useState(null);
-  const [accountantContract, setAccountantContract] = React.useState(null);
-  const [claimerContract, setClaimerContract] = React.useState(null);
-  const [collectorContract, setCollectorContract] = React.useState(null);
-  const [purchaserContract, setPurchaserContract] = React.useState(null);
-  const [ceramic, setCeramic] = React.useState(null);
+  const [licenseContract, setLicenseContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [accountantContract, setAccountantContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [claimerContract, setClaimerContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [collectorContract, setCollectorContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [purchaserContract, setPurchaserContract] =
+    React.useState<ethers.Contract | null>(null);
+  const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState(null);
-  const [library, setLibrary] = React.useState(null);
+  const [library, setLibrary] =
+    React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
 
   const connectWallet = async () => {
     const _authState = await activate();
-    await switchNetwork(_authState.provider.state.provider);
+    await switchNetwork(_authState?.provider.state.provider);
 
-    const lib = getLibrary(_authState.provider.state.provider);
+    const lib = getLibrary(_authState?.provider.state.provider);
     setLibrary(lib);
     setFrameworkForSdkRedux(NETWORK_ID, () =>
       Framework.create({
@@ -122,8 +128,8 @@ function IndexPage() {
 
       const didProvider = await threeIdConnect.getDidProvider();
 
-      await ceramic.did.setProvider(didProvider);
-      await ceramic.did.authenticate();
+      await ceramic?.did?.setProvider(didProvider);
+      await ceramic?.did?.authenticate();
 
       setCeramic(ceramic);
 
@@ -168,10 +174,11 @@ function IndexPage() {
 
   // Setup Contracts on App Load
   React.useEffect(() => {
-    if (library == null) {
-      return;
-    }
     async function contractsSetup() {
+      if (library == null) {
+        return;
+      }
+
       const signer = library.getSigner();
 
       let _accountantContract = new ethers.Contract(
