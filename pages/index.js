@@ -24,6 +24,7 @@ import {
   THREE_ID_CONNECT_IFRAME_URL,
   THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
+import { switchNetwork } from "../lib/wallets/connectors";
 import { truncateStr } from "../lib/truncate";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
@@ -34,7 +35,6 @@ import { DID } from "dids";
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
-import { useViewerConnection } from "@self.id/framework";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
@@ -51,9 +51,7 @@ function getLibrary(provider) {
 
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
-  const [connection, connect, disconnect] = useViewerConnection();
 
-  // const triedEager = useEagerConnect();
   const [licenseContract, setLicenseContract] = React.useState(null);
   const [accountantContract, setAccountantContract] = React.useState(null);
   const [claimerContract, setClaimerContract] = React.useState(null);
@@ -66,6 +64,8 @@ function IndexPage() {
 
   const connectWallet = async () => {
     const _authState = await activate();
+    await switchNetwork(_authState.provider.state.provider);
+    setLibrary(getLibrary(_authState.provider.state.provider));
     // await connect(
     //   new EthereumAuthProvider(
     //     _authState.provider.state.provider,
@@ -75,7 +75,7 @@ function IndexPage() {
   };
 
   const disconnectWallet = async () => {
-    await disconnect();
+    // await disconnect();
     await deactivate();
   };
 
@@ -85,8 +85,6 @@ function IndexPage() {
     }
 
     const start = async () => {
-      setLibrary(getLibrary(authState.connected.provider.state.provider));
-
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
 
@@ -224,26 +222,7 @@ function IndexPage() {
           Connect Wallet
         </Button>
       );
-    }
-    // else if (active && chainId !== NETWORK_ID) {
-    //   return (
-    //     <Button
-    //       target="_blank"
-    //       rel="noreferrer"
-    //       variant="outline-danger"
-    //       className="text-light font-weight-bold border-dark"
-    //       style={{ height: "100px", backgroundColor: "red" }}
-    //       onClick={() => {
-    //         //activate(injected)
-    //         handleShow();
-    //       }}
-    //     >
-    //       <img src="vector.png" width="40" style={{ marginRight: 0 }} />
-    //       Wrong Network
-    //     </Button>
-    //   );
-    // }
-    else {
+    } else {
       return (
         <Button
           target="_blank"

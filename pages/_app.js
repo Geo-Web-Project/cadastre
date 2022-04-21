@@ -5,7 +5,7 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
-import { CERAMIC_URL, CONNECT_NETWORK, SUBGRAPH_URL } from "../lib/constants";
+import { SUBGRAPH_URL } from "../lib/constants";
 import { Provider as MultiAuth } from "@ceramicstudio/multiauth";
 import "../styles.scss";
 import {
@@ -15,7 +15,6 @@ import {
   portis,
   torus,
 } from "../lib/wallets/connectors";
-import { Provider } from "@self.id/framework";
 
 const connectors = [
   { key: "injected", connector: injected },
@@ -47,14 +46,10 @@ export default function App({ Component, pageProps }) {
   });
 
   return (
-    <Provider
-      client={{ ceramic: CERAMIC_URL, connectNetwork: CONNECT_NETWORK }}
-    >
-      <MultiAuth providers={[{ key: "ethereum", connectors }]}>
-        <ApolloProvider client={client}>
-          <Component {...pageProps} />
-        </ApolloProvider>
-      </MultiAuth>
-    </Provider>
+    <MultiAuth providers={[{ key: "ethereum", connectors }]}>
+      <ApolloProvider client={client}>
+        <Component {...pageProps} />
+      </ApolloProvider>
+    </MultiAuth>
   );
 }
