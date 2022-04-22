@@ -4,12 +4,16 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
-import FormFile from "react-bootstrap/FormFile";
 import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
-import { galleryFileFormats, getFormat, getFormatCS, getFormatType } from "./GalleryFileFormat";
+import {
+  galleryFileFormats,
+  getFormat,
+  getFormatCS,
+  getFormatType,
+} from "./GalleryFileFormat";
 
 export function GalleryForm({
   pinningManager,
@@ -58,7 +62,6 @@ export function GalleryForm({
   }
 
   function updateContentUrl(event) {
-    
     const cid = event.target.value;
 
     if (!cid || cid.length == 0) {
@@ -91,10 +94,9 @@ export function GalleryForm({
 
     setIsUploading(true);
 
-    let {encoding, type} = getFormat(file.name)
+    let { encoding, type } = getFormat(file.name);
 
-    if(encoding === ".mp4")
-      type = file.type
+    if (encoding === ".mp4") type = file.type;
 
     //setDetectedFileFormat(encoding);
 
@@ -187,7 +189,7 @@ export function GalleryForm({
 
     updateMediaGalleryItem({
       "@type": getFormatType(event.target.value),
-      encodingFormat: event.target.value
+      encodingFormat: event.target.value,
     });
   }
 
@@ -232,14 +234,15 @@ export function GalleryForm({
                 onChange={updateContentUrl}
               />
               <InputGroup.Append>
-                <FormFile.Input
+                <Form.Control
+                  type="file"
                   id="uploadCid"
                   style={{ backgroundColor: "#111320", border: "none" }}
                   accept={getFormatCS()}
                   disabled={isUploading || selectedMediaGalleryItemManager}
                   onChange={captureFile}
                   hidden
-                ></FormFile.Input>
+                ></Form.Control>
                 <Button
                   as="label"
                   htmlFor="uploadCid"
@@ -267,12 +270,11 @@ export function GalleryForm({
                   Select a File Format
                 </option>
 
-                {galleryFileFormats.map((_format)=>(
+                {galleryFileFormats.map((_format) => (
                   <option value={_format.encoding}>
                     {_format.extension} ({_format.encoding})
                   </option>
                 ))}
-
               </Form.Control>
             </div>
           </Col>

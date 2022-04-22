@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Accordion from "react-bootstrap/Accordion";
 import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
-import { useAccordionToggle } from "react-bootstrap/AccordionToggle";
+import { useAccordionButton } from "react-bootstrap/AccordionButton";
 import Modal from "react-bootstrap/Modal";
 import {
   PAYMENT_TOKEN_FAUCET_URL,
@@ -13,10 +13,18 @@ import {
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 
-function ContextAwareToggle({ children, eventKey, callback }) {
+function ContextAwareToggle({
+  children,
+  eventKey,
+  callback,
+}: {
+  eventKey: string;
+  children: any;
+  callback?: any;
+}) {
   const currentEventKey = React.useContext(AccordionContext);
 
-  const decoratedOnClick = useAccordionToggle(
+  const decoratedOnClick = useAccordionButton(
     eventKey,
     () => callback && callback(eventKey)
   );
@@ -24,14 +32,15 @@ function ContextAwareToggle({ children, eventKey, callback }) {
   const isCurrentEventKey = currentEventKey === eventKey;
 
   return (
-    <Accordion.Toggle
+    <Accordion.Item
       className="font-weight-bold border-dark"
       as={Card.Header}
       onClick={decoratedOnClick}
       style={{ fontSize: "1.25em" }}
+      eventKey={eventKey}
     >
       {isCurrentEventKey ? "-" : "+"} {children}
-    </Accordion.Toggle>
+    </Accordion.Item>
   );
 }
 
@@ -44,8 +53,6 @@ function FAQ() {
   return (
     <>
       <Button
-        target="_blank"
-        rel="noreferrer"
         variant="outline-primary"
         className="text-light font-weight-bold border-dark"
         style={{ height: "100px", width: "100px" }}
