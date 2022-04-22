@@ -3,12 +3,17 @@ import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfApi } from "../../redux/store";
-import { NETWORK_ID, PAYMENT_TOKEN_ADDRESS } from "../../lib/constants";
+import {
+  NETWORK_ID,
+  NETWORK_NAME,
+  PAYMENT_TOKEN_ADDRESS,
+} from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
+import Badge from "react-bootstrap/Badge";
 
 function Profile({
   account,
@@ -30,6 +35,13 @@ function Profile({
 
   return (
     <>
+      {/* <Badge
+        pill
+        bg="info"
+        className="mr-4 py-2 px-3 text-light"
+      >
+        <span style={{ fontWeight: 600 }}>{NETWORK_NAME}</span>
+      </Badge> */}
       <ButtonGroup className="bg-dark border-secondary">
         <Button
           variant="secondary"

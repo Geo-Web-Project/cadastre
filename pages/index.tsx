@@ -6,7 +6,6 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
-import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import Profile from "../components/profile/Profile";
@@ -259,15 +258,10 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple"
         >
-          {/*<Col sm="1" className="text-center">
-             <Badge pill variant="secondary" className="py-2 px-3">
-              <span style={{ fontWeight: 600 }}>TESTNET</span>
-            </Badge> 
-          </Col>*/}
-          <Col sm="1" className="p-0">
+          <Col sm="3" className="p-0">
             <FAQ />
           </Col>
-          <Col sm={{ span: 8, offset: 0 }} className="text-center p-2 mx-auto">
+          <Col sm="6" className="text-center p-2 mx-auto">
             <div
               className="text-primary"
               style={{ fontSize: "2.5em", fontFamily: "Abel" }}
@@ -279,8 +273,7 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-
-          <Col className="p-0 text-right">
+          <Col sm="3" className="p-0 text-right">
             <Connector />
           </Col>
         </Navbar>
