@@ -125,17 +125,18 @@ function Map({
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
 
-
-  const [mapstyle, setMapstyle] = React.useState("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
-  const [mapStyleName, setMapStyleName] = React.useState("street")
+  const [mapstyle, setMapstyle] = React.useState(
+    "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+  );
+  const [mapStyleName, setMapStyleName] = React.useState("street");
 
   const handleMapstyle = (newStyle) => {
-    if(newStyle === "satellite") setMapstyle("mapbox://styles/mapbox/satellite-streets-v11")
-    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln")
+    if (newStyle === "satellite")
+      setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
+    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
 
     setMapStyleName(newStyle);
   };
-
 
   // Fetch more until none left
   useEffect(() => {
@@ -412,7 +413,7 @@ function Map({
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "18vh", left: "81vw", zIndex: 1 }}
+          style={{ position: "absolute", top: "14vh", left: "81vw", zIndex: 1 }}
         />
         <ReactMapGL
           ref={mapRef}
@@ -453,17 +454,31 @@ function Map({
           />
         </ReactMapGL>
       </Col>
-
-      <ButtonGroup style={{position: "absolute", bottom: "4%", right: "2%", radius: 12 }} 
-      aria-label="Basic example">
-        <Button style={{ backgroundColor: mapStyleName==="street"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("street")} >
-          <img src={"street_ic.png"} style={{ height:30, width: 30 }} />
+      <ButtonGroup
+        style={{ position: "absolute", bottom: "4%", right: "2%", radius: 12 }}
+        aria-label="Basic example"
+      >
+        <Button
+          style={{
+            backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
+          }}
+          variant="secondary"
+          onClick={() => handleMapstyle("street")}
+        >
+          <img src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
-        <Button style={{ backgroundColor: mapStyleName==="satellite"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("satellite")} >
-          <img src={"satellite_ic.png"} style={{ height:30, width: 30 }} />
+        <Button
+          style={{
+            backgroundColor:
+              mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
+          }}
+          variant="secondary"
+          onClick={() => handleMapstyle("satellite")}
+        >
+          <img src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
       </ButtonGroup>
-    );
+      );
     </>
   );
 }
