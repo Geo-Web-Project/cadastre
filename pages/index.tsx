@@ -227,7 +227,6 @@ function IndexPage() {
     if (authState.status !== "connected") {
       return (
         <Button
-          target="_blank"
           variant="outline-primary"
           className="text-light font-weight-bold border-dark"
           style={{ height: "100px" }}
@@ -281,7 +280,7 @@ function IndexPage() {
             </div>
           </Col>
 
-          <Col className="p-0">
+          <Col className="p-0 text-right">
             <Connector />
           </Col>
         </Navbar>
