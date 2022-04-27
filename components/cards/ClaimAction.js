@@ -14,6 +14,7 @@ function ClaimAction({
   claimerContract,
   collectorContract,
   account,
+  signer,
   claimBase1Coord,
   claimBase2Coord,
   setInteractionState,
@@ -105,6 +106,7 @@ function ClaimAction({
     <>
       <ActionForm
         account={account}
+        signer={signer}
         title="Claim"
         collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}

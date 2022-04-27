@@ -112,6 +112,7 @@ function Map({
   collectorContract,
   purchaserContract,
   account,
+  signer,
   ceramic,
   ipfs,
   firebasePerf,
@@ -398,6 +399,7 @@ function Map({
           collectorContract={collectorContract}
           purchaserContract={purchaserContract}
           account={account}
+          signer={signer}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
           claimBase1Coord={claimBase1Coord}

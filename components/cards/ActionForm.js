@@ -22,6 +22,7 @@ const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
 export function ActionForm({
   account,
+  signer,
   title,
   collectorContract,
   perSecondFeeNumerator,
@@ -455,6 +456,7 @@ export function ActionForm({
 
       <WrapMpdal
         account={account}
+        signer={signer}
         show={showWrapModal}
         handleClose={handleWrapModalClose}
       />

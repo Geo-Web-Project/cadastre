@@ -288,6 +288,7 @@ function IndexPage() {
               collectorContract={collectorContract}
               purchaserContract={purchaserContract}
               account={authState.connected.accountID.address}
+              signer={library?.getSigner()}
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}

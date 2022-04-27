@@ -23,6 +23,7 @@ function Sidebar({
   collectorContract,
   purchaserContract,
   account,
+  signer,
   interactionState,
   setInteractionState,
   claimBase1Coord,
@@ -125,6 +126,7 @@ function Sidebar({
             claimerContract={claimerContract}
             collectorContract={collectorContract}
             account={account}
+            signer={signer}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
             setInteractionState={setInteractionState}
