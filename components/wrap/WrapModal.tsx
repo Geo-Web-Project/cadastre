@@ -86,7 +86,11 @@ function WrapMpdal({ account, signer, show, handleClose }: any) {
   }
 
   return (
-    <Modal show={show} onHide={handleClose}>
+    <Modal
+      show={show}
+      onHide={handleClose}
+      centered
+    >
       <Modal.Header closeButton>
         <Modal.Title>Wrap ETH for Streaming</Modal.Title>
       </Modal.Header>
