@@ -286,160 +286,158 @@ export function ActionForm({
           <Card.Title className="text-primary font-weight-bold">
             {title}
           </Card.Title>
-          <Card.Text>
-            <Form>
-              <Form.Group>
-                <Form.Control
-                  isInvalid={isParcelNameInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="Parcel Name"
-                  aria-label="Parcel Name"
-                  aria-describedby="parcel-name"
-                  defaultValue={parcelName}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelName: e.target.value })
-                  }
-                />
-                {isParcelNameInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Parcel name cannot be longer than 150 characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Control
-                  isInvalid={isURIInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="URI (http://, https://, ipfs://, ipns://)"
-                  aria-label="Web Content URI"
-                  aria-describedby="web-content-uri"
-                  defaultValue={parcelWebContentURI}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelWebContentURI: e.target.value })
-                  }
-                />
-                {isURIInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Web content URI must be one of
-                    (http://,https://,ipfs://,ipns://) and less than 150
-                    characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Control
-                  required
-                  isInvalid={isForSalePriceInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
-                  aria-label="For Sale Price"
-                  aria-describedby="for-sale-price"
-                  defaultValue={displayCurrentForSalePrice}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ displayNewForSalePrice: e.target.value })
-                  }
-                />
-                {isForSalePriceInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    For Sale Price must be greater than or equal to{" "}
-                    {minInitialValue}
-                  </Form.Control.Feedback>
-                ) : null}
+          <Form>
+            <Form.Group>
+              <Form.Control
+                isInvalid={isParcelNameInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="Parcel Name"
+                aria-label="Parcel Name"
+                aria-describedby="parcel-name"
+                defaultValue={parcelName}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelName: e.target.value })
+                }
+              />
+              {isParcelNameInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Parcel name cannot be longer than 150 characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
+                isInvalid={isURIInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="URI (http://, https://, ipfs://, ipns://)"
+                aria-label="Web Content URI"
+                aria-describedby="web-content-uri"
+                defaultValue={parcelWebContentURI}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelWebContentURI: e.target.value })
+                }
+              />
+              {isURIInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Web content URI must be one of
+                  (http://,https://,ipfs://,ipns://) and less than 150
+                  characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Control
+                required
+                isInvalid={isForSalePriceInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
+                aria-label="For Sale Price"
+                aria-describedby="for-sale-price"
+                defaultValue={displayCurrentForSalePrice}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ displayNewForSalePrice: e.target.value })
+                }
+              />
+              {isForSalePriceInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  For Sale Price must be greater than or equal to{" "}
+                  {minInitialValue}
+                </Form.Control.Feedback>
+              ) : null}
 
-                <br />
-                <Form.Control
-                  required={displayCurrentForSalePrice == null}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder={
-                    displayCurrentForSalePrice != null
-                      ? `Additional Network Fee Payment (${PAYMENT_TOKEN})`
-                      : `Network Fee Payment (${PAYMENT_TOKEN})`
-                  }
-                  aria-label="Network Fee Payment"
-                  aria-describedby="network-fee-payment"
-                  disabled={isActing || isLoading}
-                  isInvalid={isNetworkFeePaymentInvalid}
-                  onChange={(e) =>
-                    updateActionData({ displayNetworkFeePayment: e.target.value })
-                  }
-                />
-              </Form.Group>
-              <div style={{ display: "flex", gap: "16px" }}>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={handleWrapModalOpen}
-                >
-                  {"Wrap to ETHx"}
-                </Button>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={() => submit()}
-                  disabled={isActing || isLoading || isInvalid}
-                >
-                  {isActing || isLoading ? spinner : "Confirm"}
-                </Button>
-              </div>
-            </Form>
-
-            <br />
-            {didFail && !isActing ? (
-              <Alert
-                variant="danger"
-                dismissible
-                onClick={() => updateActionData({ didFail: false })}
+              <br />
+              <Form.Control
+                required={displayCurrentForSalePrice == null}
+                className="bg-dark text-light"
+                type="text"
+                placeholder={
+                  displayCurrentForSalePrice != null
+                    ? `Additional Network Fee Payment (${PAYMENT_TOKEN})`
+                    : `Network Fee Payment (${PAYMENT_TOKEN})`
+                }
+                aria-label="Network Fee Payment"
+                aria-describedby="network-fee-payment"
+                disabled={isActing || isLoading}
+                isInvalid={isNetworkFeePaymentInvalid}
+                onChange={(e) =>
+                  updateActionData({ displayNetworkFeePayment: e.target.value })
+                }
+              />
+            </Form.Group>
+            <div style={{ display: "flex", gap: "16px" }}>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={handleWrapModalOpen}
               >
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Transaction failed
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>
-                  Oops! Something went wrong. Please try again.
-                </p>
-              </Alert>
-            ) : null}
+                {"Wrap to ETHx"}
+              </Button>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={() => submit()}
+                disabled={isActing || isLoading || isInvalid}
+              >
+                {isActing || isLoading ? spinner : "Confirm"}
+              </Button>
+            </div>
+          </Form>
 
-            <div className="font-weight-bold">New Expiration Date:</div>
-            <div
-              className={
-                isDateInvalid
-                  ? "text-danger font-weight-bold"
-                  : isDateWarning
-                  ? "text-warning font-weight-bold"
-                  : ""
-              }
+          <br />
+          {didFail && !isActing ? (
+            <Alert
+              variant="danger"
+              dismissible
+              onClick={() => updateActionData({ didFail: false })}
             >
-              {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
-            </div>
-            <div className="font-weight-bold">
-              Transaction subtotal (excludes gas):
-            </div>
-            <div>
-              {displaySubtotal
-                ? `${ethers.utils.formatEther(
-                    displaySubtotal.toString()
-                  )} ${PAYMENT_TOKEN}`
-                : "N/A"}
-            </div>
-            {isDateInvalid ? (
-              <Alert className="mt-2" variant="danger">
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Expiration date is not valid
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
-              </Alert>
-            ) : null}
-            {isDateWarning ? (
-              <Alert className="mt-2" variant="warning">
-                <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
-              </Alert>
-            ) : null}
-          </Card.Text>
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Transaction failed
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>
+                Oops! Something went wrong. Please try again.
+              </p>
+            </Alert>
+          ) : null}
+
+          <div className="font-weight-bold">New Expiration Date:</div>
+          <div
+            className={
+              isDateInvalid
+                ? "text-danger font-weight-bold"
+                : isDateWarning
+                ? "text-warning font-weight-bold"
+                : ""
+            }
+          >
+            {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
+          </div>
+          <div className="font-weight-bold">
+            Transaction subtotal (excludes gas):
+          </div>
+          <div>
+            {displaySubtotal
+              ? `${ethers.utils.formatEther(
+                  displaySubtotal.toString()
+                )} ${PAYMENT_TOKEN}`
+              : "N/A"}
+          </div>
+          {isDateInvalid ? (
+            <Alert className="mt-2" variant="danger">
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Expiration date is not valid
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
+            </Alert>
+          ) : null}
+          {isDateWarning ? (
+            <Alert className="mt-2" variant="warning">
+              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
+            </Alert>
+          ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
           <Row>
