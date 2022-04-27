@@ -9,6 +9,7 @@
     "@ceramicnetwork/http-client": "^2.0.0",
     "@ceramicnetwork/stream-tile": "^2.0.0",
     "@ceramicstudio/multiauth": "^0.2.3",
+    "@geo-web/sdk": "^1.0.0",
     "@glazed/did-datastore": "^0.3.0",
     "@reduxjs/toolkit": "^1.8.1",
     "@self.id/framework": "^0.3.0",
