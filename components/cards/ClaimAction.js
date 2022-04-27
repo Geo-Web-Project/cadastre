@@ -4,8 +4,9 @@ import {
   calculateWeiSubtotalField,
   fromValueToRate,
 } from "./ActionForm";
-import FaucetInfo from "./FaucetInfo";
+// import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
+import StreamingInfo from "./StreamingInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -103,6 +104,7 @@ function ClaimAction({
   return (
     <>
       <ActionForm
+        account={account}
         title="Claim"
         collectorContract={collectorContract}
         perSecondFeeNumerator={perSecondFeeNumerator}
@@ -117,7 +119,8 @@ function ClaimAction({
         ceramic={ceramic}
         setSelectedParcelId={setSelectedParcelId}
       />
-      <FaucetInfo></FaucetInfo>
+      {/* <FaucetInfo></FaucetInfo> */}
+      <StreamingInfo account={account} />
     </>
   );
 }
