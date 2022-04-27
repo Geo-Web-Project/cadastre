@@ -12,11 +12,6 @@ import Profile from "../components/profile/Profile";
 import {
   NETWORK_NAME,
   NETWORK_ID,
-  LICENSE_CONTRACT_ADDRESS,
-  ACCOUNTANT_CONTRACT_ADDRESS,
-  CLAIMER_CONTRACT_ADDRESS,
-  COLLECTOR_CONTRACT_ADDRESS,
-  PURCHASER_CONTRACT_ADDRESS,
   CERAMIC_URL,
   CONNECT_NETWORK,
   IPFS_BOOTSTRAP_PEER,
@@ -24,6 +19,7 @@ import {
   THREE_ID_CONNECT_IFRAME_URL,
   THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
+import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { truncateStr } from "../lib/truncate";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -38,15 +34,10 @@ import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 import { Framework } from "@superfluid-finance/sdk-core";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 const { getIpfs, providers } = require("ipfs-provider");
 const { httpClient, jsIpfs } = providers;
-
-const AccountantABI = require("../contracts/Accountant.json");
-const ETHPurchaserABI = require("../contracts/ETHPurchaser.json");
-const ETHExpirationCollectorABI = require("../contracts/ETHExpirationCollector.json");
-const ERC721LicenseABI = require("../contracts/ERC721License.json");
-const SimpleETHClaimerABI = require("../contracts/SimpleETHClaimer.json");
 
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
@@ -55,21 +46,20 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] =
-    React.useState<ethers.Contract | null>(null);
-  const [accountantContract, setAccountantContract] =
-    React.useState<ethers.Contract | null>(null);
-  const [claimerContract, setClaimerContract] =
-    React.useState<ethers.Contract | null>(null);
-  const [collectorContract, setCollectorContract] =
-    React.useState<ethers.Contract | null>(null);
-  const [purchaserContract, setPurchaserContract] =
-    React.useState<ethers.Contract | null>(null);
+  const [licenseContract, setLicenseContract] = React.useState<
+    Contracts["geoWebERC721LicenseContract"] | null
+  >(null);
+  const [auctionSuperApp, setAuctionSuperApp] = React.useState<
+    Contracts["geoWebAuctionSuperAppContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
+  const [paymentTokenAddress, setPaymentTokenAddress] = React.useState<
+    string | undefined
+  >(undefined);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -82,6 +72,8 @@ function IndexPage() {
       chainId: NETWORK_ID,
       provider: lib,
     });
+    const superToken = await framework.loadSuperToken("ETHx");
+    setPaymentTokenAddress(superToken.address);
     setFrameworkForSdkRedux(NETWORK_ID, framework);
     // await connect(
     //   new EthereumAuthProvider(
@@ -181,43 +173,10 @@ function IndexPage() {
 
       const signer = library.getSigner();
 
-      let _accountantContract = new ethers.Contract(
-        ACCOUNTANT_CONTRACT_ADDRESS,
-        AccountantABI,
-        library
-      );
-      setAccountantContract(_accountantContract);
-
-      let _licenseContract = new ethers.Contract(
-        LICENSE_CONTRACT_ADDRESS,
-        ERC721LicenseABI,
-        library
-      );
-      setLicenseContract(_licenseContract);
-
-      let _claimerContract = new ethers.Contract(
-        CLAIMER_CONTRACT_ADDRESS,
-        SimpleETHClaimerABI,
-        library
-      );
-      let _claimerContractWithSigner = _claimerContract.connect(signer);
-      setClaimerContract(_claimerContractWithSigner);
-
-      let _purchaserContract = new ethers.Contract(
-        PURCHASER_CONTRACT_ADDRESS,
-        ETHPurchaserABI,
-        library
-      );
-      let _purchaserContractWithSigner = _purchaserContract.connect(signer);
-      setPurchaserContract(_purchaserContractWithSigner);
-
-      let _collectorContract = new ethers.Contract(
-        COLLECTOR_CONTRACT_ADDRESS,
-        ETHExpirationCollectorABI,
-        library
-      );
-      let _collectorContractWithSigner = _collectorContract.connect(signer);
-      setCollectorContract(_collectorContractWithSigner);
+      const { geoWebERC721LicenseContract, geoWebAuctionSuperAppContract } =
+        getContractsForChainOrThrow(NETWORK_ID, signer);
+      setLicenseContract(geoWebERC721LicenseContract);
+      setAuctionSuperApp(geoWebAuctionSuperAppContract);
     }
     contractsSetup();
   }, [library]);
@@ -243,6 +202,7 @@ function IndexPage() {
         <Profile
           account={authState.connected.accountID.address}
           disconnectWallet={disconnectWallet}
+          paymentTokenAddress={paymentTokenAddress}
         />
       );
     }
@@ -281,7 +241,7 @@ function IndexPage() {
       <Container fluid>
         {authState.status === "connected" ? (
           <Row>
-            <Map
+            {/* <Map
               licenseContract={licenseContract}
               accountantContract={accountantContract}
               claimerContract={claimerContract}
@@ -291,7 +251,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
-            ></Map>
+            ></Map> */}
           </Row>
         ) : (
           <Home />

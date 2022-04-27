@@ -3,11 +3,7 @@ import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfApi } from "../../redux/store";
-import {
-  NETWORK_ID,
-  NETWORK_NAME,
-  PAYMENT_TOKEN_ADDRESS,
-} from "../../lib/constants";
+import { NETWORK_ID, NETWORK_NAME } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
@@ -15,13 +11,17 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 
+type ProfileProps = {
+  account: string;
+  disconnectWallet: () => Promise<void>;
+  paymentTokenAddress?: string;
+};
+
 function Profile({
   account,
   disconnectWallet,
-}: {
-  account: string;
-  disconnectWallet: () => Promise<void>;
-}) {
+  paymentTokenAddress,
+}: ProfileProps) {
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -29,7 +29,7 @@ function Profile({
   const { isLoading, data } = sfApi.useGetRealtimeBalanceQuery({
     chainId: NETWORK_ID,
     accountAddress: account,
-    superTokenAddress: PAYMENT_TOKEN_ADDRESS,
+    superTokenAddress: paymentTokenAddress ?? "",
     estimationTimestamp: undefined,
   });
 
