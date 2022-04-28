@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import ReactMapGL from "react-map-gl";
+import ReactMapGL, { MapEvent } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
@@ -10,11 +10,14 @@ import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
 
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
+
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -61,7 +64,7 @@ const query = gql`
   }
 `;
 
-function updateGrid(lat, lon, oldGrid, setGrid) {
+function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   let gwCoord = GeoWebCoordinate.from_gps(lon, lat);
   let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
   let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
@@ -90,7 +93,7 @@ function updateGrid(lat, lon, oldGrid, setGrid) {
   });
 }
 
-export function coordToFeature(gwCoord) {
+export function coordToFeature(gwCoord: any) {
   return {
     type: "Feature",
     geometry: {
@@ -105,17 +108,23 @@ export function coordToFeature(gwCoord) {
   };
 }
 
+type Props = {
+  auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
+  licenseContract: Contracts["geoWebERC721LicenseContract"];
+  account: string;
+  ceramic: CeramicClient;
+  ipfs: any;
+  firebasePerf: any;
+};
+
 function Map({
+  auctionSuperApp,
   licenseContract,
-  accountantContract,
-  claimerContract,
-  collectorContract,
-  purchaserContract,
   account,
   ceramic,
   ipfs,
   firebasePerf,
-}) {
+}: Props) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -130,7 +139,7 @@ function Map({
   );
   const [mapStyleName, setMapStyleName] = React.useState("street");
 
-  const handleMapstyle = (newStyle) => {
+  const handleMapstyle = (newStyle: string) => {
     if (newStyle === "satellite")
       setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
     else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
@@ -153,14 +162,14 @@ function Map({
     });
   }, [data]);
 
-  const [viewport, setViewport] = useState({});
+  const [viewport, setViewport] = useState<any>({});
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState(STATE_VIEWING);
   const [gridHoverCoord, setGridHoverCoord] = useState("");
   const [parcelHoverId, setParcelHoverId] = useState("");
 
-  const [claimBase1Coord, setClaimBase1Coord] = useState(null);
-  const [claimBase2Coord, setClaimBase2Coord] = useState(null);
+  const [claimBase1Coord, setClaimBase1Coord] = useState<any | null>(null);
+  const [claimBase2Coord, setClaimBase2Coord] = useState<any | null>(null);
 
   const [selectedParcelId, setSelectedParcelId] = useState("");
 
@@ -173,11 +182,11 @@ function Map({
     (interactionState == STATE_CLAIM_SELECTING ||
       interactionState == STATE_CLAIM_SELECTED);
 
-  const _onViewportSearch = useCallback((nextViewport) => {
+  const _onViewportSearch = useCallback((nextViewport: any) => {
     setViewport(nextViewport);
   }, []);
 
-  function _onViewportChange(nextViewport) {
+  function _onViewportChange(nextViewport: any) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
     }
@@ -194,7 +203,7 @@ function Map({
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
   const _onGeocoderViewportChange = useCallback(
-    (newViewport) => {
+    (newViewport: any) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
       return _onViewportSearch({
@@ -205,13 +214,13 @@ function Map({
     [_onViewportSearch]
   );
 
-  function onHover(event) {
+  function onHover(event: MapEvent) {
     if (event.features == null || viewport.zoom < 5) {
       return;
     }
 
     function _checkParcelHover() {
-      let parcelFeature = event.features.find(
+      let parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
       if (parcelFeature) {
@@ -251,15 +260,15 @@ function Map({
     }
   }
 
-  function onClick(event) {
+  function onClick(event: MapEvent) {
     if (viewport.zoom < 5) {
       return;
     }
 
-    let gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
+    let gridFeature = event.features?.find((f) => f.layer.id === "grid-layer");
 
     function _checkParcelClick() {
-      let parcelFeature = event.features.find(
+      let parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
       if (parcelFeature) {
@@ -376,7 +385,7 @@ function Map({
       setExistingCoords(_existingCoords);
     }
 
-    const listener = (e) => {
+    const listener = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setInteractionState(STATE_VIEWING);
       }
@@ -390,7 +399,7 @@ function Map({
 
   return (
     <>
-      {interactionState != STATE_VIEWING ? (
+      {/* {interactionState != STATE_VIEWING ? (
         <Sidebar
           licenseContract={licenseContract}
           accountantContract={accountantContract}
@@ -408,7 +417,7 @@ function Map({
           ipfs={ipfs}
           firebasePerf={firebasePerf}
         ></Sidebar>
-      ) : null}
+      ) : null} */}
       <Col sm="9" className="px-0">
         <div
           id="geocoder"

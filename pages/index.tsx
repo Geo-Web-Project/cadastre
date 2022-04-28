@@ -239,19 +239,19 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        {authState.status === "connected" ? (
+        {authState.status === "connected" &&
+        licenseContract &&
+        auctionSuperApp &&
+        ceramic ? (
           <Row>
-            {/* <Map
+            <Map
               licenseContract={licenseContract}
-              accountantContract={accountantContract}
-              claimerContract={claimerContract}
-              collectorContract={collectorContract}
-              purchaserContract={purchaserContract}
+              auctionSuperApp={auctionSuperApp}
               account={authState.connected.accountID.address}
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
-            ></Map> */}
+            ></Map>
           </Row>
         ) : (
           <Home />
