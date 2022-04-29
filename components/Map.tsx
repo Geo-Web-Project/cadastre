@@ -111,12 +111,12 @@ export function coordToFeature(gwCoord: any) {
 }
 
 export type MapProps = {
-  auctionSuperApp?: Contracts["geoWebAuctionSuperAppContract"];
-  licenseContract?: Contracts["geoWebERC721LicenseContract"];
+  auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
+  licenseContract: Contracts["geoWebERC721LicenseContract"];
   account: string;
   ceramic: CeramicClient;
   ipfs: any;
-  firebasePerf?: any;
+  firebasePerf: any;
 };
 
 function Map({

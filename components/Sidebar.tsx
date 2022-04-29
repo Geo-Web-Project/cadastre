@@ -119,9 +119,9 @@ function Sidebar({
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE.CLAIM_SELECTED ? (
         <>
-          {/* <ClaimAction
-            claimerContract={claimerContract}
-            collectorContract={collectorContract}
+          <ClaimAction
+            auctionSuperApp={auctionSuperApp}
+            licenseContract={licenseContract}
             account={account}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
@@ -132,7 +132,7 @@ function Sidebar({
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
             ceramic={ceramic}
-          ></ClaimAction> */}
+          ></ClaimAction>
         </>
       ) : null}
     </Col>

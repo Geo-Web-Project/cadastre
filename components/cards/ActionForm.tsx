@@ -10,30 +10,49 @@ import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { createNftDidUrl } from "nft-did-resolver";
 import { NETWORK_ID, publishedModel } from "../../lib/constants";
-import { STATE_PARCEL_SELECTED } from "../Map";
+import { STATE } from "../Map";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
-export function ActionForm({
-  title,
-  collectorContract,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  loading,
-  performAction,
-  actionData,
-  setActionData,
-  basicProfileStreamManager,
-  setInteractionState,
-  licenseAddress,
-  ceramic,
-  setSelectedParcelId,
-}) {
+type ActionFormProps = {
+  title: string;
+  // auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
+  // licenseContract: Contracts["geoWebERC721LicenseContract"];
+  perSecondFeeNumerator: BigNumber | null;
+  perSecondFeeDenominator: BigNumber | null;
+  basicProfileStreamManager: any;
+  licenseAddress: string;
+  ceramic: CeramicClient;
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  loading: boolean;
+  performAction: () => Promise<void>;
+  actionData: any;
+  setActionData: React.Dispatch<React.SetStateAction<any>>;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+};
+
+export function ActionForm(props: ActionFormProps) {
+  const {
+    title,
+    // collectorContract,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
+    loading,
+    performAction,
+    actionData,
+    setActionData,
+    basicProfileStreamManager,
+    setInteractionState,
+    licenseAddress,
+    ceramic,
+    setSelectedParcelId,
+  } = props;
   const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
@@ -70,9 +89,9 @@ export function ActionForm({
         false || parcelWebContentURI.length > 150
     : false;
 
-  function updateActionData(updatedValues) {
-    function _updateData(updatedValues) {
-      return (prevState) => {
+  function updateActionData(updatedValues: any) {
+    function _updateData(updatedValues: any) {
+      return (prevState: any) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -80,131 +99,131 @@ export function ActionForm({
     setActionData(_updateData(updatedValues));
   }
 
-  function _calculateNewExpiration(
-    displayExistingForSalePrice,
-    existingExpirationTimestamp,
-    displayNewForSalePrice,
-    displayAdditionalNetworkFeePayment
-  ) {
-    let newExpirationDate;
-    let isDateInvalid;
-    let isDateWarning;
+  // function _calculateNewExpiration(
+  //   displayExistingForSalePrice,
+  //   existingExpirationTimestamp,
+  //   displayNewForSalePrice,
+  //   displayAdditionalNetworkFeePayment
+  // ) {
+  //   let newExpirationDate;
+  //   let isDateInvalid;
+  //   let isDateWarning;
 
-    if (
-      perSecondFeeNumerator == null ||
-      perSecondFeeDenominator == null ||
-      isForSalePriceInvalid ||
-      isNetworkFeePaymentInvalid ||
-      displayNewForSalePrice == null ||
-      displayNewForSalePrice.length == 0
-    ) {
-      return [null, false, false];
-    }
+  //   if (
+  //     perSecondFeeNumerator == null ||
+  //     perSecondFeeDenominator == null ||
+  //     isForSalePriceInvalid ||
+  //     isNetworkFeePaymentInvalid ||
+  //     displayNewForSalePrice == null ||
+  //     displayNewForSalePrice.length == 0
+  //   ) {
+  //     return [null, false, false];
+  //   }
 
-    let now = new Date();
-    let existingTimeBalance = existingExpirationTimestamp
-      ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
-      : 0;
+  //   let now = new Date();
+  //   let existingTimeBalance = existingExpirationTimestamp
+  //     ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
+  //     : 0;
 
-    existingTimeBalance = Math.floor(Math.max(existingTimeBalance, 0));
+  //   existingTimeBalance = Math.floor(Math.max(existingTimeBalance, 0));
 
-    const existingForSalePrice = ethers.utils.parseEther(
-      displayExistingForSalePrice ? displayExistingForSalePrice : "0"
-    );
-    let existingPerSecondFee = existingForSalePrice
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
+  //   const existingForSalePrice = ethers.utils.parseEther(
+  //     displayExistingForSalePrice ? displayExistingForSalePrice : "0"
+  //   );
+  //   let existingPerSecondFee = existingForSalePrice
+  //     .mul(perSecondFeeNumerator)
+  //     .div(perSecondFeeDenominator);
 
-    let existingFeeBalance = existingPerSecondFee.mul(existingTimeBalance);
+  //   let existingFeeBalance = existingPerSecondFee.mul(existingTimeBalance);
 
-    let newPerSecondFee = ethers.utils
-      .parseEther(displayNewForSalePrice)
-      .mul(perSecondFeeNumerator)
-      .div(perSecondFeeDenominator);
+  //   let newPerSecondFee = ethers.utils
+  //     .parseEther(displayNewForSalePrice)
+  //     .mul(perSecondFeeNumerator)
+  //     .div(perSecondFeeDenominator);
 
-    const additionalNetworkFeePayment = ethers.utils.parseEther(
-      displayAdditionalNetworkFeePayment.length > 0
-        ? displayAdditionalNetworkFeePayment
-        : "0"
-    );
-    let newFeeBalance = existingFeeBalance.add(additionalNetworkFeePayment);
-    let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).mul(1000);
+  //   const additionalNetworkFeePayment = ethers.utils.parseEther(
+  //     displayAdditionalNetworkFeePayment.length > 0
+  //       ? displayAdditionalNetworkFeePayment
+  //       : "0"
+  //   );
+  //   let newFeeBalance = existingFeeBalance.add(additionalNetworkFeePayment);
+  //   let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).mul(1000);
 
-    newExpirationDate = new Date(
-      now.getTime() + newTimeBalanceMillis.toNumber()
-    );
+  //   newExpirationDate = new Date(
+  //     now.getTime() + newTimeBalanceMillis.toNumber()
+  //   );
 
-    // New parcel
-    if (
-      existingForSalePrice == null ||
-      existingForSalePrice.length == 0 ||
-      existingForSalePrice == 0
-    ) {
-      if (displayAdditionalNetworkFeePayment.length > 0) {
-        isDateInvalid =
-          newTimeBalanceMillis < MIN_CLAIM_DATE_MILLIS ||
-          newTimeBalanceMillis > MAX_DATE_MILLIS;
-      }
+  //   // New parcel
+  //   if (
+  //     existingForSalePrice == null ||
+  //     existingForSalePrice.length == 0 ||
+  //     existingForSalePrice == 0
+  //   ) {
+  //     if (displayAdditionalNetworkFeePayment.length > 0) {
+  //       isDateInvalid =
+  //         newTimeBalanceMillis < MIN_CLAIM_DATE_MILLIS ||
+  //         newTimeBalanceMillis > MAX_DATE_MILLIS;
+  //     }
 
-      isDateWarning = false;
-    } else {
-      // Existing parcel
-      isDateInvalid = newTimeBalanceMillis < MIN_EDIT_DATE_MILLIS;
-      isDateWarning = newTimeBalanceMillis > MAX_DATE_MILLIS;
-    }
+  //     isDateWarning = false;
+  //   } else {
+  //     // Existing parcel
+  //     isDateInvalid = newTimeBalanceMillis < MIN_EDIT_DATE_MILLIS;
+  //     isDateWarning = newTimeBalanceMillis > MAX_DATE_MILLIS;
+  //   }
 
-    return [newExpirationDate, isDateInvalid, isDateWarning];
-  }
+  //   return [newExpirationDate, isDateInvalid, isDateWarning];
+  // }
 
-  async function submit() {
-    updateActionData({ isActing: true });
+  // async function submit() {
+  //   updateActionData({ isActing: true });
 
-    let parcelId;
-    try {
-      // Perform action
-      parcelId = await performAction();
-    } catch (err) {
-      console.error(err);
-      updateActionData({ isActing: false, didFail: true });
-      return;
-    }
+  //   let parcelId;
+  //   try {
+  //     // Perform action
+  //     parcelId = await performAction();
+  //   } catch (err) {
+  //     console.error(err);
+  //     updateActionData({ isActing: false, didFail: true });
+  //     return;
+  //   }
 
-    let content = {};
-    if (parcelName) {
-      content["name"] = parcelName;
-    }
-    if (parcelWebContentURI) {
-      content["url"] = parcelWebContentURI;
-    }
+  //   let content = {};
+  //   if (parcelName) {
+  //     content["name"] = parcelName;
+  //   }
+  //   if (parcelWebContentURI) {
+  //     content["url"] = parcelWebContentURI;
+  //   }
 
-    if (parcelId) {
-      const didNFT = createNftDidUrl({
-        chainId: `eip155:${NETWORK_ID}`,
-        namespace: "erc721",
-        contract: licenseAddress.toLowerCase(),
-        tokenId: parcelId.toString(),
-      });
+  //   if (parcelId) {
+  //     const didNFT = createNftDidUrl({
+  //       chainId: `eip155:${NETWORK_ID}`,
+  //       namespace: "erc721",
+  //       contract: licenseAddress.toLowerCase(),
+  //       tokenId: parcelId.toString(),
+  //     });
 
-      // Create new DIDDataStore and BasicProfileStreamManager
-      const dataStore = new DIDDataStore({
-        ceramic,
-        model: publishedModel,
-        id: didNFT,
-      });
+  //     // Create new DIDDataStore and BasicProfileStreamManager
+  //     const dataStore = new DIDDataStore({
+  //       ceramic,
+  //       model: publishedModel,
+  //       id: didNFT,
+  //     });
 
-      const _basicProfileStreamManager = new BasicProfileStreamManager(
-        dataStore
-      );
-      await _basicProfileStreamManager.createOrUpdateStream(content);
-      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-    } else {
-      // Use existing BasicProfileStreamManager
-      await basicProfileStreamManager.createOrUpdateStream(content);
-    }
+  //     const _basicProfileStreamManager = new BasicProfileStreamManager(
+  //       dataStore
+  //     );
+  //     await _basicProfileStreamManager.createOrUpdateStream(content);
+  //     setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
+  //   } else {
+  //     // Use existing BasicProfileStreamManager
+  //     await basicProfileStreamManager.createOrUpdateStream(content);
+  //   }
 
-    updateActionData({ isActing: false });
-    setInteractionState(STATE_PARCEL_SELECTED);
-  }
+  //   updateActionData({ isActing: false });
+  //   setInteractionState(STATE_PARCEL_SELECTED);
+  // }
 
   let [newExpirationDate, isDateInvalid, isDateWarning] =
     _calculateNewExpiration(
@@ -237,20 +256,20 @@ export function ActionForm({
     }
   }
 
-  React.useEffect(() => {
-    if (collectorContract == null) {
-      return;
-    }
+  // React.useEffect(() => {
+  //   if (collectorContract == null) {
+  //     return;
+  //   }
 
-    collectorContract.minContributionRate().then((minContributionRate) => {
-      const _minInitialValue = fromRateToValue(
-        minContributionRate,
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      );
-      setMinInitialValue(ethers.utils.formatEther(_minInitialValue.toString()));
-    });
-  }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
+  //   collectorContract.minContributionRate().then((minContributionRate) => {
+  //     const _minInitialValue = fromRateToValue(
+  //       minContributionRate,
+  //       perSecondFeeNumerator,
+  //       perSecondFeeDenominator
+  //     );
+  //     setMinInitialValue(ethers.utils.formatEther(_minInitialValue.toString()));
+  //   });
+  // }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
 
   React.useEffect(() => {
     if (!isActing) {
