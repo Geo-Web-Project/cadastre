@@ -21,20 +21,16 @@ export type SidebarProps = MapProps & {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function Sidebar({
-  auctionSuperApp,
-  licenseContract,
-  account,
-  ceramic,
-  ipfs,
-  firebasePerf,
-  interactionState,
-  setInteractionState,
-  claimBase1Coord,
-  claimBase2Coord,
-  selectedParcelId,
-  setSelectedParcelId,
-}: SidebarProps) {
+function Sidebar(props: SidebarProps) {
+  const {
+    auctionSuperApp,
+    licenseContract,
+    ceramic,
+    ipfs,
+    firebasePerf,
+    interactionState,
+    selectedParcelId,
+  } = props;
   const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
   React.useEffect(() => {
     if (ceramic == null) {
@@ -101,16 +97,10 @@ function Sidebar({
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
       <ParcelInfo
-        account={account}
-        interactionState={interactionState}
-        setInteractionState={setInteractionState}
-        selectedParcelId={selectedParcelId}
-        setSelectedParcelId={setSelectedParcelId}
+        {...props}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        ceramic={ceramic}
         dataStore={dataStore}
-        ipfs={ipfs}
         didNFT={didNFT}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
@@ -120,18 +110,11 @@ function Sidebar({
       {interactionState == STATE.CLAIM_SELECTED ? (
         <>
           <ClaimAction
-            auctionSuperApp={auctionSuperApp}
-            licenseContract={licenseContract}
-            account={account}
-            claimBase1Coord={claimBase1Coord}
-            claimBase2Coord={claimBase2Coord}
-            setInteractionState={setInteractionState}
-            setSelectedParcelId={setSelectedParcelId}
+            {...props}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
-            ceramic={ceramic}
           ></ClaimAction>
         </>
       ) : null}

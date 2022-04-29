@@ -15,26 +15,22 @@ import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfil
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import { SidebarProps } from "../Sidebar";
 
 const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
 const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
 const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
 
-type ActionFormProps = {
+export type ActionFormProps = SidebarProps & {
   title: string;
-  // auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
-  // licenseContract: Contracts["geoWebERC721LicenseContract"];
   perSecondFeeNumerator: BigNumber | null;
   perSecondFeeDenominator: BigNumber | null;
   basicProfileStreamManager: any;
   licenseAddress: string;
-  ceramic: CeramicClient;
-  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   loading: boolean;
   performAction: () => Promise<void>;
   actionData: any;
   setActionData: React.Dispatch<React.SetStateAction<any>>;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
 };
 
 export function ActionForm(props: ActionFormProps) {

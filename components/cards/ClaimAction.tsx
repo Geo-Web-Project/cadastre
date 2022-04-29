@@ -6,41 +6,18 @@ import {
 } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
-import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import { STATE } from "../Map";
+import { SidebarProps } from "../Sidebar";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-type ClaimActionProps = {
-  auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
-  licenseContract: Contracts["geoWebERC721LicenseContract"];
+export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber | null;
   perSecondFeeDenominator: BigNumber | null;
   basicProfileStreamManager: any;
   licenseAddress: string;
-  account: string;
-  ceramic: CeramicClient;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  claimBase1Coord: any;
-  claimBase2Coord: any;
 };
 
-function ClaimAction({
-  auctionSuperApp,
-  licenseContract,
-  account,
-  claimBase1Coord,
-  claimBase2Coord,
-  setInteractionState,
-  setSelectedParcelId,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  basicProfileStreamManager,
-  licenseAddress,
-  ceramic,
-}: ClaimActionProps) {
+function ClaimAction(props: ClaimActionProps) {
   const [actionData, setActionData] = React.useState<any>({
     isActing: false,
     didFail: false,
@@ -118,17 +95,11 @@ function ClaimAction({
     <>
       <ActionForm
         title="Claim"
-        perSecondFeeNumerator={perSecondFeeNumerator}
-        perSecondFeeDenominator={perSecondFeeDenominator}
         loading={false}
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        basicProfileStreamManager={basicProfileStreamManager}
-        setInteractionState={setInteractionState}
-        licenseAddress={licenseAddress}
-        ceramic={ceramic}
-        setSelectedParcelId={setSelectedParcelId}
+        {...props}
       />
       <FaucetInfo></FaucetInfo>
     </>

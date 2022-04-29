@@ -32,7 +32,7 @@ const parcelQuery = gql`
   }
 `;
 
-type ParcelInfoProps = {
+export type ParcelInfoProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber | null;
   perSecondFeeDenominator: BigNumber | null;
   dataStore: DIDDataStore | null;
@@ -40,31 +40,20 @@ type ParcelInfoProps = {
   basicProfileStreamManager: any;
   pinningManager: any;
   licenseAddress: string;
-  account: string;
-  ceramic: CeramicClient;
-  ipfs: any;
-  interactionState: STATE;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  selectedParcelId: string;
-  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function ParcelInfo({
-  account,
-  interactionState,
-  setInteractionState,
-  selectedParcelId,
-  setSelectedParcelId,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  ceramic,
-  ipfs,
-  dataStore,
-  didNFT,
-  basicProfileStreamManager,
-  pinningManager,
-  licenseAddress,
-}: ParcelInfoProps) {
+function ParcelInfo(props: ParcelInfoProps) {
+  const {
+    account,
+    interactionState,
+    setInteractionState,
+    selectedParcelId,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
+    dataStore,
+    didNFT,
+    basicProfileStreamManager,
+  } = props;
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,

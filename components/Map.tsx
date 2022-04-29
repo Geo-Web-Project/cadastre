@@ -119,14 +119,15 @@ export type MapProps = {
   firebasePerf: any;
 };
 
-function Map({
-  auctionSuperApp,
-  licenseContract,
-  account,
-  ceramic,
-  ipfs,
-  firebasePerf,
-}: MapProps) {
+function Map(props: MapProps) {
+  const {
+    auctionSuperApp,
+    licenseContract,
+    account,
+    ceramic,
+    ipfs,
+    firebasePerf,
+  } = props;
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -405,18 +406,13 @@ function Map({
     <>
       {interactionState != STATE.VIEWING ? (
         <Sidebar
-          licenseContract={licenseContract}
-          auctionSuperApp={auctionSuperApp}
-          account={account}
+          {...props}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
           claimBase1Coord={claimBase1Coord}
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
-          ceramic={ceramic}
-          ipfs={ipfs}
-          firebasePerf={firebasePerf}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
