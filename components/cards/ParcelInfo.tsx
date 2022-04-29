@@ -1,15 +1,7 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
-import {
-  STATE_PARCEL_SELECTED,
-  STATE_PARCEL_EDITING,
-  STATE_PARCEL_PURCHASING,
-  STATE_VIEWING,
-  STATE_CLAIM_SELECTED,
-  STATE_CLAIM_SELECTING,
-  STATE_EDITING_GALLERY,
-} from "../Map";
+import { STATE } from "../Map";
 import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
@@ -23,6 +15,9 @@ import Row from "react-bootstrap/Row";
 import CID from "cids";
 import GalleryModal from "../gallery/GalleryModal";
 import { fromRateToValue } from "./ActionForm";
+import { SidebarProps } from "../Sidebar";
+import { DIDDataStore } from "@glazed/did-datastore";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -37,40 +32,48 @@ const parcelQuery = gql`
   }
 `;
 
-function ParcelInfo({
-  account,
-  collectorContract,
-  purchaserContract,
-  interactionState,
-  setInteractionState,
-  selectedParcelId,
-  setSelectedParcelId,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  ceramic,
-  ipfs,
-  dataStore,
-  didNFT,
-  basicProfileStreamManager,
-  pinningManager,
-  licenseAddress,
-}) {
+export type ParcelInfoProps = SidebarProps & {
+  perSecondFeeNumerator: BigNumber | null;
+  perSecondFeeDenominator: BigNumber | null;
+  dataStore: DIDDataStore | null;
+  didNFT: string | null;
+  basicProfileStreamManager: any;
+  pinningManager: any;
+  licenseAddress: string;
+};
+
+function ParcelInfo(props: ParcelInfoProps) {
+  const {
+    account,
+    interactionState,
+    setInteractionState,
+    selectedParcelId,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
+    dataStore,
+    didNFT,
+    basicProfileStreamManager,
+  } = props;
   const { loading, data, refetch } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
   });
 
-  const [networkFeeBalance, setNetworkFeeBalance] = useState(null);
+  const [networkFeeBalance, setNetworkFeeBalance] = useState<BigNumber | null>(
+    null
+  );
   const [auctionValue, setAuctionValue] = React.useState(null);
-  const [timer, setTimer] = React.useState(null);
-  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState(null);
+  const [timer, setTimer] = React.useState<NodeJS.Timer | null>(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
+    string | null
+  >(null);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
     : null;
 
-  function _calculateNetworkFeeBalance(license) {
+  function _calculateNetworkFeeBalance(license: any) {
     let now = Date.now();
     let networkFeeBalance = BigNumber.from(license.expirationTimestamp)
       .mul(1000)
@@ -78,13 +81,13 @@ function ParcelInfo({
       .div(1000)
       .mul(BigNumber.from(license.contributionRate));
 
-    return networkFeeBalance < 0 ? BigNumber.from(0) : networkFeeBalance;
+    return networkFeeBalance?.lt(0) ? BigNumber.from(0) : networkFeeBalance;
   }
 
   useEffect(() => {
     async function updateContent() {
       if (data && data.landParcel) {
-        clearInterval(timer);
+        if (timer) clearInterval(timer);
         const _timer = setInterval(() => {
           setNetworkFeeBalance(
             _calculateNetworkFeeBalance(data.landParcel.license)
@@ -95,7 +98,7 @@ function ParcelInfo({
     }
 
     async function updateStreamId() {
-      if (!dataStore) {
+      if (!dataStore || !didNFT) {
         setParcelIndexStreamId(null);
         return;
       }
@@ -136,7 +139,7 @@ function ParcelInfo({
       </>
     );
     if (networkFeeBalance != null) {
-      isExpired = networkFeeBalance == 0;
+      isExpired = networkFeeBalance.eq(0);
       networkFeeBalanceDisplay = (
         <>
           {ethers.utils.formatEther(networkFeeBalance.toString())}{" "}
@@ -175,7 +178,7 @@ function ParcelInfo({
       variant="danger"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE_PARCEL_SELECTED);
+        setInteractionState(STATE.PARCEL_SELECTED);
       }}
     >
       Cancel
@@ -187,7 +190,7 @@ function ParcelInfo({
       variant="primary"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE_PARCEL_EDITING);
+        setInteractionState(STATE.PARCEL_EDITING);
       }}
     >
       Edit Parcel
@@ -199,7 +202,7 @@ function ParcelInfo({
       variant="secondary"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE_EDITING_GALLERY);
+        setInteractionState(STATE.EDITING_GALLERY);
       }}
     >
       Edit Media Gallery
@@ -211,7 +214,7 @@ function ParcelInfo({
       variant="primary"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE_PARCEL_PURCHASING);
+        setInteractionState(STATE.PARCEL_PURCHASING);
       }}
     >
       {isExpired ? "Auction Claim" : "Initiate Transfer"}
@@ -220,8 +223,8 @@ function ParcelInfo({
 
   let title;
   if (
-    interactionState == STATE_CLAIM_SELECTING ||
-    interactionState == STATE_CLAIM_SELECTED
+    interactionState == STATE.CLAIM_SELECTING ||
+    interactionState == STATE.CLAIM_SELECTED
   ) {
     title = (
       <>
@@ -243,7 +246,7 @@ function ParcelInfo({
   }
 
   let buttons;
-  if (interactionState != STATE_PARCEL_SELECTED) {
+  if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
     if (account.toLowerCase() == licenseOwner.toLowerCase()) {
@@ -266,7 +269,7 @@ function ParcelInfo({
           <Button
             variant="link"
             size="sm"
-            onClick={() => setInteractionState(STATE_VIEWING)}
+            onClick={() => setInteractionState(STATE.VIEWING)}
           >
             <Image src="close.svg" />
           </Button>
@@ -274,10 +277,10 @@ function ParcelInfo({
       </Row>
       <Row>
         <Col>
-          {interactionState == STATE_PARCEL_SELECTED ||
-          interactionState == STATE_PARCEL_EDITING ||
-          interactionState == STATE_PARCEL_PURCHASING ||
-          interactionState == STATE_EDITING_GALLERY ? (
+          {interactionState == STATE.PARCEL_SELECTED ||
+          interactionState == STATE.PARCEL_EDITING ||
+          interactionState == STATE.PARCEL_PURCHASING ||
+          interactionState == STATE.EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
                 {!parcelContent ? null : hrefWebContent ? (
@@ -327,12 +330,12 @@ function ParcelInfo({
               {isExpired ? (
                 <>
                   <hr className="border-secondary" />
-                  <AuctionInfo
+                  {/* <AuctionInfo
                     purchaserContract={purchaserContract}
                     licenseInfo={data.landParcel.license}
                     auctionValue={auctionValue}
                     setAuctionValue={setAuctionValue}
-                  ></AuctionInfo>
+                  ></AuctionInfo> */}
                 </>
               ) : null}
               <br />
@@ -341,7 +344,7 @@ function ParcelInfo({
           ) : (
             <p>Unclaimed Coordinates</p>
           )}
-          {interactionState == STATE_PARCEL_EDITING ? (
+          {/* {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
               collectorContract={collectorContract}
               account={account}
@@ -355,7 +358,7 @@ function ParcelInfo({
               licenseAddress={licenseAddress}
             />
           ) : null}
-          {interactionState == STATE_PARCEL_PURCHASING ? (
+          {interactionState == STATE.PARCEL_PURCHASING ? (
             <PurchaseAction
               purchaserContract={purchaserContract}
               collectorContract={collectorContract}
@@ -371,10 +374,10 @@ function ParcelInfo({
               existingNetworkFeeBalance={networkFeeBalance}
               licenseAddress={licenseAddress}
             />
-          ) : null}
+          ) : null} */}
         </Col>
       </Row>
-      <GalleryModal
+      {/* <GalleryModal
         ipfs={ipfs}
         show={interactionState == STATE_EDITING_GALLERY}
         setInteractionState={setInteractionState}
@@ -382,7 +385,7 @@ function ParcelInfo({
         ceramic={ceramic}
         didNFT={didNFT}
         pinningManager={pinningManager}
-      ></GalleryModal>
+      ></GalleryModal> */}
     </>
   );
 }

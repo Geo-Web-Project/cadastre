@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { parcelLayer, parcelHighlightLayer } from "../map-style.js";
+import { parcelLayer, parcelHighlightLayer } from "../map-style";
 
-function convertToGeoJson(data) {
-  let features = data.geoWebCoordinates.map((c) => {
+function convertToGeoJson(data: any) {
+  let features = data.geoWebCoordinates.map((c: any) => {
     let coordinates = [
       [
         [c.pointBL.lon, c.pointBL.lat],
@@ -26,7 +26,14 @@ function convertToGeoJson(data) {
   return features;
 }
 
-function ParcelSource({ data, parcelHoverId, selectedParcelId }) {
+type Props = {
+  data: any | null;
+  parcelHoverId: string;
+  selectedParcelId: string;
+};
+
+function ParcelSource(props: Props) {
+  const { data, parcelHoverId, selectedParcelId } = props;
   const [geoJsonFeatures, setGeoJsonFeatures] = React.useState([]);
 
   React.useEffect(() => {

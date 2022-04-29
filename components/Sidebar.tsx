@@ -5,35 +5,33 @@ import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { usePinningManager } from "../lib/PinningManager";
 import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
-import {
-  STATE_VIEWING,
-  STATE_CLAIM_SELECTING,
-  STATE_CLAIM_SELECTED,
-  STATE_PARCEL_SELECTED,
-} from "./Map";
+import { STATE, MapProps } from "./Map";
 import { NETWORK_ID, publishedModel } from "../lib/constants";
 import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
+import { BigNumber } from "ethers";
 
-function Sidebar({
-  licenseContract,
-  accountantContract,
-  claimerContract,
-  collectorContract,
-  purchaserContract,
-  account,
-  interactionState,
-  setInteractionState,
-  claimBase1Coord,
-  claimBase2Coord,
-  selectedParcelId,
-  setSelectedParcelId,
-  ceramic,
-  ipfs,
-  firebasePerf,
-}) {
-  const [dataStore, setDataStore] = React.useState(null);
+export type SidebarProps = MapProps & {
+  interactionState: STATE;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+  claimBase1Coord: any;
+  claimBase2Coord: any;
+  selectedParcelId: string;
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+};
+
+function Sidebar(props: SidebarProps) {
+  const {
+    auctionSuperApp,
+    licenseContract,
+    ceramic,
+    ipfs,
+    firebasePerf,
+    interactionState,
+    selectedParcelId,
+  } = props;
+  const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
   React.useEffect(() => {
     if (ceramic == null) {
       console.error("Ceramic instance not found");
@@ -77,22 +75,20 @@ function Sidebar({
   );
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
-    React.useState(null);
+    React.useState<BigNumber | null>(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
-    React.useState(null);
+    React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
-    accountantContract
-      .perSecondFeeNumerator()
-      .then((_perSecondFeeNumerator) => {
-        setPerSecondFeeNumerator(_perSecondFeeNumerator);
-      });
-    accountantContract
+    auctionSuperApp.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
+      setPerSecondFeeNumerator(_perSecondFeeNumerator);
+    });
+    auctionSuperApp
       .perSecondFeeDenominator()
       .then((_perSecondFeeDenominator) => {
         setPerSecondFeeDenominator(_perSecondFeeDenominator);
       });
-  }, [accountantContract]);
+  }, [auctionSuperApp]);
 
   return (
     <Col
@@ -101,39 +97,26 @@ function Sidebar({
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
       <ParcelInfo
-        account={account}
-        collectorContract={collectorContract}
-        purchaserContract={purchaserContract}
-        interactionState={interactionState}
-        setInteractionState={setInteractionState}
-        selectedParcelId={selectedParcelId}
-        setSelectedParcelId={setSelectedParcelId}
+        {...props}
         perSecondFeeNumerator={perSecondFeeNumerator}
         perSecondFeeDenominator={perSecondFeeDenominator}
-        ceramic={ceramic}
         dataStore={dataStore}
-        ipfs={ipfs}
         didNFT={didNFT}
         basicProfileStreamManager={basicProfileStreamManager}
         pinningManager={pinningManager}
         licenseAddress={licenseContract.address}
       ></ParcelInfo>
-      {interactionState == STATE_CLAIM_SELECTING ? <ClaimInfo /> : null}
-      {interactionState == STATE_CLAIM_SELECTED ? (
+      {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
+      {interactionState == STATE.CLAIM_SELECTED &&
+      perSecondFeeNumerator &&
+      perSecondFeeDenominator ? (
         <>
           <ClaimAction
-            claimerContract={claimerContract}
-            collectorContract={collectorContract}
-            account={account}
-            claimBase1Coord={claimBase1Coord}
-            claimBase2Coord={claimBase2Coord}
-            setInteractionState={setInteractionState}
-            setSelectedParcelId={setSelectedParcelId}
+            {...props}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
-            ceramic={ceramic}
           ></ClaimAction>
         </>
       ) : null}

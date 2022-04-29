@@ -1,9 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
 import { NETWORK_NAME } from "../lib/constants";
-
-import landingContent from "./home-style";
-import videoInstruction from "./home-style";
 
 function HomeContent() {
   return (

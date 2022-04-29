@@ -1,8 +1,14 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { gridLayer } from "../map-style.js";
+import { gridLayer } from "../map-style";
 
-function GridSource({ isGridVisible, grid }) {
+type Props = {
+  isGridVisible: boolean;
+  grid: any | null;
+};
+
+function GridSource(props: Props) {
+  const { isGridVisible, grid } = props;
   let gridFeatures = [];
   if (grid != null && isGridVisible) {
     gridFeatures = grid.features;

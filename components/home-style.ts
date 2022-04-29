@@ -1,25 +1,25 @@
 export const videoInstruction = {
-    position: "absolute",
-    width: "560px",
-    height: "350px",
-    left: "135px",
-    top: "204px",
-  
-    background: "#C4C4C4"
-};
-  
-export const landingContent = {
-    position: "absolute",
-    width: "978px",
-    height: "956px",
-    left: "135px",
-    top: "589px",
-    color: "#FFFFFF",
+  position: "absolute",
+  width: "560px",
+  height: "350px",
+  left: "135px",
+  top: "204px",
 
-    //fontFamily: "VT323",
-    fontStyle: "normal",
-    fontWeight: "normal",
-    /* or 161% */    
+  background: "#C4C4C4",
+};
+
+export const landingContent = {
+  position: "absolute",
+  width: "978px",
+  height: "956px",
+  left: "135px",
+  top: "589px",
+  color: "#FFFFFF",
+
+  //fontFamily: "VT323",
+  fontStyle: "normal",
+  fontWeight: "normal",
+  /* or 161% */
 };
 
 export const contentBold = {
@@ -32,7 +32,6 @@ export const contentRegular = {
   lineHeight: "22px",
 };
 
-  
 export const walletPrompt = {
   position: "absolute",
   width: "400px",
@@ -61,8 +60,8 @@ export const walletPromptText = {
 
   textAlign: "center",
 
-  color: "#FFFFFF"
-}
+  color: "#FFFFFF",
+};
 
 /*
 Ag
