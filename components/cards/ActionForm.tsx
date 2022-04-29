@@ -8,8 +8,14 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
+import { createNftDidUrl } from "nft-did-resolver";
+import { NETWORK_ID, publishedModel } from "../../lib/constants";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { DIDDataStore } from "@glazed/did-datastore";
+import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
+import { STATE } from "../Map";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -17,7 +23,7 @@ export type ActionFormProps = SidebarProps & {
   basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
-  performAction: () => Promise<void>;
+  performAction: () => Promise<string>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
 };
@@ -36,8 +42,14 @@ export function ActionForm(props: ActionFormProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
+    performAction,
     actionData,
     setActionData,
+    basicProfileStreamManager,
+    setInteractionState,
+    licenseAddress,
+    ceramic,
+    setSelectedParcelId,
   } = props;
 
   const {
@@ -90,6 +102,56 @@ export function ActionForm(props: ActionFormProps) {
     }
 
     setActionData(_updateData(updatedValues));
+  }
+
+  async function submit() {
+    updateActionData({ isActing: true });
+
+    let parcelId: string | null;
+    try {
+      // Perform action
+      parcelId = await performAction();
+    } catch (err) {
+      console.error(err);
+      updateActionData({ isActing: false, didFail: true });
+      return;
+    }
+
+    let content: any = {};
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
+
+    if (parcelId) {
+      const didNFT = createNftDidUrl({
+        chainId: `eip155:${NETWORK_ID}`,
+        namespace: "erc721",
+        contract: licenseAddress.toLowerCase(),
+        tokenId: parcelId.toString(),
+      });
+
+      // Create new DIDDataStore and BasicProfileStreamManager
+      const dataStore = new DIDDataStore({
+        ceramic,
+        model: publishedModel,
+        id: didNFT,
+      });
+
+      const _basicProfileStreamManager = new BasicProfileStreamManager(
+        dataStore
+      );
+      await _basicProfileStreamManager.createOrUpdateStream(content);
+      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
+    } else {
+      // Use existing BasicProfileStreamManager
+      await basicProfileStreamManager.createOrUpdateStream(content);
+    }
+
+    updateActionData({ isActing: false });
+    setInteractionState(STATE.PARCEL_SELECTED);
   }
 
   let isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
@@ -200,7 +262,7 @@ export function ActionForm(props: ActionFormProps) {
             <Button
               variant="primary"
               className="w-100"
-              // onClick={() => submit()}
+              onClick={() => submit()}
               disabled={isActing || isLoading || isInvalid}
             >
               {isActing || isLoading ? spinner : "Confirm"}
