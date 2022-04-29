@@ -8,23 +8,12 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { PAYMENT_TOKEN } from "../../lib/constants";
-import { createNftDidUrl } from "nft-did-resolver";
-import { NETWORK_ID, publishedModel } from "../../lib/constants";
-import { STATE } from "../Map";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { DIDDataStore } from "@glazed/did-datastore";
-import BN from "bn.js";
-import { CeramicClient } from "@ceramicnetwork/http-client";
 import { SidebarProps } from "../Sidebar";
-
-const MIN_CLAIM_DATE_MILLIS = 365 * 24 * 60 * 60 * 1000; // 1 year
-const MIN_EDIT_DATE_MILLIS = 1 * 24 * 60 * 60 * 1000; // 1 day
-const MAX_DATE_MILLIS = 730 * 24 * 60 * 60 * 1000; // 2 years
+import { truncateEth } from "../../lib/truncate";
 
 export type ActionFormProps = SidebarProps & {
-  title: string;
-  perSecondFeeNumerator: BigNumber | null;
-  perSecondFeeDenominator: BigNumber | null;
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
@@ -37,7 +26,6 @@ export type ActionData = {
   parcelName?: string;
   parcelWebContentURI?: string;
   displayNewForSalePrice?: string;
-  // displayNetworkFeePayment,
   displayCurrentForSalePrice?: string;
   didFail?: boolean;
   isActing?: boolean;
@@ -45,21 +33,12 @@ export type ActionData = {
 
 export function ActionForm(props: ActionFormProps) {
   const {
-    title,
-    // collectorContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
-    performAction,
     actionData,
     setActionData,
-    basicProfileStreamManager,
-    setInteractionState,
-    licenseAddress,
-    ceramic,
-    setSelectedParcelId,
   } = props;
-  let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const {
     parcelName,
@@ -80,10 +59,23 @@ export function ActionForm(props: ActionFormProps) {
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
     isNaN(Number(displayNewForSalePrice));
-  // let isNetworkFeePaymentInvalid =
-  //   displayNetworkFeePayment &&
-  //   displayNetworkFeePayment.length > 0 &&
-  //   isNaN(displayNetworkFeePayment);
+
+  const networkFeeRatePerSecond =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    !isNaN(Number(displayNewForSalePrice))
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+
+  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(60 * 60 * 24 * 365);
+
+  const annualFeePercentage =
+    (perSecondFeeNumerator.toNumber() * 60 * 60 * 24 * 365 * 100) /
+    perSecondFeeDenominator.toNumber();
   let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   let isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -100,183 +92,9 @@ export function ActionForm(props: ActionFormProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  // function _calculateNewExpiration(
-  //   displayExistingForSalePrice,
-  //   existingExpirationTimestamp,
-  //   displayNewForSalePrice,
-  //   displayAdditionalNetworkFeePayment
-  // ) {
-  //   let newExpirationDate;
-  //   let isDateInvalid;
-  //   let isDateWarning;
-
-  //   if (
-  //     perSecondFeeNumerator == null ||
-  //     perSecondFeeDenominator == null ||
-  //     isForSalePriceInvalid ||
-  //     isNetworkFeePaymentInvalid ||
-  //     displayNewForSalePrice == null ||
-  //     displayNewForSalePrice.length == 0
-  //   ) {
-  //     return [null, false, false];
-  //   }
-
-  //   let now = new Date();
-  //   let existingTimeBalance = existingExpirationTimestamp
-  //     ? (existingExpirationTimestamp * 1000 - now.getTime()) / 1000
-  //     : 0;
-
-  //   existingTimeBalance = Math.floor(Math.max(existingTimeBalance, 0));
-
-  //   const existingForSalePrice = ethers.utils.parseEther(
-  //     displayExistingForSalePrice ? displayExistingForSalePrice : "0"
-  //   );
-  //   let existingPerSecondFee = existingForSalePrice
-  //     .mul(perSecondFeeNumerator)
-  //     .div(perSecondFeeDenominator);
-
-  //   let existingFeeBalance = existingPerSecondFee.mul(existingTimeBalance);
-
-  //   let newPerSecondFee = ethers.utils
-  //     .parseEther(displayNewForSalePrice)
-  //     .mul(perSecondFeeNumerator)
-  //     .div(perSecondFeeDenominator);
-
-  //   const additionalNetworkFeePayment = ethers.utils.parseEther(
-  //     displayAdditionalNetworkFeePayment.length > 0
-  //       ? displayAdditionalNetworkFeePayment
-  //       : "0"
-  //   );
-  //   let newFeeBalance = existingFeeBalance.add(additionalNetworkFeePayment);
-  //   let newTimeBalanceMillis = newFeeBalance.div(newPerSecondFee).mul(1000);
-
-  //   newExpirationDate = new Date(
-  //     now.getTime() + newTimeBalanceMillis.toNumber()
-  //   );
-
-  //   // New parcel
-  //   if (
-  //     existingForSalePrice == null ||
-  //     existingForSalePrice.length == 0 ||
-  //     existingForSalePrice == 0
-  //   ) {
-  //     if (displayAdditionalNetworkFeePayment.length > 0) {
-  //       isDateInvalid =
-  //         newTimeBalanceMillis < MIN_CLAIM_DATE_MILLIS ||
-  //         newTimeBalanceMillis > MAX_DATE_MILLIS;
-  //     }
-
-  //     isDateWarning = false;
-  //   } else {
-  //     // Existing parcel
-  //     isDateInvalid = newTimeBalanceMillis < MIN_EDIT_DATE_MILLIS;
-  //     isDateWarning = newTimeBalanceMillis > MAX_DATE_MILLIS;
-  //   }
-
-  //   return [newExpirationDate, isDateInvalid, isDateWarning];
-  // }
-
-  // async function submit() {
-  //   updateActionData({ isActing: true });
-
-  //   let parcelId;
-  //   try {
-  //     // Perform action
-  //     parcelId = await performAction();
-  //   } catch (err) {
-  //     console.error(err);
-  //     updateActionData({ isActing: false, didFail: true });
-  //     return;
-  //   }
-
-  //   let content = {};
-  //   if (parcelName) {
-  //     content["name"] = parcelName;
-  //   }
-  //   if (parcelWebContentURI) {
-  //     content["url"] = parcelWebContentURI;
-  //   }
-
-  //   if (parcelId) {
-  //     const didNFT = createNftDidUrl({
-  //       chainId: `eip155:${NETWORK_ID}`,
-  //       namespace: "erc721",
-  //       contract: licenseAddress.toLowerCase(),
-  //       tokenId: parcelId.toString(),
-  //     });
-
-  //     // Create new DIDDataStore and BasicProfileStreamManager
-  //     const dataStore = new DIDDataStore({
-  //       ceramic,
-  //       model: publishedModel,
-  //       id: didNFT,
-  //     });
-
-  //     const _basicProfileStreamManager = new BasicProfileStreamManager(
-  //       dataStore
-  //     );
-  //     await _basicProfileStreamManager.createOrUpdateStream(content);
-  //     setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-  //   } else {
-  //     // Use existing BasicProfileStreamManager
-  //     await basicProfileStreamManager.createOrUpdateStream(content);
-  //   }
-
-  //   updateActionData({ isActing: false });
-  //   setInteractionState(STATE_PARCEL_SELECTED);
-  // }
-
-  // let [newExpirationDate, isDateInvalid, isDateWarning] =
-  //   _calculateNewExpiration(
-  //     displayCurrentForSalePrice,
-  //     currentExpirationTimestamp,
-  //     displayNewForSalePrice,
-  //     displayNetworkFeePayment
-  //   );
-
-  let isInvalid =
-    isForSalePriceInvalid ||
-    // isNetworkFeePaymentInvalid ||
-    // isDateInvalid ||
-    !displayNewForSalePrice;
-  // (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
+  let isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
   let isLoading = loading;
-
-  // let expirationDateErrorMessage;
-  // if (displayCurrentForSalePrice == null && isDateInvalid) {
-  //   expirationDateErrorMessage =
-  //     "Initial payment must result in an expiration date between 1 and 2 years from now";
-  // } else if (displayCurrentForSalePrice != null) {
-  //   if (isDateInvalid) {
-  //     expirationDateErrorMessage =
-  //       "Additional payment is needed to ensure the expiration is at least 2 weeks from now";
-  //   } else if (isDateWarning) {
-  //     expirationDateErrorMessage =
-  //       "New For Sale Price results in a calculated expiration date that exceeds the maximum value (> 2 years). You may proceed with your transaction, but the expiration date will only be set as 2 years from now.";
-  //   }
-  // }
-
-  // React.useEffect(() => {
-  //   if (collectorContract == null) {
-  //     return;
-  //   }
-
-  //   collectorContract.minContributionRate().then((minContributionRate) => {
-  //     const _minInitialValue = fromRateToValue(
-  //       minContributionRate,
-  //       perSecondFeeNumerator,
-  //       perSecondFeeDenominator
-  //     );
-  //     setMinInitialValue(ethers.utils.formatEther(_minInitialValue.toString()));
-  //   });
-  // }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
-
-  // React.useEffect(() => {
-  //   if (!isActing) {
-  //     setDisplaySubtotal(transactionSubtotal);
-  //   }
-  // }, [transactionSubtotal]);
 
   React.useEffect(() => {
     if (displayNewForSalePrice == null) {
@@ -287,12 +105,10 @@ export function ActionForm(props: ActionFormProps) {
   return (
     <Card border="secondary" className="bg-dark mt-5">
       <Card.Body>
-        <Card.Title className="text-primary font-weight-bold">
-          {title}
-        </Card.Title>
         <Card.Text>
           <Form>
             <Form.Group>
+              <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
               <Form.Control
                 isInvalid={isParcelNameInvalid}
                 className="bg-dark text-light"
@@ -312,6 +128,9 @@ export function ActionForm(props: ActionFormProps) {
                 </Form.Control.Feedback>
               ) : null}
               <br />
+              <Form.Text className="text-primary mb-1">
+                Content Link (http://, https://, ipfs://, ipns://)
+              </Form.Text>
               <Form.Control
                 isInvalid={isURIInvalid}
                 className="bg-dark text-light"
@@ -333,6 +152,9 @@ export function ActionForm(props: ActionFormProps) {
                 </Form.Control.Feedback>
               ) : null}
               <br />
+              <Form.Text className="text-primary mb-1">
+                For Sale Price ({PAYMENT_TOKEN})
+              </Form.Text>
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
@@ -354,24 +176,27 @@ export function ActionForm(props: ActionFormProps) {
               ) : null}
 
               <br />
-              {/* <Form.Control
-                required={displayCurrentForSalePrice == null}
-                className="bg-dark text-light"
+              <Form.Text className="text-primary mb-1">
+                {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
+              </Form.Text>
+              <Form.Control
+                className="bg-dark text-info"
                 type="text"
-                placeholder={
-                  displayCurrentForSalePrice != null
-                    ? `Additional Network Fee Payment (${PAYMENT_TOKEN})`
-                    : `Network Fee Payment (${PAYMENT_TOKEN})`
-                }
-                aria-label="Network Fee Payment"
-                aria-describedby="network-fee-payment"
-                disabled={isActing || isLoading}
-                isInvalid={isNetworkFeePaymentInvalid}
-                onChange={(e) =>
-                  updateActionData({ displayNetworkFeePayment: e.target.value })
-                }
-              /> */}
+                readOnly
+                disabled
+                value={`${
+                  annualNetworkFeeRate
+                    ? truncateEth(
+                        ethers.utils.formatEther(annualNetworkFeeRate),
+                        3
+                      )
+                    : "0"
+                } ${PAYMENT_TOKEN}/year`}
+                aria-label="Network Fee"
+                aria-describedby="network-fee"
+              />
             </Form.Group>
+            <br />
             <Button
               variant="primary"
               className="w-100"
@@ -397,42 +222,6 @@ export function ActionForm(props: ActionFormProps) {
               </p>
             </Alert>
           ) : null}
-
-          {/* <div className="font-weight-bold">New Expiration Date:</div>
-          <div
-            className={
-              isDateInvalid
-                ? "text-danger font-weight-bold"
-                : isDateWarning
-                ? "text-warning font-weight-bold"
-                : ""
-            }
-          >
-            {newExpirationDate ? newExpirationDate.toDateString() : "N/A"}
-          </div>
-          <div className="font-weight-bold">
-            Transaction subtotal (excludes gas):
-          </div>
-          <div>
-            {displaySubtotal
-              ? `${ethers.utils.formatEther(
-                  displaySubtotal.toString()
-                )} ${PAYMENT_TOKEN}`
-              : "N/A"}
-          </div>
-          {isDateInvalid ? (
-            <Alert className="mt-2" variant="danger">
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Expiration date is not valid
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
-            </Alert>
-          ) : null}
-          {isDateWarning ? (
-            <Alert className="mt-2" variant="warning">
-              <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
-            </Alert>
-          ) : null} */}
         </Card.Text>
       </Card.Body>
       <Card.Footer className="border-top border-secondary">
@@ -451,14 +240,6 @@ export function ActionForm(props: ActionFormProps) {
 }
 
 export default ActionForm;
-
-// export function calculateWeiSubtotalField(displayValue) {
-//   if (displayValue && displayValue.length > 0 && !isNaN(displayValue)) {
-//     return ethers.utils.parseEther(displayValue);
-//   } else {
-//     return BigNumber.from(0);
-//   }
-// }
 
 export function fromRateToValue(
   contributionRate: BigNumber,

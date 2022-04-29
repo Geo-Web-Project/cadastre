@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  ActionData,
-  ActionForm,
-  calculateWeiSubtotalField,
-  fromValueToRate,
-} from "./ActionForm";
+import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
 import { SidebarProps } from "../Sidebar";
