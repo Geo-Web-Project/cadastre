@@ -251,6 +251,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
+              paymentTokenAddress={paymentTokenAddress}
             ></Map>
           </Row>
         ) : (

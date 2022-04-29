@@ -107,7 +107,9 @@ function Sidebar(props: SidebarProps) {
         licenseAddress={licenseContract.address}
       ></ParcelInfo>
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
-      {interactionState == STATE.CLAIM_SELECTED ? (
+      {interactionState == STATE.CLAIM_SELECTED &&
+      perSecondFeeNumerator &&
+      perSecondFeeDenominator ? (
         <>
           <ClaimAction
             {...props}

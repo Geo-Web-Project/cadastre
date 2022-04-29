@@ -117,17 +117,10 @@ export type MapProps = {
   ceramic: CeramicClient;
   ipfs: any;
   firebasePerf: any;
+  paymentTokenAddress: string;
 };
 
 function Map(props: MapProps) {
-  const {
-    auctionSuperApp,
-    licenseContract,
-    account,
-    ceramic,
-    ipfs,
-    firebasePerf,
-  } = props;
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,

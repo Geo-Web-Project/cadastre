@@ -3,17 +3,19 @@ import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { ethers, BigNumber } from "ethers";
 import { SidebarProps } from "../Sidebar";
+import StreamingInfo from "./StreamingInfo";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
 export type ClaimActionProps = SidebarProps & {
-  perSecondFeeNumerator: BigNumber | null;
-  perSecondFeeDenominator: BigNumber | null;
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: any;
   licenseAddress: string;
 };
 
 function ClaimAction(props: ClaimActionProps) {
+  const { account, paymentTokenAddress } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
     didFail: false,
@@ -84,19 +86,23 @@ function ClaimAction(props: ClaimActionProps) {
     // );
     // let licenseId = res[0].args[0];
     // return licenseId;
+    return "";
   }
 
   return (
     <>
       <ActionForm
-        title="Claim"
         loading={false}
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
         {...props}
       />
-      <FaucetInfo></FaucetInfo>
+      <FaucetInfo />
+      <StreamingInfo
+        account={account}
+        paymentTokenAddress={paymentTokenAddress}
+      />
     </>
   );
 }
