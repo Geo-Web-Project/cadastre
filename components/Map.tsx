@@ -24,13 +24,15 @@ const GeoWebCoordinate = require("js-geo-web-coordinate");
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
 
-export const STATE_VIEWING = 0;
-export const STATE_CLAIM_SELECTING = 1;
-export const STATE_CLAIM_SELECTED = 2;
-export const STATE_PARCEL_SELECTED = 3;
-export const STATE_PARCEL_EDITING = 4;
-export const STATE_PARCEL_PURCHASING = 5;
-export const STATE_EDITING_GALLERY = 6;
+export enum STATE {
+  VIEWING = 0,
+  CLAIM_SELECTING = 1,
+  CLAIM_SELECTED = 2,
+  PARCEL_SELECTED = 3,
+  PARCEL_EDITING = 4,
+  PARCEL_PURCHASING = 5,
+  EDITING_GALLERY = 6,
+}
 
 const query = gql`
   query Polygons($lastBlock: BigInt) {
@@ -108,13 +110,13 @@ export function coordToFeature(gwCoord: any) {
   };
 }
 
-type Props = {
-  auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
-  licenseContract: Contracts["geoWebERC721LicenseContract"];
+export type MapProps = {
+  auctionSuperApp?: Contracts["geoWebAuctionSuperAppContract"];
+  licenseContract?: Contracts["geoWebERC721LicenseContract"];
   account: string;
   ceramic: CeramicClient;
   ipfs: any;
-  firebasePerf: any;
+  firebasePerf?: any;
 };
 
 function Map({
@@ -124,7 +126,7 @@ function Map({
   ceramic,
   ipfs,
   firebasePerf,
-}: Props) {
+}: MapProps) {
   const { loading, data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
@@ -164,7 +166,9 @@ function Map({
 
   const [viewport, setViewport] = useState<any>({});
   const [grid, setGrid] = useState(null);
-  const [interactionState, setInteractionState] = useState(STATE_VIEWING);
+  const [interactionState, setInteractionState] = useState<STATE>(
+    STATE.VIEWING
+  );
   const [gridHoverCoord, setGridHoverCoord] = useState("");
   const [parcelHoverId, setParcelHoverId] = useState("");
 
@@ -179,22 +183,22 @@ function Map({
 
   let isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
-    (interactionState == STATE_CLAIM_SELECTING ||
-      interactionState == STATE_CLAIM_SELECTED);
+    (interactionState == STATE.CLAIM_SELECTING ||
+      interactionState == STATE.CLAIM_SELECTED);
 
   const _onViewportSearch = useCallback((nextViewport: any) => {
     setViewport(nextViewport);
   }, []);
 
   function _onViewportChange(nextViewport: any) {
-    if (interactionState == STATE_EDITING_GALLERY) {
+    if (interactionState == STATE.EDITING_GALLERY) {
       return;
     }
     setViewport(nextViewport);
 
     if (
-      (interactionState == STATE_CLAIM_SELECTING ||
-        interactionState == STATE_CLAIM_SELECTED) &&
+      (interactionState == STATE.CLAIM_SELECTING ||
+        interactionState == STATE.CLAIM_SELECTED) &&
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
@@ -238,10 +242,10 @@ function Map({
     }
 
     switch (interactionState) {
-      case STATE_VIEWING:
+      case STATE.VIEWING:
         _checkParcelHover();
         break;
-      case STATE_CLAIM_SELECTING:
+      case STATE.CLAIM_SELECTING:
         let gridFeature = event.features.find(
           (f) => f.layer.id === "grid-layer"
         );
@@ -252,7 +256,7 @@ function Map({
           });
         }
         break;
-      case STATE_PARCEL_SELECTED:
+      case STATE.PARCEL_SELECTED:
         _checkParcelHover();
         break;
       default:
@@ -273,11 +277,11 @@ function Map({
       );
       if (parcelFeature) {
         setSelectedParcelId(parcelFeature.properties.parcelId);
-        setInteractionState(STATE_PARCEL_SELECTED);
+        setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else if (parcelHoverId) {
         setSelectedParcelId(parcelHoverId);
-        setInteractionState(STATE_PARCEL_SELECTED);
+        setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else {
         let gwCoord = GeoWebCoordinate.from_gps(
@@ -294,7 +298,7 @@ function Map({
     }
 
     switch (interactionState) {
-      case STATE_VIEWING:
+      case STATE.VIEWING:
         if (_checkParcelClick()) {
           return;
         }
@@ -310,7 +314,7 @@ function Map({
 
         setClaimBase1Coord(coord);
         setClaimBase2Coord(coord);
-        setInteractionState(STATE_CLAIM_SELECTING);
+        setInteractionState(STATE.CLAIM_SELECTING);
 
         let nextViewport = {
           latitude: event.lngLat[1],
@@ -321,7 +325,7 @@ function Map({
         setViewport(nextViewport);
         _onViewportChange(nextViewport);
         break;
-      case STATE_CLAIM_SELECTING:
+      case STATE.CLAIM_SELECTING:
         if (!isValidClaim) {
           break;
         }
@@ -331,16 +335,16 @@ function Map({
             y: gridFeature.properties.gwCoordY,
           });
         }
-        setInteractionState(STATE_CLAIM_SELECTED);
+        setInteractionState(STATE.CLAIM_SELECTED);
         break;
-      case STATE_CLAIM_SELECTED:
-        setInteractionState(STATE_VIEWING);
+      case STATE.CLAIM_SELECTED:
+        setInteractionState(STATE.VIEWING);
         break;
-      case STATE_PARCEL_SELECTED:
+      case STATE.PARCEL_SELECTED:
         if (_checkParcelClick()) {
           return;
         }
-        setInteractionState(STATE_VIEWING);
+        setInteractionState(STATE.VIEWING);
         break;
       default:
         break;
@@ -362,12 +366,12 @@ function Map({
     }
 
     switch (interactionState) {
-      case STATE_VIEWING:
+      case STATE.VIEWING:
         setClaimBase1Coord(null);
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
-      case STATE_PARCEL_SELECTED:
+      case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
         setClaimBase2Coord(null);
         setParcelHoverId(selectedParcelId);
@@ -387,7 +391,7 @@ function Map({
 
     const listener = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setInteractionState(STATE_VIEWING);
+        setInteractionState(STATE.VIEWING);
       }
     };
     window.addEventListener("keydown", listener);
@@ -399,13 +403,10 @@ function Map({
 
   return (
     <>
-      {/* {interactionState != STATE_VIEWING ? (
+      {interactionState != STATE.VIEWING ? (
         <Sidebar
           licenseContract={licenseContract}
-          accountantContract={accountantContract}
-          claimerContract={claimerContract}
-          collectorContract={collectorContract}
-          purchaserContract={purchaserContract}
+          auctionSuperApp={auctionSuperApp}
           account={account}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
@@ -417,7 +418,7 @@ function Map({
           ipfs={ipfs}
           firebasePerf={firebasePerf}
         ></Sidebar>
-      ) : null} */}
+      ) : null}
       <Col sm="9" className="px-0">
         <div
           id="geocoder"
@@ -427,8 +428,8 @@ function Map({
         <ReactMapGL
           ref={mapRef}
           {...viewport}
-          width={interactionState != STATE_VIEWING ? "75vw" : "100vw"}
-          height={interactionState != STATE_VIEWING ? "100vh" : "100vh"}
+          width={interactionState != STATE.VIEWING ? "75vw" : "100vw"}
+          height={interactionState != STATE.VIEWING ? "100vh" : "100vh"}
           mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle={mapstyle}
           mapOptions={{
