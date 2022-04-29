@@ -29,8 +29,18 @@ export type ActionFormProps = SidebarProps & {
   licenseAddress: string;
   loading: boolean;
   performAction: () => Promise<void>;
-  actionData: any;
-  setActionData: React.Dispatch<React.SetStateAction<any>>;
+  actionData: ActionData;
+  setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+};
+
+export type ActionData = {
+  parcelName?: string;
+  parcelWebContentURI?: string;
+  displayNewForSalePrice?: string;
+  // displayNetworkFeePayment,
+  displayCurrentForSalePrice?: string;
+  didFail?: boolean;
+  isActing?: boolean;
 };
 
 export function ActionForm(props: ActionFormProps) {
@@ -49,17 +59,13 @@ export function ActionForm(props: ActionFormProps) {
     ceramic,
     setSelectedParcelId,
   } = props;
-  const [minInitialValue, setMinInitialValue] = React.useState(0);
   let [displaySubtotal, setDisplaySubtotal] = React.useState(null);
 
   const {
     parcelName,
     parcelWebContentURI,
     displayNewForSalePrice,
-    displayNetworkFeePayment,
     displayCurrentForSalePrice,
-    currentExpirationTimestamp,
-    transactionSubtotal,
     didFail,
     isActing,
   } = actionData;
@@ -70,15 +76,14 @@ export function ActionForm(props: ActionFormProps) {
     </div>
   );
 
-  let isForSalePriceInvalid =
-    displayNewForSalePrice &&
+  let isForSalePriceInvalid: boolean =
+    displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
-    (isNaN(displayNewForSalePrice) ||
-      Number(displayNewForSalePrice) < minInitialValue);
-  let isNetworkFeePaymentInvalid =
-    displayNetworkFeePayment &&
-    displayNetworkFeePayment.length > 0 &&
-    isNaN(displayNetworkFeePayment);
+    isNaN(Number(displayNewForSalePrice));
+  // let isNetworkFeePaymentInvalid =
+  //   displayNetworkFeePayment &&
+  //   displayNetworkFeePayment.length > 0 &&
+  //   isNaN(displayNetworkFeePayment);
   let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   let isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -221,36 +226,36 @@ export function ActionForm(props: ActionFormProps) {
   //   setInteractionState(STATE_PARCEL_SELECTED);
   // }
 
-  let [newExpirationDate, isDateInvalid, isDateWarning] =
-    _calculateNewExpiration(
-      displayCurrentForSalePrice,
-      currentExpirationTimestamp,
-      displayNewForSalePrice,
-      displayNetworkFeePayment
-    );
+  // let [newExpirationDate, isDateInvalid, isDateWarning] =
+  //   _calculateNewExpiration(
+  //     displayCurrentForSalePrice,
+  //     currentExpirationTimestamp,
+  //     displayNewForSalePrice,
+  //     displayNetworkFeePayment
+  //   );
 
   let isInvalid =
     isForSalePriceInvalid ||
-    isNetworkFeePaymentInvalid ||
-    isDateInvalid ||
-    !displayNewForSalePrice ||
-    (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
+    // isNetworkFeePaymentInvalid ||
+    // isDateInvalid ||
+    !displayNewForSalePrice;
+  // (displayCurrentForSalePrice == null && !displayNetworkFeePayment);
 
   let isLoading = loading;
 
-  let expirationDateErrorMessage;
-  if (displayCurrentForSalePrice == null && isDateInvalid) {
-    expirationDateErrorMessage =
-      "Initial payment must result in an expiration date between 1 and 2 years from now";
-  } else if (displayCurrentForSalePrice != null) {
-    if (isDateInvalid) {
-      expirationDateErrorMessage =
-        "Additional payment is needed to ensure the expiration is at least 2 weeks from now";
-    } else if (isDateWarning) {
-      expirationDateErrorMessage =
-        "New For Sale Price results in a calculated expiration date that exceeds the maximum value (> 2 years). You may proceed with your transaction, but the expiration date will only be set as 2 years from now.";
-    }
-  }
+  // let expirationDateErrorMessage;
+  // if (displayCurrentForSalePrice == null && isDateInvalid) {
+  //   expirationDateErrorMessage =
+  //     "Initial payment must result in an expiration date between 1 and 2 years from now";
+  // } else if (displayCurrentForSalePrice != null) {
+  //   if (isDateInvalid) {
+  //     expirationDateErrorMessage =
+  //       "Additional payment is needed to ensure the expiration is at least 2 weeks from now";
+  //   } else if (isDateWarning) {
+  //     expirationDateErrorMessage =
+  //       "New For Sale Price results in a calculated expiration date that exceeds the maximum value (> 2 years). You may proceed with your transaction, but the expiration date will only be set as 2 years from now.";
+  //   }
+  // }
 
   // React.useEffect(() => {
   //   if (collectorContract == null) {
@@ -267,11 +272,11 @@ export function ActionForm(props: ActionFormProps) {
   //   });
   // }, [collectorContract, perSecondFeeNumerator, perSecondFeeDenominator]);
 
-  React.useEffect(() => {
-    if (!isActing) {
-      setDisplaySubtotal(transactionSubtotal);
-    }
-  }, [transactionSubtotal]);
+  // React.useEffect(() => {
+  //   if (!isActing) {
+  //     setDisplaySubtotal(transactionSubtotal);
+  //   }
+  // }, [transactionSubtotal]);
 
   React.useEffect(() => {
     if (displayNewForSalePrice == null) {
@@ -344,13 +349,12 @@ export function ActionForm(props: ActionFormProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  For Sale Price must be greater than or equal to{" "}
-                  {minInitialValue}
+                  For Sale Price must be greater than 0
                 </Form.Control.Feedback>
               ) : null}
 
               <br />
-              <Form.Control
+              {/* <Form.Control
                 required={displayCurrentForSalePrice == null}
                 className="bg-dark text-light"
                 type="text"
@@ -366,12 +370,12 @@ export function ActionForm(props: ActionFormProps) {
                 onChange={(e) =>
                   updateActionData({ displayNetworkFeePayment: e.target.value })
                 }
-              />
+              /> */}
             </Form.Group>
             <Button
               variant="primary"
               className="w-100"
-              onClick={() => submit()}
+              // onClick={() => submit()}
               disabled={isActing || isLoading || isInvalid}
             >
               {isActing || isLoading ? spinner : "Confirm"}
@@ -394,7 +398,7 @@ export function ActionForm(props: ActionFormProps) {
             </Alert>
           ) : null}
 
-          <div className="font-weight-bold">New Expiration Date:</div>
+          {/* <div className="font-weight-bold">New Expiration Date:</div>
           <div
             className={
               isDateInvalid
@@ -428,7 +432,7 @@ export function ActionForm(props: ActionFormProps) {
             <Alert className="mt-2" variant="warning">
               <p style={{ fontSize: "0.8em" }}>{expirationDateErrorMessage}</p>
             </Alert>
-          ) : null}
+          ) : null} */}
         </Card.Text>
       </Card.Body>
       <Card.Footer className="border-top border-secondary">
@@ -448,18 +452,18 @@ export function ActionForm(props: ActionFormProps) {
 
 export default ActionForm;
 
-export function calculateWeiSubtotalField(displayValue) {
-  if (displayValue && displayValue.length > 0 && !isNaN(displayValue)) {
-    return ethers.utils.parseEther(displayValue);
-  } else {
-    return BigNumber.from(0);
-  }
-}
+// export function calculateWeiSubtotalField(displayValue) {
+//   if (displayValue && displayValue.length > 0 && !isNaN(displayValue)) {
+//     return ethers.utils.parseEther(displayValue);
+//   } else {
+//     return BigNumber.from(0);
+//   }
+// }
 
 export function fromRateToValue(
-  contributionRate,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator
+  contributionRate: BigNumber,
+  perSecondFeeNumerator: BigNumber,
+  perSecondFeeDenominator: BigNumber
 ) {
   return contributionRate
     .mul(perSecondFeeDenominator)
@@ -467,9 +471,9 @@ export function fromRateToValue(
 }
 
 export function fromValueToRate(
-  value,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator
+  value: BigNumber,
+  perSecondFeeNumerator: BigNumber,
+  perSecondFeeDenominator: BigNumber
 ) {
   return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
 }

@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  ActionData,
   ActionForm,
   calculateWeiSubtotalField,
   fromValueToRate,
@@ -18,10 +19,9 @@ export type ClaimActionProps = SidebarProps & {
 };
 
 function ClaimAction(props: ClaimActionProps) {
-  const [actionData, setActionData] = React.useState<any>({
+  const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
     didFail: false,
-    displayNetworkFeePayment: "",
     displayNewForSalePrice: "",
   });
 
@@ -35,15 +35,15 @@ function ClaimAction(props: ClaimActionProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
+  // const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
 
-  React.useEffect(() => {
-    let _transactionSubtotal = calculateWeiSubtotalField(
-      displayNetworkFeePayment
-    );
+  // React.useEffect(() => {
+  //   let _transactionSubtotal = calculateWeiSubtotalField(
+  //     displayNetworkFeePayment
+  //   );
 
-    updateActionData({ transactionSubtotal: _transactionSubtotal });
-  }, [displayNetworkFeePayment]);
+  //   updateActionData({ transactionSubtotal: _transactionSubtotal });
+  // }, [displayNetworkFeePayment]);
 
   async function _claim() {
     // FIXME: Update for streaming payments

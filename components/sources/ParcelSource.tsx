@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { parcelLayer, parcelHighlightLayer } from "../map-style.js";
+import { parcelLayer, parcelHighlightLayer } from "../map-style";
 
 function convertToGeoJson(data: any) {
   let features = data.geoWebCoordinates.map((c: any) => {

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { gridLayer } from "../map-style.js";
+import { gridLayer } from "../map-style";
 
 type Props = {
   isGridVisible: boolean;
