@@ -95,7 +95,7 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   });
 }
 
-export function coordToFeature(gwCoord: any) {
+export function coordToFeature(gwCoord: any): GeoJSON.Feature {
   return {
     type: "Feature",
     geometry: {
