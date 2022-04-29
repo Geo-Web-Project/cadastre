@@ -3,7 +3,7 @@ import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
-import Spinner from "react-bootstrap/esm/Spinner";
+import Spinner from "react-bootstrap/Spinner";
 import { sfApi } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
