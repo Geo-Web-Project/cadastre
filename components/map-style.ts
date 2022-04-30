@@ -1,4 +1,6 @@
-export const gridLayer = {
+import { LayerProps } from "react-map-gl";
+
+export const gridLayer: LayerProps = {
   id: "grid-layer",
   type: "fill",
   paint: {
@@ -7,7 +9,7 @@ export const gridLayer = {
     "fill-opacity": 0.2,
   },
 };
-export const gridHighlightLayer = {
+export const gridHighlightLayer: LayerProps = {
   id: "grid-highlight-layer",
   type: "fill",
   source: "grid-layer",
@@ -17,7 +19,7 @@ export const gridHighlightLayer = {
     "fill-opacity": 0.5,
   },
 };
-export function claimLayer(isValid) {
+export function claimLayer(isValid: boolean): LayerProps {
   return {
     id: "claim-layer",
     type: "fill",
@@ -28,7 +30,7 @@ export function claimLayer(isValid) {
     },
   };
 }
-export const parcelLayer = {
+export const parcelLayer: LayerProps = {
   id: "parcels-layer",
   type: "fill",
   paint: {
@@ -36,7 +38,7 @@ export const parcelLayer = {
     "fill-opacity": 0.5,
   },
 };
-export const parcelHighlightLayer = {
+export const parcelHighlightLayer: LayerProps = {
   id: "parcels-highlight-layer",
   type: "fill",
   paint: {
