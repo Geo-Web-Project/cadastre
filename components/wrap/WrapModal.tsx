@@ -91,8 +91,17 @@ function WrapMpdal({ account, signer, show, handleClose }: any) {
       onHide={handleClose}
       centered
     >
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Wrap ETH for Streaming</Modal.Title>
+        <button
+          type="button"
+          className="close"
+          data-dismiss="modal"
+          aria-label="Close"
+          onClick={handleClose}
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
       </Modal.Header>
       <Modal.Body>
         <p>Current Balances</p>
@@ -102,29 +111,27 @@ function WrapMpdal({ account, signer, show, handleClose }: any) {
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Form noValidate onSubmit={onSubmit}>
-          <Row className="align-items-center">
-            <Col xs="auto">
-              <Form.Label htmlFor="inlineFormInput" visuallyHidden>
-                Amount
-              </Form.Label>
-              <Form.Control
-                required
-                type={"text"}
-                className="mb-2"
-                id="inlineFormInput"
-                placeholder="0.00"
-                autoFocus
-              />
-              <Form.Control.Feedback type="invalid">Please choose a valid amount</Form.Control.Feedback>
-            </Col>
-            <Col xs="auto">
-              <Button type="submit" className="mb-2" disabled={isWrapping}>
-                Wrap to ETHx
-              </Button>
-            </Col>
-          </Row>
-        </Form>
+        <form
+          className="form-inline"
+          noValidate
+          onSubmit={onSubmit}
+          style={{ gap: "132px" }}
+        >
+          <label className="sr-only" htmlFor="amount">
+            Amount
+          </label>
+          <input
+            required
+            autoFocus
+            type="text"
+            className="form-control mb-2 mr-sm-6"
+            id="amount"
+            placeholder="0.00"
+          />
+          <button type="submit" className="btn btn-primary mb-2" disabled={isWrapping}>
+            {isWrapping ? 'Wrapping...' : 'Wrap to ETHx'}
+          </button>
+        </form>
       </Modal.Footer>
     </Modal>
   );
