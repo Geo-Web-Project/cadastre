@@ -36,7 +36,7 @@ import { Framework } from "@superfluid-finance/sdk-core";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
-const { getIpfs, providers } = require("ipfs-provider");
+import { getIpfs, providers } from "ipfs-provider";
 const { httpClient, jsIpfs } = providers;
 
 function getLibrary(provider: any) {

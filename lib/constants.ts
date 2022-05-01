@@ -18,19 +18,3 @@ export const IPFS_PRELOAD_NODE = "/dns4/preload.ipfs.geoweb.network/https";
 export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
-
-export const publishedModel = {
-  schemas: {
-    mediaGalleryItem:
-      "ceramic://k3y52l7qbv1frxq9nl24o2c5m4xjquekdkv3kk2injef3w1zguf4dfs8rc6e224g0",
-  },
-  definitions: {
-    basicProfile:
-      "kjzl6cwe1jw145cjbeko9kil8g9bxszjhyde21ob8epxuxkaon1izyqsu8wgcic",
-    geoWebPinset:
-      "kjzl6cwe1jw146dp9xnfddqf7oiau5x4h4po3dwufi4zau0l80hgmqzkoy7ehq8",
-    mediaGallery:
-      "kjzl6cwe1jw1488v2yw2h3r3e6qt6q102f6afo6igcj2fqiq73odsc6p7a79f34",
-  },
-  tiles: {},
-};
