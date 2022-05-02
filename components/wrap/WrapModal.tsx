@@ -126,7 +126,8 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
             required
             autoFocus
             type="text"
-            className="form-control mb-2 mr-sm-6"
+            className="form-control mb-2 mr-sm-6 text-white"
+            style={{ backgroundColor: "#111320", border: "none" }}
             id="amount"
             placeholder="0.00"
           />
