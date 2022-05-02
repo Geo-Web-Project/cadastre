@@ -33,7 +33,7 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
             setETHxBalance(ethxBalance);
           }
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       }
     })();
@@ -90,6 +90,7 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
       show={show}
       onHide={handleClose}
       centered
+      className="wrap-modal"
     >
       <Modal.Header className="bg-dark border-0">
         <Modal.Title className="text-primary">
@@ -117,7 +118,7 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
           className="form-inline"
           noValidate
           onSubmit={onSubmit}
-          style={{ gap: "132px" }}
+          style={{ gap: "64px" }}
         >
           <label className="sr-only" htmlFor="amount">
             Amount

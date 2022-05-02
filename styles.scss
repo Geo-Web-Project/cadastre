@@ -19,3 +19,12 @@ $font-family-base: "Open Sans";
 .fixed-top {
   z-index: 500;
 }
+
+.wrap-modal {
+  @media (min-width: 576px) {
+    .modal-dialog {
+      max-width: 432px;
+      margin: 1.75rem auto;
+    }
+  }
+}
