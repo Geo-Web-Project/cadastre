@@ -1,7 +1,7 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { ethxABI, NETWORK_ID } from "../../lib/constants";
+import { ethxABI } from "../../lib/constants";
 import { getETHBalance, getETHxBalance } from "../../lib/getBalance";
 
 function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: any) {
@@ -14,33 +14,25 @@ function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: 
     let isMounted = true;
 
     (async () => {
-      const provider = new ethers.providers.InfuraProvider(
-        NETWORK_ID,
-        process.env.NEXT_PUBLIC_INFURA_ID
-      );
+      if (signer && account) {
+        const ethBalance = await getETHBalance(signer, account);
 
-      const ethBalance = await getETHBalance(provider, account);
+        const ethxBalance = await getETHxBalance(signer, account);
 
-      const ethxBalance = await getETHxBalance(provider, account);
-
-      if (isMounted) {
-        setETHBalance(ethBalance);
-        setETHxBalance(ethxBalance);
+        if (isMounted) {
+          setETHBalance(ethBalance);
+          setETHxBalance(ethxBalance);
+        }
       }
     })();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [signer, account]);
 
   const wrapETH = async (amount: string) => {
-    const provider = new ethers.providers.InfuraProvider(
-      NETWORK_ID,
-      process.env.NEXT_PUBLIC_INFURA_ID
-    );
-      
-    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, provider);
+    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, signer);
 
     const reciept = await ETHx.connect(signer).upgradeByETH({
       value: ethers.utils.parseEther(amount)
@@ -51,8 +43,8 @@ function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: 
     try {
       await reciept.wait();
       // Wrap ETHx successfully!
-      const ethBalance = await getETHBalance(provider, account);
-      const ethxBalance = await getETHxBalance(provider, account);
+      const ethBalance = await getETHBalance(signer, account);
+      const ethxBalance = await getETHxBalance(signer, account);
       // Update balances
       setETHBalance(ethBalance);
       setETHxBalance(ethxBalance);
