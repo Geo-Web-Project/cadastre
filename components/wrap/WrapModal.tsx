@@ -91,11 +91,13 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
       onHide={handleClose}
       centered
     >
-      <Modal.Header>
-        <Modal.Title>Wrap ETH for Streaming</Modal.Title>
+      <Modal.Header className="bg-dark border-0">
+        <Modal.Title className="text-primary">
+          Wrap ETH for Streaming
+        </Modal.Title>
         <button
           type="button"
-          className="close"
+          className="close text-light"
           data-dismiss="modal"
           aria-label="Close"
           onClick={handleClose}
@@ -103,14 +105,14 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
           <span aria-hidden="true">&times;</span>
         </button>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="bg-dark text-light">
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
           <p>ETH: {ETHBalance ?? '---'}</p>
           <p>ETHx: {ETHxBalance ?? '---'}</p>
         </div>
       </Modal.Body>
-      <Modal.Footer>
+      <Modal.Footer className="bg-dark text-light">
         <form
           className="form-inline"
           noValidate
