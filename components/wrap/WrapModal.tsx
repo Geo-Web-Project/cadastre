@@ -4,7 +4,15 @@ import { ethers } from "ethers";
 import { ethxABI } from "../../lib/constants";
 import { getETHBalance, getETHxBalance } from "../../lib/getBalance";
 
-function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: any) {
+type WrapModalProps = {
+  account: string;
+  provider: ethers.providers.Web3Provider;
+  show: boolean;
+  handleClose: () => void;
+  paymentTokenAddress: string;
+};
+
+function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }: WrapModalProps) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [ETHxBalance, setETHxBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
@@ -14,14 +22,18 @@ function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: 
     let isMounted = true;
 
     (async () => {
-      if (signer && account) {
-        const ethBalance = await getETHBalance(signer, account);
+      if (provider && account) {
+        try {
+          const ethBalance = await getETHBalance(provider, account);
 
-        const ethxBalance = await getETHxBalance(signer, account);
+          const ethxBalance = await getETHxBalance(provider, account, paymentTokenAddress);
 
-        if (isMounted) {
-          setETHBalance(ethBalance);
-          setETHxBalance(ethxBalance);
+          if (isMounted) {
+            setETHBalance(ethBalance);
+            setETHxBalance(ethxBalance);
+          }
+        } catch (error) {
+          console.log(error);
         }
       }
     })();
@@ -29,12 +41,12 @@ function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: 
     return () => {
       isMounted = false;
     };
-  }, [signer, account]);
+  }, [provider, account]);
 
   const wrapETH = async (amount: string) => {
-    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, signer);
+    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, provider);
 
-    const reciept = await ETHx.connect(signer).upgradeByETH({
+    const reciept = await ETHx.connect(provider.getSigner()).upgradeByETH({
       value: ethers.utils.parseEther(amount)
     });
 
@@ -43,8 +55,8 @@ function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: 
     try {
       await reciept.wait();
       // Wrap ETHx successfully!
-      const ethBalance = await getETHBalance(signer, account);
-      const ethxBalance = await getETHxBalance(signer, account);
+      const ethBalance = await getETHBalance(provider, account);
+      const ethxBalance = await getETHxBalance(provider, account, paymentTokenAddress);
       // Update balances
       setETHBalance(ethBalance);
       setETHxBalance(ethxBalance);

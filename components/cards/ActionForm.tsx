@@ -41,7 +41,7 @@ export type ActionData = {
 export function ActionForm(props: ActionFormProps) {
   const {
     account,
-    signer,
+    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
@@ -317,13 +317,15 @@ export function ActionForm(props: ActionFormProps) {
         </Card.Footer>
       </Card>
 
-    <WrapModal
-      account={account}
-      signer={signer}
-      show={showWrapModal}
-      handleClose={handleWrapModalClose}
-      paymentTokenAddress={paymentTokenAddress}
-    />
+      {showWrapModal && (
+        <WrapModal
+          account={account}
+          provider={provider}
+          show={showWrapModal}
+          handleClose={handleWrapModalClose}
+          paymentTokenAddress={paymentTokenAddress}
+        />
+      )}
     </>
   );
 }

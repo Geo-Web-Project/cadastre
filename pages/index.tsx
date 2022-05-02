@@ -250,7 +250,7 @@ function IndexPage() {
               licenseContract={licenseContract}
               auctionSuperApp={auctionSuperApp}
               account={authState.connected.accountID.address}
-              signer={library?.getSigner()}
+              provider={library}
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}

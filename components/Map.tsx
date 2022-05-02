@@ -18,6 +18,7 @@ import Button from "react-bootstrap/Button";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import { ethers } from "ethers";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -114,7 +115,7 @@ export type MapProps = {
   auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
   licenseContract: Contracts["geoWebERC721LicenseContract"];
   account: string;
-  signer: any;
+  provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
   ipfs: any;
   firebasePerf: any;
