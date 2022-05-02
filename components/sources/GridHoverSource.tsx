@@ -1,10 +1,14 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { gridHighlightLayer } from "../map-style.js";
+import { gridHighlightLayer } from "../map-style";
 import { coordToFeature } from "../Map";
-import { BN } from "bn.js";
+import BN from "bn.js";
 
-function GridHoverSource({ gridHoverCoord }) {
+type Props = {
+  gridHoverCoord: any;
+};
+function GridHoverSource(props: Props) {
+  const { gridHoverCoord } = props;
   return (
     <>
       {gridHoverCoord != null ? (

@@ -13,6 +13,7 @@ export const getETHBalance = async (provider: any, account: string): Promise<str
 };
 
 export const getETHxBalance = async (provider: any, account: string): Promise<string> => {
+  console.log(provider);
   const sf = await Framework.create({
     chainId: NETWORK_ID,
     provider

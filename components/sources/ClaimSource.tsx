@@ -1,20 +1,29 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
-import { claimLayer } from "../map-style.js";
+import { claimLayer } from "../map-style";
 import { coordToFeature } from "../Map";
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
-function ClaimSource({
-  existingCoords,
-  claimBase1Coord,
-  claimBase2Coord,
-  isValidClaim,
-  setIsValidClaim,
-}) {
-  const [features, setFeatures] = React.useState(new Set());
+type Props = {
+  existingCoords: Set<any>;
+  claimBase1Coord: any;
+  claimBase2Coord: any;
+  isValidClaim: boolean;
+  setIsValidClaim: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function ClaimSource(props: Props) {
+  const {
+    existingCoords,
+    claimBase1Coord,
+    claimBase2Coord,
+    isValidClaim,
+    setIsValidClaim,
+  } = props;
+  const [features, setFeatures] = React.useState<Set<any>>(new Set());
 
   React.useEffect(() => {
-    let _features = [];
+    let _features = new Set();
     let _isValid = true;
     if (claimBase1Coord != null && claimBase2Coord != null) {
       for (
@@ -28,7 +37,7 @@ function ClaimSource({
           _y++
         ) {
           let gwCoord = GeoWebCoordinate.make_gw_coord(_x, _y);
-          _features.push(coordToFeature(gwCoord));
+          _features.add(coordToFeature(gwCoord));
 
           if (existingCoords.has(gwCoord.toString(10))) {
             _isValid = false;
@@ -47,7 +56,7 @@ function ClaimSource({
       type="geojson"
       data={{
         type: "FeatureCollection",
-        features: features,
+        features: Array.from(features),
       }}
     >
       <Layer {...claimLayer(isValidClaim)} />

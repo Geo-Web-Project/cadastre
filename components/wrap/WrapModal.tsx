@@ -1,14 +1,10 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import { ethers } from "ethers";
-import { ethxABI, NETWORK_ID, PAYMENT_TOKEN_ADDRESS } from "../../lib/constants";
+import { ethxABI, NETWORK_ID } from "../../lib/constants";
 import { getETHBalance, getETHxBalance } from "../../lib/getBalance";
 
-function WrapMpdal({ account, signer, show, handleClose }: any) {
+function WrapModal({ account, signer, show, handleClose, paymentTokenAddress }: any) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [ETHxBalance, setETHxBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
@@ -44,7 +40,7 @@ function WrapMpdal({ account, signer, show, handleClose }: any) {
       process.env.NEXT_PUBLIC_INFURA_ID
     );
       
-    const ETHx = new ethers.Contract(PAYMENT_TOKEN_ADDRESS, ethxABI, provider);
+    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, provider);
 
     const reciept = await ETHx.connect(signer).upgradeByETH({
       value: ethers.utils.parseEther(amount)
@@ -137,4 +133,4 @@ function WrapMpdal({ account, signer, show, handleClose }: any) {
   );
 }
 
-export default WrapMpdal;
+export default WrapModal;
