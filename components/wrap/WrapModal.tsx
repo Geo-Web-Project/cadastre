@@ -132,7 +132,12 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
             id="amount"
             placeholder="0.00"
           />
-          <button type="submit" className="btn btn-primary mb-2" disabled={isWrapping}>
+          <button
+            type="submit"
+            className="btn btn-primary mb-2"
+            style={{ width: "128px" }}
+            disabled={isWrapping}
+          >
             {isWrapping ? 'Wrapping...' : 'Wrap to ETHx'}
           </button>
         </form>
