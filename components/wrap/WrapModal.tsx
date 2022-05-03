@@ -113,12 +113,14 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
           <p>ETHx: {ETHxBalance ?? '---'}</p>
         </div>
       </Modal.Body>
-      <Modal.Footer className="bg-dark text-light">
+      <Modal.Footer
+        className="bg-dark text-light"
+        style={{ position: "relative" }}
+      >
         <form
           className="form-inline"
           noValidate
           onSubmit={onSubmit}
-          style={{ gap: "64px" }}
         >
           <label className="sr-only" htmlFor="amount">
             Amount
@@ -128,7 +130,12 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
             autoFocus
             type="text"
             className="form-control mb-2 mr-sm-6 text-white"
-            style={{ backgroundColor: "#111320", border: "none" }}
+            style={{
+              backgroundColor: "#111320",
+              border: "none",
+              position: "absolute",
+              left: "16px",
+            }}
             id="amount"
             placeholder="0.00"
           />
