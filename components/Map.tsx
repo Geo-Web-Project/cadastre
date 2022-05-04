@@ -18,6 +18,7 @@ import Button from "react-bootstrap/Button";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import { ethers } from "ethers";
 
 const GeoWebCoordinate = require("js-geo-web-coordinate");
 
@@ -114,6 +115,7 @@ export type MapProps = {
   auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
   licenseContract: Contracts["geoWebERC721LicenseContract"];
   account: string;
+  provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
   ipfs: any;
   firebasePerf: any;
@@ -127,7 +129,7 @@ function Map(props: MapProps) {
     },
   });
 
-  const geocoderContainerRef = useRef();
+  const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef();
 
   const [mapstyle, setMapstyle] = React.useState(
@@ -378,7 +380,7 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data != null) {
       let _existingCoords = new Set(
-        data.geoWebCoordinates.flatMap((p) => p.id)
+        data.geoWebCoordinates.flatMap((p: any) => p.id)
       );
       setExistingCoords(_existingCoords);
     }
@@ -454,7 +456,7 @@ function Map(props: MapProps) {
         </ReactMapGL>
       </Col>
       <ButtonGroup
-        style={{ position: "absolute", bottom: "4%", right: "2%", radius: 12 }}
+        style={{ position: "absolute", bottom: "4%", right: "2%", borderRadius: 12 }}
         aria-label="Basic example"
       >
         <Button
