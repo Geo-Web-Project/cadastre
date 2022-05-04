@@ -242,12 +242,15 @@ function IndexPage() {
         {authState.status === "connected" &&
         licenseContract &&
         auctionSuperApp &&
+        library &&
+        paymentTokenAddress &&
         ceramic ? (
           <Row>
             <Map
               licenseContract={licenseContract}
               auctionSuperApp={auctionSuperApp}
               account={authState.connected.accountID.address}
+              provider={library}
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
