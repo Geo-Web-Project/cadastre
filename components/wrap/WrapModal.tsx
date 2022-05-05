@@ -1,8 +1,12 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { ethxABI } from "../../lib/constants";
-import { getETHBalance, getETHxBalance } from "../../lib/getBalance";
+import { ethxABI, NETWORK_ID } from "../../lib/constants";
+import { getETHBalance } from "../../lib/getBalance";
+import { sfApi } from "../../redux/store";
+import { FlowingBalance } from "../profile/FlowingBalance";
+import { truncateEth } from "../../lib/truncate";
+import Spinner from "react-bootstrap/Spinner";
 
 type WrapModalProps = {
   account: string;
@@ -12,11 +16,29 @@ type WrapModalProps = {
   paymentTokenAddress: string;
 };
 
-function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }: WrapModalProps) {
+function WrapModal({
+  account,
+  provider,
+  show,
+  handleClose,
+  paymentTokenAddress,
+}: WrapModalProps) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
-  const [ETHxBalance, setETHxBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] = React.useState<boolean>(false);
+  const [isBalanceInsufficient, setIsBalanceInsufficient] =
+    React.useState<boolean>(false);
+
+  const { isLoading, data: ethxBalance } = paymentTokenAddress
+    ? sfApi.useGetRealtimeBalanceQuery(
+        {
+          chainId: NETWORK_ID,
+          accountAddress: account,
+          superTokenAddress: paymentTokenAddress,
+          estimationTimestamp: undefined,
+        },
+        { pollingInterval: 1000 }
+      )
+    : { isLoading: true, data: null };
 
   React.useEffect(() => {
     let isMounted = true;
@@ -26,11 +48,8 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
         try {
           const ethBalance = await getETHBalance(provider, account);
 
-          const ethxBalance = await getETHxBalance(provider, account, paymentTokenAddress);
-
           if (isMounted) {
             setETHBalance(ethBalance);
-            setETHxBalance(ethxBalance);
           }
         } catch (error) {
           console.error(error);
@@ -47,7 +66,7 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
     const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, provider);
 
     const reciept = await ETHx.connect(provider.getSigner()).upgradeByETH({
-      value: ethers.utils.parseEther(amount)
+      value: ethers.utils.parseEther(amount),
     });
 
     setIsWrapping(true);
@@ -56,20 +75,18 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
       await reciept.wait();
       // Wrap ETHx successfully!
       const ethBalance = await getETHBalance(provider, account);
-      const ethxBalance = await getETHxBalance(provider, account, paymentTokenAddress);
       // Update balances
       setETHBalance(ethBalance);
-      setETHxBalance(ethxBalance);
     } catch (error) {
       console.error(error);
-    };
+    }
 
     setIsWrapping(false);
-  }
+  };
 
   const onSubmit = (e: any) => {
     e.preventDefault();
-    const amount = Number((e.target[0].value));
+    const amount = Number(e.target[0].value);
 
     if (amount > Number(ETHBalance)) {
       setIsBalanceInsufficient(true);
@@ -83,15 +100,10 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
         })();
       }
     }
-  }
+  };
 
   return (
-    <Modal
-      show={show}
-      onHide={handleClose}
-      centered
-      className="wrap-modal"
-    >
+    <Modal show={show} onHide={handleClose} centered className="wrap-modal">
       <Modal.Header className="bg-dark border-0">
         <Modal.Title className="text-primary">
           Wrap ETH for Streaming
@@ -109,19 +121,27 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
       <Modal.Body className="bg-dark text-light">
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
-          <p>ETH: {ETHBalance ?? '---'}</p>
-          <p>ETHx: {ETHxBalance ?? '---'}</p>
+          <p>ETH: {ETHBalance ?? "---"}</p>
+          <p>
+            ETHx:{" "}
+            {isLoading || ethxBalance == null ? (
+              <Spinner animation="border" role="status"></Spinner>
+            ) : (
+              <FlowingBalance
+                format={(x) => ethers.utils.formatUnits(x)}
+                balanceWei={ethxBalance.availableBalanceWei}
+                flowRateWei={ethxBalance.netFlowRateWei}
+                balanceTimestamp={ethxBalance.timestamp}
+              />
+            )}
+          </p>
         </div>
       </Modal.Body>
       <Modal.Footer
         className="bg-dark text-light"
         style={{ position: "relative" }}
       >
-        <form
-          className="form-inline"
-          noValidate
-          onSubmit={onSubmit}
-        >
+        <form className="form-inline" noValidate onSubmit={onSubmit}>
           <label className="sr-only" htmlFor="amount">
             Amount
           </label>
@@ -145,7 +165,7 @@ function WrapModal({ account, provider, show, handleClose, paymentTokenAddress }
             style={{ width: "128px" }}
             disabled={isWrapping}
           >
-            {isWrapping ? 'Wrapping...' : 'Wrap to ETHx'}
+            {isWrapping ? "Wrapping..." : "Wrap to ETHx"}
           </button>
         </form>
       </Modal.Footer>
