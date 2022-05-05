@@ -1,4 +1,4 @@
-export function truncateStr(str, strLen) {
+export function truncateStr(str: string, strLen: number) {
   if (str.length <= strLen) {
     return str;
   }
@@ -15,10 +15,10 @@ export function truncateStr(str, strLen) {
   );
 }
 
-export function truncateEth(str, maxDecimalDigits) {
-  if (str.includes('.')) {
-      const parts = str.split('.');
-      return parts[0] + '.' + parts[1].slice(0, maxDecimalDigits);
+export function truncateEth(str: string, maxDecimalDigits: number) {
+  if (str.includes(".")) {
+    const parts = str.split(".");
+    return parts[0] + "." + parts[1].slice(0, maxDecimalDigits);
   }
   return str;
 }

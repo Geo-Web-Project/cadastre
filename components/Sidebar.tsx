@@ -6,11 +6,12 @@ import ParcelInfo from "./cards/ParcelInfo";
 import { usePinningManager } from "../lib/PinningManager";
 import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 import { STATE, MapProps } from "./Map";
-import { NETWORK_ID, publishedModel } from "../lib/constants";
+import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { BigNumber } from "ethers";
+import GeoWebModel from "@geo-web/datamodels";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -44,7 +45,7 @@ function Sidebar(props: SidebarProps) {
       if (selectedParcelId) {
         const _dataStore = new DIDDataStore({
           ceramic,
-          model: publishedModel,
+          model: GeoWebModel,
         });
         setDataStore(_dataStore);
       } else {

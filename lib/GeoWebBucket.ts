@@ -12,7 +12,7 @@ import axios from "axios";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
 import { TileContent } from "@glazed/did-datastore/dist/proxy";
-const DAGLink = require("ipld-dag-pb/dag-link/dagLink");
+import { DAGLink } from "ipld-dag-pb";
 
 export class GeoWebBucket extends TileStreamManager<TileContent> {
   dataStore: DIDDataStore;
@@ -184,7 +184,7 @@ export class GeoWebBucket extends TileStreamManager<TileContent> {
     }
     // Patch object
     const objectStat = await this._ipfs.object.stat(cidObject);
-    let link = new DAGLink(name, cidObject, objectStat.CumulativeSize);
+    let link = new DAGLink(name, objectStat.CumulativeSize, cidObject);
     this.bucketRoot = await this._ipfs.object.patch.addLink(
       this.bucketRoot!,
       link
@@ -199,10 +199,9 @@ export class GeoWebBucket extends TileStreamManager<TileContent> {
 
   async removeCid(name: string) {
     // Patch object
-    let link = new DAGLink(name);
     this.bucketRoot = await this._ipfs.object.patch.rmLink(
       this.bucketRoot!,
-      link
+      name
     );
     this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
 

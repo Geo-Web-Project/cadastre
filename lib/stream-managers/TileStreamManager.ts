@@ -1,6 +1,6 @@
 import { CeramicApi } from "@ceramicnetwork/common";
 import { TileDocument, TileMetadataArgs } from "@ceramicnetwork/stream-tile";
-import { StreamID, CommitID } from "@ceramicnetwork/streamid";
+import { StreamID } from "@ceramicnetwork/streamid";
 
 export class TileStreamManager<T = Record<string, any>> {
   ceramic: CeramicApi;
@@ -17,7 +17,7 @@ export class TileStreamManager<T = Record<string, any>> {
   }
 
   /* Set an existing root stream ID */
-  async setExistingStreamId(streamId: StreamID) {
+  async setExistingStreamId(streamId: StreamID | null) {
     if (!streamId) {
       this.stream = null;
       return;

@@ -2,11 +2,25 @@ import { IPFS_BOOTSTRAP_PEER } from "./constants";
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
-
-const JsPinningServiceHttpClient = require("js-pinning-service-http-client");
+import { IPFS } from "ipfs-core";
+import firebase from "firebase/app";
+import { DIDDataStore } from "@glazed/did-datastore";
+import { StreamID } from "@ceramicnetwork/streamid";
 
 export class PinningManager {
-  constructor(geoWebBucket, ipfs, firebasePerformance) {
+  private _geoWebBucket: GeoWebBucket;
+  private _ipfs: IPFS;
+  private _perf: firebase.performance.Performance;
+
+  succeededPins: Set<string>;
+  failedPins: Set<string>;
+  pinningQueue: Queue;
+
+  constructor(
+    geoWebBucket: GeoWebBucket,
+    ipfs: IPFS,
+    firebasePerformance: firebase.performance.Performance
+  ) {
     this._geoWebBucket = geoWebBucket;
     this._ipfs = ipfs;
     this.succeededPins = new Set();
@@ -19,7 +33,7 @@ export class PinningManager {
     this.pinningQueue.start();
   }
 
-  async retryPin(name) {
+  async retryPin() {
     if (this._geoWebBucket.latestQueuedLinks) {
       this._geoWebBucket.latestQueuedLinks.forEach((v) => {
         if (!this.isPinned(v.Name)) {
@@ -35,8 +49,8 @@ export class PinningManager {
     }
   }
 
-  async pinCid(name, cid) {
-    await new Promise((resolve, reject) => {
+  async pinCid(name: string, cid: string) {
+    await new Promise<void>((resolve, reject) => {
       this.pinningQueue.enqueue(async () => {
         console.debug(`Pinning: ${name}, ${cid}`);
         const trace = this._perf.trace("pin_cid");
@@ -68,8 +82,8 @@ export class PinningManager {
     });
   }
 
-  async unpinCid(name) {
-    await new Promise((resolve, reject) => {
+  async unpinCid(name: string) {
+    await new Promise<void>((resolve, reject) => {
       this.pinningQueue.enqueue(async () => {
         console.debug(`Removing pin: ${name}`);
         try {
@@ -83,11 +97,11 @@ export class PinningManager {
     });
   }
 
-  isPinned(name) {
+  isPinned(name: string) {
     return this._geoWebBucket.isPinned(name);
   }
 
-  isQueued(name) {
+  isQueued(name: string) {
     return this._geoWebBucket.isQueued(name);
   }
 
@@ -120,14 +134,14 @@ export class PinningManager {
 
   async getStorageUsed() {
     const objectStat = await this._ipfs.object.stat(
-      this._geoWebBucket.bucketRoot
+      this._geoWebBucket.bucketRoot!
     );
-    const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot);
+    const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot!);
     const linkSizes = links.reduce((sizes, link) => {
       var newSizes = sizes;
       newSizes[link.Hash.toString()] = link.Tsize;
       return newSizes;
-    }, {});
+    }, {} as Record<string, any>);
     const uniqueLinkSize = Object.values(linkSizes).reduce((total, size) => {
       return total + size;
     }, 0);
@@ -136,28 +150,33 @@ export class PinningManager {
 }
 
 export function usePinningManager(
-  dataStore,
-  didNFT,
-  ipfs,
-  firebasePerformance
+  dataStore: DIDDataStore | null,
+  didNFT: string | null,
+  ipfs: IPFS | null,
+  firebasePerformance: firebase.performance.Performance | null
 ) {
-  const [pinningManager, setPinningManager] = React.useState(null);
+  const [pinningManager, setPinningManager] =
+    React.useState<PinningManager | null>(null);
 
   React.useEffect(() => {
-    if (!dataStore || !ipfs || !firebasePerformance) {
-      setPinningManager(null);
-      return;
-    }
-
     async function setupManager() {
+      if (!dataStore || !didNFT || !ipfs || !firebasePerformance) {
+        setPinningManager(null);
+        return;
+      }
+
       console.debug("Setting up pinning manager...");
 
       const bucket = new GeoWebBucket(dataStore, didNFT, ipfs);
 
-      const pinsetStreamId = await dataStore.getRecordID(
+      const pinsetStreamIdString = await dataStore.getRecordID(
         dataStore.getDefinitionID("geoWebPinset"),
         didNFT
       );
+
+      const pinsetStreamId = pinsetStreamIdString
+        ? StreamID.fromString(pinsetStreamIdString)
+        : null;
 
       console.debug(`Setting up geoWebPinset: ${pinsetStreamId}`);
       await bucket.setExistingStreamId(pinsetStreamId);
@@ -182,133 +201,4 @@ export function usePinningManager(
   }, [dataStore, ipfs, firebasePerformance]);
 
   return pinningManager;
-}
-
-export async function pinCid(
-  ipfs,
-  pinningServiceEndpoint,
-  pinningServiceAccessToken,
-  name,
-  cid,
-  updatePinningData
-) {
-  const pinningServiceClient = JsPinningServiceHttpClient.PinsApiFactory({
-    basePath: pinningServiceEndpoint,
-    accessToken: pinningServiceAccessToken,
-  });
-
-  updatePinningData({
-    [cid]: {
-      status: "queued",
-    },
-  });
-
-  // Check for existing pin
-  const pins = await pinningServiceClient.pinsGet();
-  const existingPins = pins.data.results.filter((item) => item.pin.cid == cid);
-  const existingPin = existingPins.length > 0 ? existingPins[0] : null;
-
-  if (existingPin) {
-    // Add pin data
-    updatePinningData({
-      [cid]: {
-        requestid: existingPin.requestid,
-        status: existingPin.status,
-      },
-    });
-
-    return;
-  }
-
-  // Get node addresses
-  const id = await ipfs.id();
-  const addresses = id.addresses
-    .map((a) => a.toString())
-    .filter(
-      // Filter out local addresses
-      (a) =>
-        !a.startsWith("/ip4/127.0.0.1") &&
-        !a.startsWith("/ip6/::1") &&
-        !a.startsWith("/ip4/192.168")
-    )
-    .concat(IPFS_BOOTSTRAP_PEER);
-
-  // Pin cid
-  try {
-    const result = await pinningServiceClient.pinsPost({
-      cid: cid,
-      name: name,
-      origins: addresses,
-    });
-
-    updatePinningData({
-      [cid]: {
-        requestid: result.data.requestid,
-        status: result.data.status,
-      },
-    });
-
-    // Poll status
-    const interval = setInterval(async () => {
-      const pollResult = await pinningServiceClient.pinsRequestidGet(
-        result.data.requestid
-      );
-
-      updatePinningData({
-        [cid]: {
-          requestid: pollResult.data.requestid,
-          status: pollResult.data.status,
-        },
-      });
-
-      if (
-        pollResult.data.status == "pinned" ||
-        pollResult.data.status == "failed"
-      ) {
-        clearInterval(interval);
-      }
-    }, 1000);
-  } catch (error) {
-    if (
-      error.response &&
-      error.response.data &&
-      error.response.data.error.reason == "DUPLICATE_OBJECT"
-    ) {
-      updatePinningData({
-        [cid]: {
-          status: "pinned",
-        },
-      });
-    } else {
-      updatePinningData({
-        [cid]: {
-          status: "failed",
-        },
-      });
-    }
-  }
-}
-
-export async function unpinCid(
-  pinningData,
-  pinningServiceEndpoint,
-  pinningServiceAccessToken,
-  cid,
-  updatePinningData
-) {
-  if (!pinningData[cid]) {
-    return;
-  }
-
-  const pinningServiceClient = JsPinningServiceHttpClient.PinsApiFactory({
-    basePath: pinningServiceEndpoint,
-    accessToken: pinningServiceAccessToken,
-  });
-
-  // Unpin cid
-  await pinningServiceClient.pinsRequestidDelete(pinningData[cid].requestid);
-
-  updatePinningData({
-    [cid]: null,
-  });
 }
