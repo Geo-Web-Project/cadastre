@@ -27,12 +27,15 @@ function Profile({
   const handleShowProfile = () => setShowProfile(true);
 
   const { isLoading, data } = paymentTokenAddress
-    ? sfApi.useGetRealtimeBalanceQuery({
-        chainId: NETWORK_ID,
-        accountAddress: account,
-        superTokenAddress: paymentTokenAddress,
-        estimationTimestamp: undefined,
-      })
+    ? sfApi.useGetRealtimeBalanceQuery(
+        {
+          chainId: NETWORK_ID,
+          accountAddress: account,
+          superTokenAddress: paymentTokenAddress,
+          estimationTimestamp: undefined,
+        },
+        { pollingInterval: 5000 }
+      )
     : { isLoading: true, data: null };
 
   return (
