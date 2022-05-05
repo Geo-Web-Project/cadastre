@@ -1,4 +1,3 @@
-import { IPFS_BOOTSTRAP_PEER } from "./constants";
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";

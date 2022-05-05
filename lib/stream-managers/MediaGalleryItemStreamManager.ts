@@ -1,23 +1,34 @@
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
+import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
+import { CeramicApi } from "@ceramicnetwork/common";
+import { TileContent } from "@glazed/did-datastore/dist/proxy";
 
-export class MediaGalleryItemStreamManager extends TileStreamManager {
-  constructor(ceramic, _mediaGalleryStreamManager) {
+export class MediaGalleryItemStreamManager extends TileStreamManager<TileContent> {
+  mediaGalleryStreamManager: MediaGalleryStreamManager;
+
+  constructor(
+    ceramic: CeramicApi,
+    _mediaGalleryStreamManager: MediaGalleryStreamManager,
+    controller: string
+  ) {
     super(
       ceramic,
       _mediaGalleryStreamManager.dataStore.model.getSchemaURL(
         "mediaGalleryItem"
-      ),
-      _mediaGalleryStreamManager._controller
+      )!,
+      controller
     );
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
-  async setMediaGalleryStreamManager(_mediaGalleryStreamManager) {
+  async setMediaGalleryStreamManager(
+    _mediaGalleryStreamManager: MediaGalleryStreamManager
+  ) {
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
-  async createOrUpdateStream(content) {
+  async createOrUpdateStream(content: TileContent) {
     const newStreamId = await super.createOrUpdateStream(
       content,
       this._controller,
@@ -37,7 +48,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
       mediaGalleryItems: [],
     };
     const prevItems = prevState["mediaGalleryItems"] ?? [];
-    const newItems = prevItems.concat(this.getStreamId().toString());
+    const newItems = prevItems.concat(this.getStreamId()!.toString());
     await this.mediaGalleryStreamManager.createOrUpdateStream({
       mediaGalleryItems: newItems,
     });
@@ -54,7 +65,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
     const prevState = this.mediaGalleryStreamManager.getStreamContent() ?? {
       mediaGalleryItems: [],
     };
-    const prevItems = prevState["mediaGalleryItems"] ?? [];
+    const prevItems: string[] = prevState["mediaGalleryItems"] ?? [];
     const newItems = prevItems.filter((item) => streamId.toString() != item);
     await this.mediaGalleryStreamManager.createOrUpdateStream({
       mediaGalleryItems: newItems,
@@ -65,7 +76,10 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
   }
 }
 
-export function useMediaGalleryItemData(mediaGalleryStreamManager) {
+export function useMediaGalleryItemData(
+  mediaGalleryStreamManager: MediaGalleryStreamManager,
+  didNFT: string
+) {
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
 
   const state = mediaGalleryStreamManager
@@ -89,13 +103,14 @@ export function useMediaGalleryItemData(mediaGalleryStreamManager) {
           const _mediaGalleryItemStreamManager =
             new MediaGalleryItemStreamManager(
               mediaGalleryStreamManager.ceramic,
-              mediaGalleryStreamManager
+              mediaGalleryStreamManager,
+              didNFT
             );
           _mediaGalleryItemStreamManager.stream = loadedItems[docId];
           result[docId] = _mediaGalleryItemStreamManager;
           return result;
         },
-        {}
+        {} as Record<string, MediaGalleryItemStreamManager>
       );
 
       setMediaGalleryItems(mediaGalleryItems);
