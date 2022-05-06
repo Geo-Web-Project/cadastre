@@ -1,10 +1,11 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
 import { parcelLayer, parcelHighlightLayer } from "../map-style";
 
 function convertToGeoJson(data: any) {
-  let features = data.geoWebCoordinates.map((c: any) => {
-    let coordinates = [
+  const features = data.geoWebCoordinates.map((c: any) => {
+    const coordinates = [
       [
         [c.pointBL.lon, c.pointBL.lat],
         [c.pointBR.lon, c.pointBR.lat],

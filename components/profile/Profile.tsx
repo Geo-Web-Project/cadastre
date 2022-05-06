@@ -1,15 +1,15 @@
+/* eslint-disable import/no-unresolved */
 import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfApi } from "../../redux/store";
-import { NETWORK_ID, NETWORK_NAME } from "../../lib/constants";
+import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
-import Badge from "react-bootstrap/Badge";
 
 type ProfileProps = {
   account: string;

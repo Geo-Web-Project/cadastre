@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/named
 import { LayerProps } from "react-map-gl";
 
 export const gridLayer: LayerProps = {

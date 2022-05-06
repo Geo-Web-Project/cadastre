@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
@@ -5,7 +6,6 @@ import { ethxABI, NETWORK_ID } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { sfApi } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
-import { truncateEth } from "../../lib/truncate";
 import Spinner from "react-bootstrap/Spinner";
 
 type WrapModalProps = {

@@ -1,6 +1,9 @@
+/* eslint-disable import/no-unresolved */
 import Home from "../components/Home";
 import Map from "../components/Map";
 import FAQ from "../components/FAQ";
+import Profile from "../components/profile/Profile";
+
 import React from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -8,12 +11,9 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import Profile from "../components/profile/Profile";
 import {
-  NETWORK_NAME,
   NETWORK_ID,
   CERAMIC_URL,
-  CONNECT_NETWORK,
   IPFS_BOOTSTRAP_PEER,
   IPFS_PRELOAD_NODE,
   THREE_ID_CONNECT_IFRAME_URL,
@@ -21,14 +21,13 @@ import {
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
-import { truncateStr } from "../lib/truncate";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
 import * as KeyDidResolver from "key-did-resolver";
 import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
 
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
@@ -36,7 +35,7 @@ import { Framework } from "@superfluid-finance/sdk-core";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
-const { getIpfs, providers } = require("ipfs-provider");
+import { getIpfs, providers } from "ipfs-provider";
 const { httpClient, jsIpfs } = providers;
 
 function getLibrary(provider: any) {

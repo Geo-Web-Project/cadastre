@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -7,9 +8,8 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { PAYMENT_TOKEN } from "../../lib/constants";
 import { createNftDidUrl } from "nft-did-resolver";
-import { NETWORK_ID, publishedModel } from "../../lib/constants";
+import { PAYMENT_TOKEN, NETWORK_ID, publishedModel } from "../../lib/constants";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
@@ -75,7 +75,7 @@ export function ActionForm(props: ActionFormProps) {
     </div>
   );
 
-  let isForSalePriceInvalid: boolean =
+  const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
     isNaN(Number(displayNewForSalePrice));
@@ -96,8 +96,8 @@ export function ActionForm(props: ActionFormProps) {
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * 60 * 60 * 24 * 365 * 100) /
     perSecondFeeDenominator.toNumber();
-  let isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
-  let isURIInvalid = parcelWebContentURI
+  const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
+  const isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
@@ -125,7 +125,7 @@ export function ActionForm(props: ActionFormProps) {
       return;
     }
 
-    let content: any = {};
+    const content: any = {};
     if (parcelName) {
       content["name"] = parcelName;
     }
@@ -162,15 +162,15 @@ export function ActionForm(props: ActionFormProps) {
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
-  let isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
+  const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  let isLoading = loading;
+  const isLoading = loading;
 
   React.useEffect(() => {
     if (displayNewForSalePrice == null) {
       updateActionData({ displayNewForSalePrice: displayCurrentForSalePrice });
     }
-  }, [displayCurrentForSalePrice]);
+  }, [displayCurrentForSalePrice, displayNewForSalePrice, updateActionData]);
 
   return (
     <>
@@ -284,7 +284,7 @@ export function ActionForm(props: ActionFormProps) {
                 >
                   {isActing || isLoading ? spinner : "Confirm"}
                 </Button>
-            </div>
+              </div>
             </Form>
 
             <br />

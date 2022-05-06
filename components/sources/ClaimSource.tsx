@@ -1,8 +1,9 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
 import { claimLayer } from "../map-style";
 import { coordToFeature } from "../Map";
-const GeoWebCoordinate = require("js-geo-web-coordinate");
+import GeoWebCoordinate from "js-geo-web-coordinate";
 
 type Props = {
   existingCoords: Set<any>;

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Col from "react-bootstrap/Col";
@@ -5,10 +6,8 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
-import { ethers } from "ethers";
-import { truncateStr, truncateEth } from "../../lib/truncate";
 import { FlowingBalance } from "./FlowingBalance";
-import Stack from "react-bootstrap/Stack";
+import { ethers } from "ethers";
 
 function ProfileModal(props: any) {
   const {
