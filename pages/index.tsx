@@ -52,6 +52,7 @@ function IndexPage() {
   const [auctionSuperApp, setAuctionSuperApp] = React.useState<
     Contracts["geoWebAuctionSuperAppContract"] | null
   >(null);
+  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<Contracts['geoWebFairLaunchClaimerContract'] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState(null);
   const [library, setLibrary] =
@@ -173,10 +174,11 @@ function IndexPage() {
 
       const signer = library.getSigner();
 
-      const { geoWebERC721LicenseContract, geoWebAuctionSuperAppContract } =
+      const { geoWebERC721LicenseContract, geoWebAuctionSuperAppContract, geoWebFairLaunchClaimerContract } =
         getContractsForChainOrThrow(NETWORK_ID, signer);
       setLicenseContract(geoWebERC721LicenseContract);
       setAuctionSuperApp(geoWebAuctionSuperAppContract);
+      setFairLaunchClaimer(geoWebFairLaunchClaimerContract);
     }
     contractsSetup();
   }, [library]);
