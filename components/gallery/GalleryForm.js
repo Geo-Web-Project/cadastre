@@ -196,13 +196,13 @@ export function GalleryForm({
   function onSelectPinningService(event) {
     setPinningService(event.target.value);
 
-    if (event.target.value != "pinata") {
-      setPinningServiceEndpoint("");
-    } else {
-      setPinningServiceEndpoint(PINATA_API_ENDPOINT);
-    }
+    // if (event.target.value != "pinata") {
+    //   setPinningServiceEndpoint("");
+    // } else {
+    //   setPinningServiceEndpoint(PINATA_API_ENDPOINT);
+    // }
 
-    setPinningServiceAccessToken("");
+    // setPinningServiceAccessToken("");
   }
 
   let isReadyToAdd =

@@ -56,7 +56,7 @@
     "build": "next build",
     "start": "next start",
     "export": "next export",
-    "lint": "eslint ./ --ext .ts,.tsx",
+    "lint": "next lint",
     "test": "jest"
   },
   "eslintConfig": {
@@ -81,6 +81,7 @@
     ]
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^12.1.6",
     "@types/node": "^17.0.25",
     "@types/react": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.22.0",

@@ -9,11 +9,9 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
     "plugin:import/errors",
     "plugin:import/warnings",
-    "plugin:react-hooks/recommended",
-    // always put prettier at last
+    "plugin:@next/next/recommended", // always put prettier at last
     "prettier"
   ],
   "globals": {
@@ -21,7 +19,10 @@
     "SharedArrayBuffer": "readonly"
   },
   "parserOptions": {
-    "project": ["./tsconfig.json"]
+    "ecmaFeatures": {
+      "jsx": true // enable linting for jsx files
+    },
+    "ecmaVersion": 11
   },
   "settings": {
     "react": {
