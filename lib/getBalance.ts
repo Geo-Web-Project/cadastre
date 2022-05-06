@@ -30,8 +30,7 @@ export const getETHxBalance = async (
 
   const { availableBalance } = await ETHx.realtimeBalanceOf({
     account,
-    // @ts-ignore
-    providerOrSigner: provider,
+    providerOrSigner: provider as any,
   });
 
   const ETHxBalance = formatBalance(availableBalance);
