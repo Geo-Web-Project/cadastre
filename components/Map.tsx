@@ -1,5 +1,7 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
+// eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
@@ -20,7 +22,7 @@ import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
-const GeoWebCoordinate = require("js-geo-web-coordinate");
+import GeoWebCoordinate from "js-geo-web-coordinate";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
@@ -68,9 +70,9 @@ const query = gql`
 `;
 
 function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
-  let gwCoord = GeoWebCoordinate.from_gps(lon, lat);
-  let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-  let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+  const gwCoord = GeoWebCoordinate.from_gps(lon, lat);
+  const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+  const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
   if (
     oldGrid != null &&
@@ -80,7 +82,7 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
     return;
   }
 
-  let features = [];
+  const features = [];
   for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
     for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
       features.push(coordToFeature(GeoWebCoordinate.make_gw_coord(_x, _y)));
@@ -123,7 +125,7 @@ export type MapProps = {
 };
 
 function Map(props: MapProps) {
-  const { loading, data, fetchMore } = useQuery(query, {
+  const { data, fetchMore } = useQuery(query, {
     variables: {
       lastBlock: 0,
     },
@@ -150,7 +152,7 @@ function Map(props: MapProps) {
     if (data == null || data.geoWebCoordinates.length == 0) {
       return;
     }
-    let newLastBlock =
+    const newLastBlock =
       data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
     fetchMore({
@@ -158,7 +160,7 @@ function Map(props: MapProps) {
         lastBlock: newLastBlock,
       },
     });
-  }, [data]);
+  }, [data, fetchMore]);
 
   const [viewport, setViewport] = useState<any>({});
   const [grid, setGrid] = useState(null);
@@ -177,7 +179,7 @@ function Map(props: MapProps) {
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
 
-  let isGridVisible =
+  const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
@@ -220,13 +222,13 @@ function Map(props: MapProps) {
     }
 
     function _checkParcelHover() {
-      let parcelFeature = event.features?.find(
+      const parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
-        let gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.from_gps(
           event.lngLat[0],
           event.lngLat[1]
         );
@@ -237,14 +239,13 @@ function Map(props: MapProps) {
       }
     }
 
+    const gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
+
     switch (interactionState) {
       case STATE.VIEWING:
         _checkParcelHover();
         break;
       case STATE.CLAIM_SELECTING:
-        let gridFeature = event.features.find(
-          (f) => f.layer.id === "grid-layer"
-        );
         if (gridFeature) {
           setClaimBase2Coord({
             x: gridFeature.properties.gwCoordX,
@@ -265,10 +266,12 @@ function Map(props: MapProps) {
       return;
     }
 
-    let gridFeature = event.features?.find((f) => f.layer.id === "grid-layer");
+    const gridFeature = event.features?.find(
+      (f) => f.layer.id === "grid-layer"
+    );
 
     function _checkParcelClick() {
-      let parcelFeature = event.features?.find(
+      const parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
       if (parcelFeature) {
@@ -280,7 +283,7 @@ function Map(props: MapProps) {
         setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else {
-        let gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.from_gps(
           event.lngLat[0],
           event.lngLat[1]
         );
@@ -293,31 +296,29 @@ function Map(props: MapProps) {
       return false;
     }
 
+    const gwCoord = GeoWebCoordinate.from_gps(event.lngLat[0], event.lngLat[1]);
+    const coord = {
+      x: GeoWebCoordinate.get_x(gwCoord).toNumber(),
+      y: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+    };
+
+    const nextViewport = {
+      latitude: event.lngLat[1],
+      longitude: event.lngLat[0],
+      zoom: ZOOM_GRID_LEVEL + 1,
+      transitionDuration: 500,
+    };
+
     switch (interactionState) {
       case STATE.VIEWING:
         if (_checkParcelClick()) {
           return;
         }
 
-        let gwCoord = GeoWebCoordinate.from_gps(
-          event.lngLat[0],
-          event.lngLat[1]
-        );
-        let coord = {
-          x: GeoWebCoordinate.get_x(gwCoord).toNumber(),
-          y: GeoWebCoordinate.get_y(gwCoord).toNumber(),
-        };
-
         setClaimBase1Coord(coord);
         setClaimBase2Coord(coord);
         setInteractionState(STATE.CLAIM_SELECTING);
 
-        let nextViewport = {
-          latitude: event.lngLat[1],
-          longitude: event.lngLat[0],
-          zoom: ZOOM_GRID_LEVEL + 1,
-          transitionDuration: 500,
-        };
         setViewport(nextViewport);
         _onViewportChange(nextViewport);
         break;
@@ -350,7 +351,7 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
-      let newLastBlock =
+      const newLastBlock =
         data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
           .createdAtBlock;
 
@@ -367,6 +368,7 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+        break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
         setClaimBase2Coord(null);
@@ -375,11 +377,11 @@ function Map(props: MapProps) {
       default:
         break;
     }
-  }, [interactionState]);
+  }, [interactionState, data, fetchMore, selectedParcelId]);
 
   useEffect(() => {
     if (data != null) {
-      let _existingCoords = new Set(
+      const _existingCoords = new Set(
         data.geoWebCoordinates.flatMap((p: any) => p.id)
       );
       setExistingCoords(_existingCoords);
@@ -456,7 +458,12 @@ function Map(props: MapProps) {
         </ReactMapGL>
       </Col>
       <ButtonGroup
-        style={{ position: "absolute", bottom: "4%", right: "2%", borderRadius: 12 }}
+        style={{
+          position: "absolute",
+          bottom: "4%",
+          right: "2%",
+          borderRadius: 12,
+        }}
         aria-label="Basic example"
       >
         <Button

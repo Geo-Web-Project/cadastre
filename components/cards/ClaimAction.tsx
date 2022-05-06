@@ -1,11 +1,10 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
-import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
+import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-
-const GeoWebCoordinate = require("js-geo-web-coordinate");
 
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -22,15 +21,15 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice: "",
   });
 
-  function updateActionData(updatedValues: any) {
-    function _updateData(updatedValues: any) {
-      return (prevState: any) => {
-        return { ...prevState, ...updatedValues };
-      };
-    }
+  // function updateActionData(updatedValues: any) {
+  //   function _updateData(updatedValues: any) {
+  //     return (prevState: any) => {
+  //       return { ...prevState, ...updatedValues };
+  //     };
+  //   }
 
-    setActionData(_updateData(updatedValues));
-  }
+  //   setActionData(_updateData(updatedValues));
+  // }
 
   // const { displayNewForSalePrice, displayNetworkFeePayment } = actionData;
 

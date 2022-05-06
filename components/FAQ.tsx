@@ -5,12 +5,7 @@ import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
 import { useAccordionButton } from "react-bootstrap/AccordionButton";
 import Modal from "react-bootstrap/Modal";
-import {
-  PAYMENT_TOKEN_FAUCET_URL,
-  NETWORK_NAME,
-  PAYMENT_TOKEN,
-} from "../lib/constants";
-import { ethers, BigNumber } from "ethers";
+import { PAYMENT_TOKEN_FAUCET_URL, PAYMENT_TOKEN } from "../lib/constants";
 import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({
@@ -171,7 +166,7 @@ function FAQ() {
                 <Card.Body>
                   <p>
                     This is just a testnet, so the currency currently used to
-                    transact isn't worth anything.
+                    transact isn`&apos;`t worth anything.
                   </p>
                   <p>
                     When the Geo Web moves to a production network, network fees

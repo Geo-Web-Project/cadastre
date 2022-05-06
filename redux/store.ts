@@ -1,9 +1,10 @@
+/* eslint-disable import/named */
 import { configureStore, Dispatch } from "@reduxjs/toolkit";
 import {
-    createApiWithReactHooks,
-    initializeSfApiSlice,
-    initializeSfTransactionSlice,
-    setFrameworkForSdkRedux,
+  createApiWithReactHooks,
+  initializeSfApiSlice,
+  initializeSfTransactionSlice,
+  setFrameworkForSdkRedux,
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { Framework } from "@superfluid-finance/sdk-core";

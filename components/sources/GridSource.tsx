@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
 import { gridLayer } from "../map-style";

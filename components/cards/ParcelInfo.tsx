@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
@@ -5,19 +6,14 @@ import { STATE } from "../Map";
 import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
-import EditAction from "./EditAction";
-import PurchaseAction from "./PurchaseAction";
 import { PAYMENT_TOKEN } from "../../lib/constants";
-import AuctionInfo from "./AuctionInfo";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
-import GalleryModal from "../gallery/GalleryModal";
 import { fromRateToValue } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import { DIDDataStore } from "@glazed/did-datastore";
-import { CeramicClient } from "@ceramicnetwork/http-client";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -74,8 +70,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     : null;
 
   function _calculateNetworkFeeBalance(license: any) {
-    let now = Date.now();
-    let networkFeeBalance = BigNumber.from(license.expirationTimestamp)
+    const now = Date.now();
+    const networkFeeBalance = BigNumber.from(license.expirationTimestamp)
       .mul(1000)
       .sub(now)
       .div(1000)
@@ -109,7 +105,7 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     updateContent();
     updateStreamId();
-  }, [data, dataStore]);
+  }, [data, dataStore, didNFT, timer]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -153,7 +149,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     licenseOwner = data.landParcel.license.owner;
   }
 
-  let isLoading =
+  const isLoading =
     loading ||
     data == null ||
     licenseOwner == null ||
@@ -173,7 +169,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     hrefWebContent = parcelContent.url;
   }
 
-  let cancelButton = (
+  const cancelButton = (
     <Button
       variant="danger"
       className="w-100"
@@ -185,7 +181,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  let editButton = (
+  const editButton = (
     <Button
       variant="primary"
       className="w-100"
@@ -197,7 +193,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  let editGalleryButton = (
+  const editGalleryButton = (
     <Button
       variant="secondary"
       className="w-100"
@@ -209,7 +205,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  let initiateTransferButton = (
+  const initiateTransferButton = (
     <Button
       variant="primary"
       className="w-100"
