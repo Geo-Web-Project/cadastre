@@ -3750,10 +3750,10 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/datamodels@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-1.0.3.tgz#e767a7edb712da7c2702ea00a9a9b03b9270d996"
-  integrity sha512-mpz2KTseQyjOMPQf+KvPMlf375ZzHCmX7xlAkWn+Kwuu5FIHWdABQiObUNiEj8ecq/XcZhw0/E/xmcfLppIq0w==
+"@geo-web/datamodels@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-2.2.0.tgz#8a29e6071af97416300f8e81e36d87c612dc0c3b"
+  integrity sha512-4GsVKiRSRyMiI0VIjlt2TnzY018wzUR5NU6YkfPwXVeYZI5EsOdhHdSxbLW8U2fHfwAL4+fecIeE+vvzSnYnlQ==
   dependencies:
     "@ceramicnetwork/http-client" "^1.5.7"
     "@datamodels/identity-profile-basic" "^0.1.2"
@@ -3761,11 +3761,11 @@
     "@glazed/types" "^0.1.3"
     dids "^2.4.3"
     fast-json-patch "^3.1.0"
-    key-did-provider-ed25519 "^1.1.0"
+    key-did-provider-ed25519 "^2.0.0"
     key-did-resolver "^1.4.4"
     lodash "^4.17.21"
     prettier "^2.5.1"
-    schema-org-ceramic "^1.1.1"
+    schema-org-ceramic "^1.2.0"
     uint8arrays "^3.0.0"
 
 "@geo-web/sdk@^1.0.1":
@@ -18594,7 +18594,7 @@ keccak@^3.0.2:
     node-gyp-build "^4.2.0"
     readable-stream "^3.6.0"
 
-key-did-provider-ed25519@^1.0.1, key-did-provider-ed25519@^1.1.0:
+key-did-provider-ed25519@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/key-did-provider-ed25519/-/key-did-provider-ed25519-1.1.0.tgz#4c8bb9581352457faa0593d46e77dad9aa16f3ba"
   integrity sha512-kSxpmqYvTCXKTiApgVep3kTqEpUyRMQktaS3R1TD1Y1GbjFLG1RKShQ5qZRK7Z7Gar15Ym3tk3kMjYg76Xe6zQ==
@@ -18604,6 +18604,17 @@ key-did-provider-ed25519@^1.0.1, key-did-provider-ed25519@^1.1.0:
     fast-json-stable-stringify "^2.1.0"
     rpc-utils "^0.3.4"
     uint8arrays "^2.1.5"
+
+key-did-provider-ed25519@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/key-did-provider-ed25519/-/key-did-provider-ed25519-2.0.0.tgz#85e9b62419755e006e5c615f457bd70722e86500"
+  integrity sha512-qe0/nWmEEeGsc2g9bSBt89prf3YJ3HXwbMkhNckjEq78orSrUeLlqjtTV/mkJbn4/t1g5s0W2FlCAntXCdyvVA==
+  dependencies:
+    "@stablelib/ed25519" "^1.0.2"
+    did-jwt "^6.0.0"
+    fast-json-stable-stringify "^2.1.0"
+    rpc-utils "^0.6.2"
+    uint8arrays "^3.0.0"
 
 key-did-resolver@^1.1.2:
   version "1.2.0"
@@ -24493,7 +24504,7 @@ rpc-utils@^0.4.0:
   dependencies:
     nanoid "^3.1.21"
 
-rpc-utils@^0.6.0, rpc-utils@^0.6.1:
+rpc-utils@^0.6.0, rpc-utils@^0.6.1, rpc-utils@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/rpc-utils/-/rpc-utils-0.6.2.tgz#3cab779f93048eda69ff198c58b1a2c2e35e3fa6"
   integrity sha512-kzk1OflbBckfDBAo8JwsmtQSHzj+6hxRt5G+u8A8ZSmunBw1nhWvRkSq8j1+EvWBqBRLy1aiGLUW5644CZqQtA==
@@ -24668,10 +24679,15 @@ scheduler@^0.20.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
-schema-org-ceramic@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/schema-org-ceramic/-/schema-org-ceramic-1.1.1.tgz#c87facc415532c4df6a134301357bb887214a351"
-  integrity sha512-TTyqqYASdhIKlUdHyvue2gm5eheWtgfMsXRndzGyY2qaCW9LaQzSlRIezeUusXO8K72f7gYosRecECr3iISkgw==
+schema-org-ceramic@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/schema-org-ceramic/-/schema-org-ceramic-1.2.0.tgz#454c559f31aecb8145669e3fb4000951808a89c1"
+  integrity sha512-5UIZhV154D4lMrXdLmtXYVpFs9vA8DgakUnIjoIbr+UGgPp0sjHZkhLiFKzUuLYkpTPppBdOUTXGqitviWEyMg==
+
+schema-org-ceramic@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/schema-org-ceramic/-/schema-org-ceramic-1.3.0.tgz#8ba61ecbcfff0b78a84c01f86684349d7901865f"
+  integrity sha512-bh7qBzSj6OsnMrqhzj92CIMuSqNXkKTP6NL1uBFBBQga3W4Cy0Zrwh0HIESYBaiFL7HNdj5cHl58eAPuHmZ01A==
 
 schema-utils@^1.0.0:
   version "1.0.0"

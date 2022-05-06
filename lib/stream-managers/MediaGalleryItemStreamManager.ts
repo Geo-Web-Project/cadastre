@@ -3,8 +3,9 @@ import * as React from "react";
 import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
 import { CeramicApi } from "@ceramicnetwork/common";
 import { TileContent } from "@glazed/did-datastore/dist/proxy";
+import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 
-export class MediaGalleryItemStreamManager extends TileStreamManager<TileContent> {
+export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject> {
   mediaGalleryStreamManager: MediaGalleryStreamManager;
 
   constructor(
@@ -28,7 +29,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<TileContent
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
-  async createOrUpdateStream(content: TileContent) {
+  async createOrUpdateStream(content: MediaObject) {
     const newStreamId = await super.createOrUpdateStream(
       content,
       this._controller,

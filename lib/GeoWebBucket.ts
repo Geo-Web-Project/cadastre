@@ -11,10 +11,10 @@ import CID from "cids";
 import axios from "axios";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
-import { TileContent } from "@glazed/did-datastore/dist/proxy";
 import { DAGLink } from "ipld-dag-pb";
+import { Pinset } from "@geo-web/datamodels";
 
-export class GeoWebBucket extends TileStreamManager<TileContent> {
+export class GeoWebBucket extends TileStreamManager<Pinset> {
   dataStore: DIDDataStore;
   bucketRoot?: CID;
   latestQueuedLinks?: any[];
@@ -32,13 +32,13 @@ export class GeoWebBucket extends TileStreamManager<TileContent> {
     this._ipfs = ipfs;
   }
 
-  async createOrUpdateStream(content: TileContent) {
+  async createOrUpdateStream(content: Pinset) {
     const newStreamId = await this.dataStore.set("geoWebPinset", content, {
       controller: this._controller,
     });
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecordDocument(
+      this.stream = await this.dataStore.getRecord(
         this.dataStore.getDefinitionID("geoWebPinset"),
         this._controller
       );
@@ -47,7 +47,7 @@ export class GeoWebBucket extends TileStreamManager<TileContent> {
     return newStreamId;
   }
 
-  async updateStream(content: TileContent) {
+  async updateStream(content: Pinset) {
     this.createOrUpdateStream(content);
   }
 

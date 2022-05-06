@@ -1,12 +1,13 @@
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { DIDDataStore } from "@glazed/did-datastore";
-import { TileContent } from "@glazed/did-datastore/dist/proxy";
 import { StreamID } from "@ceramicnetwork/streamid";
 import { TileLoader } from "@glazed/tile-loader";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
+import { MediaGallery } from "@geo-web/datamodels";
+import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 
-export class MediaGalleryStreamManager extends TileStreamManager<TileContent> {
+export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
   dataStore: DIDDataStore;
 
   constructor(dataStore: DIDDataStore, controller: string) {
@@ -18,13 +19,13 @@ export class MediaGalleryStreamManager extends TileStreamManager<TileContent> {
     this.dataStore = dataStore;
   }
 
-  async createOrUpdateStream(content: TileContent) {
+  async createOrUpdateStream(content: MediaGallery) {
     const newStreamId = await this.dataStore.set("mediaGallery", content, {
       controller: this._controller,
     });
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecordDocument(
+      this.stream = await this.dataStore.getRecord(
         this.dataStore.getDefinitionID("mediaGallery"),
         this._controller
       );
@@ -33,7 +34,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<TileContent> {
     return newStreamId;
   }
 
-  async updateStream(content: TileContent) {
+  async updateStream(content: MediaGallery) {
     this.createOrUpdateStream(content);
   }
 
@@ -50,7 +51,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<TileContent> {
     return streams.reduce((prev, cur) => {
       prev[cur.id.toString()] = cur;
       return prev;
-    }, {} as Record<string, TileDocument<TileContent>>);
+    }, {} as Record<string, TileDocument<MediaObject>>);
   }
 }
 
