@@ -1,8 +1,9 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
 import { claimLayer } from "../map-style";
 import { coordToFeature } from "../Map";
-const GeoWebCoordinate = require("js-geo-web-coordinate");
+import GeoWebCoordinate from "js-geo-web-coordinate";
 
 type Props = {
   existingCoords: Set<any>;
@@ -23,7 +24,7 @@ function ClaimSource(props: Props) {
   const [features, setFeatures] = React.useState<Set<any>>(new Set());
 
   React.useEffect(() => {
-    let _features = new Set();
+    const _features = new Set();
     let _isValid = true;
     if (claimBase1Coord != null && claimBase2Coord != null) {
       for (
@@ -36,7 +37,7 @@ function ClaimSource(props: Props) {
           _y <= Math.max(claimBase1Coord.y, claimBase2Coord.y);
           _y++
         ) {
-          let gwCoord = GeoWebCoordinate.make_gw_coord(_x, _y);
+          const gwCoord = GeoWebCoordinate.make_gw_coord(_x, _y);
           _features.add(coordToFeature(gwCoord));
 
           if (existingCoords.has(gwCoord.toString(10))) {
@@ -48,7 +49,7 @@ function ClaimSource(props: Props) {
 
     setFeatures(_features);
     setIsValidClaim(_isValid);
-  }, [claimBase1Coord, claimBase2Coord]);
+  }, [claimBase1Coord, claimBase2Coord, existingCoords, setIsValidClaim]);
 
   return (
     <Source

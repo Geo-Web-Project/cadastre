@@ -1,5 +1,5 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
-import { STATE_PARCEL_SELECTED } from "../Map";
 import {
   ActionForm,
   calculateWeiSubtotalField,

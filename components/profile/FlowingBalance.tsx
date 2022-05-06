@@ -62,6 +62,6 @@ export const FlowingBalance: FC<{
     return () => {
       stopAnimation = true;
     };
-  }, [balanceTimestamp]);
+  }, [balanceTimestamp, balanceWei, flowRateWei, format]);
   return <span>{formattedValue}</span>;
 };
