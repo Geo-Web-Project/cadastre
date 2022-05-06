@@ -2,7 +2,6 @@ import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
 import { CeramicApi } from "@ceramicnetwork/common";
-import { TileContent } from "@glazed/did-datastore/dist/proxy";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 
 export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject> {
@@ -16,7 +15,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
     super(
       ceramic,
       _mediaGalleryStreamManager.dataStore.model.getSchemaURL(
-        "mediaGalleryItem"
+        "MediaGalleryItem"
       )!,
       controller
     );

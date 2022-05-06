@@ -12,20 +12,24 @@ import axios from "axios";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
 import { DAGLink } from "ipld-dag-pb";
-import { Pinset } from "@geo-web/datamodels";
+import { ModelTypes, Pinset } from "@geo-web/datamodels";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
-  dataStore: DIDDataStore;
+  dataStore: DIDDataStore<ModelTypes>;
   bucketRoot?: CID;
   latestQueuedLinks?: any[];
   latestPinnedLinks?: any[];
   latestPinnedRoot?: CID;
   private _ipfs: IPFS;
 
-  constructor(dataStore: DIDDataStore, controller: string, ipfs: IPFS) {
+  constructor(
+    dataStore: DIDDataStore<ModelTypes>,
+    controller: string,
+    ipfs: IPFS
+  ) {
     super(
       dataStore.ceramic,
-      dataStore.model.getSchemaURL("geoWebPinset")!,
+      dataStore.model.getSchemaURL("GeoWebPinset")!,
       controller
     );
     this.dataStore = dataStore;

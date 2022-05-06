@@ -4,13 +4,13 @@ import { DIDDataStore } from "@glazed/did-datastore";
 import { StreamID } from "@ceramicnetwork/streamid";
 import { TileLoader } from "@glazed/tile-loader";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
-import { MediaGallery } from "@geo-web/datamodels";
+import { MediaGallery, ModelTypes } from "@geo-web/datamodels";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 
 export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
-  dataStore: DIDDataStore;
+  dataStore: DIDDataStore<ModelTypes>;
 
-  constructor(dataStore: DIDDataStore, controller: string) {
+  constructor(dataStore: DIDDataStore<ModelTypes>, controller: string) {
     super(
       dataStore.ceramic,
       dataStore.model.getSchemaURL("MediaGallery")!,
@@ -56,7 +56,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
 }
 
 export function useMediaGalleryStreamManager(
-  dataStore: DIDDataStore | null,
+  dataStore: DIDDataStore<ModelTypes> | null,
   didNFT: string | null
 ) {
   const [mediaGalleryStreamManager, setMediaGalleryStreamManager] =

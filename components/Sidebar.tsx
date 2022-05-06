@@ -11,7 +11,7 @@ import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { BigNumber } from "ethers";
-import GeoWebModel from "@geo-web/datamodels";
+import { model as GeoWebModel } from "@geo-web/datamodels";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
