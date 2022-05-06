@@ -1,6 +1,8 @@
+/* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
+// eslint-disable-next-line import/named
 import { CeramicApi } from "@ceramicnetwork/common";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 
@@ -16,7 +18,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
       ceramic,
       _mediaGalleryStreamManager.dataStore.model.getSchemaURL(
         "MediaGalleryItem"
-      )!,
+      ),
       controller
     );
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
@@ -44,11 +46,17 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
       return;
     }
 
+    const streamId = this.getStreamId();
+    if (streamId == null) {
+      console.error(`MediaGalleryItemStreamManager.streamId does not exist`);
+      return;
+    }
+
     const prevState = this.mediaGalleryStreamManager.getStreamContent() ?? {
       mediaGalleryItems: [],
     };
     const prevItems = prevState["mediaGalleryItems"] ?? [];
-    const newItems = prevItems.concat(this.getStreamId()!.toString());
+    const newItems = prevItems.concat(streamId.toString());
     await this.mediaGalleryStreamManager.createOrUpdateStream({
       mediaGalleryItems: newItems,
     });

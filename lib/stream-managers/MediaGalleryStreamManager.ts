@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { DIDDataStore } from "@glazed/did-datastore";
@@ -13,7 +14,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
   constructor(dataStore: DIDDataStore<ModelTypes>, controller: string) {
     super(
       dataStore.ceramic,
-      dataStore.model.getSchemaURL("MediaGallery")!,
+      dataStore.model.getSchemaURL("MediaGallery"),
       controller
     );
     this.dataStore = dataStore;

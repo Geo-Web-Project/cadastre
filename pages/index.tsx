@@ -38,6 +38,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 const { httpClient, jsIpfs } = providers;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
 }

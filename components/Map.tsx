@@ -23,6 +23,8 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
 import GeoWebCoordinate from "js-geo-web-coordinate";
+import { IPFS } from "ipfs-core";
+import firebase from "firebase/app";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
@@ -119,8 +121,8 @@ export type MapProps = {
   account: string;
   provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
-  ipfs: any;
-  firebasePerf: any;
+  ipfs: IPFS;
+  firebasePerf: firebase.performance.Performance;
   paymentTokenAddress: string;
 };
 

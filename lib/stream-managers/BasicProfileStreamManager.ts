@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { DIDDataStore } from "@glazed/did-datastore";
@@ -10,7 +11,7 @@ export class BasicProfileStreamManager extends TileStreamManager<BasicProfile> {
   constructor(dataStore: DIDDataStore, controller: string) {
     super(
       dataStore.ceramic,
-      dataStore.model.getSchemaURL("BasicProfile")!,
+      dataStore.model.getSchemaURL("BasicProfile"),
       controller
     );
     this.dataStore = dataStore;

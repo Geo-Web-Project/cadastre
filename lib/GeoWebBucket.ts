@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* 
     Interact with Geo Web Pinset
     - Store CIDs in a UnixFs tree
@@ -29,7 +30,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   ) {
     super(
       dataStore.ceramic,
-      dataStore.model.getSchemaURL("GeoWebPinset")!,
+      dataStore.model.getSchemaURL("GeoWebPinset"),
       controller
     );
     this.dataStore = dataStore;
@@ -112,7 +113,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
       return;
     }
 
-    var result;
+    let result;
     try {
       result = await axios.get(
         `${STORAGE_WORKER_ENDPOINT}/pinset/${this._controller}/latest`
@@ -155,7 +156,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
     // Poll status async
     await new Promise<void>((resolve, reject) => {
-      var timeout = 1000;
+      let timeout = 1000;
       const poll = async () => {
         const pollResult = await axios.get(
           `${STORAGE_WORKER_ENDPOINT}/pinset/${
@@ -188,7 +189,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     }
     // Patch object
     const objectStat = await this._ipfs.object.stat(cidObject);
-    let link = new DAGLink(name, objectStat.CumulativeSize, cidObject);
+    const link = new DAGLink(name, objectStat.CumulativeSize, cidObject);
     this.bucketRoot = await this._ipfs.object.patch.addLink(
       this.bucketRoot!,
       link

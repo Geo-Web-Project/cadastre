@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
@@ -137,7 +138,7 @@ export class PinningManager {
     );
     const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot!);
     const linkSizes = links.reduce((sizes, link) => {
-      var newSizes = sizes;
+      const newSizes = sizes;
       newSizes[link.Hash.toString()] = link.Tsize;
       return newSizes;
     }, {} as Record<string, any>);

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
 import { NETWORK_ID } from "./constants";

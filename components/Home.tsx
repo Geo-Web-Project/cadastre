@@ -1,5 +1,7 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { NETWORK_NAME } from "../lib/constants";
+import Image from "next/image";
 
 function HomeContent() {
   return (
@@ -92,7 +94,7 @@ function WalletPrompt() {
         fontWeight: "normal",
       }}
     >
-      <img
+      <Image
         src="vector.png"
         style={{ position: "absolute", left: "40%", top: "5%", width: "20%" }}
       />

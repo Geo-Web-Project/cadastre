@@ -1,15 +1,21 @@
+/* eslint-disable import/named */
 import { CeramicApi } from "@ceramicnetwork/common";
 import { TileDocument, TileMetadataArgs } from "@ceramicnetwork/stream-tile";
 import { StreamID } from "@ceramicnetwork/streamid";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class TileStreamManager<T = Record<string, any>> {
   ceramic: CeramicApi;
   stream?: TileDocument<T> | null;
-  private _schemaStreamId: string;
+  private _schemaStreamId?: string | null;
   private _shouldPin: boolean;
   protected _controller: string;
 
-  constructor(ceramic: CeramicApi, schemaStreamId: string, controller: string) {
+  constructor(
+    ceramic: CeramicApi,
+    schemaStreamId: string | null,
+    controller: string
+  ) {
     this.ceramic = ceramic;
     this._schemaStreamId = schemaStreamId;
     this._shouldPin = true;

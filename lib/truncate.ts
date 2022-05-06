@@ -3,9 +3,9 @@ export function truncateStr(str: string, strLen: number) {
     return str;
   }
 
-  var separator = "...";
+  const separator = "...";
 
-  var sepLen = separator.length,
+  const sepLen = separator.length,
     charsToShow = strLen - sepLen,
     frontChars = Math.ceil(charsToShow / 2),
     backChars = Math.floor(charsToShow / 2);

@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+/* eslint-disable import/no-unresolved */
 import { wrapper } from "../redux/store";
 
 import React from "react";

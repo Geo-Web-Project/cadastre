@@ -1,10 +1,10 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
-import { PINATA_API_ENDPOINT } from "../../lib/constants";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 

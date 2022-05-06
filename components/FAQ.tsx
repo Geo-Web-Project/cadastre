@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Accordion from "react-bootstrap/Accordion";
@@ -9,13 +10,13 @@ import { PAYMENT_TOKEN_FAUCET_URL, PAYMENT_TOKEN } from "../lib/constants";
 import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({
-  children,
   eventKey,
   callback,
+  children,
 }: {
   eventKey: string;
-  children: any;
-  callback?: any;
+  callback?: (v: string) => void;
+  children: string;
 }) {
   const currentEventKey = React.useContext(AccordionContext);
 
