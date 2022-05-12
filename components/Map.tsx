@@ -6,7 +6,6 @@ import ReactMapGL, { MapEvent } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
-import GridHoverSource from "./sources/GridHoverSource";
 import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
@@ -22,7 +21,8 @@ import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
-import GeoWebCoordinate from "js-geo-web-coordinate";
+import { GeoWebCoordinate } from "js-geo-web-coordinate";
+import Image from "next/image";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
@@ -35,6 +35,35 @@ export enum STATE {
   PARCEL_EDITING = 4,
   PARCEL_PURCHASING = 5,
   EDITING_GALLERY = 6,
+}
+
+export type Coord = {
+  x: number;
+  y: number;
+};
+
+export interface PolygonQuery {
+  geoWebCoordinates: GWCoordinateGQL[];
+}
+
+interface GeoPoint {
+  id: string;
+  lon: number;
+  lat: number;
+}
+
+interface LandParcel {
+  id: string;
+}
+
+interface GWCoordinateGQL {
+  id: string;
+  createdAtBlock: BigInt;
+  landParcel: LandParcel;
+  pointBL: GeoPoint;
+  pointBR: GeoPoint;
+  pointTR: GeoPoint;
+  pointTL: GeoPoint;
 }
 
 const query = gql`
@@ -69,10 +98,10 @@ const query = gql`
   }
 `;
 
-function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
-  const gwCoord = GeoWebCoordinate.from_gps(lon, lat);
-  const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-  const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+function updateGrid(lat: number, lon: number, oldGrid: any, setGrid: any) {
+  const gwCoord = GeoWebCoordinate.fromGPS(lon, lat);
+  const x = gwCoord.getX().toNumber();
+  const y = gwCoord.getY().toNumber();
 
   if (
     oldGrid != null &&
@@ -85,7 +114,7 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   const features = [];
   for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
     for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
-      features.push(coordToFeature(GeoWebCoordinate.make_gw_coord(_x, _y)));
+      features.push(coordToFeature(GeoWebCoordinate.fromXandY(_x, _y)));
     }
   }
 
@@ -98,17 +127,17 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   });
 }
 
-export function coordToFeature(gwCoord: any): GeoJSON.Feature {
+export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
   return {
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [GeoWebCoordinate.to_gps(gwCoord)],
+      coordinates: [gwCoord.toGPS()],
     },
     properties: {
-      gwCoord: gwCoord.toString(16),
-      gwCoordX: GeoWebCoordinate.get_x(gwCoord).toNumber(),
-      gwCoordY: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+      gwCoord: parseInt(gwCoord.toString()).toString(16),
+      gwCoordX: gwCoord.getX().toNumber(),
+      gwCoordY: gwCoord.getY().toNumber(),
     },
   };
 }
@@ -125,7 +154,7 @@ export type MapProps = {
 };
 
 function Map(props: MapProps) {
-  const { data, fetchMore } = useQuery(query, {
+  const { data, fetchMore } = useQuery<PolygonQuery>(query, {
     variables: {
       lastBlock: 0,
     },
@@ -167,15 +196,14 @@ function Map(props: MapProps) {
   const [interactionState, setInteractionState] = useState<STATE>(
     STATE.VIEWING
   );
-  const [gridHoverCoord, setGridHoverCoord] = useState("");
   const [parcelHoverId, setParcelHoverId] = useState("");
 
-  const [claimBase1Coord, setClaimBase1Coord] = useState<any | null>(null);
-  const [claimBase2Coord, setClaimBase2Coord] = useState<any | null>(null);
+  const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
+  const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
   const [selectedParcelId, setSelectedParcelId] = useState("");
 
-  const [existingCoords, setExistingCoords] = useState(new Set());
+  const [existingCoords, setExistingCoords] = useState<Set<string>>(new Set());
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
 
@@ -228,12 +256,12 @@ function Map(props: MapProps) {
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
-        const gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
           event.lngLat[1]
         );
 
-        if (!existingCoords.has(gwCoord.toString(10))) {
+        if (!existingCoords.has(gwCoord.toString())) {
           setParcelHoverId("");
         }
       }
@@ -283,12 +311,12 @@ function Map(props: MapProps) {
         setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else {
-        const gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
           event.lngLat[1]
         );
 
-        if (existingCoords.has(gwCoord.toString(10))) {
+        if (existingCoords.has(gwCoord.toString())) {
           return true;
         }
       }
@@ -296,10 +324,10 @@ function Map(props: MapProps) {
       return false;
     }
 
-    const gwCoord = GeoWebCoordinate.from_gps(event.lngLat[0], event.lngLat[1]);
+    const gwCoord = GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1]);
     const coord = {
-      x: GeoWebCoordinate.get_x(gwCoord).toNumber(),
-      y: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+      x: gwCoord.getX().toNumber(),
+      y: gwCoord.getY().toNumber(),
     };
 
     const nextViewport = {
@@ -381,7 +409,7 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (data != null) {
-      const _existingCoords = new Set(
+      const _existingCoords = new Set<string>(
         data.geoWebCoordinates.flatMap((p: any) => p.id)
       );
       setExistingCoords(_existingCoords);
@@ -433,7 +461,6 @@ function Map(props: MapProps) {
           onClick={onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
-          <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
           <ParcelSource
             data={data}
             parcelHoverId={parcelHoverId}
@@ -473,7 +500,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("street")}
         >
-          <img src={"street_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src="/street_ic.png" height={30} width={30} />
         </Button>
         <Button
           style={{
@@ -483,7 +510,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("satellite")}
         >
-          <img src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src="/satellite_ic.png" height={30} width={30} />
         </Button>
       </ButtonGroup>
       );
