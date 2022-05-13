@@ -278,7 +278,7 @@ export function ActionForm(props: ActionFormProps) {
               <hr className="action-form_divider" />
               <br />
               <ClaimView
-                networkFeeRate={
+                stream={
                   annualNetworkFeeRate
                     ? truncateEth(
                         ethers.utils.formatEther(annualNetworkFeeRate),

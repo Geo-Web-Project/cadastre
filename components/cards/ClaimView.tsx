@@ -3,7 +3,7 @@ import type { SidebarProps } from "../Sidebar";
 
 type ClaimViewProps = Pick<SidebarProps, "isFairLaunch"> & {
   /** equal to the Network Fee rate divided by 31,536,000 (seconds in a 365 day year). */
-  networkFeeRate: string;
+  stream: string;
 };
 
 /**
@@ -11,12 +11,12 @@ type ClaimViewProps = Pick<SidebarProps, "isFairLaunch"> & {
  * and we should use FairClaimLaunchAction,
  * else use SimpleClaimAction
  */
-function ClaimView({ networkFeeRate, isFairLaunch = false }: ClaimViewProps) {
+function ClaimView({ stream, isFairLaunch = false }: ClaimViewProps) {
   return (
     <div>
       <h3>Transaction Summary (ETHx)</h3>
       <p>{isFairLaunch ? "TODO" : "Claim Payment: 0.00"}</p>
-      <p>Stream: +{networkFeeRate}/s</p>
+      <p>Stream: +{stream}/s</p>
       <p>Stream Buffer: {}</p>
     </div>
   );
