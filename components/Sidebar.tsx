@@ -20,6 +20,8 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  /** during the fair launch period (true) or after (false) */
+  isFairLaunch?: boolean;
 };
 
 function Sidebar(props: SidebarProps) {

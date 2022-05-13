@@ -17,6 +17,7 @@ import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
+import ClaimView from "./ClaimView";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -54,6 +55,7 @@ export function ActionForm(props: ActionFormProps) {
     ceramic,
     setSelectedParcelId,
     paymentTokenAddress,
+    isFairLaunch = false,
   } = props;
 
   const {
@@ -267,6 +269,10 @@ export function ActionForm(props: ActionFormProps) {
                   aria-describedby="network-fee"
                 />
               </Form.Group>
+              <br />
+              <hr className="action-form_divider" />
+              <br />
+              <ClaimView isFairLaunch={isFairLaunch} />
               <br />
               <div style={{ display: "flex", gap: "16px" }}>
                 <Button
