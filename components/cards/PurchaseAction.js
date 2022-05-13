@@ -7,7 +7,8 @@ import {
   fromValueToRate,
 } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
+import { formatBalance } from "../../lib/formatBalance";
 
 function PurchaseAction({
   purchaserContract,
@@ -31,9 +32,7 @@ function PurchaseAction({
           perSecondFeeNumerator,
           perSecondFeeDenominator
         );
-  const displayCurrentForSalePrice = ethers.utils.formatEther(
-    _currentForSalePriceWei
-  );
+  const displayCurrentForSalePrice = formatBalance(_currentForSalePriceWei);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()

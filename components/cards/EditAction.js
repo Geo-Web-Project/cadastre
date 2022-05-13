@@ -8,6 +8,7 @@ import {
   fromValueToRate,
 } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
+import { formatBalance } from "../../lib/formatBalance";
 
 function EditAction({
   collectorContract,
@@ -25,8 +26,7 @@ function EditAction({
     perSecondFeeNumerator,
     perSecondFeeDenominator
   );
-  const displayCurrentForSalePrice =
-    ethers.utils.formatEther(currentForSalePrice);
+  const displayCurrentForSalePrice = formatBalance(currentForSalePrice);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()

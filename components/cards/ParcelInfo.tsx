@@ -3,7 +3,7 @@ import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import { PAYMENT_TOKEN } from "../../lib/constants";
@@ -14,6 +14,7 @@ import CID from "cids";
 import { fromRateToValue } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import { DIDDataStore } from "@glazed/did-datastore";
+import { formatBalance } from "../../lib/formatBalance";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -131,15 +132,14 @@ function ParcelInfo(props: ParcelInfoProps) {
     );
     forSalePrice = (
       <>
-        {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
+        {formatBalance(value)} {PAYMENT_TOKEN}{" "}
       </>
     );
     if (networkFeeBalance != null) {
       isExpired = networkFeeBalance.eq(0);
       networkFeeBalanceDisplay = (
         <>
-          {ethers.utils.formatEther(networkFeeBalance.toString())}{" "}
-          {PAYMENT_TOKEN}{" "}
+          {formatBalance(networkFeeBalance.toString())} {PAYMENT_TOKEN}{" "}
         </>
       );
     }

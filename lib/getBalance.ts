@@ -1,9 +1,7 @@
 import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
 import { NETWORK_ID } from "./constants";
-
-export const formatBalance = (balance: string | ethers.BigNumber): string =>
-  ethers.utils.formatEther(balance);
+import { formatBalance } from "./formatBalance";
 
 export const getETHBalance = async (
   provider: ethers.providers.Web3Provider,
