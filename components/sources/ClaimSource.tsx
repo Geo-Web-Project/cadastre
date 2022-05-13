@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
 import { claimLayer } from "../map-style";
-import { Coord, coordToFeature } from "../Map";
+import { Coord, coordToFeature, GW_MAX_LAT, GW_MAX_LON } from "../Map";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
 type Props = {
@@ -37,7 +37,12 @@ function ClaimSource(props: Props) {
           _y <= Math.max(claimBase1Coord.y, claimBase2Coord.y);
           _y++
         ) {
-          const gwCoord = GeoWebCoordinate.fromXandY(_x, _y);
+          const gwCoord = GeoWebCoordinate.fromXandY(
+            _x,
+            _y,
+            GW_MAX_LON,
+            GW_MAX_LAT
+          );
           _features.add(coordToFeature(gwCoord));
 
           if (existingCoords.has(gwCoord.toString())) {

@@ -18226,10 +18226,10 @@ jotai@^1.6.2:
   resolved "https://registry.yarnpkg.com/jotai/-/jotai-1.6.4.tgz#4d9904362c53c4293d32e21fb358d3de34b82912"
   integrity sha512-XC0ExLhdE6FEBdIjKTe6kMlHaAUV/QiwN7vZond76gNr/WdcdonJOEW79+5t8u38sR41bJXi26B1dRi7cCRz9A==
 
-js-geo-web-coordinate@^0.3.6:
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/js-geo-web-coordinate/-/js-geo-web-coordinate-0.3.6.tgz#64ed30d84fa4965492aad7898655d26280dcfa30"
-  integrity sha512-phBAuqU/wFRPxqsPPawaHNUG+1qk8GsMKUyIOBG4/s2ul4ASC7ADv+fuIu4Qud7OsOyO2HnqmheOgLJo7nrEnA==
+js-geo-web-coordinate@^0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/js-geo-web-coordinate/-/js-geo-web-coordinate-0.3.7.tgz#08de765ff0703455571f652f60f3fc77443bf5fc"
+  integrity sha512-WAHVk4u2G1dz4QYRfPlINns/YErBcLDcFwxS3203hSYsF3snP/h66GdbpUq6fmwGmnCGYabHUt/oDecKWY9b0Q==
   dependencies:
     bn.js "^5.1.3"
     ethers "^5.6.5"

@@ -24,8 +24,10 @@ import { ethers } from "ethers";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import Image from "next/image";
 
-export const ZOOM_GRID_LEVEL = 14;
-const GRID_DIM = 50;
+export const ZOOM_GRID_LEVEL = 18;
+const GRID_DIM = 40;
+export const GW_MAX_LAT = 23;
+export const GW_MAX_LON = 24;
 
 export enum STATE {
   VIEWING = 0,
@@ -99,7 +101,7 @@ const query = gql`
 `;
 
 function updateGrid(lat: number, lon: number, oldGrid: any, setGrid: any) {
-  const gwCoord = GeoWebCoordinate.fromGPS(lon, lat);
+  const gwCoord = GeoWebCoordinate.fromGPS(lon, lat, GW_MAX_LON, GW_MAX_LAT);
   const x = gwCoord.getX().toNumber();
   const y = gwCoord.getY().toNumber();
 
@@ -114,7 +116,11 @@ function updateGrid(lat: number, lon: number, oldGrid: any, setGrid: any) {
   const features = [];
   for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
     for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
-      features.push(coordToFeature(GeoWebCoordinate.fromXandY(_x, _y)));
+      features.push(
+        coordToFeature(
+          GeoWebCoordinate.fromXandY(_x, _y, GW_MAX_LON, GW_MAX_LAT)
+        )
+      );
     }
   }
 
@@ -258,7 +264,9 @@ function Map(props: MapProps) {
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
-          event.lngLat[1]
+          event.lngLat[1],
+          GW_MAX_LON,
+          GW_MAX_LAT
         );
 
         if (!existingCoords.has(gwCoord.toString())) {
@@ -313,7 +321,18 @@ function Map(props: MapProps) {
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
-          event.lngLat[1]
+          event.lngLat[1],
+          GW_MAX_LON,
+          GW_MAX_LAT
+        );
+
+        console.log("Coordinates:");
+        console.log(
+          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 19, 18)
+        );
+
+        console.log(
+          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 20, 19)
         );
 
         if (existingCoords.has(gwCoord.toString())) {
@@ -324,7 +343,12 @@ function Map(props: MapProps) {
       return false;
     }
 
-    const gwCoord = GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1]);
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      event.lngLat[0],
+      event.lngLat[1],
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
     const coord = {
       x: gwCoord.getX().toNumber(),
       y: gwCoord.getY().toNumber(),
