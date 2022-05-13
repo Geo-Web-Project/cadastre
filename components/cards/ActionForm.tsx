@@ -9,7 +9,12 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
 import { createNftDidUrl } from "nft-did-resolver";
-import { PAYMENT_TOKEN, NETWORK_ID, publishedModel } from "../../lib/constants";
+import {
+  PAYMENT_TOKEN,
+  NETWORK_ID,
+  publishedModel,
+  SECONDS_IN_YEAR,
+} from "../../lib/constants";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
@@ -93,10 +98,10 @@ export function ActionForm(props: ActionFormProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(60 * 60 * 24 * 365);
+  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(SECONDS_IN_YEAR);
 
   const annualFeePercentage =
-    (perSecondFeeNumerator.toNumber() * 60 * 60 * 24 * 365 * 100) /
+    (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
