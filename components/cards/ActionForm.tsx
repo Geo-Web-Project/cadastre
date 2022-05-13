@@ -277,7 +277,17 @@ export function ActionForm(props: ActionFormProps) {
               <br />
               <hr className="action-form_divider" />
               <br />
-              <ClaimView isFairLaunch={isFairLaunch} />
+              <ClaimView
+                networkFeeRate={
+                  annualNetworkFeeRate
+                    ? truncateEth(
+                        ethers.utils.formatEther(annualNetworkFeeRate),
+                        18
+                      )
+                    : "0"
+                }
+                isFairLaunch={isFairLaunch}
+              />
               <br />
               <div style={{ display: "flex", gap: "16px" }}>
                 <Button
