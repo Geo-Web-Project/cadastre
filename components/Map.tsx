@@ -15,6 +15,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -22,7 +23,6 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
-import Image from "next/image";
 
 export const ZOOM_GRID_LEVEL = 18;
 const GRID_DIM = 40;
@@ -486,7 +486,7 @@ function Map(props: MapProps) {
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
-            data={data}
+            data={data ?? null}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}
           ></ParcelSource>
