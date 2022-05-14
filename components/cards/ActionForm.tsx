@@ -286,6 +286,7 @@ export function ActionForm(props: ActionFormProps) {
                       )
                     : "0"
                 }
+                streamBuffer={"0"}
                 isFairLaunch={isFairLaunch}
               />
               <br />
