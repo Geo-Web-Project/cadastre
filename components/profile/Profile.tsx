@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
