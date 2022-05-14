@@ -276,14 +276,14 @@ export function ActionForm(props: ActionFormProps) {
               <br />
               <ClaimView
                 stream={
-                  annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 18)
+                  networkFeeRatePerSecond
+                    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
                     : "0"
                 }
                 streamBuffer={
-                  annualNetworkFeeRate
+                  networkFeeRatePerSecond
                     ? truncateEth(
-                        formatBalance(annualNetworkFeeRate.mul(2 * 60 * 60)),
+                        formatBalance(networkFeeRatePerSecond.mul(2 * 60 * 60)),
                         18
                       )
                     : "0"
