@@ -286,7 +286,15 @@ export function ActionForm(props: ActionFormProps) {
                       )
                     : "0"
                 }
-                streamBuffer={"0"}
+                streamBuffer={
+                  annualNetworkFeeRate
+                    ? truncateEth(
+                        ethers.utils.formatEther(
+                          annualNetworkFeeRate.mul(2 * 60 * 60)
+                        )
+                      )
+                    : "0"
+                }
                 isFairLaunch={isFairLaunch}
               />
               <br />
