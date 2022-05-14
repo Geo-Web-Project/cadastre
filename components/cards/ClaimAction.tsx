@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";

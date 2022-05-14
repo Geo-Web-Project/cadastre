@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import BN from "bn.js";
-import { ethers } from "ethers";
+import { formatBalance } from "../../lib/formatBalance";
 
 function _calculateAuctionValue(auctionLength, auctionEndDate, value) {
   let now = new Date();
@@ -91,7 +91,7 @@ function AuctionInfo({
         <br />{" "}
         {isLoading
           ? spinner
-          : `${ethers.utils.formatEther(auctionValue)} ${PAYMENT_TOKEN}`}
+          : `${formatBalance(auctionValue)} ${PAYMENT_TOKEN}`}
       </p>
       <p className="text-truncate">
         <span className="font-weight-bold">Auction End:</span>

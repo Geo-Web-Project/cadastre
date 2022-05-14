@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";

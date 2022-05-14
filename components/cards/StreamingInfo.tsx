@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
