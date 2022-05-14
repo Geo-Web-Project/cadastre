@@ -291,7 +291,8 @@ export function ActionForm(props: ActionFormProps) {
                     ? truncateEth(
                         ethers.utils.formatEther(
                           annualNetworkFeeRate.mul(2 * 60 * 60)
-                        )
+                        ),
+                        18
                       )
                     : "0"
                 }
