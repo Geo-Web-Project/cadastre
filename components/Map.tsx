@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named

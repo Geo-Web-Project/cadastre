@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { ethers, BigNumber } from "ethers";
 import {
