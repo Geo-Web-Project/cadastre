@@ -41,20 +41,21 @@ function Sidebar(props: SidebarProps) {
     }
 
     setDataStore(null);
-
-    async function updateDataStore() {
-      if (selectedParcelId) {
-        const _dataStore = new DIDDataStore({
-          ceramic,
-          model: publishedModel,
-        });
-        setDataStore(_dataStore);
-      } else {
-        setDataStore(null);
+    (async () => {
+      async function updateDataStore() {
+        if (selectedParcelId) {
+          const _dataStore = new DIDDataStore({
+            ceramic,
+            model: publishedModel,
+          });
+          setDataStore(_dataStore);
+        } else {
+          setDataStore(null);
+        }
       }
-    }
 
-    updateDataStore();
+      await updateDataStore();
+    })();
   }, [ceramic, selectedParcelId]);
 
   const didNFT = selectedParcelId
