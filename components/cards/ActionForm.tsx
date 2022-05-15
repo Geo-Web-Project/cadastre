@@ -24,6 +24,16 @@ import WrapModal from "../wrap/WrapModal";
 import ClaimView from "./ClaimView";
 import { formatBalance } from "../../lib/formatBalance";
 
+/**
+ * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
+ */
+const depositHoursMap: Record<number, number> = {
+  // mainnet
+  1: 8,
+  // rinkeby
+  4: 2,
+};
+
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
@@ -71,10 +81,20 @@ export function ActionForm(props: ActionFormProps) {
     didFail,
     isActing,
   } = actionData;
+  const [currentChainID, setCurrentChainID] =
+    React.useState<number>(NETWORK_ID);
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
+
+  React.useEffect(() => {
+    (async () => {
+      const { chainId } = await provider.getNetwork();
+      console.log("network: ", chainId);
+      setCurrentChainID(chainId);
+    })();
+  }, [provider]);
 
   const spinner = (
     <div className="spinner-border" role="status">
@@ -108,6 +128,19 @@ export function ActionForm(props: ActionFormProps) {
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
+
+  const stream = networkFeeRatePerSecond
+    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
+    : "0";
+
+  const streamBuffer = networkFeeRatePerSecond
+    ? truncateEth(
+        formatBalance(
+          networkFeeRatePerSecond.mul(depositHoursMap[currentChainID] * 60 * 60)
+        ),
+        18
+      )
+    : "0";
 
   function updateActionData(updatedValues: any) {
     function _updateData(updatedValues: any) {
@@ -275,19 +308,8 @@ export function ActionForm(props: ActionFormProps) {
               <hr className="action-form_divider" />
               <br />
               <ClaimView
-                stream={
-                  networkFeeRatePerSecond
-                    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
-                    : "0"
-                }
-                streamBuffer={
-                  networkFeeRatePerSecond
-                    ? truncateEth(
-                        formatBalance(networkFeeRatePerSecond.mul(2 * 60 * 60)),
-                        18
-                      )
-                    : "0"
-                }
+                stream={stream}
+                streamBuffer={streamBuffer}
                 isFairLaunch={isFairLaunch}
               />
               <br />
