@@ -362,8 +362,6 @@ function Map(props: MapProps) {
       });
     }
 
-    console.log("checking selected parcelId: ", interactionState);
-
     switch (interactionState) {
       case STATE.VIEWING:
         setClaimBase1Coord(null);

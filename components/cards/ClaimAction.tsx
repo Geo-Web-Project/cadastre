@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import GeoWebCoordinate from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
@@ -52,8 +52,7 @@ function ClaimAction(props: ClaimActionProps) {
       claimBase2Coord.x,
       claimBase2Coord.y
     );
-    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord);
-    path.map(
+    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord).map(
       // FIXME: it should be 'BN' type, waiting for js-geo-web-coordinate upgrade.
       (v: any) => {
         return BigNumber.from(v.toString(10));
@@ -71,14 +70,16 @@ function ClaimAction(props: ClaimActionProps) {
     const resp = await claimerContract.claim(
       account,
       newContributionRate,
-      // baseCoord.toString(10),
-      path,
+      ethers.utils.defaultAbiCoder.encode(
+        ["uint64", "uint256[]"],
+        [BigNumber.from(baseCoord.toString(10)), path]
+      ),
       {
         from: account,
         // value: calculateWeiSubtotalField(displayNetworkFeePayment),
       }
     );
-    const receipt = await resp?.wait();
+    const receipt = await resp.wait();
     const filter = claimerContract.filters.ParcelClaimed(null, null);
     const res = await claimerContract.queryFilter(
       filter,
