@@ -6,6 +6,13 @@ import GeoWebCoordinate from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { calculateWeiSubtotalField } from "../../lib/calculateWeiSubtotalField";
+import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
+import { sfInstance } from "../../lib/sfInstance";
+
+enum Action {
+  CLAIM,
+  BID,
+}
 
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -23,6 +30,8 @@ function ClaimAction(props: ClaimActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     claimerContract,
+    auctionSuperApp,
+    provider,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -67,24 +76,125 @@ function ClaimAction(props: ClaimActionProps) {
       perSecondFeeNumerator,
       perSecondFeeDenominator
     );
-    const resp = await claimerContract.claim(
-      account,
-      newContributionRate,
-      ethers.utils.defaultAbiCoder.encode(
+
+    if (!displayNewForSalePrice) {
+      throw new Error(
+        `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
+      );
+    }
+
+    console.log(actionData);
+
+    let claimData;
+
+    let actionDataToPassInUserData;
+
+    let userData;
+
+    let txn;
+
+    const filter = claimerContract.filters.ParcelClaimed(null, null);
+    const parcels = await claimerContract.queryFilter(filter);
+    const existingParcels = parcels.length > 0;
+    console.log("existing parcels: ", parcels);
+
+    const sf = await sfInstance(NETWORK_ID, provider);
+
+    const ethx = await sf.loadSuperToken(paymentTokenAddress);
+
+    const approveOperation = await ethx.approve({
+      receiver: auctionSuperApp.address,
+      amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
+    });
+
+    if (existingParcels) {
+      // update an exisiting flow
+      console.log("Updting an exisiting flow: ");
+      const existingLicenseID = parcels[0].args[0].toString();
+
+      const networkFeeRatePerSecond = fromValueToRate(
+        ethers.utils.parseEther(displayNewForSalePrice),
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+
+      claimData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256"],
+        [existingLicenseID]
+      );
+
+      actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "bytes"],
+        [networkFeeRatePerSecond, claimData]
+      );
+
+      userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint8", "bytes"],
+        [Action.CLAIM, actionDataToPassInUserData]
+      );
+
+      const existingFlow = await sf.cfaV1.getFlow({
+        superToken: paymentTokenAddress,
+        sender: account,
+        receiver: auctionSuperApp.address,
+        providerOrSigner: provider as any,
+      });
+
+      const updateFlowOperation = await sf.cfaV1.updateFlow({
+        flowRate: BigNumber.from(existingFlow.flowRate)
+          .add(Number(displayNewForSalePrice) / SECONDS_IN_YEAR)
+          .toString(),
+        receiver: auctionSuperApp.address,
+        superToken: paymentTokenAddress,
+        userData,
+      });
+
+      txn = await sf
+        .batchCall([approveOperation, updateFlowOperation])
+        .exec(account as any);
+
+      console.log(txn);
+    } else {
+      // create a new flow
+      console.log("Creating a new flow: ");
+      claimData = ethers.utils.defaultAbiCoder.encode(
         ["uint64", "uint256[]"],
         [BigNumber.from(baseCoord.toString(10)), path]
-      ),
-      {
-        from: account,
-        // value: calculateWeiSubtotalField(displayNetworkFeePayment),
-      }
-    );
-    const receipt = await resp.wait();
-    const filter = claimerContract.filters.ParcelClaimed(null, null);
+      );
+
+      userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint8", "bytes"],
+        [Action.CLAIM, claimData]
+      );
+
+      const flowRate = ethers.utils
+        .parseEther(
+          (Number(displayNewForSalePrice) / SECONDS_IN_YEAR).toString()
+        )
+        .toString();
+
+      const createFlowOperation = await sf.cfaV1.createFlow({
+        flowRate,
+        receiver: auctionSuperApp.address,
+        superToken: paymentTokenAddress,
+        userData,
+      });
+
+      txn = await sf
+        .batchCall([approveOperation, createFlowOperation])
+        .exec(account as any);
+
+      console.log(txn);
+    }
+
+    if (!txn) {
+      throw new Error(`transaction is undefined: ${txn}`);
+    }
+
     const res = await claimerContract.queryFilter(
       filter,
-      receipt.blockNumber,
-      receipt.blockNumber
+      txn.blockNumber,
+      txn.blockNumber
     );
     const licenseId = res[0].args[0].toString();
     return licenseId;

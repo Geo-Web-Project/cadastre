@@ -7,9 +7,9 @@ import {
   setFrameworkForSdkRedux,
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
+import { sfInstance } from "../lib/sfInstance";
 
 export const { sfApi } = initializeSfApiSlice((options) =>
   createApiWithReactHooks({
@@ -26,15 +26,15 @@ export const { sfTransactions } = initializeSfTransactionSlice();
 export const makeStore = () => {
   const chainId = 4;
 
-  setFrameworkForSdkRedux(chainId, () =>
-    Framework.create({
+  setFrameworkForSdkRedux(chainId, async () => {
+    return await sfInstance(
       chainId,
-      provider: new ethers.providers.InfuraProvider(
+      new ethers.providers.InfuraProvider(
         chainId,
         process.env.NEXT_PUBLIC_INFURA_ID
-      ),
-    })
-  );
+      )
+    );
+  });
 
   return configureStore({
     reducer: {
