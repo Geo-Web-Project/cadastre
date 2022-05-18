@@ -1,11 +1,10 @@
 import * as React from "react";
-import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
+import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { BigNumber, ethers } from "ethers";
 import GeoWebCoordinate from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { calculateWeiSubtotalField } from "../../lib/calculateWeiSubtotalField";
 import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 
@@ -27,8 +26,6 @@ function ClaimAction(props: ClaimActionProps) {
     paymentTokenAddress,
     claimBase1Coord,
     claimBase2Coord,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator,
     claimerContract,
     auctionSuperApp,
     provider,
@@ -70,12 +67,6 @@ function ClaimAction(props: ClaimActionProps) {
     if (path.length == 0) {
       path = [BigNumber.from(0)];
     }
-    const newValue = calculateWeiSubtotalField(displayNewForSalePrice);
-    const newContributionRate = fromValueToRate(
-      newValue,
-      perSecondFeeNumerator,
-      perSecondFeeDenominator
-    );
 
     if (!displayNewForSalePrice) {
       throw new Error(
@@ -107,16 +98,16 @@ function ClaimAction(props: ClaimActionProps) {
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
 
+    const newFlowRate = ethers.utils
+      .parseEther(displayNewForSalePrice)
+      .div(SECONDS_IN_YEAR);
+
+    const signer = provider.getSigner() as any;
+
     if (existingParcels) {
       // update an exisiting flow
       console.log("Updting an exisiting flow: ");
       const existingLicenseID = parcels[0].args[0].toString();
-
-      const networkFeeRatePerSecond = fromValueToRate(
-        ethers.utils.parseEther(displayNewForSalePrice),
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      );
 
       claimData = ethers.utils.defaultAbiCoder.encode(
         ["uint256"],
@@ -125,7 +116,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
         ["uint256", "bytes"],
-        [networkFeeRatePerSecond, claimData]
+        [displayNewForSalePrice, claimData]
       );
 
       userData = ethers.utils.defaultAbiCoder.encode(
@@ -142,7 +133,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       const updateFlowOperation = await sf.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
-          .add(Number(displayNewForSalePrice) / SECONDS_IN_YEAR)
+          .add(newFlowRate)
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentTokenAddress,
@@ -151,7 +142,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       txn = await sf
         .batchCall([approveOperation, updateFlowOperation])
-        .exec(account as any);
+        .exec(signer);
 
       console.log(txn);
     } else {
@@ -167,11 +158,9 @@ function ClaimAction(props: ClaimActionProps) {
         [Action.CLAIM, claimData]
       );
 
-      const flowRate = ethers.utils
-        .parseEther(
-          (Number(displayNewForSalePrice) / SECONDS_IN_YEAR).toString()
-        )
-        .toString();
+      const flowRate = newFlowRate.toString();
+
+      console.log("flowRate: ", flowRate);
 
       const createFlowOperation = await sf.cfaV1.createFlow({
         flowRate,
@@ -182,7 +171,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       txn = await sf
         .batchCall([approveOperation, createFlowOperation])
-        .exec(account as any);
+        .exec(signer);
 
       console.log(txn);
     }
