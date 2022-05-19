@@ -21,6 +21,9 @@ const GeoWebCoordinate = require("js-geo-web-coordinate");
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
 
+const ZOOM_QUERY_LEVEL = 8;
+const QUERY_DIM = 1000;
+
 export const STATE_VIEWING = 0;
 export const STATE_CLAIM_SELECTING = 1;
 export const STATE_CLAIM_SELECTED = 2;
@@ -30,11 +33,23 @@ export const STATE_PARCEL_PURCHASING = 5;
 export const STATE_EDITING_GALLERY = 6;
 
 const query = gql`
-  query Polygons($lastBlock: BigInt) {
+  query Polygons(
+    $lastBlock: BigInt
+    $minX: BigInt
+    $maxX: BigInt
+    $minY: BigInt
+    $maxY: BigInt
+  ) {
     geoWebCoordinates(
       orderBy: createdAtBlock
       first: 1000
-      where: { createdAtBlock_gt: $lastBlock }
+      where: {
+        createdAtBlock_gt: $lastBlock
+        coordX_gte: $minX
+        coordX_lt: $maxX
+        coordY_gte: $minY
+        coordY_lt: $maxY
+      }
     ) {
       id
       createdAtBlock
@@ -113,27 +128,31 @@ function Map({
   ipfs,
   pinningManager,
 }) {
-  const { loading, data, fetchMore } = useQuery(query, {
+  const { loading, data, fetchMore, refetch } = useQuery(query, {
     variables: {
       lastBlock: 0,
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0,
     },
   });
-
 
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
 
-
-  const [mapstyle, setMapstyle] = React.useState("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
-  const [mapStyleName, setMapStyleName] = React.useState("street")
+  const [mapstyle, setMapstyle] = React.useState(
+    "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+  );
+  const [mapStyleName, setMapStyleName] = React.useState("street");
 
   const handleMapstyle = (newStyle) => {
-    if(newStyle === "satellite") setMapstyle("mapbox://styles/mapbox/satellite-streets-v11")
-    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln")
+    if (newStyle === "satellite")
+      setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
+    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
 
     setMapStyleName(newStyle);
   };
-
 
   // Fetch more until none left
   useEffect(() => {
@@ -143,14 +162,29 @@ function Map({
     let newLastBlock =
       data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
+    let gwCoord = GeoWebCoordinate.from_gps(
+      viewport.longitude,
+      viewport.latitude
+    );
+    let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+    let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       },
     });
   }, [data]);
 
   const [viewport, setViewport] = useState({});
+  const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
+  const [oldCoordX, setOldCoordX] = useState(0);
+  const [oldCoordY, setOldCoordY] = useState(0);
+
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState(STATE_VIEWING);
   const [gridHoverCoord, setGridHoverCoord] = useState("");
@@ -173,7 +207,7 @@ function Map({
   const _onViewportSearch = useCallback((nextViewport) => {
     setViewport(nextViewport);
   }, []);
-  
+
   function _onViewportChange(nextViewport) {
     if (interactionState == STATE_EDITING_GALLERY) {
       return;
@@ -187,18 +221,60 @@ function Map({
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
+
+    let gwCoord = GeoWebCoordinate.from_gps(
+      nextViewport.longitude,
+      nextViewport.latitude
+    );
+    let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+    let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+
+    if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setShouldUpdateOnNextZoom(false);
+    }
+
+    if (nextViewport.zoom < ZOOM_QUERY_LEVEL) {
+      setShouldUpdateOnNextZoom(true);
+    }
+
+    if (
+      nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
+      (Math.abs(x - oldCoordX) > QUERY_DIM ||
+        Math.abs(y - oldCoordY) > QUERY_DIM)
+    ) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setOldCoordX(x);
+      setOldCoordY(y);
+    }
   }
 
   // if using Geocoder default settings, you can just use handleViewportChange directly
-  const _onGeocoderViewportChange = useCallback((newViewport) => {
+  const _onGeocoderViewportChange = useCallback(
+    (newViewport) => {
       const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
       return _onViewportSearch({
         ...newViewport,
-        ...geocoderDefaultOverrides
+        ...geocoderDefaultOverrides,
       });
-  }, [_onViewportSearch]);
-
+    },
+    [_onViewportSearch]
+  );
 
   function onHover(event) {
     if (event.features == null || viewport.zoom < 5) {
@@ -336,14 +412,19 @@ function Map({
   useEffect(() => {
     if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
-      let newLastBlock =
-        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
-          .createdAtBlock;
+      let gwCoord = GeoWebCoordinate.from_gps(
+        viewport.longitude,
+        viewport.latitude
+      );
+      let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+      let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-      fetchMore({
-        variables: {
-          lastBlock: newLastBlock,
-        },
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       });
     }
 
@@ -439,22 +520,38 @@ function Map({
             mapRef={mapRef}
             containerRef={geocoderContainerRef}
             onViewportChange={_onGeocoderViewportChange}
-            mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+            mapboxApiAccessToken={
+              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN
+            }
             position="top-right"
           />
         </ReactMapGL>
       </Col>
-
-      <ButtonGroup style={{position: "absolute", bottom: "4%", right: "2%", radius: 12 }} 
-      aria-label="Basic example">
-        <Button style={{ backgroundColor: mapStyleName==="street"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("street")} >
-          <img src={"street_ic.png"} style={{ height:30, width: 30 }} />
+      <ButtonGroup
+        style={{ position: "absolute", bottom: "4%", right: "2%", radius: 12 }}
+        aria-label="Basic example"
+      >
+        <Button
+          style={{
+            backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
+          }}
+          variant="secondary"
+          onClick={() => handleMapstyle("street")}
+        >
+          <img src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
-        <Button style={{ backgroundColor: mapStyleName==="satellite"?"#2fc1c1":"#202333" }} variant="secondary" onClick={()=>handleMapstyle("satellite")} >
-          <img src={"satellite_ic.png"} style={{ height:30, width: 30 }} />
+        <Button
+          style={{
+            backgroundColor:
+              mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
+          }}
+          variant="secondary"
+          onClick={() => handleMapstyle("satellite")}
+        >
+          <img src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
       </ButtonGroup>
-    );
+      );
     </>
   );
 }
