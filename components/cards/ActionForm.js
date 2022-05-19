@@ -153,10 +153,10 @@ export function ActionForm({
     }
 
     updateActionData({ isActing: true });
-    const newStreamId = await parcelRootStreamManager.createOrUpdateStream({
-      name: parcelName,
-      webContent: parcelWebContentURI,
-    });
+    let content = {};
+    if (parcelName) content["name"] = parcelName;
+    if (parcelWebContentURI) content["webContent"] = parcelWebContentURI;
+    const newStreamId = await parcelRootStreamManager.createOrUpdateStream(content);
     performAction(newStreamId, () => {
       return parcelRootStreamManager.getStreamId();
     });
