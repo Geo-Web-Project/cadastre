@@ -6,7 +6,7 @@ import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 import GridHoverSource from "./sources/GridHoverSource";
 import ClaimSource from "./sources/ClaimSource";
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
 import Col from "react-bootstrap/Col";
 
@@ -128,7 +128,15 @@ function Map({
   ipfs,
   pinningManager,
 }) {
-  const [getCoords, { loading, data, fetchMore }] = useLazyQuery(query);
+  const { loading, data, fetchMore, refetch } = useQuery(query, {
+    variables: {
+      lastBlock: 0,
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0,
+    },
+  });
 
   const geocoderContainerRef = useRef();
   const mapRef = useRef();
@@ -161,7 +169,6 @@ function Map({
     let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
     let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-    console.log("FETCH MORE");
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
@@ -174,7 +181,10 @@ function Map({
   }, [data]);
 
   const [viewport, setViewport] = useState({});
-  const [oldZoom, setOldZoom] = useState(0);
+  const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
+  const [oldCoordX, setOldCoordX] = useState(0);
+  const [oldCoordY, setOldCoordY] = useState(0);
+
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState(STATE_VIEWING);
   const [gridHoverCoord, setGridHoverCoord] = useState("");
@@ -212,29 +222,44 @@ function Map({
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
 
-    if (
-      nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
-      Math.abs(nextViewport.zoom - oldZoom) > 1
-    ) {
-      let gwCoord = GeoWebCoordinate.from_gps(
-        nextViewport.longitude,
-        nextViewport.latitude
-      );
-      let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-      let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+    let gwCoord = GeoWebCoordinate.from_gps(
+      nextViewport.longitude,
+      nextViewport.latitude
+    );
+    let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+    let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-      console.log("FETCH ON ZOOM");
-      getCoords({
-        variables: {
-          lastBlock: 0,
-          minX: x - QUERY_DIM,
-          maxX: x + QUERY_DIM,
-          minY: y - QUERY_DIM,
-          maxY: y + QUERY_DIM,
-        },
+    if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       });
 
-      setOldZoom(nextViewport.zoom);
+      setShouldUpdateOnNextZoom(false);
+    }
+
+    if (nextViewport.zoom < ZOOM_QUERY_LEVEL) {
+      setShouldUpdateOnNextZoom(true);
+    }
+
+    if (
+      nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
+      (Math.abs(x - oldCoordX) > QUERY_DIM ||
+        Math.abs(y - oldCoordY) > QUERY_DIM)
+    ) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setOldCoordX(x);
+      setOldCoordY(y);
     }
   }
 
@@ -394,15 +419,12 @@ function Map({
       let x = GeoWebCoordinate.get_x(gwCoord).toNumber();
       let y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-      console.log("FETCH 1");
-      getCoords({
-        variables: {
-          lastBlock: 0,
-          minX: x - QUERY_DIM,
-          maxX: x + QUERY_DIM,
-          minY: y - QUERY_DIM,
-          maxY: y + QUERY_DIM,
-        },
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       });
     }
 
