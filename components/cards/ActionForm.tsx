@@ -92,7 +92,6 @@ export function ActionForm(props: ActionFormProps) {
   React.useEffect(() => {
     (async () => {
       const { chainId } = await provider.getNetwork();
-      console.log("network: ", chainId);
       setCurrentChainID(chainId);
     })();
   }, [provider]);

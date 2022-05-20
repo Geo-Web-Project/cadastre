@@ -77,8 +77,6 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
-    console.log(actionData);
-
     const claimData = ethers.utils.defaultAbiCoder.encode(
       ["uint64", "uint256[]"],
       [BigNumber.from(baseCoord.toString(10)), path]
@@ -121,7 +119,6 @@ function ClaimAction(props: ClaimActionProps) {
 
     if (existingFlow.flowRate !== "0") {
       // update an exisiting flow
-      console.log("Updting an exisiting flow: ");
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
@@ -140,11 +137,8 @@ function ClaimAction(props: ClaimActionProps) {
       txn = await sf
         .batchCall([approveOperation, updateFlowOperation])
         .exec(signer);
-
-      console.log(txn);
     } else {
       // create a new flow
-      console.log("Creating a new flow: ");
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
@@ -152,8 +146,6 @@ function ClaimAction(props: ClaimActionProps) {
       );
 
       const flowRate = newFlowRate.toString();
-
-      console.log("flowRate: ", flowRate);
 
       const createFlowOperation = await sf.cfaV1.createFlow({
         flowRate,
@@ -165,8 +157,6 @@ function ClaimAction(props: ClaimActionProps) {
       txn = await sf
         .batchCall([approveOperation, createFlowOperation])
         .exec(signer);
-
-      console.log(txn);
     }
 
     if (!txn) {
