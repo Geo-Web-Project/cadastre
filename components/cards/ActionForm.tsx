@@ -148,10 +148,11 @@ export function ActionForm(props: ActionFormProps) {
         id: didNFT,
       });
 
-      const _basicProfileStreamManager = new BasicProfileStreamManager(
-        dataStore
-      );
-      await _basicProfileStreamManager.createOrUpdateStream(content);
+      // FIXME: Update Ceramic content
+      // const _basicProfileStreamManager = new BasicProfileStreamManager(
+      //   dataStore
+      // );
+      // await _basicProfileStreamManager.createOrUpdateStream(content);
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
     } else {
       // Use existing BasicProfileStreamManager

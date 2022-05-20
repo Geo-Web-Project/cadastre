@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { formatBalance } from "../../lib/formatBalance";
@@ -11,11 +11,17 @@ export type EditActionProps = SidebarProps & {
   parcelData: any;
 };
 
+enum Action {
+  CLAIM,
+  BID,
+}
+
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
     // refetchParcelData,
     basicProfileStreamManager,
+    selectedParcelId,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.landParcel.license.forSalePrice
@@ -51,12 +57,28 @@ function EditAction(props: EditActionProps) {
     updateActionData({ isActing: true });
 
     // Check for changes
-    if (displayNewForSalePrice == displayCurrentForSalePrice) {
+    if (
+      !displayNewForSalePrice ||
+      displayNewForSalePrice == displayCurrentForSalePrice
+    ) {
       // Content change only
       return;
     }
 
-    // const newForSalePrice = ethers.utils.parseEther(displayNewForSalePrice ?? displayCurrentForSalePrice);
+    const bidData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256"],
+      [selectedParcelId]
+    );
+
+    const actionData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "bytes"],
+      [ethers.utils.parseEther(displayNewForSalePrice), bidData]
+    );
+
+    const userData = ethers.utils.defaultAbiCoder.encode(
+      ["uint8", "bytes"],
+      [Action.BID, actionData]
+    );
 
     // const newContributionRate = fromValueToRate(
     //   newForSalePrice,
