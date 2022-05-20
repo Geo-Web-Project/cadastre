@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named
@@ -28,6 +27,8 @@ import firebase from "firebase/app";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
+const ZOOM_QUERY_LEVEL = 8;
+const QUERY_DIM = 1000;
 
 export enum STATE {
   VIEWING = 0,
@@ -40,11 +41,23 @@ export enum STATE {
 }
 
 const query = gql`
-  query Polygons($lastBlock: BigInt) {
+  query Polygons(
+    $lastBlock: BigInt
+    $minX: BigInt
+    $maxX: BigInt
+    $minY: BigInt
+    $maxY: BigInt
+  ) {
     geoWebCoordinates(
       orderBy: createdAtBlock
       first: 1000
-      where: { createdAtBlock_gt: $lastBlock }
+      where: {
+        createdAtBlock_gt: $lastBlock
+        coordX_gte: $minX
+        coordX_lt: $maxX
+        coordY_gte: $minY
+        coordY_lt: $maxY
+      }
     ) {
       id
       createdAtBlock
@@ -127,9 +140,13 @@ export type MapProps = {
 };
 
 function Map(props: MapProps) {
-  const { data, fetchMore } = useQuery(query, {
+  const { data, fetchMore, refetch } = useQuery(query, {
     variables: {
       lastBlock: 0,
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0,
     },
   });
 
@@ -157,14 +174,28 @@ function Map(props: MapProps) {
     const newLastBlock =
       data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
+    const gwCoord = GeoWebCoordinate.from_gps(
+      viewport.longitude,
+      viewport.latitude
+    );
+    const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+    const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       },
     });
   }, [data, fetchMore]);
 
   const [viewport, setViewport] = useState<any>({});
+  const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
+  const [oldCoordX, setOldCoordX] = useState(0);
+  const [oldCoordY, setOldCoordY] = useState(0);
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState<STATE>(
     STATE.VIEWING
@@ -202,6 +233,46 @@ function Map(props: MapProps) {
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+    }
+
+    const gwCoord = GeoWebCoordinate.from_gps(
+      nextViewport.longitude,
+      nextViewport.latitude
+    );
+    const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+    const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+
+    if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setShouldUpdateOnNextZoom(false);
+    }
+
+    if (nextViewport.zoom < ZOOM_QUERY_LEVEL) {
+      setShouldUpdateOnNextZoom(true);
+    }
+
+    if (
+      nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
+      (Math.abs(x - oldCoordX) > QUERY_DIM ||
+        Math.abs(y - oldCoordY) > QUERY_DIM)
+    ) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setOldCoordX(x);
+      setOldCoordY(y);
     }
   }
 
@@ -353,14 +424,19 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
-      const newLastBlock =
-        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
-          .createdAtBlock;
+      const gwCoord = GeoWebCoordinate.from_gps(
+        viewport.longitude,
+        viewport.latitude
+      );
+      const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
+      const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
 
-      fetchMore({
-        variables: {
-          lastBlock: newLastBlock,
-        },
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       });
     }
 
@@ -379,7 +455,7 @@ function Map(props: MapProps) {
       default:
         break;
     }
-  }, [interactionState, data, fetchMore, selectedParcelId]);
+  }, [interactionState]);
 
   useEffect(() => {
     if (data != null) {

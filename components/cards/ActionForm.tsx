@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -17,6 +16,7 @@ import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
+import { formatBalance } from "../../lib/formatBalance";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -257,10 +257,7 @@ export function ActionForm(props: ActionFormProps) {
                   disabled
                   value={`${
                     annualNetworkFeeRate
-                      ? truncateEth(
-                          ethers.utils.formatEther(annualNetworkFeeRate),
-                          3
-                        )
+                      ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
                       : "0"
                   } ${PAYMENT_TOKEN}/year`}
                   aria-label="Network Fee"

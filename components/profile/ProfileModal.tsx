@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Col from "react-bootstrap/Col";
