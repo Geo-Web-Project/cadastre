@@ -24,7 +24,7 @@ export type ActionFormProps = SidebarProps & {
   basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
-  performAction: () => Promise<string>;
+  performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
 };
@@ -102,9 +102,9 @@ export function ActionForm(props: ActionFormProps) {
         false || parcelWebContentURI.length > 150
     : false;
 
-  function updateActionData(updatedValues: any) {
-    function _updateData(updatedValues: any) {
-      return (prevState: any) => {
+  function updateActionData(updatedValues: ActionData) {
+    function _updateData(updatedValues: ActionData) {
+      return (prevState: ActionData) => {
         return { ...prevState, ...updatedValues };
       };
     }

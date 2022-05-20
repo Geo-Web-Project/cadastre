@@ -12,6 +12,7 @@ import CID from "cids";
 import { SidebarProps } from "../Sidebar";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { formatBalance } from "../../lib/formatBalance";
+import EditAction from "./EditAction";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -45,6 +46,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     dataStore,
     didNFT,
     basicProfileStreamManager,
+    licenseAddress,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -256,21 +258,14 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : (
             <p>Unclaimed Coordinates</p>
           )}
-          {/* {interactionState == STATE.PARCEL_EDITING ? (
+          {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
-              collectorContract={collectorContract}
-              account={account}
-              setInteractionState={setInteractionState}
-              setSelectedParcelId={setSelectedParcelId}
-              perSecondFeeNumerator={perSecondFeeNumerator}
-              perSecondFeeDenominator={perSecondFeeDenominator}
+              // setSelectedParcelId={setSelectedParcelId}
               parcelData={data}
-              refetchParcelData={refetch}
-              basicProfileStreamManager={basicProfileStreamManager}
-              licenseAddress={licenseAddress}
+              {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_PURCHASING ? (
+          {/* {interactionState == STATE.PARCEL_PURCHASING ? (
             <PurchaseAction
               purchaserContract={purchaserContract}
               collectorContract={collectorContract}
