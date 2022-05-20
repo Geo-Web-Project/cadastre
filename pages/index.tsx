@@ -16,15 +16,13 @@ import {
   CERAMIC_URL,
   IPFS_BOOTSTRAP_PEER,
   IPFS_PRELOAD_NODE,
-  THREE_ID_CONNECT_IFRAME_URL,
-  THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
-import * as KeyDidResolver from "key-did-resolver";
-import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import { getResolver as getKeyResolver } from "key-did-resolver";
+import { getResolver as get3IDResolver } from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
 
 import { ethers } from "ethers";
@@ -93,22 +91,7 @@ function IndexPage() {
     }
 
     const start = async () => {
-      // Create Ceramic and DID with resolvers
-      const ceramic = new CeramicClient(CERAMIC_URL);
-
-      const resolver = {
-        ...KeyDidResolver.getResolver(),
-        ...ThreeIdResolver.getResolver(ceramic),
-      };
-
-      const did = new DID({ resolver });
-      ceramic.setDID(did);
-
-      // Add provider to Ceramic DID
-      const threeIdConnect = new ThreeIdConnect(
-        THREE_ID_CONNECT_IFRAME_URL,
-        THREE_ID_CONNECT_MANAGEMENT_URL
-      );
+      const threeIdConnect = new ThreeIdConnect("mainnet");
 
       await threeIdConnect.connect(
         new EthereumAuthProvider(
@@ -117,11 +100,21 @@ function IndexPage() {
         )
       );
 
+      // Create Ceramic and DID with resolvers
+      const ceramic = new CeramicClient(CERAMIC_URL);
       const didProvider = await threeIdConnect.getDidProvider();
 
-      await ceramic?.did?.setProvider(didProvider);
-      await ceramic?.did?.authenticate();
+      const did = new DID({
+        // Get the DID provider from the 3ID Connect instance
+        provider: didProvider,
+        resolver: {
+          ...get3IDResolver(ceramic),
+          ...getKeyResolver(),
+        },
+      });
+      await did.authenticate();
 
+      ceramic.did = did;
       setCeramic(ceramic);
 
       const { ipfs, provider, apiAddress } = await getIpfs({

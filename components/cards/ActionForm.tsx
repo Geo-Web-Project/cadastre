@@ -115,7 +115,7 @@ export function ActionForm(props: ActionFormProps) {
   async function submit() {
     updateActionData({ isActing: true });
 
-    let parcelId: string | null;
+    let parcelId: string | void;
     try {
       // Perform action
       parcelId = await performAction();

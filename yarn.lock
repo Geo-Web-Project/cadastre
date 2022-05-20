@@ -2,14 +2,6 @@
 # yarn lockfile v1
 
 
-"@3id/common@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@3id/common/-/common-0.2.1.tgz#7232d086b983f0a1ee910d14d6505e0d6eac596d"
-  integrity sha512-/48ukOfqxAYYkKFmZUSU7Xajo1bm/aic5ucd433BdupGiuSS6P60Lxx/YUbgazT4fDcV9OgZ/qhXJLFuhHs5RQ==
-  dependencies:
-    errors-utils "^0.1.0"
-    uint8arrays "^2.1.5"
-
 "@3id/common@^0.4.1":
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@3id/common/-/common-0.4.1.tgz#5cae821bf299c95b809547d839ef71e4831950fe"
@@ -17,15 +9,6 @@
   dependencies:
     errors-utils "^0.2.0"
     uint8arrays "^3.0.0"
-
-"@3id/connect-display@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@3id/connect-display/-/connect-display-0.2.1.tgz#c6ec92edd6e267915c021f447dc8ef0b2142c098"
-  integrity sha512-cKRhMdoC1I93IejcQJlvEMmRNvqG5ktKf6VqpH6VaKjbqHBBkZbw1/QesMoQWH4H4fS56SnMOYvGTVUfPc0Y2Q==
-  dependencies:
-    "@ceramicnetwork/rpc-window" "^0.1.1"
-    "@ceramicnetwork/transport-postmessage" "^0.3.0"
-    rxjs "^6.6.6"
 
 "@3id/connect-display@^0.4.1":
   version "0.4.1"
@@ -35,19 +18,6 @@
     "@ceramicnetwork/rpc-window" "^0.6.0"
     "@ceramicnetwork/transport-postmessage" "^0.6.0"
     rxjs "^7.5.2"
-
-"@3id/connect@^0.2.5":
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/@3id/connect/-/connect-0.2.5.tgz#2331828cb6d2a079a61ae2c8e896654debba76be"
-  integrity sha512-K3T9ExUjilYyHdQeRUnvd5H5Qanz/XseJTOkRVJyCeADrw2RGPH1gFEJ8XtP7UDqsZwrdcIilLNwSCi72ybGYA==
-  dependencies:
-    "@3id/common" "^0.2.1"
-    "@3id/connect-display" "^0.2.1"
-    "@3id/window-auth-provider" "^0.2.5"
-    "@ceramicnetwork/blockchain-utils-linking" "^1.2.0"
-    postmsg-rpc "^2.4.0"
-    rpc-utils "^0.4.0"
-    rxjs "^6.6.6"
 
 "@3id/connect@^0.4.1":
   version "0.4.1"
@@ -62,14 +32,6 @@
     dids "^3.0.0"
     rpc-utils "^0.6.1"
     rxjs "^7.5.2"
-
-"@3id/window-auth-provider@^0.2.5":
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/@3id/window-auth-provider/-/window-auth-provider-0.2.5.tgz#7c51065e2149bc2fcd248f204ae724837927c94f"
-  integrity sha512-HEONYQQtwSK07BZiZ7QtVbEHEspmXD0HD5JLR8Jza9K3+bNRSkYuUVxkIxDgT0TsXF8l3hRGfm6AD+vR+4CBCw==
-  dependencies:
-    "@ceramicnetwork/rpc-window" "^0.1.1"
-    caip "^0.9.2"
 
 "@3id/window-auth-provider@^0.4.1":
   version "0.4.1"
@@ -1789,16 +1751,6 @@
     caip "^0.9.2"
     uint8arrays "^2.0.5"
 
-"@ceramicnetwork/blockchain-utils-linking@^1.2.0":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/blockchain-utils-linking/-/blockchain-utils-linking-1.3.2.tgz#674e77ce52e0392e67f13fa96a788734139fb09b"
-  integrity sha512-3YmlW1U7QxTZlmdr9E1QJ93YsS8MMAC8Qe+xw9+utim92Sg81eboYCozccodssZV5yu+nWmufBbXbwnvAFngHg==
-  dependencies:
-    "@stablelib/sha256" "^1.0.0"
-    caip "~0.9.2"
-    near-api-js "^0.42.0"
-    uint8arrays "^2.0.5"
-
 "@ceramicnetwork/blockchain-utils-linking@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/blockchain-utils-linking/-/blockchain-utils-linking-2.0.0.tgz#85a450800161cac735a5fab4ac444bb91582e48d"
@@ -1882,6 +1834,24 @@
     "@ceramicnetwork/streamid" "^2.0.0"
     abort-controller "^3.0.0"
     caip "~1.0.0"
+    ceramic-cacao "^1.0.0"
+    cross-fetch "^3.1.4"
+    flat "^5.0.2"
+    jet-logger "^1.1.5"
+    lodash.clonedeep "^4.5.0"
+    logfmt "^1.3.2"
+    multiformats "^9.5.8"
+    rxjs "^7.5.2"
+    uint8arrays "^3.0.0"
+
+"@ceramicnetwork/common@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/common/-/common-2.0.4.tgz#be7d88361b96dcca96c7bf195de083900bce84ef"
+  integrity sha512-bgTz3YnbyOLQkKf3m6FhkIcZlG+dxbvnuOO43QiwLQPRZyfuwhGbhDNiW67pVdKkCCON/tW8vQX/mUIFFIFaIw==
+  dependencies:
+    "@ceramicnetwork/streamid" "^2.0.4"
+    abort-controller "^3.0.0"
+    caip "~1.1.0"
     ceramic-cacao "^1.0.0"
     cross-fetch "^3.1.4"
     flat "^5.0.2"
@@ -1988,6 +1958,18 @@
     query-string "^7.1.0"
     rxjs "^7.5.2"
 
+"@ceramicnetwork/http-client@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/http-client/-/http-client-2.0.4.tgz#7db00a7730e358a8516abb532309852d80b5ea4d"
+  integrity sha512-RwPu4IdtgCnnHDR80l9SKhnk0ju2xZ7j+sZghfsdYTXxREQVEnGUemVHy+3rsuCpeEXhKcCATwLYiXEVNxs1NQ==
+  dependencies:
+    "@ceramicnetwork/common" "^2.0.4"
+    "@ceramicnetwork/stream-caip10-link" "^2.0.4"
+    "@ceramicnetwork/stream-tile" "^2.1.3"
+    "@ceramicnetwork/streamid" "^2.0.4"
+    query-string "^7.1.0"
+    rxjs "^7.5.2"
+
 "@ceramicnetwork/ipfs-topology@^0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/ipfs-topology/-/ipfs-topology-0.0.4.tgz#82feeebf21707969c6186600e13cee692b80ffce"
@@ -2015,17 +1997,6 @@
     "@stablelib/sha256" "^1.0.0"
     ipfs-http-client "~49.0.3"
 
-"@ceramicnetwork/rpc-postmessage@^0.4.0":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/rpc-postmessage/-/rpc-postmessage-0.4.1.tgz#71babfe7a23201b25ab447eb1f36f9565407fc9c"
-  integrity sha512-2M2Tm+wm6p6lkXCno5Gj5FmKlopYq6iYlsj37RZzno/fdrkaPFHJC+JGm+qDGSjWWK7I85+mSHRd9/IX2/F6XQ==
-  dependencies:
-    "@ceramicnetwork/rpc-transport" "^0.3.0"
-    "@ceramicnetwork/transport-postmessage" "^0.3.0"
-    "@ceramicnetwork/transport-subject" "^0.3.0"
-    rpc-utils "^0.4.0"
-    rxjs "^6.6.6"
-
 "@ceramicnetwork/rpc-postmessage@^0.6.0":
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/rpc-postmessage/-/rpc-postmessage-0.6.1.tgz#185eca671c48bc509471d979fe9c202573e4866a"
@@ -2037,15 +2008,6 @@
     rpc-utils "^0.6.0"
     rxjs "^7.5.2"
 
-"@ceramicnetwork/rpc-transport@^0.3.0":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/rpc-transport/-/rpc-transport-0.3.1.tgz#80f408c62487e7697512d524f84b79dc5b9b6221"
-  integrity sha512-ij5PZlI/u33XRkWljd8AQLarONuS8Rdtfb28TQT9kyYp3BdnD312vMga/KqFzVb6+G7Z0tKCfbbzLEAF8rDaDg==
-  dependencies:
-    "@ceramicnetwork/transport-subject" "^0.3.0"
-    rpc-utils "^0.4.0"
-    rxjs "^6.6.6"
-
 "@ceramicnetwork/rpc-transport@^0.6.0":
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/rpc-transport/-/rpc-transport-0.6.1.tgz#4419435a407921d41bce8d6d0eb6148299379994"
@@ -2054,15 +2016,6 @@
     "@ceramicnetwork/transport-subject" "^0.6.0"
     rpc-utils "^0.6.0"
     rxjs "^7.5.2"
-
-"@ceramicnetwork/rpc-window@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/rpc-window/-/rpc-window-0.1.1.tgz#6dc69963129b7028cff00fbb531a25ac084e1ba1"
-  integrity sha512-WoaRVj39yt5RuCEsXrt9Dnd5/MKOloNwEvJiCB1GQ2KMWK5NdAJ91cHuw5Pmmo2sKpV0t2dwoYOpvOchNqQvUw==
-  dependencies:
-    "@ceramicnetwork/rpc-postmessage" "^0.4.0"
-    "@ceramicnetwork/transport-postmessage" "^0.3.0"
-    rpc-utils "^0.4.0"
 
 "@ceramicnetwork/rpc-window@^0.6.0":
   version "0.6.1"
@@ -2092,6 +2045,16 @@
     caip "~1.0.0"
     did-resolver "^3.1.5"
 
+"@ceramicnetwork/stream-caip10-link@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/stream-caip10-link/-/stream-caip10-link-2.0.4.tgz#954cf46894f8dab1af06cf988e2ea6514f5b454d"
+  integrity sha512-/4PZZJ28VaDn/4tUheXTmCKd+UrsHKt4pwVLnRZg/btXIoz1qgKSvdStvLxAuMJSdERcx2bn/XITCo/SCkPknA==
+  dependencies:
+    "@ceramicnetwork/common" "^2.0.4"
+    "@ceramicnetwork/streamid" "^2.0.4"
+    caip "~1.1.0"
+    did-resolver "^3.1.5"
+
 "@ceramicnetwork/stream-tile@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/stream-tile/-/stream-tile-1.0.2.tgz#6f3393eb3c5087b6c99d03ddd0364911daa8d415"
@@ -2110,6 +2073,18 @@
   dependencies:
     "@ceramicnetwork/common" "^2.0.0"
     "@ceramicnetwork/streamid" "^2.0.0"
+    "@ipld/dag-cbor" "^7.0.0"
+    "@stablelib/random" "^1.0.1"
+    fast-json-patch "^3.1.0"
+    uint8arrays "^3.0.0"
+
+"@ceramicnetwork/stream-tile@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/stream-tile/-/stream-tile-2.1.3.tgz#9365cdfbb7c9204dff4af45d5933f87f752691ea"
+  integrity sha512-T4vsyM5Fx/Tgc6Ew3A6C0KkY11CGlnz1TPdwcU9K7DY3qdEEcYrFTdpPlripAtXT7k9jXTIJdtsEEOodgbtBGQ==
+  dependencies:
+    "@ceramicnetwork/common" "^2.0.4"
+    "@ceramicnetwork/streamid" "^2.0.4"
     "@ipld/dag-cbor" "^7.0.0"
     "@stablelib/random" "^1.0.1"
     fast-json-patch "^3.1.0"
@@ -2149,13 +2124,16 @@
     uint8arrays "^3.0.0"
     varint "^6.0.0"
 
-"@ceramicnetwork/transport-postmessage@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/transport-postmessage/-/transport-postmessage-0.3.0.tgz#5c573a785cc7a96e0a4bd7b643749ab6c3917de3"
-  integrity sha512-hQIDKOA9BdpX+LQ9rQKzQf0e3bfqPQBNDZRTUfpJmMbAOKabJaElrEqOifLooIXLce+F/w1yNUeAUFPALETA6A==
+"@ceramicnetwork/streamid@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/streamid/-/streamid-2.0.4.tgz#64d968bbc649d74da6c41e4bc04ce12da995c462"
+  integrity sha512-KhlJdzAD1kEo6JiU1NY0+/mHkw3fycBFEyoHFgiXkPZs2Z0UzGsLimq4YsaoKWrSSPI1NerXTbrrNb/chWxg3Q==
   dependencies:
-    "@ceramicnetwork/transport-subject" "^0.3.0"
-    rxjs "^6.6.6"
+    "@ipld/dag-cbor" "^7.0.0"
+    multiformats "^9.5.8"
+    typescript-memoize "^1.1.0"
+    uint8arrays "^3.0.0"
+    varint "^6.0.0"
 
 "@ceramicnetwork/transport-postmessage@^0.6.0":
   version "0.6.1"
@@ -2164,13 +2142,6 @@
   dependencies:
     "@ceramicnetwork/transport-subject" "^0.6.0"
     rxjs "^7.5.2"
-
-"@ceramicnetwork/transport-subject@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@ceramicnetwork/transport-subject/-/transport-subject-0.3.0.tgz#b20e573f49a1eac586c7bf9d257ce9523e807336"
-  integrity sha512-oSuP3u21cfhSPaYqCzKu7l0hDozmPQjzIyheFj3/duiedFtkJxUgzkSHEW6rChz+ImSWMSvH2NQxvSW2em8rjA==
-  dependencies:
-    rxjs "^6.6.6"
 
 "@ceramicnetwork/transport-subject@^0.6.0":
   version "0.6.1"
@@ -9180,16 +9151,6 @@ borc@^3.0.0:
     json-text-sequence "~0.3.0"
     readable-stream "^3.6.0"
 
-borsh@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/borsh/-/borsh-0.4.0.tgz#9dd6defe741627f1315eac2a73df61421f6ddb9f"
-  integrity sha512-aX6qtLya3K0AkT66CmYWCCDr77qsE9arV05OmdFpmat9qu8Pg9J5tBUPDztAW5fNh/d/MyVG/OYziP52Ndzx1g==
-  dependencies:
-    "@types/bn.js" "^4.11.5"
-    bn.js "^5.0.0"
-    bs58 "^4.0.0"
-    text-encoding-utf-8 "^1.0.2"
-
 borsh@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/borsh/-/borsh-0.6.0.tgz#a7c9eeca6a31ca9e0607cb49f329cb659eb791e1"
@@ -9680,6 +9641,11 @@ caip@^1.0.0, caip@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/caip/-/caip-1.0.0.tgz#29834b862433c35d9243df45ebeb2c6ef63f7dd8"
   integrity sha512-+U9P7+9jeVBWoP7BDWHVD/JGp9azT4KmFCpDRKTy0U01bCV0x7bxwf6WTl0/dUnnTE+ZA9M4EavptQdHg7k1vA==
+
+caip@~1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/caip/-/caip-1.1.0.tgz#0ccd5bf1bff822459389ccec0a8555712a30c374"
+  integrity sha512-yOO3Fu4ygyKYAdznuoaqschMKIZzcdgyMpBNtrIfrUhnOeaOWG+dh0c13wcOS6B/46IGGbncoyzJlio79jU7rw==
 
 call-bind@^1.0.0, call-bind@^1.0.2:
   version "1.0.2"
@@ -12296,7 +12262,7 @@ error-ex@^1.2.0, error-ex@^1.3.1:
   dependencies:
     is-arrayish "^0.2.1"
 
-error-polyfill@^0.1.2, error-polyfill@^0.1.3:
+error-polyfill@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/error-polyfill/-/error-polyfill-0.1.3.tgz#df848b61ad8834f7a5db69a70b9913df86721d15"
   integrity sha512-XHJk60ufE+TG/ydwp4lilOog549iiQF2OAPhkk9DdiYWMrltz5yhDz/xnKuenNwP7gy3dsibssO5QpVhkrSzzg==
@@ -12304,11 +12270,6 @@ error-polyfill@^0.1.2, error-polyfill@^0.1.3:
     capability "^0.2.5"
     o3 "^1.0.3"
     u3 "^0.1.1"
-
-errors-utils@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/errors-utils/-/errors-utils-0.1.0.tgz#81ae89f38857e4746cf101bfb362c6a408835ed5"
-  integrity sha512-BcAD40AzRrcoNJZRGFRZdGp1tvRsv0k9W3TZY1coOXIwKUb8/eRWFmhSM2kemgH6+1iwUtgC8sJJOJpGolqUCg==
 
 errors-utils@^0.2.0:
   version "0.2.1"
@@ -20924,7 +20885,7 @@ nano-time@1.0.0:
   dependencies:
     big-integer "^1.6.16"
 
-nanoid@^2.0.1, nanoid@^2.1.0:
+nanoid@^2.0.1:
   version "2.1.11"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-2.1.11.tgz#ec24b8a758d591561531b4176a01e3ab4f0f0280"
   integrity sha512-s/snB+WGm6uwi0WjsZdaVcuf3KJXlfGl2LcxgwkEwJF0D/BWzVWAZW/XY4bFaiR7s0Jk3FPvlnepg1H1b1UwlA==
@@ -20994,23 +20955,6 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
-
-near-api-js@^0.42.0:
-  version "0.42.0"
-  resolved "https://registry.yarnpkg.com/near-api-js/-/near-api-js-0.42.0.tgz#1f773791e930a349be65b866752bbae67df4388d"
-  integrity sha512-YtDR0sXHL2CclXZdscqUIjoc4Vp/o09CSY1lQ6mygSNbWp5ghLAR1kNBQnALGGQhYC6NLBCzJQJZMb2IQr2WzA==
-  dependencies:
-    bn.js "5.2.0"
-    borsh "^0.4.0"
-    bs58 "^4.0.0"
-    depd "^2.0.0"
-    error-polyfill "^0.1.2"
-    http-errors "^1.7.2"
-    js-sha256 "^0.9.0"
-    mustache "^4.0.0"
-    node-fetch "^2.6.1"
-    text-encoding-utf-8 "^1.0.2"
-    tweetnacl "^1.0.1"
 
 near-api-js@^0.44.2:
   version "0.44.2"
@@ -23076,13 +23020,6 @@ postcss@^7, postcss@^7.0.0, postcss@^7.0.1, postcss@^7.0.14, postcss@^7.0.17, po
     source-map "^0.6.1"
     supports-color "^6.1.0"
 
-postmsg-rpc@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/postmsg-rpc/-/postmsg-rpc-2.4.0.tgz#4e2daf6851852364696debd5d6bf6936d1424cdf"
-  integrity sha512-adGH2zGSxhCUOfUfAXdRn4tgZVWauaSP2X8on+g7uBA45sxkzORL1oia95eXZtcZk5Sp4JTZmDFOTe+D24avBQ==
-  dependencies:
-    shortid "^2.2.8"
-
 potpack@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/potpack/-/potpack-1.0.1.tgz#d1b1afd89e4c8f7762865ec30bd112ab767e2ebf"
@@ -24480,13 +24417,6 @@ rpc-utils@^0.3.4:
   dependencies:
     nanoid "^3.1.21"
 
-rpc-utils@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/rpc-utils/-/rpc-utils-0.4.0.tgz#7006d0e32e140090530f6f4fd4a7f841c28da0e6"
-  integrity sha512-XBvam3jhcD4d66kFRGjr0cAwJNf8v8eXeJNN187jDGvHuQO9Dugu01WCAghojAbSOcdimCBBz77WNVU1j2+Uig==
-  dependencies:
-    nanoid "^3.1.21"
-
 rpc-utils@^0.6.0, rpc-utils@^0.6.1:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/rpc-utils/-/rpc-utils-0.6.2.tgz#3cab779f93048eda69ff198c58b1a2c2e35e3fa6"
@@ -24535,7 +24465,7 @@ rw@^1.3.3:
   resolved "https://registry.yarnpkg.com/rw/-/rw-1.3.3.tgz#3f862dfa91ab766b14885ef4d01124bfda074fb4"
   integrity sha1-P4Yt+pGrdmsUiF700BEkv9oHT7Q=
 
-rxjs@^6.5.3, rxjs@^6.6.0, rxjs@^6.6.3, rxjs@^6.6.6:
+rxjs@^6.5.3, rxjs@^6.6.0, rxjs@^6.6.3:
   version "6.6.7"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.7.tgz#90ac018acabf491bf65044235d5863c4dab804c9"
   integrity sha512-hTdwr+7yYNIT5n4AMYp85KA6yw2Va0FLa3Rguvbpa4W3I5xynaBZo41cM3XM+4Q6fRMj3sBYIR1VAmZMXYJvRQ==
@@ -25013,13 +24943,6 @@ shellwords@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha512-vFwSUfQvqybiICwZY5+DAWIPLKsWO31Q91JSKl3UYv+K5c2QRPzn0qzec6QPu1Qc9eHYItiP3NdJqNVqetYAww==
-
-shortid@^2.2.8:
-  version "2.2.16"
-  resolved "https://registry.yarnpkg.com/shortid/-/shortid-2.2.16.tgz#b742b8f0cb96406fd391c76bfc18a67a57fe5608"
-  integrity sha512-Ugt+GIZqvGXCIItnsL+lvFJOiN7RYqlGy7QE41O3YC1xbNSeDGIRO7xg2JJXIAj1cAGnOeC1r7/T9pgrtQbv4g==
-  dependencies:
-    nanoid "^2.1.0"
 
 side-channel@^1.0.4:
   version "1.0.4"
