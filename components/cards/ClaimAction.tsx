@@ -148,7 +148,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
-        [Action.CLAIM, claimData]
+        [Action.CLAIM, actionDataToPassInUserData]
       );
 
       const flowRate = newFlowRate.toString();
