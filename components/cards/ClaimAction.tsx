@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
+import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { BigNumber, ethers } from "ethers";
 import GeoWebCoordinate from "js-geo-web-coordinate";
@@ -7,6 +7,7 @@ import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
+import { fromValueToRate } from "../../lib/utils";
 
 enum Action {
   CLAIM,

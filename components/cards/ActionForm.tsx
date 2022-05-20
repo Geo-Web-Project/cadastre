@@ -23,6 +23,7 @@ import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
 import ClaimView from "./ClaimView";
 import { formatBalance } from "../../lib/formatBalance";
+import { fromValueToRate } from "../../lib/utils";
 
 /**
  * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
@@ -376,21 +377,3 @@ export function ActionForm(props: ActionFormProps) {
 }
 
 export default ActionForm;
-
-export function fromRateToValue(
-  contributionRate: BigNumber,
-  perSecondFeeNumerator: BigNumber,
-  perSecondFeeDenominator: BigNumber
-) {
-  return contributionRate
-    .mul(perSecondFeeDenominator)
-    .div(perSecondFeeNumerator);
-}
-
-export function fromValueToRate(
-  value: BigNumber,
-  perSecondFeeNumerator: BigNumber,
-  perSecondFeeDenominator: BigNumber
-) {
-  return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
-}

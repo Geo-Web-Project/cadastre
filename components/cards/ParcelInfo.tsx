@@ -10,10 +10,10 @@ import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
-import { fromRateToValue } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { formatBalance } from "../../lib/formatBalance";
+import { fromRateToValue } from "../../lib/utils";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
