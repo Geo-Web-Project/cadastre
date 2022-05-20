@@ -1,11 +1,11 @@
 import * as React from "react";
-import { ActionData, ActionForm } from "./ActionForm";
+import { ActionData, ActionForm, fromValueToRate } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { BigNumber, ethers } from "ethers";
 import GeoWebCoordinate from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
+import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 
 enum Action {
@@ -29,6 +29,8 @@ function ClaimAction(props: ClaimActionProps) {
     claimerContract,
     auctionSuperApp,
     provider,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -76,60 +78,54 @@ function ClaimAction(props: ClaimActionProps) {
 
     console.log(actionData);
 
-    let claimData;
+    const claimData = ethers.utils.defaultAbiCoder.encode(
+      ["uint64", "uint256[]"],
+      [BigNumber.from(baseCoord.toString(10)), path]
+    );
 
-    let actionDataToPassInUserData;
+    const actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "bytes"],
+      [ethers.utils.parseEther(displayNewForSalePrice), claimData]
+    );
 
     let userData;
 
     let txn;
 
-    const filter = claimerContract.filters.ParcelClaimed(null, null);
-    const parcels = await claimerContract.queryFilter(filter);
-    const existingParcels = parcels.length > 0;
-    console.log("existing parcels: ", parcels);
-
     const sf = await sfInstance(NETWORK_ID, provider);
 
     const ethx = await sf.loadSuperToken(paymentTokenAddress);
+
+    const existingFlow = await sf.cfaV1.getFlow({
+      superToken: paymentTokenAddress,
+      sender: account,
+      receiver: auctionSuperApp.address,
+      providerOrSigner: provider as any,
+    });
 
     const approveOperation = await ethx.approve({
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
 
-    const newFlowRate = ethers.utils
-      .parseEther(displayNewForSalePrice)
-      .div(SECONDS_IN_YEAR);
+    const networkFeeRatePerSecond = fromValueToRate(
+      ethers.utils.parseEther(displayNewForSalePrice),
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+
+    const newFlowRate = networkFeeRatePerSecond;
 
     const signer = provider.getSigner() as any;
 
-    if (existingParcels) {
+    if (existingFlow.flowRate !== "0") {
       // update an exisiting flow
       console.log("Updting an exisiting flow: ");
-      const existingLicenseID = parcels[0].args[0].toString();
-
-      claimData = ethers.utils.defaultAbiCoder.encode(
-        ["uint256"],
-        [existingLicenseID]
-      );
-
-      actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
-        ["uint256", "bytes"],
-        [displayNewForSalePrice, claimData]
-      );
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
         [Action.CLAIM, actionDataToPassInUserData]
       );
-
-      const existingFlow = await sf.cfaV1.getFlow({
-        superToken: paymentTokenAddress,
-        sender: account,
-        receiver: auctionSuperApp.address,
-        providerOrSigner: provider as any,
-      });
 
       const updateFlowOperation = await sf.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
@@ -148,10 +144,6 @@ function ClaimAction(props: ClaimActionProps) {
     } else {
       // create a new flow
       console.log("Creating a new flow: ");
-      claimData = ethers.utils.defaultAbiCoder.encode(
-        ["uint64", "uint256[]"],
-        [BigNumber.from(baseCoord.toString(10)), path]
-      );
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
@@ -179,6 +171,8 @@ function ClaimAction(props: ClaimActionProps) {
     if (!txn) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
+
+    const filter = claimerContract.filters.ParcelClaimed(null, null);
 
     const res = await claimerContract.queryFilter(
       filter,
