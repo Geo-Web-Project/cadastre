@@ -45,7 +45,7 @@ export function useBasicProfileStreamManager(
     React.useState<BasicProfileStreamManager | null>(null);
 
   React.useEffect(() => {
-    async function setup() {
+    (async () => {
       if (!dataStore || !didNFT) {
         setBasicProfileStreamManager(null);
         return;
@@ -74,9 +74,7 @@ export function useBasicProfileStreamManager(
       console.debug(`Setup basicProfile complete.`);
 
       setBasicProfileStreamManager(_basicProfileStreamManager);
-    }
-
-    setup();
+    })();
   }, [dataStore]);
 
   return basicProfileStreamManager;

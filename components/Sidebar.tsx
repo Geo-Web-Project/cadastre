@@ -20,6 +20,8 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
 };
 
 function Sidebar(props: SidebarProps) {
@@ -34,14 +36,14 @@ function Sidebar(props: SidebarProps) {
   } = props;
   const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
   React.useEffect(() => {
-    if (ceramic == null) {
-      console.error("Ceramic instance not found");
-      return;
-    }
+    (async () => {
+      if (ceramic == null) {
+        console.error("Ceramic instance not found");
+        return;
+      }
 
-    setDataStore(null);
+      setDataStore(null);
 
-    async function updateDataStore() {
       if (selectedParcelId) {
         const _dataStore = new DIDDataStore({
           ceramic,
@@ -51,9 +53,7 @@ function Sidebar(props: SidebarProps) {
       } else {
         setDataStore(null);
       }
-    }
-
-    updateDataStore();
+    })();
   }, [ceramic, selectedParcelId]);
 
   const didNFT = selectedParcelId
