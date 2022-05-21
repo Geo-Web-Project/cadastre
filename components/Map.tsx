@@ -129,6 +129,7 @@ export function coordToFeature(gwCoord: any): GeoJSON.Feature {
 export type MapProps = {
   auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
   licenseContract: Contracts["geoWebERC721LicenseContract"];
+  claimerContract: Contracts["geoWebFairLaunchClaimerContract"];
   account: string;
   provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
