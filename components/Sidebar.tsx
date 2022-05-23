@@ -11,6 +11,7 @@ import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { BigNumber } from "ethers";
+import FairLaunchInfo from "./cards/FairLaunchInfo";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -32,6 +33,7 @@ function Sidebar(props: SidebarProps) {
     firebasePerf,
     interactionState,
     selectedParcelId,
+    isFairLaunch = false,
   } = props;
   const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
   React.useEffect(() => {
@@ -99,16 +101,20 @@ function Sidebar(props: SidebarProps) {
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      <ParcelInfo
-        {...props}
-        perSecondFeeNumerator={perSecondFeeNumerator}
-        perSecondFeeDenominator={perSecondFeeDenominator}
-        dataStore={dataStore}
-        didNFT={didNFT}
-        basicProfileStreamManager={basicProfileStreamManager}
-        pinningManager={pinningManager}
-        licenseAddress={licenseContract.address}
-      ></ParcelInfo>
+      {isFairLaunch ? (
+        <FairLaunchInfo {...props} currentRequiredBid="0" />
+      ) : (
+        <ParcelInfo
+          {...props}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+          dataStore={dataStore}
+          didNFT={didNFT}
+          basicProfileStreamManager={basicProfileStreamManager}
+          pinningManager={pinningManager}
+          licenseAddress={licenseContract.address}
+        ></ParcelInfo>
+      )}
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&

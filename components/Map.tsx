@@ -487,6 +487,7 @@ function Map(props: MapProps) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
+          isFairLaunch={true}
         ></Sidebar>
       ) : null}
       <Col sm="9" className="px-0">
