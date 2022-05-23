@@ -10,13 +10,13 @@ function FaucetInfo() {
           Claim {PAYMENT_TOKEN}
         </Card.Title>
         <Card.Text className="font-italic">
-          <p>You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.</p>
-          <p>
-            Get free {PAYMENT_TOKEN} from this{" "}
-            <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              faucet.
-            </a>
-          </p>
+          You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.
+        </Card.Text>
+        <Card.Text className="font-italic">
+          Get free {PAYMENT_TOKEN} from this{" "}
+          <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
+            faucet.
+          </a>
         </Card.Text>
       </Card.Body>
     </Card>
