@@ -1,7 +1,13 @@
 import * as React from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+
+dayjs.extend(utc);
+dayjs.extend(advancedFormat);
 
 type FairLaunchInfoProps = {
   /** TODO: add some comments here. */
@@ -12,6 +18,12 @@ type FairLaunchInfoProps = {
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
   const { currentRequiredBid, auctionEnd } = props;
+
+  console.log(dayjs(1318781876406).utc().format("DD/MM/YYYY HH:mm"));
+
+  const formattedAuctionEnd = dayjs(auctionEnd)
+    .utc()
+    .format("DD/MM/YYYY HH:mm");
 
   return (
     <>
@@ -28,7 +40,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
             Auction Details
           </Card.Title>
           <Card.Text>Current Required Bid: {currentRequiredBid} ETHx</Card.Text>
-          <Card.Text>Auction End: {auctionEnd} UTC</Card.Text>
+          <Card.Text>Auction End: {formattedAuctionEnd} UTC</Card.Text>
           <Card.Text>Time Remaining: {}</Card.Text>
         </Card.Body>
       </Card>
