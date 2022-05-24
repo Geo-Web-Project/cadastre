@@ -19,6 +19,8 @@ export type ClaimActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: any;
   licenseAddress: string;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
 };
 
 function ClaimAction(props: ClaimActionProps) {

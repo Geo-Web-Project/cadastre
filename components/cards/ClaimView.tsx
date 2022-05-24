@@ -1,13 +1,14 @@
 import * as React from "react";
-import type { SidebarProps } from "../Sidebar";
 
-type ClaimViewProps = Pick<SidebarProps, "isFairLaunch"> & {
+type ClaimViewProps = {
   /** */
   currentRequiredBid: string;
   /** equal to the Network Fee rate divided by 31,536,000 (seconds in a 365 day year). */
   stream: string;
   /** equal to (`flowRate` - `oldFlowRate`) * 2 * 60 * 60. */
   streamBuffer: string;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
 };
 
 /**

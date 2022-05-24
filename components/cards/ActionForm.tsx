@@ -44,6 +44,8 @@ export type ActionFormProps = SidebarProps & {
   performAction: () => Promise<string>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
 };
 
 export type ActionData = {
