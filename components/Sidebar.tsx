@@ -12,6 +12,7 @@ import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { BigNumber } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
+import { calculateRequiredBid } from "../lib/calculateRequiredBid";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -20,20 +21,18 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
 };
 
 function Sidebar(props: SidebarProps) {
   const {
     auctionSuperApp,
     licenseContract,
+    claimerContract,
     ceramic,
     ipfs,
     firebasePerf,
     interactionState,
     selectedParcelId,
-    isFairLaunch = false,
   } = props;
   const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
   React.useEffect(() => {
@@ -95,6 +94,59 @@ function Sidebar(props: SidebarProps) {
       });
   }, [auctionSuperApp]);
 
+  const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
+  const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
+  const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      const [_startingBid, _endingBid, _auctionStart, _auctionEnd] =
+        await Promise.all([
+          claimerContract.startingBid(),
+          claimerContract.endingBid(),
+          claimerContract.auctionStart(),
+          claimerContract.auctionEnd(),
+        ]);
+      console.log(
+        "startingBid",
+        _startingBid,
+        _startingBid.toString(),
+        _endingBid.toString(),
+        _auctionStart,
+        _auctionStart.toString(),
+        _auctionEnd.toString()
+      );
+      if (_auctionStart.isZero() || _auctionEnd.isZero()) {
+        return;
+      }
+      if (isMounted) {
+        setStartingBid(_startingBid);
+        setEndingBid(_endingBid);
+        setAuctionStart(_auctionStart);
+        setAuctionEnd(_auctionEnd);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [claimerContract]);
+
+  const isFairLaunch = true;
+
+  const requiredBid = calculateRequiredBid(
+    "", // TODO: get parcel block
+    auctionStart,
+    auctionEnd,
+    startingBid,
+    endingBid
+  );
+
   return (
     <Col
       sm="3"
@@ -102,7 +154,7 @@ function Sidebar(props: SidebarProps) {
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
       {isFairLaunch ? (
-        <FairLaunchInfo {...props} currentRequiredBid="0" />
+        <FairLaunchInfo currentRequiredBid="0" auctionEnd="0" />
       ) : (
         <ParcelInfo
           {...props}

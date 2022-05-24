@@ -6,10 +6,12 @@ import Card from "react-bootstrap/Card";
 type FairLaunchInfoProps = {
   /** TODO: add some comments here. */
   currentRequiredBid: string;
+  /** TODO: */
+  auctionEnd: string;
 };
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
-  const { currentRequiredBid } = props;
+  const { currentRequiredBid, auctionEnd } = props;
 
   return (
     <>
@@ -26,7 +28,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
             Auction Details
           </Card.Title>
           <Card.Text>Current Required Bid: {currentRequiredBid} ETHx</Card.Text>
-          <Card.Text>Auction End: {} UTC</Card.Text>
+          <Card.Text>Auction End: {auctionEnd} UTC</Card.Text>
           <Card.Text>Time Remaining: {}</Card.Text>
         </Card.Body>
       </Card>
