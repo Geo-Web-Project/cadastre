@@ -154,7 +154,7 @@ function Sidebar(props: SidebarProps) {
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
       {isFairLaunch ? (
-        <FairLaunchInfo currentRequiredBid="0" auctionEnd="0" />
+        <FairLaunchInfo currentRequiredBid="0" auctionEnd="32376137040000" />
       ) : (
         <ParcelInfo
           {...props}
