@@ -5,8 +5,11 @@ import FaucetInfo from "./FaucetInfo";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { fromValueToRate } from "../../lib/utils";
 
 export type EditActionProps = SidebarProps & {
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: any;
   licenseAddress: string;
   parcelData: any;
@@ -22,6 +25,8 @@ function EditAction(props: EditActionProps) {
     parcelData,
     // refetchParcelData,
     basicProfileStreamManager,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
     selectedParcelId,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
@@ -53,6 +58,20 @@ function EditAction(props: EditActionProps) {
   }
 
   const { displayNewForSalePrice } = actionData;
+
+  const existingNetworkFee = fromValueToRate(
+    ethers.utils.parseEther(displayCurrentForSalePrice),
+    perSecondFeeNumerator,
+    perSecondFeeDenominator
+  );
+
+  const newNetworkFee = displayNewForSalePrice
+    ? fromValueToRate(
+        ethers.utils.parseEther(displayNewForSalePrice),
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      )
+    : null;
 
   async function _edit() {
     updateActionData({ isActing: true });
@@ -109,8 +128,8 @@ function EditAction(props: EditActionProps) {
         setActionData={setActionData}
         summaryView={
           <TransactionSummaryView
-            txnNeeded={true}
-            newNetworkFee={networkFeeRatePerSecond}
+            existingNetworkFee={existingNetworkFee}
+            newNetworkFee={newNetworkFee ?? existingNetworkFee}
             {...props}
           />
         }
