@@ -14,26 +14,14 @@ import {
   publishedModel,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
-import ClaimView from "./ClaimView";
 import { formatBalance } from "../../lib/formatBalance";
 import { fromValueToRate } from "../../lib/utils";
-
-/**
- * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
- */
-const depositHoursMap: Record<number, number> = {
-  // mainnet
-  1: 8,
-  // rinkeby
-  4: 2,
-};
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -44,6 +32,7 @@ export type ActionFormProps = SidebarProps & {
   performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+  summaryView: JSX.Element;
 };
 
 export type ActionData = {
@@ -71,7 +60,7 @@ export function ActionForm(props: ActionFormProps) {
     ceramic,
     setSelectedParcelId,
     paymentTokenAddress,
-    isFairLaunch = false,
+    summaryView,
   } = props;
 
   const {
@@ -82,19 +71,10 @@ export function ActionForm(props: ActionFormProps) {
     didFail,
     isActing,
   } = actionData;
-  const [currentChainID, setCurrentChainID] =
-    React.useState<number>(NETWORK_ID);
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
-
-  React.useEffect(() => {
-    (async () => {
-      const { chainId } = await provider.getNetwork();
-      setCurrentChainID(chainId);
-    })();
-  }, [provider]);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -128,19 +108,6 @@ export function ActionForm(props: ActionFormProps) {
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
-
-  const stream = networkFeeRatePerSecond
-    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
-    : "0";
-
-  const streamBuffer = networkFeeRatePerSecond
-    ? truncateEth(
-        formatBalance(
-          networkFeeRatePerSecond.mul(depositHoursMap[currentChainID] * 60 * 60)
-        ),
-        18
-      )
-    : "0";
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -307,11 +274,7 @@ export function ActionForm(props: ActionFormProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            <ClaimView
-              stream={stream}
-              streamBuffer={streamBuffer}
-              isFairLaunch={isFairLaunch}
-            />
+            {summaryView}
             <br />
             <span style={{ display: "flex", gap: "16px" }}>
               <Button
