@@ -176,7 +176,6 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerSecond ? (
             <TransactionSummaryView
-              txnNeeded={true}
               newNetworkFee={networkFeeRatePerSecond}
               {...props}
             />

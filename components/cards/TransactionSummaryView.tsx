@@ -16,13 +16,11 @@ const depositHoursMap: Record<number, number> = {
 };
 
 type TransactionSummaryViewProps = SidebarProps & {
-  txnNeeded: boolean;
   existingNetworkFee?: BigNumber;
   newNetworkFee: BigNumber;
 };
 
 function TransactionSummaryView({
-  txnNeeded,
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
   provider,
@@ -36,6 +34,8 @@ function TransactionSummaryView({
       setCurrentChainID(chainId);
     })();
   }, [provider]);
+
+  const txnNeeded = !existingNetworkFee.eq(newNetworkFee);
 
   const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
 
