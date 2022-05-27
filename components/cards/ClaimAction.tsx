@@ -8,6 +8,19 @@ import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
+import ClaimSummaryView from "./ClaimSummaryView";
+import { truncateEth } from "../../lib/truncate";
+import { formatBalance } from "../../lib/formatBalance";
+
+/**
+ * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
+ */
+const depositHoursMap: Record<number, number> = {
+  // mainnet
+  1: 8,
+  // rinkeby
+  4: 2,
+};
 
 enum Action {
   CLAIM,
@@ -32,25 +45,38 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
+    isFairLaunch = false,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
     didFail: false,
     displayNewForSalePrice: "",
   });
+  const [currentChainID, setCurrentChainID] =
+    React.useState<number>(NETWORK_ID);
 
-  const {
-    displayNewForSalePrice,
-    // displayNetworkFeePayment
-  } = actionData;
+  const { displayNewForSalePrice } = actionData;
 
-  // React.useEffect(() => {
-  //   const _transactionSubtotal = calculateWeiSubtotalField(
-  //     displayNetworkFeePayment
-  //   );
+  const networkFeeRatePerSecond = displayNewForSalePrice
+    ? fromValueToRate(
+        ethers.utils.parseEther(displayNewForSalePrice),
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      )
+    : null;
 
-  //   updateActionData({ transactionSubtotal: _transactionSubtotal });
-  // }, [displayNetworkFeePayment]);
+  const stream = networkFeeRatePerSecond
+    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
+    : "0";
+
+  const streamBuffer = networkFeeRatePerSecond
+    ? truncateEth(
+        formatBalance(
+          networkFeeRatePerSecond.mul(depositHoursMap[currentChainID] * 60 * 60)
+        ),
+        18
+      )
+    : "0";
 
   async function _claim() {
     const baseCoord = GeoWebCoordinate.make_gw_coord(
@@ -71,7 +97,7 @@ function ClaimAction(props: ClaimActionProps) {
       path = [BigNumber.from(0)];
     }
 
-    if (!displayNewForSalePrice) {
+    if (!displayNewForSalePrice || !networkFeeRatePerSecond) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
@@ -106,12 +132,6 @@ function ClaimAction(props: ClaimActionProps) {
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
-
-    const networkFeeRatePerSecond = fromValueToRate(
-      ethers.utils.parseEther(displayNewForSalePrice),
-      perSecondFeeNumerator,
-      perSecondFeeDenominator
-    );
 
     const newFlowRate = networkFeeRatePerSecond;
 
@@ -174,6 +194,13 @@ function ClaimAction(props: ClaimActionProps) {
     return licenseId;
   }
 
+  React.useEffect(() => {
+    (async () => {
+      const { chainId } = await provider.getNetwork();
+      setCurrentChainID(chainId);
+    })();
+  }, [provider]);
+
   return (
     <>
       <ActionForm
@@ -181,6 +208,13 @@ function ClaimAction(props: ClaimActionProps) {
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
+        summaryView={
+          <ClaimSummaryView
+            stream={stream}
+            streamBuffer={streamBuffer}
+            isFairLaunch={isFairLaunch}
+          />
+        }
         {...props}
       />
       <FaucetInfo />
