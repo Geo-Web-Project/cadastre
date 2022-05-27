@@ -19,6 +19,9 @@ export type ClaimActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: any;
   licenseAddress: string;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
+  currentRequiredBid: string;
 };
 
 function ClaimAction(props: ClaimActionProps) {
@@ -32,6 +35,7 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
+    isFairLaunch = false,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -181,6 +185,7 @@ function ClaimAction(props: ClaimActionProps) {
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
+        isFairLaunch={isFairLaunch}
         {...props}
       />
       <FaucetInfo />

@@ -44,6 +44,9 @@ export type ActionFormProps = SidebarProps & {
   performAction: () => Promise<string>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
+  currentRequiredBid: string;
 };
 
 export type ActionData = {
@@ -72,6 +75,7 @@ export function ActionForm(props: ActionFormProps) {
     setSelectedParcelId,
     paymentTokenAddress,
     isFairLaunch = false,
+    currentRequiredBid,
   } = props;
 
   const {
@@ -216,138 +220,137 @@ export function ActionForm(props: ActionFormProps) {
     <>
       <Card border="secondary" className="bg-dark mt-5">
         <Card.Body>
-          <Card.Text>
-            <Form>
-              <Form.Group>
-                <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
-                <Form.Control
-                  isInvalid={isParcelNameInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="Parcel Name"
-                  aria-label="Parcel Name"
-                  aria-describedby="parcel-name"
-                  defaultValue={parcelName}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelName: e.target.value })
-                  }
-                />
-                {isParcelNameInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Parcel name cannot be longer than 150 characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  Content Link (http://, https://, ipfs://, ipns://)
-                </Form.Text>
-                <Form.Control
-                  isInvalid={isURIInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="URI (http://, https://, ipfs://, ipns://)"
-                  aria-label="Web Content URI"
-                  aria-describedby="web-content-uri"
-                  defaultValue={parcelWebContentURI}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelWebContentURI: e.target.value })
-                  }
-                />
-                {isURIInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Web content URI must be one of
-                    (http://,https://,ipfs://,ipns://) and less than 150
-                    characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  For Sale Price ({PAYMENT_TOKEN})
-                </Form.Text>
-                <Form.Control
-                  required
-                  isInvalid={isForSalePriceInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
-                  aria-label="For Sale Price"
-                  aria-describedby="for-sale-price"
-                  defaultValue={displayCurrentForSalePrice}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ displayNewForSalePrice: e.target.value })
-                  }
-                />
-                {isForSalePriceInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    For Sale Price must be greater than 0
-                  </Form.Control.Feedback>
-                ) : null}
-
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
-                </Form.Text>
-                <Form.Control
-                  className="bg-dark text-info"
-                  type="text"
-                  readOnly
-                  disabled
-                  value={`${
-                    annualNetworkFeeRate
-                      ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
-                      : "0"
-                  } ${PAYMENT_TOKEN}/year`}
-                  aria-label="Network Fee"
-                  aria-describedby="network-fee"
-                />
-              </Form.Group>
-              <br />
-              <hr className="action-form_divider" />
-              <br />
-              <ClaimView
-                stream={stream}
-                streamBuffer={streamBuffer}
-                isFairLaunch={isFairLaunch}
+          <Form>
+            <Form.Group>
+              <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
+              <Form.Control
+                isInvalid={isParcelNameInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="Parcel Name"
+                aria-label="Parcel Name"
+                aria-describedby="parcel-name"
+                defaultValue={parcelName}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelName: e.target.value })
+                }
               />
+              {isParcelNameInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Parcel name cannot be longer than 150 characters
+                </Form.Control.Feedback>
+              ) : null}
               <br />
-              <div style={{ display: "flex", gap: "16px" }}>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={handleWrapModalOpen}
-                >
-                  {"Wrap to ETHx"}
-                </Button>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={() => submit()}
-                  disabled={isActing || isLoading || isInvalid}
-                >
-                  {isActing || isLoading ? spinner : "Confirm"}
-                </Button>
-              </div>
-            </Form>
+              <Form.Text className="text-primary mb-1">
+                Content Link (http://, https://, ipfs://, ipns://)
+              </Form.Text>
+              <Form.Control
+                isInvalid={isURIInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="URI (http://, https://, ipfs://, ipns://)"
+                aria-label="Web Content URI"
+                aria-describedby="web-content-uri"
+                defaultValue={parcelWebContentURI}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelWebContentURI: e.target.value })
+                }
+              />
+              {isURIInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Web content URI must be one of
+                  (http://,https://,ipfs://,ipns://) and less than 150
+                  characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Text className="text-primary mb-1">
+                For Sale Price ({PAYMENT_TOKEN})
+              </Form.Text>
+              <Form.Control
+                required
+                isInvalid={isForSalePriceInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
+                aria-label="For Sale Price"
+                aria-describedby="for-sale-price"
+                defaultValue={displayCurrentForSalePrice}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ displayNewForSalePrice: e.target.value })
+                }
+              />
+              {isForSalePriceInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  For Sale Price must be greater than 0
+                </Form.Control.Feedback>
+              ) : null}
 
+              <br />
+              <Form.Text className="text-primary mb-1">
+                {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
+              </Form.Text>
+              <Form.Control
+                className="bg-dark text-info"
+                type="text"
+                readOnly
+                disabled
+                value={`${
+                  annualNetworkFeeRate
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
+                    : "0"
+                } ${PAYMENT_TOKEN}/year`}
+                aria-label="Network Fee"
+                aria-describedby="network-fee"
+              />
+            </Form.Group>
             <br />
-            {didFail && !isActing ? (
-              <Alert
-                variant="danger"
-                dismissible
-                onClick={() => updateActionData({ didFail: false })}
+            <hr className="action-form_divider" />
+            <br />
+            <ClaimView
+              isFairLaunch={isFairLaunch}
+              stream={stream}
+              streamBuffer={streamBuffer}
+              currentRequiredBid={currentRequiredBid}
+            />
+            <br />
+            <div style={{ display: "flex", gap: "16px" }}>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={handleWrapModalOpen}
               >
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Transaction failed
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>
-                  Oops! Something went wrong. Please try again.
-                </p>
-              </Alert>
-            ) : null}
-          </Card.Text>
+                {"Wrap to ETHx"}
+              </Button>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={() => submit()}
+                disabled={isActing || isLoading || isInvalid}
+              >
+                {isActing || isLoading ? spinner : "Confirm"}
+              </Button>
+            </div>
+          </Form>
+
+          <br />
+          {didFail && !isActing ? (
+            <Alert
+              variant="danger"
+              dismissible
+              onClick={() => updateActionData({ didFail: false })}
+            >
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Transaction failed
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>
+                Oops! Something went wrong. Please try again.
+              </p>
+            </Alert>
+          ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
           <Row>

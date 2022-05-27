@@ -25,6 +25,7 @@
     "@web3-react/torus-connector": "6.0.2",
     "@web3-react/walletconnect-connector": "6.0.2",
     "bootstrap": "^4.5.3",
+    "dayjs": "^1.11.2",
     "dids": "^2.1.0",
     "dotenv": "^8.2.0",
     "ethers": "^5.4.5",
