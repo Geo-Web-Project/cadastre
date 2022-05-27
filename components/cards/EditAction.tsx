@@ -4,6 +4,7 @@ import { ActionData, ActionForm } from "./ActionForm";
 import FaucetInfo from "./FaucetInfo";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
+import TransactionSummaryView from "./TransactionSummaryView";
 
 export type EditActionProps = SidebarProps & {
   basicProfileStreamManager: any;
@@ -106,6 +107,13 @@ function EditAction(props: EditActionProps) {
         performAction={_edit}
         actionData={actionData}
         setActionData={setActionData}
+        summaryView={
+          <TransactionSummaryView
+            txnNeeded={true}
+            newNetworkFee={networkFeeRatePerSecond}
+            {...props}
+          />
+        }
         {...props}
       />
       <FaucetInfo></FaucetInfo>
