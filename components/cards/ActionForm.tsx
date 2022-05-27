@@ -97,9 +97,9 @@ export function ActionForm(props: ActionFormProps) {
   }, [provider]);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Sending Transaction...</span>
-    </div>
+    </span>
   );
 
   const isForSalePriceInvalid: boolean =

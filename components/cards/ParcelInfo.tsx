@@ -77,9 +77,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [data, dataStore, didNFT]);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
-    </div>
+    </span>
   );
 
   let forSalePrice;
@@ -123,7 +123,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   const editButton = (
     <Button
       variant="primary"
-      className="w-100"
+      className="w-100 mb-2"
       onClick={() => {
         setInteractionState(STATE.PARCEL_EDITING);
       }}
@@ -187,7 +187,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     if (account.toLowerCase() == licenseOwner.toLowerCase()) {
       buttons = (
         <>
-          <div className="mb-2">{editButton}</div>
+          {editButton}
           {editGalleryButton}
         </>
       );

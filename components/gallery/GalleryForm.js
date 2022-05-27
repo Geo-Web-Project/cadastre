@@ -209,13 +209,13 @@ export function GalleryForm({
     mediaGalleryItem.contentUrl && mediaGalleryItem.name && !isSaving;
 
   const spinner = (
-    <div
+    <span
       className="spinner-border"
       role="status"
       style={{ height: "1.5em", width: "1.5em" }}
     >
       <span className="sr-only"></span>
-    </div>
+    </span>
   );
 
   return (
