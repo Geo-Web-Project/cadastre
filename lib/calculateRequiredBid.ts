@@ -1,28 +1,23 @@
 /**
  * @see https://github.com/Geo-Web-Project/core-contracts/blob/bb6b1d0e12c03615e1ab21dc7d5e6d19abfb9cc4/contracts/FairLaunchClaimer.sol#L80-L93
- *
- * @param block TODO
- * @param auctionStart TODO
- * @param auctionEnd TODO
- * @param startingBid TODO
- * @param endingBid TODO
- * @returns TODO
  */
 
+import { BigNumber, ethers } from "ethers";
+
 export const calculateRequiredBid = (
-  block: any,
-  auctionStart: any,
-  auctionEnd: any,
-  startingBid: any,
-  endingBid: any
+  auctionStart: BigNumber,
+  auctionEnd: BigNumber,
+  startingBid: BigNumber,
+  endingBid: BigNumber
 ) => {
-  if (block.timestamp > auctionEnd) {
+  const blockTimestamp = ethers.utils.parseEther(Date.now().toString());
+  if (blockTimestamp.lt(auctionEnd)) {
     return endingBid;
   }
 
-  const timeElapsed = block.timestamp - auctionStart;
-  const auctionDuration = auctionEnd - auctionStart;
-  const priceDecrease = (startingBid * timeElapsed) / auctionDuration;
+  const timeElapsed = auctionStart.mul(-1).add(blockTimestamp);
+  const auctionDuration = auctionStart.mul(-1).add(auctionEnd);
+  const priceDecrease = startingBid.mul(timeElapsed).div(auctionDuration);
 
-  return startingBid - priceDecrease;
+  return priceDecrease.mul(-1).add(startingBid);
 };

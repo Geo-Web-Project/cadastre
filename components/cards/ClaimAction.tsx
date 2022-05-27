@@ -21,6 +21,7 @@ export type ClaimActionProps = SidebarProps & {
   licenseAddress: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
+  currentRequiredBid: string;
 };
 
 function ClaimAction(props: ClaimActionProps) {

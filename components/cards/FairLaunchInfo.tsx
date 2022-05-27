@@ -12,9 +12,9 @@ dayjs.extend(advancedFormat);
 dayjs.extend(duration);
 
 type FairLaunchInfoProps = {
-  /** TODO: add some comments here. */
+  /** startingBid - priceDecrease. */
   currentRequiredBid: string;
-  /** TODO: */
+  /** auctionEnd. */
   auctionEnd: string;
 };
 

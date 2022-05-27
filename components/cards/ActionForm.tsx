@@ -46,6 +46,7 @@ export type ActionFormProps = SidebarProps & {
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
+  currentRequiredBid: string;
 };
 
 export type ActionData = {
@@ -74,6 +75,7 @@ export function ActionForm(props: ActionFormProps) {
     setSelectedParcelId,
     paymentTokenAddress,
     isFairLaunch = false,
+    currentRequiredBid,
   } = props;
 
   const {
@@ -312,7 +314,7 @@ export function ActionForm(props: ActionFormProps) {
               isFairLaunch={isFairLaunch}
               stream={stream}
               streamBuffer={streamBuffer}
-              currentRequiredBid={"0"}
+              currentRequiredBid={currentRequiredBid}
             />
             <br />
             <div style={{ display: "flex", gap: "16px" }}>

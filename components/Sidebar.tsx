@@ -10,9 +10,10 @@ import { NETWORK_ID, publishedModel } from "../lib/constants";
 import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 import { calculateRequiredBid } from "../lib/calculateRequiredBid";
+import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -112,15 +113,6 @@ function Sidebar(props: SidebarProps) {
           claimerContract.auctionStart(),
           claimerContract.auctionEnd(),
         ]);
-      console.log(
-        "startingBid",
-        _startingBid,
-        _startingBid.toString(),
-        _endingBid.toString(),
-        _auctionStart,
-        _auctionStart.toString(),
-        _auctionEnd.toString()
-      );
       if (_auctionStart.isZero() || _auctionEnd.isZero()) {
         return;
       }
@@ -137,15 +129,20 @@ function Sidebar(props: SidebarProps) {
     };
   }, [claimerContract]);
 
-  const isFairLaunch = true;
+  const isFairLaunch =
+    auctionStart &&
+    auctionEnd &&
+    startingBid &&
+    endingBid &&
+    Date.now() > auctionStart.toNumber() &&
+    Date.now() < auctionEnd.toNumber();
 
-  const requiredBid = calculateRequiredBid(
-    "", // TODO: get parcel block
-    auctionStart,
-    auctionEnd,
-    startingBid,
-    endingBid
-  );
+  const requiredBid =
+    auctionStart && auctionEnd && startingBid && endingBid
+      ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
+      : "0";
+
+  console.log("requiredBid: ------->: ", requiredBid);
 
   return (
     <Col
@@ -154,7 +151,13 @@ function Sidebar(props: SidebarProps) {
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
       {isFairLaunch ? (
-        <FairLaunchInfo currentRequiredBid="0" auctionEnd="32376137040000" />
+        <FairLaunchInfo
+          currentRequiredBid={truncateEth(
+            ethers.utils.formatEther(requiredBid),
+            4
+          )}
+          auctionEnd="32376137040000"
+        />
       ) : (
         <ParcelInfo
           {...props}
@@ -178,6 +181,10 @@ function Sidebar(props: SidebarProps) {
             perSecondFeeDenominator={perSecondFeeDenominator}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
+            currentRequiredBid={truncateEth(
+              ethers.utils.formatEther(requiredBid),
+              4
+            )}
           ></ClaimAction>
         </>
       ) : null}
