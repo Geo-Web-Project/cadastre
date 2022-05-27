@@ -79,9 +79,9 @@ function AuctionInfo({
     auctionTimeRemaining == null ||
     auctionValue == null;
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
-    </div>
+    </span>
   );
 
   return (
