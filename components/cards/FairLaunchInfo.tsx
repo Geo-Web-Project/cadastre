@@ -15,7 +15,7 @@ type FairLaunchInfoProps = {
   /** startingBid - priceDecrease. */
   currentRequiredBid: string;
   /** auctionEnd. */
-  auctionEnd: string;
+  auctionEnd: number;
 };
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
@@ -61,9 +61,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
           <Card.Text>Current Required Bid: {currentRequiredBid} ETHx</Card.Text>
           <Card.Text>Auction End: {formattedAuctionEnd} UTC</Card.Text>
           <Card.Text>
-            Time Remaining: <span>{duration.days()}</span>:
-            <span>{duration.hours()}</span>:<span>{duration.minutes()}</span>:
-            <span>{duration.seconds()}</span>
+            Time Remaining: <span>{duration.format("DD:HH:mm:ss")}</span>
           </Card.Text>
         </Card.Body>
       </Card>

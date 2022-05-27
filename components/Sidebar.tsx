@@ -142,8 +142,6 @@ function Sidebar(props: SidebarProps) {
       ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
       : "0";
 
-  console.log("requiredBid: ------->: ", requiredBid);
-
   return (
     <Col
       sm="3"
@@ -156,7 +154,7 @@ function Sidebar(props: SidebarProps) {
             ethers.utils.formatEther(requiredBid),
             4
           )}
-          auctionEnd="32376137040000"
+          auctionEnd={auctionEnd.toNumber()}
         />
       ) : (
         <ParcelInfo
