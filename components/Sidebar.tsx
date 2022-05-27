@@ -10,8 +10,11 @@ import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
 import { createNftDidUrl } from "nft-did-resolver";
 import { DIDDataStore } from "@glazed/did-datastore";
-import { BigNumber } from "ethers";
 import { model as GeoWebModel } from "@geo-web/datamodels";
+import { BigNumber, ethers } from "ethers";
+import FairLaunchInfo from "./cards/FairLaunchInfo";
+import { calculateRequiredBid } from "../lib/calculateRequiredBid";
+import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -20,14 +23,13 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
 };
 
 function Sidebar(props: SidebarProps) {
   const {
     auctionSuperApp,
     licenseContract,
+    claimerContract,
     ceramic,
     ipfs,
     firebasePerf,
@@ -91,22 +93,79 @@ function Sidebar(props: SidebarProps) {
       });
   }, [auctionSuperApp]);
 
+  const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
+  const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
+  const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      const [_startingBid, _endingBid, _auctionStart, _auctionEnd] =
+        await Promise.all([
+          claimerContract.startingBid(),
+          claimerContract.endingBid(),
+          claimerContract.auctionStart(),
+          claimerContract.auctionEnd(),
+        ]);
+      if (_auctionStart.isZero() || _auctionEnd.isZero()) {
+        return;
+      }
+      if (isMounted) {
+        setStartingBid(_startingBid);
+        setEndingBid(_endingBid);
+        setAuctionStart(_auctionStart);
+        setAuctionEnd(_auctionEnd);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [claimerContract]);
+
+  const isFairLaunch =
+    auctionStart &&
+    auctionEnd &&
+    startingBid &&
+    endingBid &&
+    Date.now() > auctionStart.toNumber() &&
+    Date.now() < auctionEnd.toNumber();
+
+  const requiredBid =
+    auctionStart && auctionEnd && startingBid && endingBid
+      ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
+      : "0";
+
   return (
     <Col
       sm="3"
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      <ParcelInfo
-        {...props}
-        perSecondFeeNumerator={perSecondFeeNumerator}
-        perSecondFeeDenominator={perSecondFeeDenominator}
-        dataStore={dataStore}
-        didNFT={didNFT}
-        basicProfileStreamManager={basicProfileStreamManager}
-        pinningManager={pinningManager}
-        licenseAddress={licenseContract.address}
-      ></ParcelInfo>
+      {isFairLaunch ? (
+        <FairLaunchInfo
+          currentRequiredBid={truncateEth(
+            ethers.utils.formatEther(requiredBid),
+            4
+          )}
+          auctionEnd={auctionEnd.toNumber()}
+        />
+      ) : (
+        <ParcelInfo
+          {...props}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+          dataStore={dataStore}
+          didNFT={didNFT}
+          basicProfileStreamManager={basicProfileStreamManager}
+          pinningManager={pinningManager}
+          licenseAddress={licenseContract.address}
+        ></ParcelInfo>
+      )}
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&
@@ -118,6 +177,10 @@ function Sidebar(props: SidebarProps) {
             perSecondFeeDenominator={perSecondFeeDenominator}
             basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
+            currentRequiredBid={truncateEth(
+              ethers.utils.formatEther(requiredBid),
+              4
+            )}
           ></ClaimAction>
         </>
       ) : null}
