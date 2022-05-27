@@ -18,12 +18,18 @@ const depositHoursMap: Record<number, number> = {
 type TransactionSummaryViewProps = SidebarProps & {
   existingNetworkFee?: BigNumber;
   newNetworkFee: BigNumber;
+  /** equal to startingBid - priceDecrease. */
+  currentRequiredBid: string;
+  /** during the fair launch period (true) or after (false). */
+  isFairLaunch?: boolean;
 };
 
 function TransactionSummaryView({
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
   provider,
+  currentRequiredBid,
+  isFairLaunch,
 }: TransactionSummaryViewProps) {
   const [currentChainID, setCurrentChainID] =
     React.useState<number>(NETWORK_ID);
@@ -54,7 +60,11 @@ function TransactionSummaryView({
       <h3>Transaction Summary (ETHx)</h3>
       {txnNeeded ? (
         <>
-          <p>Claim Payment: 0.00</p>
+          <p>
+            {isFairLaunch
+              ? `Max Claim Payment (to Treasury): ${currentRequiredBid}`
+              : "Claim Payment: 0.00"}
+          </p>
           <p>
             Stream: {networkFeeDelta.gt(0) ? "+" + stream : stream}
             {"/s"}
