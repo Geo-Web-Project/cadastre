@@ -34,6 +34,8 @@ import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
+import { IPFS } from "ipfs-core";
+
 const { httpClient, jsIpfs } = providers;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,7 +56,7 @@ function IndexPage() {
     Contracts["geoWebFairLaunchClaimerContract"] | null
   >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
-  const [ipfs, setIPFS] = React.useState(null);
+  const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
@@ -112,7 +114,7 @@ function IndexPage() {
         // Get the DID provider from the 3ID Connect instance
         provider: didProvider,
         resolver: {
-          ...get3IDResolver(ceramic),
+          ...get3IDResolver(ceramic as any),
           ...getKeyResolver(),
         },
       });
@@ -193,7 +195,7 @@ function IndexPage() {
             connectWallet();
           }}
         >
-          <img src="vector.png" width="40" style={{ marginRight: 20 }} />
+          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           Connect Wallet
         </Button>
       );
@@ -245,7 +247,9 @@ function IndexPage() {
         fairLaunchClaimer &&
         library &&
         paymentTokenAddress &&
-        ceramic ? (
+        ceramic &&
+        ipfs &&
+        firebasePerf ? (
           <Row>
             <Map
               licenseContract={licenseContract}

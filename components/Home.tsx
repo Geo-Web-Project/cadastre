@@ -1,7 +1,5 @@
-/* eslint-disable import/no-unresolved */
-import * as React from "react";
 import { NETWORK_NAME } from "../lib/constants";
-import Image from "next/image";
+import { Image } from "react-bootstrap";
 
 function HomeContent() {
   return (

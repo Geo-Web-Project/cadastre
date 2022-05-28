@@ -18,8 +18,7 @@ const depositHoursMap: Record<number, number> = {
 type TransactionSummaryViewProps = SidebarProps & {
   existingNetworkFee?: BigNumber;
   newNetworkFee: BigNumber;
-  /** equal to startingBid - priceDecrease. */
-  currentRequiredBid: string;
+  currentRequiredBid?: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
 };

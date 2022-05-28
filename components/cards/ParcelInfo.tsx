@@ -13,6 +13,7 @@ import { SidebarProps } from "../Sidebar";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
+import { BigNumber } from "ethers";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -30,6 +31,8 @@ const parcelQuery = gql`
 `;
 
 export type ParcelInfoProps = SidebarProps & {
+  perSecondFeeNumerator: BigNumber | null;
+  perSecondFeeDenominator: BigNumber | null;
   dataStore: DIDDataStore | null;
   didNFT: string | null;
   basicProfileStreamManager: any;

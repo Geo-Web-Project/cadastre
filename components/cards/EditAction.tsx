@@ -8,8 +8,8 @@ import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
 
 export type EditActionProps = SidebarProps & {
-  perSecondFeeNumerator: BigNumber;
-  perSecondFeeDenominator: BigNumber;
+  perSecondFeeNumerator: BigNumber | null;
+  perSecondFeeDenominator: BigNumber | null;
   basicProfileStreamManager: any;
   licenseAddress: string;
   parcelData: any;
@@ -59,19 +59,25 @@ function EditAction(props: EditActionProps) {
 
   const { displayNewForSalePrice } = actionData;
 
-  const existingNetworkFee = fromValueToRate(
-    ethers.utils.parseEther(displayCurrentForSalePrice),
-    perSecondFeeNumerator,
+  const existingNetworkFee =
+    displayCurrentForSalePrice &&
+    perSecondFeeNumerator &&
     perSecondFeeDenominator
-  );
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayCurrentForSalePrice),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
 
-  const newNetworkFee = displayNewForSalePrice
-    ? fromValueToRate(
-        ethers.utils.parseEther(displayNewForSalePrice),
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      )
-    : null;
+  const newNetworkFee =
+    displayNewForSalePrice && perSecondFeeNumerator && perSecondFeeDenominator
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
 
   async function _edit() {
     updateActionData({ isActing: true });
@@ -127,11 +133,15 @@ function EditAction(props: EditActionProps) {
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          <TransactionSummaryView
-            existingNetworkFee={existingNetworkFee}
-            newNetworkFee={newNetworkFee ?? existingNetworkFee}
-            {...props}
-          />
+          existingNetworkFee ? (
+            <TransactionSummaryView
+              existingNetworkFee={existingNetworkFee}
+              newNetworkFee={newNetworkFee ?? existingNetworkFee}
+              {...props}
+            />
+          ) : (
+            <></>
+          )
         }
         {...props}
       />
