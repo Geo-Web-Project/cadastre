@@ -1,35 +1,32 @@
 /* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
-import { DIDDataStore } from "@glazed/did-datastore";
-import { StreamID } from "@ceramicnetwork/streamid";
 import { TileLoader } from "@glazed/tile-loader";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
-import { MediaGallery, ModelTypes } from "@geo-web/datamodels";
+import { MediaGallery } from "@geo-web/datamodels";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
+import { AssetContentManager } from "../AssetContentManager";
 
 export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
-  dataStore: DIDDataStore<ModelTypes>;
+  assetContentManager: AssetContentManager;
 
-  constructor(dataStore: DIDDataStore<ModelTypes>, controller: string) {
+  constructor(_assetContentManager: AssetContentManager) {
     super(
-      dataStore.ceramic,
-      dataStore.model.getSchemaURL("MediaGallery"),
-      controller
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("MediaGallery"),
+      _assetContentManager.controller
     );
-    this.dataStore = dataStore;
+    this.assetContentManager = _assetContentManager;
   }
 
   async createOrUpdateStream(content: MediaGallery) {
-    const newStreamId = await this.dataStore.set("mediaGallery", content, {
-      controller: this._controller,
-    });
+    const newStreamId = await this.assetContentManager.set(
+      "mediaGallery",
+      content
+    );
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecord(
-        this.dataStore.getDefinitionID("mediaGallery"),
-        this._controller
-      );
+      this.stream = await this.assetContentManager.getRecord("mediaGallery");
     }
 
     return newStreamId;
@@ -57,8 +54,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
 }
 
 export function useMediaGalleryStreamManager(
-  dataStore: DIDDataStore<ModelTypes> | null,
-  didNFT: string | null
+  assetContentManager: AssetContentManager | null
 ) {
   const [mediaGalleryStreamManager, setMediaGalleryStreamManager] =
     React.useState<MediaGalleryStreamManager | null>(null);
@@ -67,24 +63,18 @@ export function useMediaGalleryStreamManager(
     setMediaGalleryStreamManager(null);
 
     async function setup() {
-      if (!dataStore || !didNFT) {
+      if (!assetContentManager) {
         setMediaGalleryStreamManager(null);
         return;
       }
 
       const _mediaGalleryStreamManager = new MediaGalleryStreamManager(
-        dataStore,
-        didNFT
+        assetContentManager
       );
 
-      const mediaGalleryStreamIdString = await dataStore.getRecordID(
-        dataStore.getDefinitionID("mediaGallery"),
-        didNFT
+      const mediaGalleryStreamId = await assetContentManager.getRecordID(
+        "mediaGallery"
       );
-
-      const mediaGalleryStreamId = mediaGalleryStreamIdString
-        ? StreamID.fromString(mediaGalleryStreamIdString)
-        : null;
 
       console.debug(`Setting up mediaGallery: ${mediaGalleryStreamId}`);
       await _mediaGalleryStreamManager.setExistingStreamId(
@@ -96,7 +86,7 @@ export function useMediaGalleryStreamManager(
     }
 
     setup();
-  }, [dataStore]);
+  }, [assetContentManager]);
 
   return mediaGalleryStreamManager;
 }

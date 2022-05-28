@@ -10,10 +10,12 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
 import { SidebarProps } from "../Sidebar";
-import { DIDDataStore } from "@glazed/did-datastore";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import { BigNumber } from "ethers";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { PinningManager } from "../../lib/PinningManager";
+import { AssetContentManager } from "../../lib/AssetContentManager";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -31,13 +33,12 @@ const parcelQuery = gql`
 `;
 
 export type ParcelInfoProps = SidebarProps & {
-  perSecondFeeNumerator: BigNumber | null;
-  perSecondFeeDenominator: BigNumber | null;
-  dataStore: DIDDataStore | null;
-  didNFT: string | null;
-  basicProfileStreamManager: any;
-  pinningManager: any;
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
+  pinningManager: PinningManager | null;
   licenseAddress: string;
+  assetContentManager: AssetContentManager;
+  basicProfileStreamManager: BasicProfileStreamManager;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -46,10 +47,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     interactionState,
     setInteractionState,
     selectedParcelId,
-    dataStore,
-    didNFT,
+    assetContentManager,
     basicProfileStreamManager,
-    licenseAddress,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -67,17 +66,17 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   useEffect(() => {
     async function updateStreamId() {
-      if (!dataStore || !didNFT) {
+      if (!assetContentManager) {
         setParcelIndexStreamId(null);
         return;
       }
 
-      const doc = await dataStore._createIDXDoc(didNFT);
+      const doc = await assetContentManager.getIndex();
       setParcelIndexStreamId(doc.id.toString());
     }
 
     updateStreamId();
-  }, [data, dataStore, didNFT]);
+  }, [data, assetContentManager]);
 
   const spinner = (
     <span className="spinner-border" role="status">

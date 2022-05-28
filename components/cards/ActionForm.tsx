@@ -22,17 +22,18 @@ import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
 import { fromValueToRate } from "../../lib/utils";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
   performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
+  basicProfileStreamManager: BasicProfileStreamManager;
 };
 
 export type ActionData = {

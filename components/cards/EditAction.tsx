@@ -6,11 +6,12 @@ import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 export type EditActionProps = SidebarProps & {
-  perSecondFeeNumerator: BigNumber | null;
-  perSecondFeeDenominator: BigNumber | null;
-  basicProfileStreamManager: any;
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
+  basicProfileStreamManager: BasicProfileStreamManager;
   licenseAddress: string;
   parcelData: any;
 };
@@ -43,8 +44,8 @@ function EditAction(props: EditActionProps) {
     displayNewForSalePrice: displayCurrentForSalePrice
       ? displayCurrentForSalePrice
       : "",
-    parcelName: parcelContent ? parcelContent.name : null,
-    parcelWebContentURI: parcelContent ? parcelContent.url : null,
+    parcelName: parcelContent ? parcelContent.name : undefined,
+    parcelWebContentURI: parcelContent ? parcelContent.url : undefined,
   });
 
   function updateActionData(updatedValues: ActionData) {

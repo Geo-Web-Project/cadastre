@@ -6,6 +6,9 @@ import { DataModel } from "@glazed/datamodel";
 import { DefinitionContentType } from "@glazed/did-datastore";
 import { AssetId } from "caip";
 
+const IDX_INDEX_SCHEMA_ID =
+  "k3y52l7qbv1fryjn62sggjh1lpn11c56qfofzmty190d62hwk1cal1c7qc5he54ow";
+
 export class AssetContentManager<
   Alias extends keyof ModelTypes["definitions"] = keyof ModelTypes["definitions"]
 > {
@@ -30,21 +33,59 @@ export class AssetContentManager<
     Key extends Alias,
     ContentType = DefinitionContentType<ModelTypes, Key>
   >(key: Key, content: ContentType): Promise<string> {
-    const record = await this.getRecord<Key, ContentType>(key);
-    await record.update(content);
+    const index = await this.getIndex();
+    const definitionID = this.model.getDefinitionID(key);
 
-    return record.id.toString();
+    if (!definitionID) {
+      throw new Error("Could not find definitionID");
+    }
+
+    if (index.content[definitionID]) {
+      const record = await TileDocument.load(
+        this.ceramic,
+        index.content[definitionID]
+      );
+      await record.update(content);
+      return record.id.toString();
+    } else {
+      const record = await TileDocument.create(this.ceramic, content, {
+        controllers: [this.controller],
+      });
+
+      await index.update({
+        ...index.content,
+        [definitionID]: `ceramic://${record.id.toString()}`,
+      });
+
+      return record.id.toString();
+    }
+  }
+
+  async getRecordID<Key extends Alias>(key: Key): Promise<string> {
+    const index = await this.getIndex();
+    const definitionID = this.model.getDefinitionID(key);
+
+    if (!definitionID) {
+      throw new Error("Could not find definitionID");
+    }
+
+    return index.content[definitionID];
   }
 
   async getRecord<
     Key extends Alias,
     ContentType = DefinitionContentType<ModelTypes, Key>
   >(key: Key): Promise<TileDocument<ContentType>> {
+    const recordId = await this.getRecordID(key);
+
+    return await TileDocument.load(this.ceramic, recordId);
+  }
+
+  async getIndex(): Promise<TileDocument> {
     return await TileDocument.deterministic(this.ceramic, {
       controllers: [this.controller],
-      family: `geoweb:${this.assetId.toString()}:${this.model.getDefinitionID(
-        key
-      )}`,
+      schema: IDX_INDEX_SCHEMA_ID,
+      family: `geoweb:${this.assetId.toString()}`,
     });
   }
 }

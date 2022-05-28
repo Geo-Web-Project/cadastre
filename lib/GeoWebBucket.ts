@@ -14,39 +14,34 @@ import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
 import { DAGLink } from "ipld-dag-pb";
 import { ModelTypes, Pinset } from "@geo-web/datamodels";
+import { AssetContentManager } from "./AssetContentManager";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
-  dataStore: DIDDataStore<ModelTypes>;
+  assetContentManager: AssetContentManager;
   bucketRoot?: CID;
   latestQueuedLinks?: any[];
   latestPinnedLinks?: any[];
   latestPinnedRoot?: CID;
   private _ipfs: IPFS;
 
-  constructor(
-    dataStore: DIDDataStore<ModelTypes>,
-    controller: string,
-    ipfs: IPFS
-  ) {
+  constructor(_assetContentManager: AssetContentManager, ipfs: IPFS) {
     super(
-      dataStore.ceramic,
-      dataStore.model.getSchemaURL("GeoWebPinset"),
-      controller
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("Pinset"),
+      _assetContentManager.controller
     );
-    this.dataStore = dataStore;
+    this.assetContentManager = _assetContentManager;
     this._ipfs = ipfs;
   }
 
   async createOrUpdateStream(content: Pinset) {
-    const newStreamId = await this.dataStore.set("geoWebPinset", content, {
-      controller: this._controller,
-    });
+    const newStreamId = await this.assetContentManager.set(
+      "geoWebPinset",
+      content
+    );
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecord(
-        this.dataStore.getDefinitionID("geoWebPinset"),
-        this._controller
-      );
+      this.stream = await this.assetContentManager.getRecord("geoWebPinset");
     }
 
     return newStreamId;

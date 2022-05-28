@@ -6,6 +6,7 @@ import { IPFS } from "ipfs-core";
 import firebase from "firebase/app";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { StreamID } from "@ceramicnetwork/streamid";
+import { AssetContentManager } from "./AssetContentManager";
 
 export class PinningManager {
   private _geoWebBucket: GeoWebBucket;
@@ -150,8 +151,7 @@ export class PinningManager {
 }
 
 export function usePinningManager(
-  dataStore: DIDDataStore | null,
-  didNFT: string | null,
+  assetContentManager: AssetContentManager | null,
   ipfs: IPFS | null,
   firebasePerformance: firebase.performance.Performance | null
 ) {
@@ -160,23 +160,18 @@ export function usePinningManager(
 
   React.useEffect(() => {
     async function setupManager() {
-      if (!dataStore || !didNFT || !ipfs || !firebasePerformance) {
+      if (!assetContentManager || !ipfs || !firebasePerformance) {
         setPinningManager(null);
         return;
       }
 
       console.debug("Setting up pinning manager...");
 
-      const bucket = new GeoWebBucket(dataStore, didNFT, ipfs);
+      const bucket = new GeoWebBucket(assetContentManager, ipfs);
 
-      const pinsetStreamIdString = await dataStore.getRecordID(
-        dataStore.getDefinitionID("geoWebPinset"),
-        didNFT
+      const pinsetStreamId = await assetContentManager.getRecordID(
+        "geoWebPinset"
       );
-
-      const pinsetStreamId = pinsetStreamIdString
-        ? StreamID.fromString(pinsetStreamIdString)
-        : null;
 
       console.debug(`Setting up geoWebPinset: ${pinsetStreamId}`);
       await bucket.setExistingStreamId(pinsetStreamId);
@@ -198,7 +193,7 @@ export function usePinningManager(
     }
 
     setupManager();
-  }, [dataStore, ipfs, firebasePerformance]);
+  }, [assetContentManager, ipfs, firebasePerformance]);
 
   return pinningManager;
 }

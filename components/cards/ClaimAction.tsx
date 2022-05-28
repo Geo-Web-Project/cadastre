@@ -9,6 +9,7 @@ import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 enum Action {
   CLAIM,
@@ -18,7 +19,7 @@ enum Action {
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: any;
+  basicProfileStreamManager: BasicProfileStreamManager;
   licenseAddress: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
@@ -36,7 +37,6 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    isFairLaunch = false,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,

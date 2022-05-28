@@ -2,25 +2,23 @@
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
 import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
-// eslint-disable-next-line import/named
-import { CeramicApi } from "@ceramicnetwork/common";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
+import { AssetContentManager } from "../AssetContentManager";
 
 export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject> {
+  assetContentManager: AssetContentManager;
   mediaGalleryStreamManager: MediaGalleryStreamManager;
 
   constructor(
-    ceramic: CeramicApi,
-    _mediaGalleryStreamManager: MediaGalleryStreamManager,
-    controller: string
+    _assetContentManager: AssetContentManager,
+    _mediaGalleryStreamManager: MediaGalleryStreamManager
   ) {
     super(
-      ceramic,
-      _mediaGalleryStreamManager.dataStore.model.getSchemaURL(
-        "MediaGalleryItem"
-      ),
-      controller
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("MediaGalleryItem"),
+      _assetContentManager.controller
     );
+    this.assetContentManager = _assetContentManager;
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
@@ -86,7 +84,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
 
 export function useMediaGalleryItemData(
   mediaGalleryStreamManager: MediaGalleryStreamManager,
-  didNFT: string
+  assetContentManager: AssetContentManager
 ) {
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
 
@@ -110,9 +108,8 @@ export function useMediaGalleryItemData(
         (result, docId) => {
           const _mediaGalleryItemStreamManager =
             new MediaGalleryItemStreamManager(
-              mediaGalleryStreamManager.ceramic,
-              mediaGalleryStreamManager,
-              didNFT
+              assetContentManager,
+              mediaGalleryStreamManager
             );
           _mediaGalleryItemStreamManager.stream = loadedItems[docId];
           result[docId] = _mediaGalleryItemStreamManager;
