@@ -4,29 +4,28 @@ import * as React from "react";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { BasicProfile, ModelTypes } from "@geo-web/datamodels";
 import { StreamID } from "@ceramicnetwork/streamid";
+import { AssetContentManager } from "../AssetContentManager";
 
 export class BasicProfileStreamManager extends TileStreamManager<BasicProfile> {
-  dataStore: DIDDataStore<ModelTypes>;
+  assetContentManager: AssetContentManager;
 
-  constructor(dataStore: DIDDataStore, controller: string) {
+  constructor(_assetContentManager: AssetContentManager) {
     super(
-      dataStore.ceramic,
-      dataStore.model.getSchemaURL("BasicProfile"),
-      controller
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("BasicProfile"),
+      _assetContentManager.controller
     );
-    this.dataStore = dataStore;
+    this.assetContentManager = _assetContentManager;
   }
 
   async createOrUpdateStream(content: BasicProfile) {
-    const newStreamId = await this.dataStore.set("basicProfile", content, {
-      controller: this._controller,
-    });
+    const newStreamId = await this.assetContentManager.set(
+      "basicProfile",
+      content
+    );
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecord(
-        this.dataStore.getDefinitionID("basicProfile"),
-        this._controller
-      );
+      this.stream = await this.assetContentManager.getRecord("basicProfile");
     }
 
     return newStreamId;

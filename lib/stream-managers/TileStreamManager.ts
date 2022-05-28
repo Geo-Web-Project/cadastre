@@ -1,13 +1,12 @@
 /* eslint-disable import/named */
 import { CeramicApi } from "@ceramicnetwork/common";
 import { TileDocument, TileMetadataArgs } from "@ceramicnetwork/stream-tile";
-import { StreamID } from "@ceramicnetwork/streamid";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class TileStreamManager<T = Record<string, any>> {
   ceramic: CeramicApi;
   stream?: TileDocument<T> | null;
-  private _schemaStreamId?: string | null;
+  private _schemaStreamId?: string;
   private _shouldPin: boolean;
   protected _controller: string;
 
@@ -17,13 +16,13 @@ export class TileStreamManager<T = Record<string, any>> {
     controller: string
   ) {
     this.ceramic = ceramic;
-    this._schemaStreamId = schemaStreamId;
+    this._schemaStreamId = schemaStreamId ?? undefined;
     this._shouldPin = true;
     this._controller = controller;
   }
 
   /* Set an existing root stream ID */
-  async setExistingStreamId(streamId: StreamID | null) {
+  async setExistingStreamId(streamId: string | null) {
     if (!streamId) {
       this.stream = null;
       return;
@@ -72,7 +71,7 @@ export class TileStreamManager<T = Record<string, any>> {
       if (this._shouldPin) {
         await this.ceramic.pin.add(this.stream.id);
       }
-      return this.stream.id;
+      return this.stream.id.toString();
     }
   }
 
