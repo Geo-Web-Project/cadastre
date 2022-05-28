@@ -54,6 +54,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     variables: {
       id: selectedParcelId,
     },
+    pollInterval: 2000,
   });
 
   const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<

@@ -7,6 +7,8 @@ import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { NETWORK_ID } from "../../lib/constants";
+import { sfInstance } from "../../lib/sfInstance";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -24,11 +26,14 @@ enum Action {
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
-    // refetchParcelData,
+    provider,
     basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     selectedParcelId,
+    paymentTokenAddress,
+    account,
+    auctionSuperApp,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.landParcel.license.forSalePrice
@@ -83,14 +88,21 @@ function EditAction(props: EditActionProps) {
   async function _edit() {
     updateActionData({ isActing: true });
 
+    if (!existingNetworkFee) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
     // Check for changes
     if (
       !displayNewForSalePrice ||
+      !newNetworkFee ||
       displayNewForSalePrice == displayCurrentForSalePrice
     ) {
       // Content change only
       return;
     }
+
+    const sf = await sfInstance(NETWORK_ID, provider);
 
     const bidData = ethers.utils.defaultAbiCoder.encode(
       ["uint256"],
@@ -107,23 +119,29 @@ function EditAction(props: EditActionProps) {
       [Action.BID, actionData]
     );
 
-    // const newContributionRate = fromValueToRate(
-    //   newForSalePrice,
-    //   perSecondFeeNumerator,
-    //   perSecondFeeDenominator
-    // );
-    // const resp = await collectorContract.setContributionRate(
-    //   parcelData.landParcel.id,
-    //   newContributionRate,
-    //   {
-    //     from: account,
-    //     value: paymentValue,
-    //   }
-    // );
+    const existingFlow = await sf.cfaV1.getFlow({
+      superToken: paymentTokenAddress,
+      sender: account,
+      receiver: auctionSuperApp.address,
+      providerOrSigner: provider as any,
+    });
 
-    // await resp.wait();
+    const signer = provider.getSigner() as any;
 
-    // refetchParcelData();
+    const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
+
+    const updateFlowOperation = await sf.cfaV1.updateFlow({
+      flowRate: BigNumber.from(existingFlow.flowRate)
+        .add(networkFeeDelta)
+        .toString(),
+      receiver: auctionSuperApp.address,
+      superToken: paymentTokenAddress,
+      userData,
+    });
+
+    const txn = await updateFlowOperation.exec(signer);
+
+    await txn.wait();
   }
 
   return (
