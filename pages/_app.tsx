@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-/* eslint-disable import/no-unresolved */
-=======
->>>>>>> develop
 import { wrapper } from "../redux/store";
 
 import React from "react";

@@ -3721,10 +3721,10 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/datamodels@^2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-2.3.1.tgz#bd60da8a4fdeb1a01a6200e1dae0860ef858b321"
-  integrity sha512-gGKkj0ahtQEiC7DCPHnKWkRaRHSuO88SJlT6F7Kz/OoNaN05lfIc4UKZAWFb3nwjZVhLAsrShT336BG8a0Ksog==
+"@geo-web/datamodels@^2.3.3":
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-2.3.3.tgz#b7635857f2a499e6658bea9653c4872ad6158be6"
+  integrity sha512-4I9ixV2146tW3/9pbQtx1rC9es5VBEom8nN5fIpQQkMHcD9fHn/Ly8I42lfulf1gVmOmSA01xozokkHnIbZwzQ==
   dependencies:
     "@ceramicnetwork/http-client" "^1.5.7"
     "@datamodels/identity-profile-basic" "^0.1.2"
@@ -24638,11 +24638,7 @@ rpc-utils@^0.3.4:
   dependencies:
     nanoid "^3.1.21"
 
-<<<<<<< HEAD
 rpc-utils@^0.6.0, rpc-utils@^0.6.1, rpc-utils@^0.6.2:
-=======
-rpc-utils@^0.6.0, rpc-utils@^0.6.1:
->>>>>>> 886fd37abcd72882410c2ad64d645938f55b4be0
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/rpc-utils/-/rpc-utils-0.6.2.tgz#3cab779f93048eda69ff198c58b1a2c2e35e3fa6"
   integrity sha512-kzk1OflbBckfDBAo8JwsmtQSHzj+6hxRt5G+u8A8ZSmunBw1nhWvRkSq8j1+EvWBqBRLy1aiGLUW5644CZqQtA==
