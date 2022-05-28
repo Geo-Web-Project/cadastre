@@ -4,10 +4,7 @@ import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { usePinningManager } from "../lib/PinningManager";
-import {
-  BasicProfileStreamManager,
-  useBasicProfileStreamManager,
-} from "../lib/stream-managers/BasicProfileStreamManager";
+import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 import { STATE, MapProps } from "./Map";
 import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
@@ -164,10 +161,7 @@ function Sidebar(props: SidebarProps) {
           )}
           auctionEnd={auctionEnd.toNumber()}
         />
-      ) : perSecondFeeNumerator &&
-        perSecondFeeDenominator &&
-        basicProfileStreamManager &&
-        assetContentManager ? (
+      ) : perSecondFeeNumerator && perSecondFeeDenominator ? (
         <ParcelInfo
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
@@ -181,14 +175,12 @@ function Sidebar(props: SidebarProps) {
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&
-      perSecondFeeDenominator &&
-      basicProfileStreamManager ? (
+      perSecondFeeDenominator ? (
         <>
           <ClaimAction
             {...props}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
             currentRequiredBid={truncateEth(
               ethers.utils.formatEther(requiredBid),

@@ -7,14 +7,11 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { createNftDidUrl } from "nft-did-resolver";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  publishedModel,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
-import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
@@ -23,6 +20,10 @@ import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
 import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { AssetId } from "caip";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { DataModel } from "@glazed/datamodel";
+import { AssetContentManager } from "../../lib/AssetContentManager";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -33,7 +34,7 @@ export type ActionFormProps = SidebarProps & {
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
-  basicProfileStreamManager: BasicProfileStreamManager;
+  basicProfileStreamManager?: BasicProfileStreamManager | null;
 };
 
 export type ActionData = {
@@ -141,28 +142,34 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    if (parcelId) {
-      const didNFT = createNftDidUrl({
+    if (parcelId && !basicProfileStreamManager) {
+      const assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
-        namespace: "erc721",
-        contract: licenseAddress.toLowerCase(),
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
         tokenId: parcelId.toString(),
       });
 
-      // Create new DIDDataStore and BasicProfileStreamManager
-      const dataStore = new DIDDataStore({
+      const model = new DataModel({
         ceramic,
-        model: publishedModel,
-        id: didNFT,
+        aliases: GeoWebModel,
       });
 
-      // FIXME: Update Ceramic content
-      // const _basicProfileStreamManager = new BasicProfileStreamManager(
-      //   dataStore
-      // );
-      // await _basicProfileStreamManager.createOrUpdateStream(content);
+      const _assetContentManager = new AssetContentManager(
+        ceramic,
+        model,
+        ceramic.did!.id,
+        assetId
+      );
+
+      const _basicProfileStreamManager = new BasicProfileStreamManager(
+        _assetContentManager
+      );
+      await _basicProfileStreamManager.createOrUpdateStream(content);
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-    } else {
+    } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
     }

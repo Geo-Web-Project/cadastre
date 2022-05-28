@@ -11,7 +11,7 @@ import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfil
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: BasicProfileStreamManager;
+  basicProfileStreamManager: BasicProfileStreamManager | null;
   licenseAddress: string;
   parcelData: any;
 };

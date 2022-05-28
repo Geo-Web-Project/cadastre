@@ -37,8 +37,8 @@ export type ParcelInfoProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   pinningManager: PinningManager | null;
   licenseAddress: string;
-  assetContentManager: AssetContentManager;
-  basicProfileStreamManager: BasicProfileStreamManager;
+  assetContentManager: AssetContentManager | null;
+  basicProfileStreamManager: BasicProfileStreamManager | null;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {

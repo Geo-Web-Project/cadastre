@@ -9,7 +9,6 @@ import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 
 enum Action {
   CLAIM,
@@ -19,7 +18,6 @@ enum Action {
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: BasicProfileStreamManager;
   licenseAddress: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
@@ -159,12 +157,14 @@ function ClaimAction(props: ClaimActionProps) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
 
+    const receipt = await txn.wait();
+
     const filter = claimerContract.filters.ParcelClaimed(null, null);
 
     const res = await claimerContract.queryFilter(
       filter,
-      txn.blockNumber,
-      txn.blockNumber
+      receipt.blockNumber,
+      receipt.blockNumber
     );
     const licenseId = res[0].args[0].toString();
     return licenseId;
