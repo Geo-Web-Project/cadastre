@@ -7,33 +7,35 @@ import Image from "react-bootstrap/Image";
 import Container from "react-bootstrap/Container";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
-import { STATE_PARCEL_SELECTED } from "../Map";
+import { STATE } from "../Map";
 import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
-import { useMediaGalleryItemData } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import {
+  MediaGalleryItemStreamManager,
+  useMediaGalleryItemData,
+} from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { ParcelInfoProps } from "../cards/ParcelInfo";
 
-export function GalleryModal({
-  show,
-  setInteractionState,
-  dataStore,
-  didNFT,
-  ipfs,
-  pinningManager,
-}) {
+export type GalleryModalProps = ParcelInfoProps & {
+  show: boolean;
+};
+
+function GalleryModal(props: GalleryModalProps) {
+  const { show, setInteractionState, assetContentManager, pinningManager } =
+    props;
   const handleClose = () => {
-    setInteractionState(STATE_PARCEL_SELECTED);
+    setInteractionState(STATE.PARCEL_SELECTED);
   };
 
-  const mediaGalleryStreamManager = useMediaGalleryStreamManager(
-    dataStore,
-    didNFT
-  );
+  const mediaGalleryStreamManager =
+    useMediaGalleryStreamManager(assetContentManager);
   const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
-    mediaGalleryStreamManager
+    mediaGalleryStreamManager,
+    assetContentManager
   );
   const [selectedMediaGalleryItemId, setSelectedMediaGalleryItemId] =
-    React.useState(null);
+    React.useState<string | null>(null);
   const [selectedMediaGalleryItemManager, setSelectedMediaGalleryItemManager] =
-    React.useState(null);
+    React.useState<MediaGalleryItemStreamManager | null>(null);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -50,7 +52,7 @@ export function GalleryModal({
     setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
   }, [selectedMediaGalleryItemId]);
 
-  const [storageLink, setStorageLink] = React.useState(null);
+  const [storageLink, setStorageLink] = React.useState<string | null>(null);
   const [storageUsed, setStorageUsed] = React.useState(null);
   const storageCapacity = pinningManager
     ? pinningManager.getStorageLimit()
@@ -67,11 +69,11 @@ export function GalleryModal({
   }
 
   React.useEffect(() => {
-    if (!pinningManager) {
-      return;
-    }
-
     async function _update() {
+      if (!pinningManager) {
+        return;
+      }
+
       const _storageLink = await pinningManager.getLink();
       setStorageLink(_storageLink);
 
@@ -91,7 +93,7 @@ export function GalleryModal({
 
   const handleResetPinset = async () => {
     setIsResetting(true);
-    await pinningManager.reset();
+    await pinningManager?.reset();
     setIsResetting(false);
     handleClose();
   };
@@ -161,20 +163,19 @@ export function GalleryModal({
             </p>
             <div className="border border-secondary rounded p-3 text-center">
               <GalleryForm
-                pinningManager={pinningManager}
-                ipfs={ipfs}
                 mediaGalleryStreamManager={mediaGalleryStreamManager}
                 selectedMediaGalleryItemManager={
                   selectedMediaGalleryItemManager
                 }
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
+                {...props}
               />
               <GalleryDisplayGrid
-                pinningManager={pinningManager}
                 mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
+                {...props}
               />
               <a
                 className="text-light"

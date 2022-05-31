@@ -4,8 +4,6 @@ import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
 import { IPFS } from "ipfs-core";
 import firebase from "firebase/app";
-import { DIDDataStore } from "@glazed/did-datastore";
-import { StreamID } from "@ceramicnetwork/streamid";
 import { AssetContentManager } from "./AssetContentManager";
 
 export class PinningManager {

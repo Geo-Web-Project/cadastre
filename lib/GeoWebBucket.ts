@@ -10,10 +10,9 @@ import { STORAGE_WORKER_ENDPOINT } from "./constants";
 import { TileStreamManager } from "./stream-managers/TileStreamManager";
 import CID from "cids";
 import axios from "axios";
-import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
 import { DAGLink } from "ipld-dag-pb";
-import { ModelTypes, Pinset } from "@geo-web/datamodels";
+import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {

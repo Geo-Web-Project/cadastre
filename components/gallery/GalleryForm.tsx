@@ -14,22 +14,36 @@ import {
   getFormatCS,
   getFormatType,
 } from "./GalleryFileFormat";
+import { MediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
+import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
+import { GalleryModalProps } from "./GalleryModal";
 
-export function GalleryForm({
-  pinningManager,
-  ipfs,
-  mediaGalleryStreamManager,
-  selectedMediaGalleryItemManager,
-  setSelectedMediaGalleryItemId,
-}) {
-  const [pinningService, setPinningService] = React.useState("buckets");
+export type GalleryFormProps = GalleryModalProps & {
+  mediaGalleryStreamManager: MediaGalleryStreamManager | null;
+  selectedMediaGalleryItemManager: MediaGalleryItemStreamManager | null;
+  setSelectedMediaGalleryItemId: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
+};
+
+function GalleryForm(props: GalleryFormProps) {
+  const {
+    mediaGalleryStreamManager,
+    selectedMediaGalleryItemManager,
+    setSelectedMediaGalleryItemId,
+    ipfs,
+    assetContentManager,
+    pinningManager,
+  } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
-  const [fileFormat, setFileFormat] = React.useState(null);
+  const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
-  const [mediaGalleryItem, setMediaGalleryItem] = React.useState({});
+  const [mediaGalleryItem, setMediaGalleryItem] = React.useState<MediaObject>(
+    {}
+  );
   const { firebasePerf } = useFirebase();
 
   const cid = mediaGalleryItem.contentUrl
@@ -47,13 +61,13 @@ export function GalleryForm({
     setMediaGalleryItem(mediaGalleryItemContent ?? {});
 
     if (mediaGalleryItemContent) {
-      setFileFormat(mediaGalleryItemContent.encodingFormat);
+      setFileFormat(mediaGalleryItemContent.encodingFormat ?? null);
     }
   }, [selectedMediaGalleryItemManager]);
 
-  function updateMediaGalleryItem(updatedValues) {
-    function _updateData(updatedValues) {
-      return (prevState) => {
+  function updateMediaGalleryItem(updatedValues: MediaObject) {
+    function _updateData(updatedValues: MediaObject) {
+      return (prevState: MediaObject) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -61,12 +75,12 @@ export function GalleryForm({
     setMediaGalleryItem(_updateData(updatedValues));
   }
 
-  function updateContentUrl(event) {
+  function updateContentUrl(event: React.ChangeEvent<any>) {
     const cid = event.target.value;
 
     if (!cid || cid.length == 0) {
       updateMediaGalleryItem({
-        contentUrl: null,
+        contentUrl: undefined,
       });
 
       setDetectedFileFormat(null);
@@ -78,11 +92,11 @@ export function GalleryForm({
     updateMediaGalleryItem({
       //"@type": "3DModel",
       contentUrl: `ipfs://${cid}`,
-      encodingFormat: fileFormat,
+      encodingFormat: fileFormat ?? undefined,
     });
   }
 
-  async function captureFile(event) {
+  async function captureFile(event: React.ChangeEvent<any>) {
     event.stopPropagation();
     event.preventDefault();
 
@@ -94,11 +108,9 @@ export function GalleryForm({
 
     setIsUploading(true);
 
-    let { encoding, type } = getFormat(file.name);
-
-    if (encoding === ".mp4") type = file.type;
-
-    //setDetectedFileFormat(encoding);
+    const format = getFormat(file.name);
+    const { encoding } = format;
+    setFileFormat(encoding);
 
     // Manually preload synchronously
     ipfs.preload.stop();
@@ -116,12 +128,13 @@ export function GalleryForm({
   }
 
   function clearForm() {
-    document.getElementById("galleryForm").reset();
+    const form = document.getElementById("galleryForm") as HTMLFormElement;
+    form.reset();
 
     setDetectedFileFormat(null);
     setFileFormat(null);
     setMediaGalleryItem({});
-    setPinningService("buckets");
+    // setPinningService("buckets");
     setDidFail(false);
 
     setSelectedMediaGalleryItemId(null);
@@ -131,12 +144,17 @@ export function GalleryForm({
     setIsSaving(true);
     setDidFail(false);
 
-    const trace = firebasePerf.trace("add_media_item_to_gallery");
-    trace.start();
+    const trace = firebasePerf?.trace("add_media_item_to_gallery");
+    trace?.start();
 
-    if (mediaGalleryItem) {
+    if (
+      mediaGalleryItem &&
+      assetContentManager &&
+      mediaGalleryStreamManager &&
+      pinningManager
+    ) {
       const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
-        mediaGalleryStreamManager.ceramic,
+        assetContentManager,
         mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.createOrUpdateStream(
@@ -144,16 +162,20 @@ export function GalleryForm({
       );
 
       // Pin item
-      const cid = mediaGalleryItem.contentUrl.replace("ipfs://", "");
-      const name = `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
+      const cid = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
+      const name = cid
+        ? `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`
+        : null;
 
-      try {
-        await pinningManager.pinCid(name, cid);
-      } catch (err) {
-        console.error(err);
-        setDidFail(true);
-        setIsSaving(false);
-        return;
+      if (cid && name) {
+        try {
+          await pinningManager.pinCid(name, cid);
+        } catch (err) {
+          console.error(err);
+          setDidFail(true);
+          setIsSaving(false);
+          return;
+        }
       }
 
       // Add to gallery after pin
@@ -165,7 +187,7 @@ export function GalleryForm({
 
     clearForm();
 
-    trace.stop();
+    trace?.stop();
 
     setIsSaving(false);
   }
@@ -174,7 +196,7 @@ export function GalleryForm({
     setIsSaving(true);
 
     if (mediaGalleryItem) {
-      await selectedMediaGalleryItemManager.createOrUpdateStream(
+      await selectedMediaGalleryItemManager?.createOrUpdateStream(
         mediaGalleryItem
       );
     }
@@ -184,7 +206,7 @@ export function GalleryForm({
     setIsSaving(false);
   }
 
-  function onSelectFileFormat(event) {
+  function onSelectFileFormat(event: React.ChangeEvent<any>) {
     setFileFormat(event.target.value);
 
     updateMediaGalleryItem({
@@ -193,19 +215,17 @@ export function GalleryForm({
     });
   }
 
-  function onSelectPinningService(event) {
-    setPinningService(event.target.value);
-
+  function onSelectPinningService(event: React.ChangeEvent<any>) {
+    // setPinningService(event.target.value);
     // if (event.target.value != "pinata") {
     //   setPinningServiceEndpoint("");
     // } else {
     //   setPinningServiceEndpoint(PINATA_API_ENDPOINT);
     // }
-
     // setPinningServiceAccessToken("");
   }
 
-  let isReadyToAdd =
+  const isReadyToAdd =
     mediaGalleryItem.contentUrl && mediaGalleryItem.name && !isSaving;
 
   const spinner = (
@@ -229,28 +249,32 @@ export function GalleryForm({
                 className="text-white"
                 type="text"
                 placeholder="Upload media or add an existing CID"
-                readOnly={isUploading || selectedMediaGalleryItemManager}
+                readOnly={
+                  isUploading || selectedMediaGalleryItemManager != null
+                }
                 value={cid}
                 onChange={updateContentUrl}
               />
-              <InputGroup.Append>
-                <Form.Control
-                  type="file"
-                  id="uploadCid"
-                  style={{ backgroundColor: "#111320", border: "none" }}
-                  accept={getFormatCS()}
-                  disabled={isUploading || selectedMediaGalleryItemManager}
-                  onChange={captureFile}
-                  hidden
-                ></Form.Control>
-                <Button
-                  as="label"
-                  htmlFor="uploadCid"
-                  disabled={isUploading || selectedMediaGalleryItemManager}
-                >
-                  {!isUploading ? "Upload" : spinner}
-                </Button>
-              </InputGroup.Append>
+              <Form.Control
+                type="file"
+                id="uploadCid"
+                style={{ backgroundColor: "#111320", border: "none" }}
+                accept={getFormatCS()}
+                disabled={
+                  isUploading || selectedMediaGalleryItemManager != null
+                }
+                onChange={captureFile}
+                hidden
+              ></Form.Control>
+              <Button
+                as="label"
+                htmlFor="uploadCid"
+                disabled={
+                  isUploading || selectedMediaGalleryItemManager != null
+                }
+              >
+                {!isUploading ? "Upload" : spinner}
+              </Button>
             </InputGroup>
           </Col>
           <Col sm="12" lg="6" className="mb-3">
@@ -261,10 +285,9 @@ export function GalleryForm({
                 className="text-white"
                 style={{ backgroundColor: "#111320", border: "none" }}
                 onChange={onSelectFileFormat}
-                value={detectedFileFormat ?? fileFormat}
+                value={detectedFileFormat ?? fileFormat ?? undefined}
                 required
                 disabled={detectedFileFormat != null}
-                custom
               >
                 <option value="" selected>
                   Select a File Format
@@ -304,7 +327,6 @@ export function GalleryForm({
               className="text-white"
               style={{ backgroundColor: "#111320", border: "none" }}
               onChange={onSelectPinningService}
-              custom
               disabled
             >
               <option value="buckets">Geo Web Free (Default)</option>
