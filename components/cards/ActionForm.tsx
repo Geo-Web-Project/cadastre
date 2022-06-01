@@ -257,7 +257,7 @@ export function ActionForm(props: ActionFormProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  For Sale Price must be greater than 0
+                  For Sale Price must be a number greater than 0
                 </Form.Control.Feedback>
               ) : null}
 
@@ -272,7 +272,7 @@ export function ActionForm(props: ActionFormProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"

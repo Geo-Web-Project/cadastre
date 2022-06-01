@@ -44,13 +44,19 @@ function ClaimAction(props: ClaimActionProps) {
 
   const { displayNewForSalePrice } = actionData;
 
-  const networkFeeRatePerSecond = displayNewForSalePrice
-    ? fromValueToRate(
-        ethers.utils.parseEther(displayNewForSalePrice),
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      )
-    : null;
+  const isForSalePriceInvalid: boolean =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    isNaN(Number(displayNewForSalePrice));
+
+  const networkFeeRatePerSecond =
+    !isForSalePriceInvalid && displayNewForSalePrice
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
 
   async function _claim() {
     const baseCoord = GeoWebCoordinate.make_gw_coord(
@@ -71,7 +77,11 @@ function ClaimAction(props: ClaimActionProps) {
       path = [BigNumber.from(0)];
     }
 
-    if (!displayNewForSalePrice || !networkFeeRatePerSecond) {
+    if (
+      !displayNewForSalePrice ||
+      !networkFeeRatePerSecond ||
+      isForSalePriceInvalid
+    ) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
@@ -189,7 +199,6 @@ function ClaimAction(props: ClaimActionProps) {
         }
         {...props}
       />
-      <FaucetInfo />
       <StreamingInfo
         account={account}
         paymentTokenAddress={paymentTokenAddress}

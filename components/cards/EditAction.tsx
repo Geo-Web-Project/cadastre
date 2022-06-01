@@ -9,6 +9,7 @@ import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
+import StreamingInfo from "./StreamingInfo";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -65,6 +66,11 @@ function EditAction(props: EditActionProps) {
 
   const { displayNewForSalePrice } = actionData;
 
+  const isForSalePriceInvalid: boolean =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    isNaN(Number(displayNewForSalePrice));
+
   const existingNetworkFee =
     displayCurrentForSalePrice &&
     perSecondFeeNumerator &&
@@ -77,7 +83,10 @@ function EditAction(props: EditActionProps) {
       : null;
 
   const newNetworkFee =
-    displayNewForSalePrice && perSecondFeeNumerator && perSecondFeeDenominator
+    !isForSalePriceInvalid &&
+    displayNewForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
           perSecondFeeNumerator,
@@ -164,7 +173,10 @@ function EditAction(props: EditActionProps) {
         }
         {...props}
       />
-      <FaucetInfo></FaucetInfo>
+      <StreamingInfo
+        account={account}
+        paymentTokenAddress={paymentTokenAddress}
+      />
     </>
   );
 }
