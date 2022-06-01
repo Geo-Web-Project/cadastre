@@ -20,10 +20,10 @@ import {
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
+import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 import { getResolver as getKeyResolver } from "key-did-resolver";
-import { getResolver as get3IDResolver } from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
+import { Ed25519Provider } from "key-did-provider-ed25519";
 
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -35,6 +35,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
 import { IPFS } from "ipfs-core";
+import { getOrSetCacao, getOrSetSessionSeed } from "../lib/cacao";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -97,30 +98,38 @@ function IndexPage() {
     }
 
     const start = async () => {
-      const threeIdConnect = new ThreeIdConnect("mainnet");
+      const sessionSeed: Uint8Array = getOrSetSessionSeed();
 
-      await threeIdConnect.connect(
-        new EthereumAuthProvider(
-          authState.connected.provider.state.provider,
-          authState.connected.accountID.address
-        )
+      const ethereumAuthProvider = new EthereumAuthProvider(
+        authState.connected.provider.state.provider,
+        authState.connected.accountID.address
       );
+      const accountId = await ethereumAuthProvider.accountId();
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
-      const didProvider = await threeIdConnect.getDidProvider();
+      const didProvider = new Ed25519Provider(sessionSeed);
 
-      const did = new DID({
-        // Get the DID provider from the 3ID Connect instance
+      const didKey = new DID({
         provider: didProvider,
         resolver: {
-          ...get3IDResolver(ceramic as any),
           ...getKeyResolver(),
         },
+        parent: `did:pkh:${accountId.toString()}`,
       });
-      await did.authenticate();
+      await didKey.authenticate();
 
-      ceramic.did = did;
+      // Check or request capability from user
+      const cacao = await getOrSetCacao(
+        didKey,
+        accountId,
+        authState.connected.provider.state.provider
+      );
+
+      const didKeyWithCap = didKey.withCapability(cacao);
+      await didKeyWithCap.authenticate();
+
+      ceramic.did = didKeyWithCap;
       setCeramic(ceramic);
 
       const { ipfs, provider, apiAddress } = await getIpfs({
