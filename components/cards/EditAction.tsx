@@ -66,6 +66,11 @@ function EditAction(props: EditActionProps) {
 
   const { displayNewForSalePrice } = actionData;
 
+  const isForSalePriceInvalid: boolean =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    isNaN(Number(displayNewForSalePrice));
+
   const existingNetworkFee =
     displayCurrentForSalePrice &&
     perSecondFeeNumerator &&
@@ -78,7 +83,10 @@ function EditAction(props: EditActionProps) {
       : null;
 
   const newNetworkFee =
-    displayNewForSalePrice && perSecondFeeNumerator && perSecondFeeDenominator
+    !isForSalePriceInvalid &&
+    displayNewForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
           perSecondFeeNumerator,
