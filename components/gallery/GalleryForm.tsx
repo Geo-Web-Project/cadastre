@@ -111,7 +111,7 @@ function GalleryForm(props: GalleryFormProps) {
     setIsUploading(true);
 
     const format = getFormat(file.name);
-    const { encoding } = format;
+    const { encoding, type } = format;
     setFileFormat(encoding);
 
     // Manually preload synchronously
@@ -121,7 +121,7 @@ function GalleryForm(props: GalleryFormProps) {
     await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
-      //"@type": type,
+      "@type": type,
       contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
       encodingFormat: encoding,
     });
