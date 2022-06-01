@@ -272,7 +272,7 @@ export function ActionForm(props: ActionFormProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"
