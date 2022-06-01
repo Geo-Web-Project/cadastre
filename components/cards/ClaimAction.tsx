@@ -189,7 +189,6 @@ function ClaimAction(props: ClaimActionProps) {
         }
         {...props}
       />
-      <FaucetInfo />
       <StreamingInfo
         account={account}
         paymentTokenAddress={paymentTokenAddress}

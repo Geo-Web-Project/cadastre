@@ -15,6 +15,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -491,11 +492,16 @@ function Map(props: MapProps) {
           setSelectedParcelId={setSelectedParcelId}
         ></Sidebar>
       ) : null}
-      <Col sm="9" className="px-0">
+      <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "14vh", left: "81vw", zIndex: 1 }}
+          style={{
+            position: "absolute",
+            top: "14vh",
+            right: "0vw",
+            zIndex: 1,
+          }}
         />
         <ReactMapGL
           ref={mapRef}
@@ -552,7 +558,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("street")}
         >
-          <img src={"street_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
         <Button
           style={{
@@ -562,10 +568,9 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("satellite")}
         >
-          <img src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
       </ButtonGroup>
-      );
     </>
   );
 }

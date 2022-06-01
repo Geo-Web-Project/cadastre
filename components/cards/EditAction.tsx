@@ -9,6 +9,7 @@ import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
+import StreamingInfo from "./StreamingInfo";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -164,7 +165,10 @@ function EditAction(props: EditActionProps) {
         }
         {...props}
       />
-      <FaucetInfo></FaucetInfo>
+      <StreamingInfo
+        account={account}
+        paymentTokenAddress={paymentTokenAddress}
+      />
     </>
   );
 }
