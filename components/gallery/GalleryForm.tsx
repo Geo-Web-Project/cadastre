@@ -34,6 +34,8 @@ function GalleryForm(props: GalleryFormProps) {
     ipfs,
     assetContentManager,
     pinningManager,
+    selectedParcelId,
+    setSelectedParcelId,
   } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
@@ -183,6 +185,11 @@ function GalleryForm(props: GalleryFormProps) {
         mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.addToMediaGallery();
+
+      // Reload parcel
+      const oldParcelId = selectedParcelId;
+      setSelectedParcelId("");
+      setSelectedParcelId(oldParcelId);
     }
 
     clearForm();

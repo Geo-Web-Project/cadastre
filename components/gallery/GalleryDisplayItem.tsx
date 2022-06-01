@@ -38,6 +38,8 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     index,
     selectedMediaGalleryItemId,
     setSelectedMediaGalleryItemId,
+    selectedParcelId,
+    setSelectedParcelId,
   } = props;
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
@@ -149,6 +151,11 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
     if (name) await pinningManager?.unpinCid(name);
     setIsRemoving(false);
+
+    // Reload parcel
+    const oldParcelId = selectedParcelId;
+    setSelectedParcelId("");
+    setSelectedParcelId(oldParcelId);
   }
 
   async function retriggerPin() {

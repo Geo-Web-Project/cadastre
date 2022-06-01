@@ -46,7 +46,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
     }
 
     const items: string[] = mediaGalleryContent["mediaGalleryItems"] ?? [];
-    const streams = await Promise.all(items.map(this.loader.load));
+    const streams = await Promise.all(items.map((v) => this.loader.load(v)));
     return streams.reduce((prev, cur) => {
       prev[cur.id.toString()] = cur;
       return prev;
