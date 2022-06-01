@@ -15,6 +15,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -22,6 +23,8 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
 import GeoWebCoordinate from "js-geo-web-coordinate";
+import { IPFS } from "ipfs-core";
+import firebase from "firebase/app";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
@@ -133,8 +136,8 @@ export type MapProps = {
   account: string;
   provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
-  ipfs: any;
-  firebasePerf: any;
+  ipfs: IPFS;
+  firebasePerf: firebase.performance.Performance;
   paymentTokenAddress: string;
 };
 
@@ -489,11 +492,16 @@ function Map(props: MapProps) {
           setSelectedParcelId={setSelectedParcelId}
         ></Sidebar>
       ) : null}
-      <Col sm="9" className="px-0">
+      <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "14vh", left: "81vw", zIndex: 1 }}
+          style={{
+            position: "absolute",
+            top: "14vh",
+            right: "0vw",
+            zIndex: 1,
+          }}
         />
         <ReactMapGL
           ref={mapRef}
@@ -550,7 +558,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("street")}
         >
-          <img src={"street_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
         <Button
           style={{
@@ -560,10 +568,9 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("satellite")}
         >
-          <img src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
       </ButtonGroup>
-      );
     </>
   );
 }

@@ -36,9 +36,9 @@ export function GalleryModal({
     React.useState(null);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
-    </div>
+    </span>
   );
 
   // Only update when ID changes

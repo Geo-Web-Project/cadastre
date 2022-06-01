@@ -8,6 +8,7 @@ import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
+import TransactionSummaryView from "./TransactionSummaryView";
 
 enum Action {
   CLAIM,
@@ -17,7 +18,6 @@ enum Action {
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: any;
   licenseAddress: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
@@ -35,7 +35,6 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    isFairLaunch = false,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -43,18 +42,21 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice: "",
   });
 
-  const {
-    displayNewForSalePrice,
-    // displayNetworkFeePayment
-  } = actionData;
+  const { displayNewForSalePrice } = actionData;
 
-  // React.useEffect(() => {
-  //   const _transactionSubtotal = calculateWeiSubtotalField(
-  //     displayNetworkFeePayment
-  //   );
+  const isForSalePriceInvalid: boolean =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    isNaN(Number(displayNewForSalePrice));
 
-  //   updateActionData({ transactionSubtotal: _transactionSubtotal });
-  // }, [displayNetworkFeePayment]);
+  const networkFeeRatePerSecond =
+    !isForSalePriceInvalid && displayNewForSalePrice
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
 
   async function _claim() {
     const baseCoord = GeoWebCoordinate.make_gw_coord(
@@ -75,7 +77,11 @@ function ClaimAction(props: ClaimActionProps) {
       path = [BigNumber.from(0)];
     }
 
-    if (!displayNewForSalePrice) {
+    if (
+      !displayNewForSalePrice ||
+      !networkFeeRatePerSecond ||
+      isForSalePriceInvalid
+    ) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
@@ -110,12 +116,6 @@ function ClaimAction(props: ClaimActionProps) {
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
-
-    const networkFeeRatePerSecond = fromValueToRate(
-      ethers.utils.parseEther(displayNewForSalePrice),
-      perSecondFeeNumerator,
-      perSecondFeeDenominator
-    );
 
     const newFlowRate = networkFeeRatePerSecond;
 
@@ -167,12 +167,14 @@ function ClaimAction(props: ClaimActionProps) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
 
+    const receipt = await txn.wait();
+
     const filter = claimerContract.filters.ParcelClaimed(null, null);
 
     const res = await claimerContract.queryFilter(
       filter,
-      txn.blockNumber,
-      txn.blockNumber
+      receipt.blockNumber,
+      receipt.blockNumber
     );
     const licenseId = res[0].args[0].toString();
     return licenseId;
@@ -185,10 +187,18 @@ function ClaimAction(props: ClaimActionProps) {
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
-        isFairLaunch={isFairLaunch}
+        summaryView={
+          networkFeeRatePerSecond ? (
+            <TransactionSummaryView
+              newNetworkFee={networkFeeRatePerSecond}
+              {...props}
+            />
+          ) : (
+            <></>
+          )
+        }
         {...props}
       />
-      <FaucetInfo />
       <StreamingInfo
         account={account}
         paymentTokenAddress={paymentTokenAddress}

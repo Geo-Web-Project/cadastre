@@ -16,15 +16,13 @@ import {
   CERAMIC_URL,
   IPFS_BOOTSTRAP_PEER,
   IPFS_PRELOAD_NODE,
-  THREE_ID_CONNECT_IFRAME_URL,
-  THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
-import * as KeyDidResolver from "key-did-resolver";
-import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import { getResolver as getKeyResolver } from "key-did-resolver";
+import { getResolver as get3IDResolver } from "@ceramicnetwork/3id-did-resolver";
 import { DID } from "dids";
 
 import { ethers } from "ethers";
@@ -36,8 +34,11 @@ import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
+import { IPFS } from "ipfs-core";
+
 const { httpClient, jsIpfs } = providers;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
 }
@@ -55,7 +56,7 @@ function IndexPage() {
     Contracts["geoWebFairLaunchClaimerContract"] | null
   >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
-  const [ipfs, setIPFS] = React.useState(null);
+  const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
@@ -96,22 +97,7 @@ function IndexPage() {
     }
 
     const start = async () => {
-      // Create Ceramic and DID with resolvers
-      const ceramic = new CeramicClient(CERAMIC_URL);
-
-      const resolver = {
-        ...KeyDidResolver.getResolver(),
-        ...ThreeIdResolver.getResolver(ceramic),
-      };
-
-      const did = new DID({ resolver });
-      ceramic.setDID(did);
-
-      // Add provider to Ceramic DID
-      const threeIdConnect = new ThreeIdConnect(
-        THREE_ID_CONNECT_IFRAME_URL,
-        THREE_ID_CONNECT_MANAGEMENT_URL
-      );
+      const threeIdConnect = new ThreeIdConnect("mainnet");
 
       await threeIdConnect.connect(
         new EthereumAuthProvider(
@@ -120,11 +106,21 @@ function IndexPage() {
         )
       );
 
+      // Create Ceramic and DID with resolvers
+      const ceramic = new CeramicClient(CERAMIC_URL);
       const didProvider = await threeIdConnect.getDidProvider();
 
-      await ceramic?.did?.setProvider(didProvider);
-      await ceramic?.did?.authenticate();
+      const did = new DID({
+        // Get the DID provider from the 3ID Connect instance
+        provider: didProvider,
+        resolver: {
+          ...get3IDResolver(ceramic as any),
+          ...getKeyResolver(),
+        },
+      });
+      await did.authenticate();
 
+      ceramic.did = did;
       setCeramic(ceramic);
 
       const { ipfs, provider, apiAddress } = await getIpfs({
@@ -199,7 +195,7 @@ function IndexPage() {
             connectWallet();
           }}
         >
-          <img src="vector.png" width="40" style={{ marginRight: 20 }} />
+          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           Connect Wallet
         </Button>
       );
@@ -251,7 +247,9 @@ function IndexPage() {
         fairLaunchClaimer &&
         library &&
         paymentTokenAddress &&
-        ceramic ? (
+        ceramic &&
+        ipfs &&
+        firebasePerf ? (
           <Row>
             <Map
               licenseContract={licenseContract}

@@ -88,9 +88,9 @@ export function GalleryDisplayItem({
   }, [pinState]);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only"></span>
-    </div>
+    </span>
   );
 
   let statusView;

@@ -1,5 +1,5 @@
-import * as React from "react";
 import { NETWORK_NAME } from "../lib/constants";
+import { Image } from "react-bootstrap";
 
 function HomeContent() {
   return (
@@ -92,7 +92,7 @@ function WalletPrompt() {
         fontWeight: "normal",
       }}
     >
-      <img
+      <Image
         src="vector.png"
         style={{ position: "absolute", left: "40%", top: "5%", width: "20%" }}
       />

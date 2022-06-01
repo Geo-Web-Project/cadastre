@@ -7,46 +7,34 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { createNftDidUrl } from "nft-did-resolver";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  publishedModel,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { DIDDataStore } from "@glazed/did-datastore";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
-import ClaimView from "./ClaimView";
 import { formatBalance } from "../../lib/formatBalance";
 import { fromValueToRate } from "../../lib/utils";
-
-/**
- * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
- */
-const depositHoursMap: Record<number, number> = {
-  // mainnet
-  1: 8,
-  // rinkeby
-  4: 2,
-};
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { AssetId } from "caip";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { DataModel } from "@glazed/datamodel";
+import { AssetContentManager } from "../../lib/AssetContentManager";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
-  performAction: () => Promise<string>;
+  performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
-  /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
-  currentRequiredBid: string;
+  summaryView: JSX.Element;
+  basicProfileStreamManager?: BasicProfileStreamManager | null;
 };
 
 export type ActionData = {
@@ -74,8 +62,7 @@ export function ActionForm(props: ActionFormProps) {
     ceramic,
     setSelectedParcelId,
     paymentTokenAddress,
-    isFairLaunch = false,
-    currentRequiredBid,
+    summaryView,
   } = props;
 
   const {
@@ -86,24 +73,15 @@ export function ActionForm(props: ActionFormProps) {
     didFail,
     isActing,
   } = actionData;
-  const [currentChainID, setCurrentChainID] =
-    React.useState<number>(NETWORK_ID);
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
 
-  React.useEffect(() => {
-    (async () => {
-      const { chainId } = await provider.getNetwork();
-      setCurrentChainID(chainId);
-    })();
-  }, [provider]);
-
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Sending Transaction...</span>
-    </div>
+    </span>
   );
 
   const isForSalePriceInvalid: boolean =
@@ -133,22 +111,9 @@ export function ActionForm(props: ActionFormProps) {
         false || parcelWebContentURI.length > 150
     : false;
 
-  const stream = networkFeeRatePerSecond
-    ? truncateEth(formatBalance(networkFeeRatePerSecond), 18)
-    : "0";
-
-  const streamBuffer = networkFeeRatePerSecond
-    ? truncateEth(
-        formatBalance(
-          networkFeeRatePerSecond.mul(depositHoursMap[currentChainID] * 60 * 60)
-        ),
-        18
-      )
-    : "0";
-
-  function updateActionData(updatedValues: any) {
-    function _updateData(updatedValues: any) {
-      return (prevState: any) => {
+  function updateActionData(updatedValues: ActionData) {
+    function _updateData(updatedValues: ActionData) {
+      return (prevState: ActionData) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -159,7 +124,7 @@ export function ActionForm(props: ActionFormProps) {
   async function submit() {
     updateActionData({ isActing: true });
 
-    let parcelId: string | null;
+    let parcelId: string | void;
     try {
       // Perform action
       parcelId = await performAction();
@@ -177,27 +142,34 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    if (parcelId) {
-      const didNFT = createNftDidUrl({
+    if (parcelId && !basicProfileStreamManager) {
+      const assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
-        namespace: "erc721",
-        contract: licenseAddress.toLowerCase(),
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
         tokenId: parcelId.toString(),
       });
 
-      // Create new DIDDataStore and BasicProfileStreamManager
-      const dataStore = new DIDDataStore({
+      const model = new DataModel({
         ceramic,
-        model: publishedModel,
-        id: didNFT,
+        aliases: GeoWebModel,
       });
 
+      const _assetContentManager = new AssetContentManager(
+        ceramic,
+        model,
+        ceramic.did!.id,
+        assetId
+      );
+
       const _basicProfileStreamManager = new BasicProfileStreamManager(
-        dataStore
+        _assetContentManager
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-    } else {
+    } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
     }
@@ -285,7 +257,7 @@ export function ActionForm(props: ActionFormProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  For Sale Price must be greater than 0
+                  For Sale Price must be a number greater than 0
                 </Form.Control.Feedback>
               ) : null}
 
@@ -300,7 +272,7 @@ export function ActionForm(props: ActionFormProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 3)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"
@@ -310,14 +282,9 @@ export function ActionForm(props: ActionFormProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            <ClaimView
-              isFairLaunch={isFairLaunch}
-              stream={stream}
-              streamBuffer={streamBuffer}
-              currentRequiredBid={currentRequiredBid}
-            />
+            {summaryView}
             <br />
-            <div style={{ display: "flex", gap: "16px" }}>
+            <span style={{ display: "flex", gap: "16px" }}>
               <Button
                 variant="primary"
                 className="w-100"
@@ -333,7 +300,7 @@ export function ActionForm(props: ActionFormProps) {
               >
                 {isActing || isLoading ? spinner : "Confirm"}
               </Button>
-            </div>
+            </span>
           </Form>
 
           <br />

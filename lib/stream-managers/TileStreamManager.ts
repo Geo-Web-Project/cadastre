@@ -1,15 +1,28 @@
-import { TileDocument } from "@ceramicnetwork/stream-tile";
+/* eslint-disable import/named */
+import { CeramicApi } from "@ceramicnetwork/common";
+import { TileDocument, TileMetadataArgs } from "@ceramicnetwork/stream-tile";
 
-export class TileStreamManager {
-  constructor(ceramic, schemaStreamId, controller) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class TileStreamManager<T = Record<string, any>> {
+  ceramic: CeramicApi;
+  stream?: TileDocument<T> | null;
+  private _schemaStreamId?: string;
+  private _shouldPin: boolean;
+  protected _controller: string;
+
+  constructor(
+    ceramic: CeramicApi,
+    schemaStreamId: string | null,
+    controller: string
+  ) {
     this.ceramic = ceramic;
-    this._schemaStreamId = schemaStreamId;
+    this._schemaStreamId = schemaStreamId ?? undefined;
     this._shouldPin = true;
     this._controller = controller;
   }
 
   /* Set an existing root stream ID */
-  async setExistingStreamId(streamId) {
+  async setExistingStreamId(streamId: string | null) {
     if (!streamId) {
       this.stream = null;
       return;
@@ -36,11 +49,15 @@ export class TileStreamManager {
     Update root stream content or create one if it doesn't exist OR is not owner
     Returns the new stream Id on creation
   */
-  async createOrUpdateStream(content, controller, deterministic) {
+  async createOrUpdateStream(
+    content: T,
+    controller: string,
+    deterministic: boolean
+  ) {
     if (this.stream) {
       await this.updateStream(content);
     } else {
-      this.stream = await TileDocument.create(
+      this.stream = await TileDocument.create<T>(
         this.ceramic,
         null,
         {
@@ -54,11 +71,11 @@ export class TileStreamManager {
       if (this._shouldPin) {
         await this.ceramic.pin.add(this.stream.id);
       }
-      return this.stream.id;
+      return this.stream.id.toString();
     }
   }
 
-  async updateStream(content, metadata) {
+  async updateStream(content: T, metadata?: TileMetadataArgs) {
     if (!this.stream) {
       console.error("Stream does not exist");
       return;
