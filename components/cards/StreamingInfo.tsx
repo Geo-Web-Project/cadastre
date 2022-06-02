@@ -9,17 +9,18 @@ import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 type StreamingInfoProps = {
   account: string;
-  paymentTokenAddress: string;
+  paymentToken: NativeAssetSuperToken;
 };
 
-function StreamingInfo({ account, paymentTokenAddress }: StreamingInfoProps) {
+function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
   const { isLoading, data } = sfApi.useGetRealtimeBalanceQuery({
     chainId: NETWORK_ID,
     accountAddress: account,
-    superTokenAddress: paymentTokenAddress,
+    superTokenAddress: paymentToken.address,
     estimationTimestamp: undefined,
   });
 
