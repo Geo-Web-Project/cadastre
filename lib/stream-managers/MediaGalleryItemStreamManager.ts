@@ -15,7 +15,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
   ) {
     super(
       _assetContentManager.ceramic,
-      _assetContentManager.model.getSchemaURL("MediaGalleryItem"),
+      _assetContentManager.model.getSchemaURL("MediaObject"),
       _assetContentManager.controller
     );
     this.assetContentManager = _assetContentManager;
@@ -83,26 +83,32 @@ export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject
 }
 
 export function useMediaGalleryItemData(
-  mediaGalleryStreamManager: MediaGalleryStreamManager,
-  assetContentManager: AssetContentManager
+  mediaGalleryStreamManager: MediaGalleryStreamManager | null,
+  assetContentManager: AssetContentManager | null
 ) {
-  const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
+  const [mediaGalleryItems, setMediaGalleryItems] = React.useState<
+    Record<string, MediaGalleryItemStreamManager>
+  >({});
 
   const state = mediaGalleryStreamManager
     ? mediaGalleryStreamManager.getStreamContent() ?? {
         mediaGalleryItems: [],
       }
     : null;
-  const mediaGalleryData = state ? state["mediaGalleryItems"] ?? [] : null;
+  const mediaGalleryData = state ? state["mediaGalleryItems"] ?? [] : [];
 
   const mediaGalleryLength = mediaGalleryData ? mediaGalleryData.length : 0;
 
   React.useEffect(() => {
-    if (!mediaGalleryData) {
-      return;
-    }
-
     async function updateItems() {
+      if (
+        !mediaGalleryData ||
+        !mediaGalleryStreamManager ||
+        !assetContentManager
+      ) {
+        return;
+      }
+
       const loadedItems = await mediaGalleryStreamManager.loadItems();
       const mediaGalleryItems = Object.keys(loadedItems).reduce(
         (result, docId) => {
@@ -122,7 +128,7 @@ export function useMediaGalleryItemData(
     }
 
     updateItems();
-  }, [mediaGalleryLength]);
+  }, [mediaGalleryLength, mediaGalleryStreamManager, assetContentManager]);
 
   return {
     mediaGalleryData: mediaGalleryData,

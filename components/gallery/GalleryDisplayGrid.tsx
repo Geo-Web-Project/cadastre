@@ -1,16 +1,26 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import Button from "react-bootstrap/Button";
+import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import GalleryDisplayItem from "./GalleryDisplayItem";
+import { GalleryModalProps } from "./GalleryModal";
 
-export function GalleryDisplayGrid({
-  pinningManager,
-  mediaGalleryData,
-  mediaGalleryItems,
-  selectedMediaGalleryItemId,
-  setSelectedMediaGalleryItemId,
-}) {
+export type GalleryDisplayGridProps = GalleryModalProps & {
+  mediaGalleryData: string[];
+  mediaGalleryItems: Record<string, MediaGalleryItemStreamManager>;
+  selectedMediaGalleryItemId: string | null;
+  setSelectedMediaGalleryItemId: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
+};
+
+function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
+  const {
+    mediaGalleryData,
+    mediaGalleryItems,
+    selectedMediaGalleryItemId,
+    setSelectedMediaGalleryItemId,
+  } = props;
   const data = mediaGalleryData
     .flatMap((docId) => mediaGalleryItems[docId])
     .filter((v) => v);
@@ -20,7 +30,7 @@ export function GalleryDisplayGrid({
       {data.map((mediaGalleryItemStreamManager, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
-            pinningManager={pinningManager}
+            {...props}
             mediaGalleryItemStreamManager={mediaGalleryItemStreamManager}
             index={i}
             selectedMediaGalleryItemId={selectedMediaGalleryItemId}

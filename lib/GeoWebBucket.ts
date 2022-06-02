@@ -10,10 +10,9 @@ import { STORAGE_WORKER_ENDPOINT } from "./constants";
 import { TileStreamManager } from "./stream-managers/TileStreamManager";
 import CID from "cids";
 import axios from "axios";
-import { DIDDataStore } from "@glazed/did-datastore";
 import { IPFS } from "ipfs-core";
 import { DAGLink } from "ipld-dag-pb";
-import { ModelTypes, Pinset } from "@geo-web/datamodels";
+import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
@@ -111,7 +110,9 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     let result;
     try {
       result = await axios.get(
-        `${STORAGE_WORKER_ENDPOINT}/pinset/${this._controller}/latest`
+        `${STORAGE_WORKER_ENDPOINT}/pinset/${
+          this._controller
+        }/latest?assetId=${this.assetContentManager.assetId.toString()}`
       );
     } catch (err) {
       return;
@@ -137,7 +138,9 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     await this._ipfs.preload(this.bucketRoot!);
 
     const result = await axios.post(
-      `${STORAGE_WORKER_ENDPOINT}/pinset/${this._controller}/request`,
+      `${STORAGE_WORKER_ENDPOINT}/pinset/${
+        this._controller
+      }/request?assetId=${this.assetContentManager.assetId.toString()}`,
       { pinsetRecordID: this.stream!.commitId.toString() },
       { headers: { "Content-Type": "application/json" } }
     );
@@ -156,7 +159,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
         const pollResult = await axios.get(
           `${STORAGE_WORKER_ENDPOINT}/pinset/${
             this._controller
-          }/request/${this.stream!.commitId.toString()}`
+          }/request/${this.stream!.commitId.toString()}?assetId=${this.assetContentManager.assetId.toString()}`
         );
 
         if (pollResult.data.status == "pinned") {
