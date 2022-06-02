@@ -27,7 +27,7 @@ export type ClaimActionProps = SidebarProps & {
 function ClaimAction(props: ClaimActionProps) {
   const {
     account,
-    paymentTokenAddress,
+    paymentToken,
     claimBase1Coord,
     claimBase2Coord,
     claimerContract,
@@ -103,16 +103,14 @@ function ClaimAction(props: ClaimActionProps) {
 
     const sf = await sfInstance(NETWORK_ID, provider);
 
-    const ethx = await sf.loadSuperToken(paymentTokenAddress);
-
     const existingFlow = await sf.cfaV1.getFlow({
-      superToken: paymentTokenAddress,
+      superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
       providerOrSigner: provider as any,
     });
 
-    const approveOperation = await ethx.approve({
+    const approveOperation = await paymentToken.approve({
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
@@ -134,7 +132,7 @@ function ClaimAction(props: ClaimActionProps) {
           .add(newFlowRate)
           .toString(),
         receiver: auctionSuperApp.address,
-        superToken: paymentTokenAddress,
+        superToken: paymentToken.address,
         userData,
       });
 
@@ -154,7 +152,7 @@ function ClaimAction(props: ClaimActionProps) {
       const createFlowOperation = await sf.cfaV1.createFlow({
         flowRate,
         receiver: auctionSuperApp.address,
-        superToken: paymentTokenAddress,
+        superToken: paymentToken.address,
         userData,
       });
 
@@ -199,10 +197,7 @@ function ClaimAction(props: ClaimActionProps) {
         }
         {...props}
       />
-      <StreamingInfo
-        account={account}
-        paymentTokenAddress={paymentTokenAddress}
-      />
+      <StreamingInfo account={account} paymentToken={paymentToken} />
     </>
   );
 }

@@ -61,7 +61,7 @@ export function ActionForm(props: ActionFormProps) {
     licenseAddress,
     ceramic,
     setSelectedParcelId,
-    paymentTokenAddress,
+    paymentToken,
     summaryView,
   } = props;
 
@@ -338,7 +338,7 @@ export function ActionForm(props: ActionFormProps) {
           provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentTokenAddress={paymentTokenAddress}
+          paymentToken={paymentToken}
         />
       )}
     </>

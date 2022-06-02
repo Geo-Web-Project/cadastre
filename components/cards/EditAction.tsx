@@ -31,7 +31,7 @@ function EditAction(props: EditActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     selectedParcelId,
-    paymentTokenAddress,
+    paymentToken,
     account,
     auctionSuperApp,
   } = props;
@@ -128,7 +128,7 @@ function EditAction(props: EditActionProps) {
     );
 
     const existingFlow = await sf.cfaV1.getFlow({
-      superToken: paymentTokenAddress,
+      superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
       providerOrSigner: provider as any,
@@ -143,7 +143,7 @@ function EditAction(props: EditActionProps) {
         .add(networkFeeDelta)
         .toString(),
       receiver: auctionSuperApp.address,
-      superToken: paymentTokenAddress,
+      superToken: paymentToken.address,
       userData,
     });
 
@@ -172,10 +172,7 @@ function EditAction(props: EditActionProps) {
         }
         {...props}
       />
-      <StreamingInfo
-        account={account}
-        paymentTokenAddress={paymentTokenAddress}
-      />
+      <StreamingInfo account={account} paymentToken={paymentToken} />
     </>
   );
 }
