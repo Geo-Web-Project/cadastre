@@ -29,7 +29,7 @@ import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
-import { Framework } from "@superfluid-finance/sdk-core";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
@@ -60,8 +60,8 @@ function IndexPage() {
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentTokenAddress, setPaymentTokenAddress] = React.useState<
-    string | undefined
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
   >(undefined);
 
   const connectWallet = async () => {
@@ -75,8 +75,8 @@ function IndexPage() {
       chainId: NETWORK_ID,
       provider: lib,
     });
-    const superToken = await framework.loadSuperToken("ETHx");
-    setPaymentTokenAddress(superToken.address);
+    const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+    setPaymentToken(superToken);
     setFrameworkForSdkRedux(NETWORK_ID, framework);
     // await connect(
     //   new EthereumAuthProvider(
@@ -204,7 +204,7 @@ function IndexPage() {
         <Profile
           account={authState.connected.accountID.address}
           disconnectWallet={disconnectWallet}
-          paymentTokenAddress={paymentTokenAddress}
+          paymentToken={paymentToken}
         />
       );
     }
@@ -246,7 +246,7 @@ function IndexPage() {
         auctionSuperApp &&
         fairLaunchClaimer &&
         library &&
-        paymentTokenAddress &&
+        paymentToken &&
         ceramic &&
         ipfs &&
         firebasePerf ? (
@@ -260,7 +260,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
-              paymentTokenAddress={paymentTokenAddress}
+              paymentToken={paymentToken}
             ></Map>
           </Row>
         ) : (

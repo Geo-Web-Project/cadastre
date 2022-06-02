@@ -25,6 +25,7 @@ import { ethers } from "ethers";
 import GeoWebCoordinate from "js-geo-web-coordinate";
 import firebase from "firebase/app";
 import { IPFS } from "ipfs-core";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;
@@ -138,7 +139,7 @@ export type MapProps = {
   ceramic: CeramicClient;
   ipfs: IPFS;
   firebasePerf: firebase.performance.Performance;
-  paymentTokenAddress: string;
+  paymentToken: NativeAssetSuperToken;
 };
 
 function Map(props: MapProps) {
