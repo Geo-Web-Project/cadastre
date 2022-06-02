@@ -1,7 +1,6 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
-import FaucetInfo from "./FaucetInfo";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";

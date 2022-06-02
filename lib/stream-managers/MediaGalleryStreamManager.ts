@@ -9,6 +9,7 @@ import { AssetContentManager } from "../AssetContentManager";
 
 export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
   assetContentManager: AssetContentManager;
+  private loader: TileLoader;
 
   constructor(_assetContentManager: AssetContentManager) {
     super(
@@ -17,6 +18,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
       _assetContentManager.controller
     );
     this.assetContentManager = _assetContentManager;
+    this.loader = new TileLoader({ ceramic: this.ceramic });
   }
 
   async createOrUpdateStream(content: MediaGallery) {
@@ -44,8 +46,7 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
     }
 
     const items: string[] = mediaGalleryContent["mediaGalleryItems"] ?? [];
-    const loader = new TileLoader({ ceramic: this.ceramic });
-    const streams = await Promise.all(items.map(loader.load));
+    const streams = await Promise.all(items.map((v) => this.loader.load(v)));
     return streams.reduce((prev, cur) => {
       prev[cur.id.toString()] = cur;
       return prev;

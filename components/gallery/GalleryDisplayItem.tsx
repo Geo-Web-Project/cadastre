@@ -4,54 +4,75 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
+import { GalleryModalProps } from "./GalleryModal";
+import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 
-const DISPLAY_TYPES = {
+const DISPLAY_TYPES: Record<string, string> = {
   "3DModel": "3D Model",
   ImageObject: "Image",
   VideoObject: "Video",
   AudioObject: "Audio",
 };
 
-const STATE_PINNED = 0;
-const STATE_PINNING = 1;
-const STATE_FAILED = 2;
-const STATE_NOT_FOUND = 3;
+enum PinState {
+  PINNED = 0,
+  PINNING = 1,
+  FAILED = 2,
+  NOT_FOUND = 3,
+}
 
-export function GalleryDisplayItem({
-  pinningManager,
-  mediaGalleryItemStreamManager,
-  index,
-  selectedMediaGalleryItemId,
-  setSelectedMediaGalleryItemId,
-}) {
+export type GalleryDisplayItemProps = GalleryModalProps & {
+  mediaGalleryItemStreamManager: MediaGalleryItemStreamManager;
+  index: number;
+  selectedMediaGalleryItemId: string | null;
+  setSelectedMediaGalleryItemId: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
+};
+
+function GalleryDisplayItem(props: GalleryDisplayItemProps) {
+  const {
+    pinningManager,
+    ipfs,
+    mediaGalleryItemStreamManager,
+    index,
+    selectedMediaGalleryItemId,
+    setSelectedMediaGalleryItemId,
+    selectedParcelId,
+    setSelectedParcelId,
+  } = props;
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
-  const [pinState, setPinState] = React.useState(null);
+  const [pinState, setPinState] = React.useState<PinState | null>(null);
   const isEditing = selectedMediaGalleryItemId
     ? selectedMediaGalleryItemId.toString() ==
-      mediaGalleryItemStreamManager.getStreamId().toString()
+        mediaGalleryItemStreamManager.getStreamId()?.toString() ?? null
     : false;
 
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
 
   const data = mediaGalleryItemStreamManager.getStreamContent();
-  const cid = data.contentUrl.replace("ipfs://", "");
-  const name = `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`;
-  const isPinned = pinningManager ? pinningManager.isPinned(name) : false;
-  const isQueued = pinningManager ? pinningManager.isQueued(name) : false;
+  const cid = data?.contentUrl?.replace("ipfs://", "");
+  const name = cid
+    ? `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`
+    : null;
+  const isPinned =
+    pinningManager && name ? pinningManager.isPinned(name) : false;
+  const isQueued =
+    pinningManager && name ? pinningManager.isQueued(name) : false;
   const failedPins = pinningManager ? pinningManager.failedPins : new Set();
 
   React.useEffect(() => {
-    if (!pinningManager) {
+    if (!pinningManager || !name || !cid) {
       return;
     }
 
     if (isPinned) {
-      setPinState(STATE_PINNED);
+      setPinState(PinState.PINNED);
     } else if (failedPins.has(name)) {
-      setPinState(STATE_FAILED);
+      setPinState(PinState.FAILED);
     } else {
-      setPinState(STATE_PINNING);
+      setPinState(PinState.PINNING);
 
       // If not queued, trigger pin again
       if (!isQueued) {
@@ -63,26 +84,29 @@ export function GalleryDisplayItem({
 
   // Trigger preload
   React.useEffect(() => {
-    function triggerPreload() {
-      var success = false;
-      pinningManager._ipfs
-        .preload(cid)
-        .then(() => {
-          success = true;
-        })
-        .catch((err) => {
-          console.error(err);
-          setPinState(STATE_NOT_FOUND);
-        });
+    async function triggerPreload() {
+      if (!ipfs || !cid) {
+        return;
+      }
+
+      let success = false;
+      try {
+        await ipfs.refs(cid, { recursive: true });
+
+        success = true;
+      } catch (err) {
+        console.error(err);
+        setPinState(PinState.NOT_FOUND);
+      }
 
       setTimeout(() => {
         if (!success) {
-          setPinState(STATE_NOT_FOUND);
+          setPinState(PinState.NOT_FOUND);
         }
       }, 10000);
     }
 
-    if (pinState == STATE_PINNING) {
+    if (pinState == PinState.PINNING) {
       triggerPreload();
     }
   }, [pinState]);
@@ -101,20 +125,20 @@ export function GalleryDisplayItem({
         {spinner}
       </Col>
     );
-  } else if (pinState == STATE_PINNING) {
+  } else if (pinState == PinState.PINNING) {
     statusView = (
       <Col className="text-white">
         <h4>Pinning</h4>
         {spinner}
       </Col>
     );
-  } else if (pinState == STATE_FAILED) {
+  } else if (pinState == PinState.FAILED) {
     statusView = (
       <Col className="text-white mt-4">
         <h4>Pin Failed</h4>
       </Col>
     );
-  } else if (pinState == STATE_NOT_FOUND) {
+  } else if (pinState == PinState.NOT_FOUND) {
     statusView = (
       <Col className="text-white mt-4">
         <h4>File Not Found</h4>
@@ -125,16 +149,23 @@ export function GalleryDisplayItem({
   async function removeMediaGalleryItem() {
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
-    await pinningManager.unpinCid(name);
+    if (name) await pinningManager?.unpinCid(name);
     setIsRemoving(false);
+
+    // Reload parcel
+    const oldParcelId = selectedParcelId;
+    setSelectedParcelId("");
+    setSelectedParcelId(oldParcelId);
   }
 
   async function retriggerPin() {
-    await pinningManager.retryPin(name);
+    await pinningManager?.retryPin();
   }
 
   function handleEdit() {
-    setSelectedMediaGalleryItemId(mediaGalleryItemStreamManager.getStreamId());
+    setSelectedMediaGalleryItemId(
+      mediaGalleryItemStreamManager.getStreamId()?.toString() ?? null
+    );
   }
 
   return (
@@ -146,18 +177,15 @@ export function GalleryDisplayItem({
       }`}
     >
       <Row>
-        <Col style={statusView ? { opacity: "0.3" } : null}>
+        <Col style={statusView ? { opacity: "0.3" } : {}}>
           <h1 style={{ fontSize: "1.5em" }}>
-            {index + 1}. {data.name}
+            {index + 1}. {data?.name}
           </h1>
         </Col>
       </Row>
       <Row>
         <Col>
-          <Image
-            style={statusView ? { opacity: "0.3" } : null}
-            src="file.png"
-          />
+          <Image style={statusView ? { opacity: "0.3" } : {}} src="file.png" />
           <div
             className="text-center position-absolute align-middle"
             style={{
@@ -174,15 +202,12 @@ export function GalleryDisplayItem({
           </div>
         </Col>
       </Row>
-      <Row
-        className="text-center"
-        style={statusView ? { opacity: "0.3" } : null}
-      >
+      <Row className="text-center" style={statusView ? { opacity: "0.3" } : {}}>
         <Col>
-          <p>{DISPLAY_TYPES[data["@type"]]}</p>
+          {data && data["@type"] ? <p>{DISPLAY_TYPES[data["@type"]]}</p> : null}
         </Col>
       </Row>
-      {!shouldHighlight && pinState == STATE_PINNING ? (
+      {!shouldHighlight && pinState == PinState.PINNING ? (
         <Row>
           <p>Note: You may navigate from this page & pinning will continue.</p>
         </Row>
@@ -196,7 +221,7 @@ export function GalleryDisplayItem({
           className="mb-3"
           xs="12"
           style={{
-            display: pinState == STATE_FAILED ? "inline" : "none",
+            display: pinState == PinState.FAILED ? "inline" : "none",
           }}
         >
           <Button variant="secondary" onClick={retriggerPin}>

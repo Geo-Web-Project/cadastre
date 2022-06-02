@@ -23,8 +23,8 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
 import GeoWebCoordinate from "js-geo-web-coordinate";
-import { IPFS } from "ipfs-core";
 import firebase from "firebase/app";
+import { IPFS } from "ipfs-core";
 
 export const ZOOM_GRID_LEVEL = 14;
 const GRID_DIM = 50;

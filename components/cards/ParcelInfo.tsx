@@ -16,6 +16,7 @@ import { BigNumber } from "ethers";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { PinningManager } from "../../lib/PinningManager";
 import { AssetContentManager } from "../../lib/AssetContentManager";
+import GalleryModal from "../gallery/GalleryModal";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -287,15 +288,10 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null} */}
         </Col>
       </Row>
-      {/* <GalleryModal
-        ipfs={ipfs}
-        show={interactionState == STATE_EDITING_GALLERY}
-        setInteractionState={setInteractionState}
-        dataStore={dataStore}
-        ceramic={ceramic}
-        didNFT={didNFT}
-        pinningManager={pinningManager}
-      ></GalleryModal> */}
+      <GalleryModal
+        show={interactionState == STATE.EDITING_GALLERY}
+        {...props}
+      ></GalleryModal>
     </>
   );
 }
