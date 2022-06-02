@@ -35,7 +35,11 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
 import { IPFS } from "ipfs-core";
-import { getOrSetCacao, getOrSetSessionSeed } from "../lib/cacao";
+import {
+  clearCacaoSession,
+  getOrSetCacao,
+  getOrSetSessionSeed,
+} from "../lib/cacao";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -90,6 +94,7 @@ function IndexPage() {
   const disconnectWallet = async () => {
     // await disconnect();
     await deactivate();
+    clearCacaoSession();
   };
 
   React.useEffect(() => {

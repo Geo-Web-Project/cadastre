@@ -37,6 +37,11 @@ export async function getOrSetCacao(
   return cacao;
 }
 
+export function clearCacaoSession() {
+  localStorage.setItem("cacao", "");
+  localStorage.setItem("sessionSeed", "");
+}
+
 async function createCapability(
   didKey: DID,
   accountId: AccountId,
