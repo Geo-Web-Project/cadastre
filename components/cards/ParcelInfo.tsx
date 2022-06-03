@@ -18,6 +18,7 @@ import { PinningManager } from "../../lib/PinningManager";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
+import AuctionInstructions from "../AuctionInstructions";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -303,12 +304,15 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_SELECTED &&
           isOutstandingBid &&
           outstandingBidder !== account ? (
-            <OutstandingBidView
-              newForSalePrice={outstandingBidForSalePrice}
-              existingForSalePrice={currentOwnerBidForSalePrice}
-              bidTimestamp={outstandingBidTimestamp ?? null}
-              {...props}
-            />
+            <>
+              <OutstandingBidView
+                newForSalePrice={outstandingBidForSalePrice}
+                existingForSalePrice={currentOwnerBidForSalePrice}
+                bidTimestamp={outstandingBidTimestamp ?? null}
+                {...props}
+              />
+              <AuctionInstructions />
+            </>
           ) : null}
           {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
