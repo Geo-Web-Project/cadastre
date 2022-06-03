@@ -36,7 +36,7 @@ function EditAction(props: EditActionProps) {
     auctionSuperApp,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.forSalePrice
+    parcelData.landParcel.license.currentOwnerBid.forSalePrice
   );
 
   const parcelContent = basicProfileStreamManager

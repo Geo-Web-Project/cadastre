@@ -214,6 +214,7 @@ function Map(props: MapProps) {
   const [existingCoords, setExistingCoords] = useState(new Set());
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
+  const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
@@ -491,6 +492,7 @@ function Map(props: MapProps) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
+          setIsParcelAvailable={setIsParcelAvailable}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
@@ -522,6 +524,7 @@ function Map(props: MapProps) {
           <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
           <ParcelSource
             data={data}
+            isAvailable={isParcelAvailable}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}
           ></ParcelSource>
