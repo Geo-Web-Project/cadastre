@@ -24,6 +24,7 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Sidebar(props: SidebarProps) {

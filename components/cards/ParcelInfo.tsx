@@ -17,6 +17,8 @@ import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfil
 import { PinningManager } from "../../lib/PinningManager";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import GalleryModal from "../gallery/GalleryModal";
+import OutstandingBidView from "./OutstandingBidView";
+import AuctionInstructions from "../AuctionInstructions";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -24,10 +26,20 @@ const parcelQuery = gql`
       id
       license {
         owner
-        contributionRate
-        perSecondFeeNumerator
-        perSecondFeeDenominator
-        forSalePrice
+        currentOwnerBid {
+          contributionRate
+          perSecondFeeNumerator
+          perSecondFeeDenominator
+          forSalePrice
+        }
+        outstandingBid {
+          timestamp
+          bidder
+          contributionRate
+          perSecondFeeNumerator
+          perSecondFeeDenominator
+          forSalePrice
+        }
       }
     }
   }
@@ -50,6 +62,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     selectedParcelId,
     assetContentManager,
     basicProfileStreamManager,
+    setIsParcelAvailable,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -78,7 +91,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     }
 
     updateStreamId();
-  }, [data, assetContentManager]);
+  }, [assetContentManager]);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -88,14 +101,40 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   let forSalePrice;
   let licenseOwner;
+  let isOutstandingBid = false;
+  let outstandingBidder: string | null = null;
+  let currentOwnerBidForSalePrice;
+  let outstandingBidForSalePrice;
+  let outstandingBidTimestamp;
   if (data && data.landParcel && data.landParcel.license) {
     forSalePrice = (
       <>
-        {formatBalance(data.landParcel.license.forSalePrice)} {PAYMENT_TOKEN}{" "}
+        {formatBalance(data.landParcel.license.currentOwnerBid.forSalePrice)}{" "}
+        {PAYMENT_TOKEN}{" "}
       </>
     );
     licenseOwner = data.landParcel.license.owner;
+    isOutstandingBid =
+      data.landParcel.license.outstandingBid.contributionRate > 0;
+    outstandingBidForSalePrice =
+      data.landParcel.license.outstandingBid.forSalePrice;
+    currentOwnerBidForSalePrice =
+      data.landParcel.license.currentOwnerBid.forSalePrice;
+    outstandingBidder = data.landParcel.license.outstandingBid.bidder;
+    outstandingBidTimestamp = BigNumber.from(
+      data.landParcel.license.outstandingBid.timestamp
+    );
   }
+
+  useEffect(() => {
+    if (!outstandingBidder) {
+      setIsParcelAvailable(true);
+      return;
+    }
+
+    console.log("SET: " + !(isOutstandingBid && outstandingBidder !== account));
+    setIsParcelAvailable(!(isOutstandingBid && outstandingBidder !== account));
+  }, [data]);
 
   const isLoading = loading || data == null || licenseOwner == null;
 
@@ -262,6 +301,19 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : (
             <p>Unclaimed Coordinates</p>
           )}
+          {interactionState == STATE.PARCEL_SELECTED &&
+          isOutstandingBid &&
+          outstandingBidder !== account ? (
+            <>
+              <OutstandingBidView
+                newForSalePrice={outstandingBidForSalePrice}
+                existingForSalePrice={currentOwnerBidForSalePrice}
+                bidTimestamp={outstandingBidTimestamp ?? null}
+                {...props}
+              />
+              <AuctionInstructions />
+            </>
+          ) : null}
           {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
               // setSelectedParcelId={setSelectedParcelId}

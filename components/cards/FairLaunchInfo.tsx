@@ -42,7 +42,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
 
   const formattedAuctionEnd = dayjs(auctionEnd)
     .utc()
-    .format("DD/MM/YYYY HH:mm");
+    .format("YYYY-MM-DD HH:mm");
 
   return (
     <>

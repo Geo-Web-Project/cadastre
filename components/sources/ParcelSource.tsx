@@ -30,10 +30,11 @@ type Props = {
   data: any | null;
   parcelHoverId: string;
   selectedParcelId: string;
+  isAvailable: boolean;
 };
 
 function ParcelSource(props: Props) {
-  const { data, parcelHoverId, selectedParcelId } = props;
+  const { data, parcelHoverId, selectedParcelId, isAvailable } = props;
   const [geoJsonFeatures, setGeoJsonFeatures] = React.useState([]);
 
   React.useEffect(() => {
