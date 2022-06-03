@@ -63,6 +63,7 @@ export class TileStreamManager<T = Record<string, any>> {
         {
           schema: this._schemaStreamId,
           controllers: [controller ?? this._controller],
+          family: "geoweb",
           deterministic: deterministic ?? true,
         },
         { anchor: false, publish: false }

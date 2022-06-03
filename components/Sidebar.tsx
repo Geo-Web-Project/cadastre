@@ -67,7 +67,7 @@ function Sidebar(props: SidebarProps) {
         const _assetContentManager = new AssetContentManager(
           ceramic,
           model,
-          ceramic.did.id,
+          ceramic.did.capability.p.iss,
           assetId
         );
         setAssetContentManager(_assetContentManager);

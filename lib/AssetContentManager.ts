@@ -50,6 +50,7 @@ export class AssetContentManager<
     } else {
       const record = await TileDocument.create(this.ceramic, content, {
         controllers: [this.controller],
+        family: `geoweb`,
       });
 
       await index.update({
@@ -85,7 +86,8 @@ export class AssetContentManager<
     return await TileDocument.deterministic(this.ceramic, {
       controllers: [this.controller],
       schema: IDX_INDEX_SCHEMA_ID,
-      family: `geoweb:${this.assetId.toString()}`,
+      family: `geoweb`,
+      tags: [this.assetId.toString()],
     });
   }
 }
