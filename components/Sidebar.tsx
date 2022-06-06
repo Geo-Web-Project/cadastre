@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
@@ -7,11 +6,16 @@ import ParcelInfo from "./cards/ParcelInfo";
 import { usePinningManager } from "../lib/PinningManager";
 import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 import { STATE, MapProps } from "./Map";
-import { NETWORK_ID, publishedModel } from "../lib/constants";
+import { NETWORK_ID } from "../lib/constants";
 import BN from "bn.js";
-import { createNftDidUrl } from "nft-did-resolver";
-import { DIDDataStore } from "@glazed/did-datastore";
-import { BigNumber } from "ethers";
+import { DataModel } from "@glazed/datamodel";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { BigNumber, ethers } from "ethers";
+import FairLaunchInfo from "./cards/FairLaunchInfo";
+import { calculateRequiredBid } from "../lib/calculateRequiredBid";
+import { truncateEth } from "../lib/truncate";
+import { AssetContentManager } from "../lib/AssetContentManager";
+import { AssetId } from "caip";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -20,57 +24,63 @@ export type SidebarProps = MapProps & {
   claimBase2Coord: any;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Sidebar(props: SidebarProps) {
   const {
     auctionSuperApp,
     licenseContract,
+    claimerContract,
     ceramic,
     ipfs,
     firebasePerf,
     interactionState,
     selectedParcelId,
   } = props;
-  const [dataStore, setDataStore] = React.useState<DIDDataStore | null>(null);
+  const [assetContentManager, setAssetContentManager] =
+    React.useState<AssetContentManager | null>(null);
   React.useEffect(() => {
-    if (ceramic == null) {
-      console.error("Ceramic instance not found");
-      return;
-    }
-
-    setDataStore(null);
-
-    async function updateDataStore() {
-      if (selectedParcelId) {
-        const _dataStore = new DIDDataStore({
-          ceramic,
-          model: publishedModel,
-        });
-        setDataStore(_dataStore);
-      } else {
-        setDataStore(null);
+    (async () => {
+      if (ceramic == null || !ceramic.did) {
+        console.error("Ceramic instance not found");
+        return;
       }
-    }
 
-    updateDataStore();
+      setAssetContentManager(null);
+
+      if (selectedParcelId) {
+        const assetId = new AssetId({
+          chainId: `eip155:${NETWORK_ID}`,
+          assetName: {
+            namespace: "erc721",
+            reference: licenseContract.address.toLowerCase(),
+          },
+          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+        });
+
+        const model = new DataModel({
+          ceramic,
+          aliases: GeoWebModel,
+        });
+
+        const _assetContentManager = new AssetContentManager(
+          ceramic,
+          model,
+          ceramic.did.capability.p.iss,
+          assetId
+        );
+        setAssetContentManager(_assetContentManager);
+      } else {
+        setAssetContentManager(null);
+      }
+    })();
   }, [ceramic, selectedParcelId]);
 
-  const didNFT = selectedParcelId
-    ? createNftDidUrl({
-        chainId: `eip155:${NETWORK_ID}`,
-        namespace: "erc721",
-        contract: licenseContract.address.toLowerCase(),
-        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-      })
-    : null;
-  const basicProfileStreamManager = useBasicProfileStreamManager(
-    dataStore,
-    didNFT
-  );
+  const basicProfileStreamManager =
+    useBasicProfileStreamManager(assetContentManager);
   const pinningManager = usePinningManager(
-    dataStore,
-    didNFT,
+    assetContentManager,
     ipfs,
     firebasePerf
   );
@@ -91,22 +101,78 @@ function Sidebar(props: SidebarProps) {
       });
   }, [auctionSuperApp]);
 
+  const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
+  const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
+  const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      const [_startingBid, _endingBid, _auctionStart, _auctionEnd] =
+        await Promise.all([
+          claimerContract.startingBid(),
+          claimerContract.endingBid(),
+          claimerContract.auctionStart(),
+          claimerContract.auctionEnd(),
+        ]);
+      if (_auctionStart.isZero() || _auctionEnd.isZero()) {
+        return;
+      }
+      if (isMounted) {
+        setStartingBid(_startingBid);
+        setEndingBid(_endingBid);
+        setAuctionStart(_auctionStart);
+        setAuctionEnd(_auctionEnd);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [claimerContract]);
+
+  const isFairLaunch =
+    auctionStart &&
+    auctionEnd &&
+    startingBid &&
+    endingBid &&
+    Date.now() > auctionStart.toNumber() &&
+    Date.now() < auctionEnd.toNumber();
+
+  const requiredBid =
+    auctionStart && auctionEnd && startingBid && endingBid
+      ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
+      : "0";
+
   return (
     <Col
       sm="3"
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      <ParcelInfo
-        {...props}
-        perSecondFeeNumerator={perSecondFeeNumerator}
-        perSecondFeeDenominator={perSecondFeeDenominator}
-        dataStore={dataStore}
-        didNFT={didNFT}
-        basicProfileStreamManager={basicProfileStreamManager}
-        pinningManager={pinningManager}
-        licenseAddress={licenseContract.address}
-      ></ParcelInfo>
+      {isFairLaunch ? (
+        <FairLaunchInfo
+          currentRequiredBid={truncateEth(
+            ethers.utils.formatEther(requiredBid),
+            4
+          )}
+          auctionEnd={auctionEnd.toNumber()}
+        />
+      ) : perSecondFeeNumerator && perSecondFeeDenominator ? (
+        <ParcelInfo
+          {...props}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+          assetContentManager={assetContentManager}
+          basicProfileStreamManager={basicProfileStreamManager}
+          pinningManager={pinningManager}
+          licenseAddress={licenseContract.address}
+        ></ParcelInfo>
+      ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&
@@ -116,8 +182,11 @@ function Sidebar(props: SidebarProps) {
             {...props}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            basicProfileStreamManager={basicProfileStreamManager}
             licenseAddress={licenseContract.address}
+            currentRequiredBid={truncateEth(
+              ethers.utils.formatEther(requiredBid),
+              4
+            )}
           ></ClaimAction>
         </>
       ) : null}

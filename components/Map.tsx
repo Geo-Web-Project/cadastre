@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named
@@ -22,12 +21,18 @@ import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
+import firebase from "firebase/app";
+import { IPFS } from "ipfs-core";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
 export const ZOOM_GRID_LEVEL = 18;
 const GRID_DIM = 40;
 export const GW_MAX_LAT = 23;
 export const GW_MAX_LON = 24;
+const ZOOM_QUERY_LEVEL = 8;
+const QUERY_DIM = 1000;
 
 export enum STATE {
   VIEWING = 0,
@@ -60,7 +65,7 @@ interface LandParcel {
 
 interface GWCoordinateGQL {
   id: string;
-  createdAtBlock: BigInt;
+  createdAtBlock: bigint;
   landParcel: LandParcel;
   pointBL: GeoPoint;
   pointBR: GeoPoint;
@@ -69,11 +74,23 @@ interface GWCoordinateGQL {
 }
 
 const query = gql`
-  query Polygons($lastBlock: BigInt) {
+  query Polygons(
+    $lastBlock: BigInt
+    $minX: BigInt
+    $maxX: BigInt
+    $minY: BigInt
+    $maxY: BigInt
+  ) {
     geoWebCoordinates(
       orderBy: createdAtBlock
       first: 1000
-      where: { createdAtBlock_gt: $lastBlock }
+      where: {
+        createdAtBlock_gt: $lastBlock
+        coordX_gte: $minX
+        coordX_lt: $maxX
+        coordY_gte: $minY
+        coordY_lt: $maxY
+      }
     ) {
       id
       createdAtBlock
@@ -151,18 +168,23 @@ export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
 export type MapProps = {
   auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
   licenseContract: Contracts["geoWebERC721LicenseContract"];
+  claimerContract: Contracts["geoWebFairLaunchClaimerContract"];
   account: string;
   provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
-  ipfs: any;
-  firebasePerf: any;
-  paymentTokenAddress: string;
+  ipfs: IPFS;
+  firebasePerf: firebase.performance.Performance;
+  paymentToken: NativeAssetSuperToken;
 };
 
 function Map(props: MapProps) {
-  const { data, fetchMore } = useQuery<PolygonQuery>(query, {
+  const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
       lastBlock: 0,
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0,
     },
   });
 
@@ -190,14 +212,30 @@ function Map(props: MapProps) {
     const newLastBlock =
       data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       },
     });
   }, [data, fetchMore]);
 
   const [viewport, setViewport] = useState<any>({});
+  const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
+  const [oldCoordX, setOldCoordX] = useState(0);
+  const [oldCoordY, setOldCoordY] = useState(0);
   const [grid, setGrid] = useState(null);
   const [interactionState, setInteractionState] = useState<STATE>(
     STATE.VIEWING
@@ -212,6 +250,7 @@ function Map(props: MapProps) {
   const [existingCoords, setExistingCoords] = useState<Set<string>>(new Set());
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
+  const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
@@ -234,6 +273,48 @@ function Map(props: MapProps) {
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+    }
+
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      nextViewport.longitude,
+      nextViewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+
+    if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setShouldUpdateOnNextZoom(false);
+    }
+
+    if (nextViewport.zoom < ZOOM_QUERY_LEVEL) {
+      setShouldUpdateOnNextZoom(true);
+    }
+
+    if (
+      nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
+      (Math.abs(x - oldCoordX) > QUERY_DIM ||
+        Math.abs(y - oldCoordY) > QUERY_DIM)
+    ) {
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
+      });
+
+      setOldCoordX(x);
+      setOldCoordY(y);
     }
   }
 
@@ -403,14 +484,21 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
-      const newLastBlock =
-        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
-          .createdAtBlock;
+      const gwCoord = GeoWebCoordinate.fromGPS(
+        viewport.longitude,
+        viewport.latitude,
+        GW_MAX_LON,
+        GW_MAX_LAT
+      );
+      const x = gwCoord.getX().toNumber();
+      const y = gwCoord.getY().toNumber();
 
-      fetchMore({
-        variables: {
-          lastBlock: newLastBlock,
-        },
+      refetch({
+        lastBlock: 0,
+        minX: x - QUERY_DIM,
+        maxX: x + QUERY_DIM,
+        minY: y - QUERY_DIM,
+        maxY: y + QUERY_DIM,
       });
     }
 
@@ -429,7 +517,7 @@ function Map(props: MapProps) {
       default:
         break;
     }
-  }, [interactionState, data, fetchMore, selectedParcelId]);
+  }, [interactionState]);
 
   useEffect(() => {
     if (data != null) {
@@ -462,13 +550,19 @@ function Map(props: MapProps) {
           claimBase2Coord={claimBase2Coord}
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
+          setIsParcelAvailable={setIsParcelAvailable}
         ></Sidebar>
       ) : null}
-      <Col sm="9" className="px-0">
+      <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <div
           id="geocoder"
           ref={geocoderContainerRef}
-          style={{ position: "absolute", top: "14vh", left: "81vw", zIndex: 1 }}
+          style={{
+            position: "absolute",
+            top: "14vh",
+            right: "0vw",
+            zIndex: 1,
+          }}
         />
         <ReactMapGL
           ref={mapRef}
@@ -487,6 +581,7 @@ function Map(props: MapProps) {
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
             data={data ?? null}
+            isAvailable={isParcelAvailable}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}
           ></ParcelSource>
@@ -524,7 +619,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("street")}
         >
-          <Image src="/street_ic.png" height={30} width={30} />
+          <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
         <Button
           style={{
@@ -534,10 +629,9 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle("satellite")}
         >
-          <Image src="/satellite_ic.png" height={30} width={30} />
+          <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
       </ButtonGroup>
-      );
     </>
   );
 }

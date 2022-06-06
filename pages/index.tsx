@@ -16,28 +16,34 @@ import {
   CERAMIC_URL,
   IPFS_BOOTSTRAP_PEER,
   IPFS_PRELOAD_NODE,
-  THREE_ID_CONNECT_IFRAME_URL,
-  THREE_ID_CONNECT_MANAGEMENT_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { ThreeIdConnect, EthereumAuthProvider } from "@3id/connect";
-import * as KeyDidResolver from "key-did-resolver";
-import * as ThreeIdResolver from "@ceramicnetwork/3id-did-resolver";
+import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
+import { getResolver as getKeyResolver } from "key-did-resolver";
 import { DID } from "dids";
+import { Ed25519Provider } from "key-did-provider-ed25519";
 
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
-import { Framework } from "@superfluid-finance/sdk-core";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
+import { IPFS } from "ipfs-core";
+import {
+  clearCacaoSession,
+  getOrSetCacao,
+  getOrSetSessionSeed,
+} from "../lib/cacao";
+
 const { httpClient, jsIpfs } = providers;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider);
 }
@@ -51,13 +57,16 @@ function IndexPage() {
   const [auctionSuperApp, setAuctionSuperApp] = React.useState<
     Contracts["geoWebAuctionSuperAppContract"] | null
   >(null);
+  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<
+    Contracts["geoWebFairLaunchClaimerContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
-  const [ipfs, setIPFS] = React.useState(null);
+  const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentTokenAddress, setPaymentTokenAddress] = React.useState<
-    string | undefined
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
   >(undefined);
 
   const connectWallet = async () => {
@@ -71,8 +80,8 @@ function IndexPage() {
       chainId: NETWORK_ID,
       provider: lib,
     });
-    const superToken = await framework.loadSuperToken("ETHx");
-    setPaymentTokenAddress(superToken.address);
+    const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+    setPaymentToken(superToken);
     setFrameworkForSdkRedux(NETWORK_ID, framework);
     // await connect(
     //   new EthereumAuthProvider(
@@ -85,6 +94,7 @@ function IndexPage() {
   const disconnectWallet = async () => {
     // await disconnect();
     await deactivate();
+    clearCacaoSession();
   };
 
   React.useEffect(() => {
@@ -93,35 +103,38 @@ function IndexPage() {
     }
 
     const start = async () => {
+      const sessionSeed: Uint8Array = getOrSetSessionSeed();
+
+      const ethereumAuthProvider = new EthereumAuthProvider(
+        authState.connected.provider.state.provider,
+        authState.connected.accountID.address
+      );
+      const accountId = await ethereumAuthProvider.accountId();
+
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
+      const didProvider = new Ed25519Provider(sessionSeed);
 
-      const resolver = {
-        ...KeyDidResolver.getResolver(),
-        ...ThreeIdResolver.getResolver(ceramic),
-      };
+      const didKey = new DID({
+        provider: didProvider,
+        resolver: {
+          ...getKeyResolver(),
+        },
+        parent: `did:pkh:${accountId.toString()}`,
+      });
+      await didKey.authenticate();
 
-      const did = new DID({ resolver });
-      ceramic.setDID(did);
-
-      // Add provider to Ceramic DID
-      const threeIdConnect = new ThreeIdConnect(
-        THREE_ID_CONNECT_IFRAME_URL,
-        THREE_ID_CONNECT_MANAGEMENT_URL
+      // Check or request capability from user
+      const cacao = await getOrSetCacao(
+        didKey,
+        accountId,
+        authState.connected.provider.state.provider
       );
 
-      await threeIdConnect.connect(
-        new EthereumAuthProvider(
-          authState.connected.provider.state.provider,
-          authState.connected.accountID.address
-        )
-      );
+      const didKeyWithCap = didKey.withCapability(cacao);
+      await didKeyWithCap.authenticate();
 
-      const didProvider = await threeIdConnect.getDidProvider();
-
-      await ceramic?.did?.setProvider(didProvider);
-      await ceramic?.did?.authenticate();
-
+      ceramic.did = didKeyWithCap;
       setCeramic(ceramic);
 
       const { ipfs, provider, apiAddress } = await getIpfs({
@@ -172,10 +185,14 @@ function IndexPage() {
 
       const signer = library.getSigner();
 
-      const { geoWebERC721LicenseContract, geoWebAuctionSuperAppContract } =
-        getContractsForChainOrThrow(NETWORK_ID, signer);
+      const {
+        geoWebERC721LicenseContract,
+        geoWebAuctionSuperAppContract,
+        geoWebFairLaunchClaimerContract,
+      } = getContractsForChainOrThrow(NETWORK_ID, signer);
       setLicenseContract(geoWebERC721LicenseContract);
       setAuctionSuperApp(geoWebAuctionSuperAppContract);
+      setFairLaunchClaimer(geoWebFairLaunchClaimerContract);
     }
     contractsSetup();
   }, [library]);
@@ -192,7 +209,7 @@ function IndexPage() {
             connectWallet();
           }}
         >
-          <img src="vector.png" width="40" style={{ marginRight: 20 }} />
+          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           Connect Wallet
         </Button>
       );
@@ -201,7 +218,7 @@ function IndexPage() {
         <Profile
           account={authState.connected.accountID.address}
           disconnectWallet={disconnectWallet}
-          paymentTokenAddress={paymentTokenAddress}
+          paymentToken={paymentToken}
         />
       );
     }
@@ -241,19 +258,23 @@ function IndexPage() {
         {authState.status === "connected" &&
         licenseContract &&
         auctionSuperApp &&
+        fairLaunchClaimer &&
         library &&
-        paymentTokenAddress &&
-        ceramic ? (
+        paymentToken &&
+        ceramic &&
+        ipfs &&
+        firebasePerf ? (
           <Row>
             <Map
               licenseContract={licenseContract}
               auctionSuperApp={auctionSuperApp}
+              claimerContract={fairLaunchClaimer}
               account={authState.connected.accountID.address}
               provider={library}
               ceramic={ceramic}
               ipfs={ipfs}
               firebasePerf={firebasePerf}
-              paymentTokenAddress={paymentTokenAddress}
+              paymentToken={paymentToken}
             ></Map>
           </Row>
         ) : (

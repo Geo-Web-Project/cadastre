@@ -1,23 +1,34 @@
+/* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
+import { MediaGalleryStreamManager } from "./MediaGalleryStreamManager";
+import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
+import { AssetContentManager } from "../AssetContentManager";
 
-export class MediaGalleryItemStreamManager extends TileStreamManager {
-  constructor(ceramic, _mediaGalleryStreamManager) {
+export class MediaGalleryItemStreamManager extends TileStreamManager<MediaObject> {
+  assetContentManager: AssetContentManager;
+  mediaGalleryStreamManager: MediaGalleryStreamManager;
+
+  constructor(
+    _assetContentManager: AssetContentManager,
+    _mediaGalleryStreamManager: MediaGalleryStreamManager
+  ) {
     super(
-      ceramic,
-      _mediaGalleryStreamManager.dataStore.model.getSchemaURL(
-        "mediaGalleryItem"
-      ),
-      _mediaGalleryStreamManager._controller
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("MediaObject"),
+      _assetContentManager.controller
     );
+    this.assetContentManager = _assetContentManager;
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
-  async setMediaGalleryStreamManager(_mediaGalleryStreamManager) {
+  async setMediaGalleryStreamManager(
+    _mediaGalleryStreamManager: MediaGalleryStreamManager
+  ) {
     this.mediaGalleryStreamManager = _mediaGalleryStreamManager;
   }
 
-  async createOrUpdateStream(content) {
+  async createOrUpdateStream(content: MediaObject) {
     const newStreamId = await super.createOrUpdateStream(
       content,
       this._controller,
@@ -33,11 +44,17 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
       return;
     }
 
+    const streamId = this.getStreamId();
+    if (streamId == null) {
+      console.error(`MediaGalleryItemStreamManager.streamId does not exist`);
+      return;
+    }
+
     const prevState = this.mediaGalleryStreamManager.getStreamContent() ?? {
       mediaGalleryItems: [],
     };
     const prevItems = prevState["mediaGalleryItems"] ?? [];
-    const newItems = prevItems.concat(this.getStreamId().toString());
+    const newItems = prevItems.concat(streamId.toString());
     await this.mediaGalleryStreamManager.createOrUpdateStream({
       mediaGalleryItems: newItems,
     });
@@ -54,7 +71,7 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
     const prevState = this.mediaGalleryStreamManager.getStreamContent() ?? {
       mediaGalleryItems: [],
     };
-    const prevItems = prevState["mediaGalleryItems"] ?? [];
+    const prevItems: string[] = prevState["mediaGalleryItems"] ?? [];
     const newItems = prevItems.filter((item) => streamId.toString() != item);
     await this.mediaGalleryStreamManager.createOrUpdateStream({
       mediaGalleryItems: newItems,
@@ -65,44 +82,53 @@ export class MediaGalleryItemStreamManager extends TileStreamManager {
   }
 }
 
-export function useMediaGalleryItemData(mediaGalleryStreamManager) {
-  const [mediaGalleryItems, setMediaGalleryItems] = React.useState({});
+export function useMediaGalleryItemData(
+  mediaGalleryStreamManager: MediaGalleryStreamManager | null,
+  assetContentManager: AssetContentManager | null
+) {
+  const [mediaGalleryItems, setMediaGalleryItems] = React.useState<
+    Record<string, MediaGalleryItemStreamManager>
+  >({});
 
   const state = mediaGalleryStreamManager
     ? mediaGalleryStreamManager.getStreamContent() ?? {
         mediaGalleryItems: [],
       }
     : null;
-  const mediaGalleryData = state ? state["mediaGalleryItems"] ?? [] : null;
+  const mediaGalleryData = state ? state["mediaGalleryItems"] ?? [] : [];
 
   const mediaGalleryLength = mediaGalleryData ? mediaGalleryData.length : 0;
 
   React.useEffect(() => {
-    if (!mediaGalleryData) {
-      return;
-    }
-
     async function updateItems() {
+      if (
+        !mediaGalleryData ||
+        !mediaGalleryStreamManager ||
+        !assetContentManager
+      ) {
+        return;
+      }
+
       const loadedItems = await mediaGalleryStreamManager.loadItems();
       const mediaGalleryItems = Object.keys(loadedItems).reduce(
         (result, docId) => {
           const _mediaGalleryItemStreamManager =
             new MediaGalleryItemStreamManager(
-              mediaGalleryStreamManager.ceramic,
+              assetContentManager,
               mediaGalleryStreamManager
             );
           _mediaGalleryItemStreamManager.stream = loadedItems[docId];
           result[docId] = _mediaGalleryItemStreamManager;
           return result;
         },
-        {}
+        {} as Record<string, MediaGalleryItemStreamManager>
       );
 
       setMediaGalleryItems(mediaGalleryItems);
     }
 
     updateItems();
-  }, [mediaGalleryLength]);
+  }, [mediaGalleryLength, mediaGalleryStreamManager, assetContentManager]);
 
   return {
     mediaGalleryData: mediaGalleryData,

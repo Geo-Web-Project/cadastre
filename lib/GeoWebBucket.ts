@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* 
     Interact with Geo Web Pinset
     - Store CIDs in a UnixFs tree
@@ -9,46 +10,55 @@ import { STORAGE_WORKER_ENDPOINT } from "./constants";
 import { TileStreamManager } from "./stream-managers/TileStreamManager";
 import CID from "cids";
 import axios from "axios";
+import { IPFS } from "ipfs-core";
+import { DAGLink } from "ipld-dag-pb";
+import { Pinset } from "@geo-web/datamodels";
+import { AssetContentManager } from "./AssetContentManager";
 
-export class GeoWebBucket extends TileStreamManager {
-  constructor(dataStore, controller, ipfs) {
-    super(dataStore.ceramic, null, controller);
-    this.dataStore = dataStore;
+export class GeoWebBucket extends TileStreamManager<Pinset> {
+  assetContentManager: AssetContentManager;
+  bucketRoot?: CID;
+  latestQueuedLinks?: any[];
+  latestPinnedLinks?: any[];
+  latestPinnedRoot?: CID;
+  private _ipfs: IPFS;
+
+  constructor(_assetContentManager: AssetContentManager, ipfs: IPFS) {
+    super(
+      _assetContentManager.ceramic,
+      _assetContentManager.model.getSchemaURL("Pinset"),
+      _assetContentManager.controller
+    );
+    this.assetContentManager = _assetContentManager;
     this._ipfs = ipfs;
-    this.bucketRoot;
-    this.latestQueuedLinks;
-    this.latestPinnedRoot;
-    this.latestPinnedLinks;
   }
 
-  async createOrUpdateStream(content) {
-    const newStreamId = await this.dataStore.set("geoWebPinset", content, {
-      controller: this._controller,
-    });
+  async createOrUpdateStream(content: Pinset) {
+    const newStreamId = await this.assetContentManager.set(
+      "geoWebPinset",
+      content
+    );
 
     if (!this.stream) {
-      this.stream = await this.dataStore.getRecordDocument(
-        this.dataStore.getDefinitionID("geoWebPinset"),
-        this._controller
-      );
+      this.stream = await this.assetContentManager.getRecord("geoWebPinset");
     }
 
     return newStreamId;
   }
 
-  async updateStream(content) {
-    return this.createOrUpdateStream(content);
+  async updateStream(content: Pinset) {
+    this.createOrUpdateStream(content);
   }
 
   /* Check for existing bucket or provision a new one */
-  async fetchOrProvisionBucket(queueDidFail) {
+  async fetchOrProvisionBucket(queueDidFail?: (err: Error) => void) {
     const pinsetIndex = this.getStreamContent();
     if (pinsetIndex) {
       this.bucketRoot = new CID(pinsetIndex.root.split("ipfs://")[1]);
       await this.fetchLatestPinset();
       if (this.latestQueuedLinks) {
         this.triggerPin().catch((err) => {
-          queueDidFail(err);
+          if (queueDidFail) queueDidFail(err);
         });
       }
     } else {
@@ -77,12 +87,15 @@ export class GeoWebBucket extends TileStreamManager {
 
   async fetchLatestPinset() {
     // Check if pinset can be found
-    const fetchLinksP = this._ipfs.object.links(this.bucketRoot);
+    const fetchLinksP = this._ipfs.object.links(this.bucketRoot!);
     const timeoutP = new Promise((resolve, reject) => {
       setTimeout(resolve, 60000, null);
     });
     console.debug(`Finding links for latest pinset: ${this.bucketRoot}`);
-    const _latestQueuedLinks = await Promise.race([fetchLinksP, timeoutP]);
+    const _latestQueuedLinks = (await Promise.race([
+      fetchLinksP,
+      timeoutP,
+    ])) as any[];
     if (_latestQueuedLinks) {
       // Found
       this.latestQueuedLinks = _latestQueuedLinks;
@@ -90,14 +103,16 @@ export class GeoWebBucket extends TileStreamManager {
     } else {
       // Not found after timeout
       console.warn(`Could not find pinset: ${this.bucketRoot}`);
-      this.latestQueuedLinks = null;
+      this.latestQueuedLinks = undefined;
       return;
     }
 
-    var result;
+    let result;
     try {
       result = await axios.get(
-        `${STORAGE_WORKER_ENDPOINT}/pinset/${this._controller}/latest`
+        `${STORAGE_WORKER_ENDPOINT}/pinset/${
+          this._controller
+        }/latest?assetId=${this.assetContentManager.assetId.toString()}`
       );
     } catch (err) {
       return;
@@ -120,11 +135,13 @@ export class GeoWebBucket extends TileStreamManager {
 
   async triggerPin() {
     // Manual preload
-    await this._ipfs.preload(this.bucketRoot);
+    await this._ipfs.preload(this.bucketRoot!);
 
     const result = await axios.post(
-      `${STORAGE_WORKER_ENDPOINT}/pinset/${this._controller}/request`,
-      { pinsetRecordID: this.stream.commitId.toString() },
+      `${STORAGE_WORKER_ENDPOINT}/pinset/${
+        this._controller
+      }/request?assetId=${this.assetContentManager.assetId.toString()}`,
+      { pinsetRecordID: this.stream!.commitId.toString() },
       { headers: { "Content-Type": "application/json" } }
     );
 
@@ -136,13 +153,13 @@ export class GeoWebBucket extends TileStreamManager {
     }
 
     // Poll status async
-    await new Promise((resolve, reject) => {
-      var timeout = 1000;
+    await new Promise<void>((resolve, reject) => {
+      let timeout = 1000;
       const poll = async () => {
         const pollResult = await axios.get(
           `${STORAGE_WORKER_ENDPOINT}/pinset/${
             this._controller
-          }/request/${this.stream.commitId.toString()}`
+          }/request/${this.stream!.commitId.toString()}?assetId=${this.assetContentManager.assetId.toString()}`
         );
 
         if (pollResult.data.status == "pinned") {
@@ -160,21 +177,21 @@ export class GeoWebBucket extends TileStreamManager {
     });
   }
 
-  async addCid(name, cid) {
+  async addCid(name: string, cid: string) {
     // Check existing links
     const cidObject = new CID(cid);
-    const existingLinks = await this._ipfs.object.links(this.bucketRoot);
+    const existingLinks = await this._ipfs.object.links(this.bucketRoot!);
     if (existingLinks.filter((v) => v.Name == name).length > 0) {
       console.debug(`Link is already in pinset: ${name}`);
       return;
     }
     // Patch object
-    const objectStat = await this._ipfs.object.stat(cid);
-    this.bucketRoot = await this._ipfs.object.patch.addLink(this.bucketRoot, {
-      name: name,
-      cid: cidObject,
-      size: objectStat.CumulativeSize,
-    });
+    const objectStat = await this._ipfs.object.stat(cidObject);
+    const link = new DAGLink(name, objectStat.CumulativeSize, cidObject);
+    this.bucketRoot = await this._ipfs.object.patch.addLink(
+      this.bucketRoot!,
+      link
+    );
     this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
 
     // Update IDX index
@@ -183,11 +200,12 @@ export class GeoWebBucket extends TileStreamManager {
     });
   }
 
-  async removeCid(name) {
+  async removeCid(name: string) {
     // Patch object
-    this.bucketRoot = await this._ipfs.object.patch.rmLink(this.bucketRoot, {
-      name: name,
-    });
+    this.bucketRoot = await this._ipfs.object.patch.rmLink(
+      this.bucketRoot!,
+      name
+    );
     this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
 
     // Update IDX index
@@ -199,7 +217,7 @@ export class GeoWebBucket extends TileStreamManager {
   }
 
   /* Check if certain object is pinned */
-  isPinned(name) {
+  isPinned(name: string) {
     if (!this.latestPinnedLinks) {
       return false;
     }
@@ -208,7 +226,7 @@ export class GeoWebBucket extends TileStreamManager {
   }
 
   /* Check if certain object is queued in latest pinset in IDX index */
-  isQueued(name) {
+  isQueued(name: string) {
     if (!this.latestQueuedLinks) {
       return false;
     }

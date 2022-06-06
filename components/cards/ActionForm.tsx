@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -8,25 +7,34 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Alert from "react-bootstrap/Alert";
-import { createNftDidUrl } from "nft-did-resolver";
-import { PAYMENT_TOKEN, NETWORK_ID, publishedModel } from "../../lib/constants";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { DIDDataStore } from "@glazed/did-datastore";
+import {
+  PAYMENT_TOKEN,
+  NETWORK_ID,
+  SECONDS_IN_YEAR,
+} from "../../lib/constants";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
+import { formatBalance } from "../../lib/formatBalance";
+import { fromValueToRate } from "../../lib/utils";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { AssetId } from "caip";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { DataModel } from "@glazed/datamodel";
+import { AssetContentManager } from "../../lib/AssetContentManager";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: any;
   licenseAddress: string;
   loading: boolean;
-  performAction: () => Promise<string>;
+  performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+  summaryView: JSX.Element;
+  basicProfileStreamManager?: BasicProfileStreamManager | null;
 };
 
 export type ActionData = {
@@ -53,7 +61,8 @@ export function ActionForm(props: ActionFormProps) {
     licenseAddress,
     ceramic,
     setSelectedParcelId,
-    paymentTokenAddress,
+    paymentToken,
+    summaryView,
   } = props;
 
   const {
@@ -70,9 +79,9 @@ export function ActionForm(props: ActionFormProps) {
   const handleWrapModalClose = () => setShowWrapModal(false);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Sending Transaction...</span>
-    </div>
+    </span>
   );
 
   const isForSalePriceInvalid: boolean =
@@ -91,10 +100,10 @@ export function ActionForm(props: ActionFormProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(60 * 60 * 24 * 365);
+  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(SECONDS_IN_YEAR);
 
   const annualFeePercentage =
-    (perSecondFeeNumerator.toNumber() * 60 * 60 * 24 * 365 * 100) /
+    (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
@@ -102,9 +111,9 @@ export function ActionForm(props: ActionFormProps) {
         false || parcelWebContentURI.length > 150
     : false;
 
-  function updateActionData(updatedValues: any) {
-    function _updateData(updatedValues: any) {
-      return (prevState: any) => {
+  function updateActionData(updatedValues: ActionData) {
+    function _updateData(updatedValues: ActionData) {
+      return (prevState: ActionData) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -115,7 +124,7 @@ export function ActionForm(props: ActionFormProps) {
   async function submit() {
     updateActionData({ isActing: true });
 
-    let parcelId: string | null;
+    let parcelId: string | void;
     try {
       // Perform action
       parcelId = await performAction();
@@ -133,27 +142,34 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    if (parcelId) {
-      const didNFT = createNftDidUrl({
+    if (parcelId && !basicProfileStreamManager) {
+      const assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
-        namespace: "erc721",
-        contract: licenseAddress.toLowerCase(),
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
         tokenId: parcelId.toString(),
       });
 
-      // Create new DIDDataStore and BasicProfileStreamManager
-      const dataStore = new DIDDataStore({
+      const model = new DataModel({
         ceramic,
-        model: publishedModel,
-        id: didNFT,
+        aliases: GeoWebModel,
       });
 
+      const _assetContentManager = new AssetContentManager(
+        ceramic,
+        model,
+        ceramic.did!.capability.p.iss,
+        assetId
+      );
+
       const _basicProfileStreamManager = new BasicProfileStreamManager(
-        dataStore
+        _assetContentManager
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-    } else {
+    } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
     }
@@ -176,133 +192,132 @@ export function ActionForm(props: ActionFormProps) {
     <>
       <Card border="secondary" className="bg-dark mt-5">
         <Card.Body>
-          <Card.Text>
-            <Form>
-              <Form.Group>
-                <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
-                <Form.Control
-                  isInvalid={isParcelNameInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="Parcel Name"
-                  aria-label="Parcel Name"
-                  aria-describedby="parcel-name"
-                  defaultValue={parcelName}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelName: e.target.value })
-                  }
-                />
-                {isParcelNameInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Parcel name cannot be longer than 150 characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  Content Link (http://, https://, ipfs://, ipns://)
-                </Form.Text>
-                <Form.Control
-                  isInvalid={isURIInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder="URI (http://, https://, ipfs://, ipns://)"
-                  aria-label="Web Content URI"
-                  aria-describedby="web-content-uri"
-                  defaultValue={parcelWebContentURI}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ parcelWebContentURI: e.target.value })
-                  }
-                />
-                {isURIInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    Web content URI must be one of
-                    (http://,https://,ipfs://,ipns://) and less than 150
-                    characters
-                  </Form.Control.Feedback>
-                ) : null}
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  For Sale Price ({PAYMENT_TOKEN})
-                </Form.Text>
-                <Form.Control
-                  required
-                  isInvalid={isForSalePriceInvalid}
-                  className="bg-dark text-light"
-                  type="text"
-                  placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
-                  aria-label="For Sale Price"
-                  aria-describedby="for-sale-price"
-                  defaultValue={displayCurrentForSalePrice}
-                  disabled={isActing || isLoading}
-                  onChange={(e) =>
-                    updateActionData({ displayNewForSalePrice: e.target.value })
-                  }
-                />
-                {isForSalePriceInvalid ? (
-                  <Form.Control.Feedback type="invalid">
-                    For Sale Price must be greater than 0
-                  </Form.Control.Feedback>
-                ) : null}
-
-                <br />
-                <Form.Text className="text-primary mb-1">
-                  {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
-                </Form.Text>
-                <Form.Control
-                  className="bg-dark text-info"
-                  type="text"
-                  readOnly
-                  disabled
-                  value={`${
-                    annualNetworkFeeRate
-                      ? truncateEth(
-                          ethers.utils.formatEther(annualNetworkFeeRate),
-                          3
-                        )
-                      : "0"
-                  } ${PAYMENT_TOKEN}/year`}
-                  aria-label="Network Fee"
-                  aria-describedby="network-fee"
-                />
-              </Form.Group>
+          <Form>
+            <Form.Group>
+              <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
+              <Form.Control
+                isInvalid={isParcelNameInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="Parcel Name"
+                aria-label="Parcel Name"
+                aria-describedby="parcel-name"
+                defaultValue={parcelName}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelName: e.target.value })
+                }
+              />
+              {isParcelNameInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Parcel name cannot be longer than 150 characters
+                </Form.Control.Feedback>
+              ) : null}
               <br />
-              <div style={{ display: "flex", gap: "16px" }}>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={handleWrapModalOpen}
-                >
-                  {"Wrap to ETHx"}
-                </Button>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={() => submit()}
-                  disabled={isActing || isLoading || isInvalid}
-                >
-                  {isActing || isLoading ? spinner : "Confirm"}
-                </Button>
-              </div>
-            </Form>
+              <Form.Text className="text-primary mb-1">
+                Content Link (http://, https://, ipfs://, ipns://)
+              </Form.Text>
+              <Form.Control
+                isInvalid={isURIInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder="URI (http://, https://, ipfs://, ipns://)"
+                aria-label="Web Content URI"
+                aria-describedby="web-content-uri"
+                defaultValue={parcelWebContentURI}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ parcelWebContentURI: e.target.value })
+                }
+              />
+              {isURIInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  Web content URI must be one of
+                  (http://,https://,ipfs://,ipns://) and less than 150
+                  characters
+                </Form.Control.Feedback>
+              ) : null}
+              <br />
+              <Form.Text className="text-primary mb-1">
+                For Sale Price ({PAYMENT_TOKEN})
+              </Form.Text>
+              <Form.Control
+                required
+                isInvalid={isForSalePriceInvalid}
+                className="bg-dark text-light"
+                type="text"
+                placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
+                aria-label="For Sale Price"
+                aria-describedby="for-sale-price"
+                defaultValue={displayCurrentForSalePrice}
+                disabled={isActing || isLoading}
+                onChange={(e) =>
+                  updateActionData({ displayNewForSalePrice: e.target.value })
+                }
+              />
+              {isForSalePriceInvalid ? (
+                <Form.Control.Feedback type="invalid">
+                  For Sale Price must be a number greater than 0
+                </Form.Control.Feedback>
+              ) : null}
 
+              <br />
+              <Form.Text className="text-primary mb-1">
+                {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
+              </Form.Text>
+              <Form.Control
+                className="bg-dark text-info"
+                type="text"
+                readOnly
+                disabled
+                value={`${
+                  annualNetworkFeeRate
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
+                    : "0"
+                } ${PAYMENT_TOKEN}/year`}
+                aria-label="Network Fee"
+                aria-describedby="network-fee"
+              />
+            </Form.Group>
             <br />
-            {didFail && !isActing ? (
-              <Alert
-                variant="danger"
-                dismissible
-                onClick={() => updateActionData({ didFail: false })}
+            <hr className="action-form_divider" />
+            <br />
+            {summaryView}
+            <br />
+            <span style={{ display: "flex", gap: "16px" }}>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={handleWrapModalOpen}
               >
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Transaction failed
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>
-                  Oops! Something went wrong. Please try again.
-                </p>
-              </Alert>
-            ) : null}
-          </Card.Text>
+                {"Wrap to ETHx"}
+              </Button>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={() => submit()}
+                disabled={isActing || isLoading || isInvalid}
+              >
+                {isActing || isLoading ? spinner : "Confirm"}
+              </Button>
+            </span>
+          </Form>
+
+          <br />
+          {didFail && !isActing ? (
+            <Alert
+              variant="danger"
+              dismissible
+              onClick={() => updateActionData({ didFail: false })}
+            >
+              <Alert.Heading style={{ fontSize: "1em" }}>
+                Transaction failed
+              </Alert.Heading>
+              <p style={{ fontSize: "0.8em" }}>
+                Oops! Something went wrong. Please try again.
+              </p>
+            </Alert>
+          ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
           <Row>
@@ -323,7 +338,7 @@ export function ActionForm(props: ActionFormProps) {
           provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentTokenAddress={paymentTokenAddress}
+          paymentToken={paymentToken}
         />
       )}
     </>
@@ -331,21 +346,3 @@ export function ActionForm(props: ActionFormProps) {
 }
 
 export default ActionForm;
-
-export function fromRateToValue(
-  contributionRate: BigNumber,
-  perSecondFeeNumerator: BigNumber,
-  perSecondFeeDenominator: BigNumber
-) {
-  return contributionRate
-    .mul(perSecondFeeDenominator)
-    .div(perSecondFeeNumerator);
-}
-
-export function fromValueToRate(
-  value: BigNumber,
-  perSecondFeeNumerator: BigNumber,
-  perSecondFeeDenominator: BigNumber
-) {
-  return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
-}

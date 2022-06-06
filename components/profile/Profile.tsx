@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
@@ -10,28 +9,25 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 type ProfileProps = {
   account: string;
   disconnectWallet: () => Promise<void>;
-  paymentTokenAddress?: string;
+  paymentToken?: NativeAssetSuperToken;
 };
 
-function Profile({
-  account,
-  disconnectWallet,
-  paymentTokenAddress,
-}: ProfileProps) {
+function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
 
-  const { isLoading, data } = paymentTokenAddress
+  const { isLoading, data } = paymentToken
     ? sfApi.useGetRealtimeBalanceQuery(
         {
           chainId: NETWORK_ID,
           accountAddress: account,
-          superTokenAddress: paymentTokenAddress,
+          superTokenAddress: paymentToken.address,
           estimationTimestamp: undefined,
         },
         { pollingInterval: 5000 }

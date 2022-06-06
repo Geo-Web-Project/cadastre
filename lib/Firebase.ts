@@ -12,7 +12,8 @@ const firebaseConfig = {
 };
 
 export function useFirebase() {
-  const [firebasePerf, setFirebasePerf] = React.useState(null);
+  const [firebasePerf, setFirebasePerf] =
+    React.useState<firebase.performance.Performance | null>(null);
 
   React.useEffect(() => {
     try {

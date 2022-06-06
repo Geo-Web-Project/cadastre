@@ -1,19 +1,24 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
-import { ethers, BigNumber } from "ethers";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import CID from "cids";
-import { fromRateToValue } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
-import { DIDDataStore } from "@glazed/did-datastore";
+import { formatBalance } from "../../lib/formatBalance";
+import EditAction from "./EditAction";
+import { BigNumber } from "ethers";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { PinningManager } from "../../lib/PinningManager";
+import { AssetContentManager } from "../../lib/AssetContentManager";
+import GalleryModal from "../gallery/GalleryModal";
+import OutstandingBidView from "./OutstandingBidView";
+import AuctionInstructions from "../AuctionInstructions";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -21,21 +26,32 @@ const parcelQuery = gql`
       id
       license {
         owner
-        contributionRate
-        expirationTimestamp
+        currentOwnerBid {
+          contributionRate
+          perSecondFeeNumerator
+          perSecondFeeDenominator
+          forSalePrice
+        }
+        outstandingBid {
+          timestamp
+          bidder
+          contributionRate
+          perSecondFeeNumerator
+          perSecondFeeDenominator
+          forSalePrice
+        }
       }
     }
   }
 `;
 
 export type ParcelInfoProps = SidebarProps & {
-  perSecondFeeNumerator: BigNumber | null;
-  perSecondFeeDenominator: BigNumber | null;
-  dataStore: DIDDataStore | null;
-  didNFT: string | null;
-  basicProfileStreamManager: any;
-  pinningManager: any;
+  perSecondFeeNumerator: BigNumber;
+  perSecondFeeDenominator: BigNumber;
+  pinningManager: PinningManager | null;
   licenseAddress: string;
+  assetContentManager: AssetContentManager | null;
+  basicProfileStreamManager: BasicProfileStreamManager | null;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -44,23 +60,17 @@ function ParcelInfo(props: ParcelInfoProps) {
     interactionState,
     setInteractionState,
     selectedParcelId,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator,
-    dataStore,
-    didNFT,
+    assetContentManager,
     basicProfileStreamManager,
+    setIsParcelAvailable,
   } = props;
-  const { loading, data, refetch } = useQuery(parcelQuery, {
+  const { loading, data } = useQuery(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
+    pollInterval: 2000,
   });
 
-  const [networkFeeBalance, setNetworkFeeBalance] = useState<BigNumber | null>(
-    null
-  );
-  const [auctionValue, setAuctionValue] = React.useState(null);
-  const [timer, setTimer] = React.useState<NodeJS.Timer | null>(null);
   const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
     string | null
   >(null);
@@ -69,92 +79,64 @@ function ParcelInfo(props: ParcelInfoProps) {
     ? basicProfileStreamManager.getStreamContent()
     : null;
 
-  function _calculateNetworkFeeBalance(license: any) {
-    const now = Date.now();
-    const networkFeeBalance = BigNumber.from(license.expirationTimestamp)
-      .mul(1000)
-      .sub(now)
-      .div(1000)
-      .mul(BigNumber.from(license.contributionRate));
-
-    return networkFeeBalance?.lt(0) ? BigNumber.from(0) : networkFeeBalance;
-  }
-
   useEffect(() => {
-    async function updateContent() {
-      if (data && data.landParcel) {
-        if (timer) clearInterval(timer);
-        const _timer = setInterval(() => {
-          setNetworkFeeBalance(
-            _calculateNetworkFeeBalance(data.landParcel.license)
-          );
-        }, 500);
-        setTimer(_timer);
-      }
-    }
-
     async function updateStreamId() {
-      if (!dataStore || !didNFT) {
+      if (!assetContentManager) {
         setParcelIndexStreamId(null);
         return;
       }
 
-      const doc = await dataStore._createIDXDoc(didNFT);
+      const doc = await assetContentManager.getIndex();
       setParcelIndexStreamId(doc.id.toString());
     }
 
-    updateContent();
     updateStreamId();
-  }, [data, dataStore, didNFT, timer]);
+  }, [assetContentManager]);
 
   const spinner = (
-    <div className="spinner-border" role="status">
+    <span className="spinner-border" role="status">
       <span className="sr-only">Loading...</span>
-    </div>
+    </span>
   );
 
   let forSalePrice;
-  let expDate;
-  let networkFeeBalanceDisplay;
   let licenseOwner;
-  let isExpired;
-  if (
-    data &&
-    data.landParcel &&
-    perSecondFeeNumerator &&
-    perSecondFeeDenominator
-  ) {
-    const value = fromRateToValue(
-      BigNumber.from(data.landParcel.license.contributionRate),
-      perSecondFeeNumerator,
-      perSecondFeeDenominator
-    );
+  let isOutstandingBid = false;
+  let outstandingBidder: string | null = null;
+  let currentOwnerBidForSalePrice;
+  let outstandingBidForSalePrice;
+  let outstandingBidTimestamp;
+  if (data && data.landParcel && data.landParcel.license) {
     forSalePrice = (
       <>
-        {ethers.utils.formatEther(value)} {PAYMENT_TOKEN}{" "}
+        {formatBalance(data.landParcel.license.currentOwnerBid.forSalePrice)}{" "}
+        {PAYMENT_TOKEN}{" "}
       </>
     );
-    if (networkFeeBalance != null) {
-      isExpired = networkFeeBalance.eq(0);
-      networkFeeBalanceDisplay = (
-        <>
-          {ethers.utils.formatEther(networkFeeBalance.toString())}{" "}
-          {PAYMENT_TOKEN}{" "}
-        </>
-      );
-    }
-    expDate = new Date(
-      data.landParcel.license.expirationTimestamp * 1000
-    ).toUTCString();
     licenseOwner = data.landParcel.license.owner;
+    isOutstandingBid =
+      data.landParcel.license.outstandingBid.contributionRate > 0;
+    outstandingBidForSalePrice =
+      data.landParcel.license.outstandingBid.forSalePrice;
+    currentOwnerBidForSalePrice =
+      data.landParcel.license.currentOwnerBid.forSalePrice;
+    outstandingBidder = data.landParcel.license.outstandingBid.bidder;
+    outstandingBidTimestamp = BigNumber.from(
+      data.landParcel.license.outstandingBid.timestamp
+    );
   }
 
-  const isLoading =
-    loading ||
-    data == null ||
-    licenseOwner == null ||
-    perSecondFeeNumerator == null ||
-    perSecondFeeDenominator == null;
+  useEffect(() => {
+    if (!outstandingBidder) {
+      setIsParcelAvailable(true);
+      return;
+    }
+
+    console.log("SET: " + !(isOutstandingBid && outstandingBidder !== account));
+    setIsParcelAvailable(!(isOutstandingBid && outstandingBidder !== account));
+  }, [data]);
+
+  const isLoading = loading || data == null || licenseOwner == null;
 
   let hrefWebContent;
   // Translate ipfs:// to case-insensitive base
@@ -184,7 +166,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   const editButton = (
     <Button
       variant="primary"
-      className="w-100"
+      className="w-100 mb-2"
       onClick={() => {
         setInteractionState(STATE.PARCEL_EDITING);
       }}
@@ -205,17 +187,17 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  const initiateTransferButton = (
-    <Button
-      variant="primary"
-      className="w-100"
-      onClick={() => {
-        setInteractionState(STATE.PARCEL_PURCHASING);
-      }}
-    >
-      {isExpired ? "Auction Claim" : "Initiate Transfer"}
-    </Button>
-  );
+  // const initiateTransferButton = (
+  //   <Button
+  //     variant="primary"
+  //     className="w-100"
+  //     onClick={() => {
+  //       setInteractionState(STATE.PARCEL_PURCHASING);
+  //     }}
+  //   >
+  //     {isExpired ? "Auction Claim" : "Initiate Transfer"}
+  //   </Button>
+  // );
 
   let title;
   if (
@@ -248,12 +230,12 @@ function ParcelInfo(props: ParcelInfoProps) {
     if (account.toLowerCase() == licenseOwner.toLowerCase()) {
       buttons = (
         <>
-          <div className="mb-2">{editButton}</div>
+          {editButton}
           {editGalleryButton}
         </>
       );
     } else {
-      buttons = initiateTransferButton;
+      // buttons = initiateTransferButton;
     }
   }
 
@@ -288,6 +270,10 @@ function ParcelInfo(props: ParcelInfoProps) {
                   >{`[${hrefWebContent}]`}</a>
                 ) : null}
               </p>
+              <p>
+                <span className="font-weight-bold">For Sale Price:</span>{" "}
+                {isLoading ? spinner : forSalePrice}
+              </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Parcel ID:</span>{" "}
                 {isLoading ? spinner : selectedParcelId}
@@ -296,22 +282,8 @@ function ParcelInfo(props: ParcelInfoProps) {
                 <span className="font-weight-bold">Licensee:</span>{" "}
                 {isLoading ? spinner : truncateStr(licenseOwner, 11)}
               </p>
-              <p>
-                <span className="font-weight-bold">For Sale Price:</span>{" "}
-                {isLoading ? spinner : forSalePrice}
-              </p>
-              <p>
-                <span className="font-weight-bold">Expiration Date:</span>{" "}
-                {isLoading ? spinner : expDate}
-              </p>
-              <p>
-                <span className="font-weight-bold">Fee Balance:</span>{" "}
-                {isLoading || networkFeeBalanceDisplay == null
-                  ? spinner
-                  : networkFeeBalanceDisplay}
-              </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Index Stream ID:</span>{" "}
+                <span className="font-weight-bold">Stream ID:</span>{" "}
                 {parcelIndexStreamId == null ? (
                   spinner
                 ) : (
@@ -323,38 +295,33 @@ function ParcelInfo(props: ParcelInfoProps) {
                   >{`ceramic://${parcelIndexStreamId}`}</a>
                 )}
               </p>
-              {isExpired ? (
-                <>
-                  <hr className="border-secondary" />
-                  {/* <AuctionInfo
-                    purchaserContract={purchaserContract}
-                    licenseInfo={data.landParcel.license}
-                    auctionValue={auctionValue}
-                    setAuctionValue={setAuctionValue}
-                  ></AuctionInfo> */}
-                </>
-              ) : null}
               <br />
               {buttons}
             </>
           ) : (
             <p>Unclaimed Coordinates</p>
           )}
-          {/* {interactionState == STATE.PARCEL_EDITING ? (
+          {interactionState == STATE.PARCEL_SELECTED &&
+          isOutstandingBid &&
+          outstandingBidder !== account ? (
+            <>
+              <OutstandingBidView
+                newForSalePrice={outstandingBidForSalePrice}
+                existingForSalePrice={currentOwnerBidForSalePrice}
+                bidTimestamp={outstandingBidTimestamp ?? null}
+                {...props}
+              />
+              <AuctionInstructions />
+            </>
+          ) : null}
+          {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
-              collectorContract={collectorContract}
-              account={account}
-              setInteractionState={setInteractionState}
-              setSelectedParcelId={setSelectedParcelId}
-              perSecondFeeNumerator={perSecondFeeNumerator}
-              perSecondFeeDenominator={perSecondFeeDenominator}
+              // setSelectedParcelId={setSelectedParcelId}
               parcelData={data}
-              refetchParcelData={refetch}
-              basicProfileStreamManager={basicProfileStreamManager}
-              licenseAddress={licenseAddress}
+              {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_PURCHASING ? (
+          {/* {interactionState == STATE.PARCEL_PURCHASING ? (
             <PurchaseAction
               purchaserContract={purchaserContract}
               collectorContract={collectorContract}
@@ -373,15 +340,10 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null} */}
         </Col>
       </Row>
-      {/* <GalleryModal
-        ipfs={ipfs}
-        show={interactionState == STATE_EDITING_GALLERY}
-        setInteractionState={setInteractionState}
-        dataStore={dataStore}
-        ceramic={ceramic}
-        didNFT={didNFT}
-        pinningManager={pinningManager}
-      ></GalleryModal> */}
+      <GalleryModal
+        show={interactionState == STATE.EDITING_GALLERY}
+        {...props}
+      ></GalleryModal>
     </>
   );
 }

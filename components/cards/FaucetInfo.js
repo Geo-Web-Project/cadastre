@@ -9,15 +9,15 @@ function FaucetInfo() {
         <Card.Title className="text-primary font-weight-bold">
           Claim {PAYMENT_TOKEN}
         </Card.Title>
-        <Card.Text className="font-italic">
-          <p>You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.</p>
-          <p>
-            Get free {PAYMENT_TOKEN} from this{" "}
-            <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
-              faucet.
-            </a>
-          </p>
-        </Card.Text>
+        <p className="font-italic">
+          You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.
+        </p>
+        <p className="font-italic">
+          Get free {PAYMENT_TOKEN} from this{" "}
+          <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
+            faucet.
+          </a>
+        </p>
       </Card.Body>
     </Card>
   );

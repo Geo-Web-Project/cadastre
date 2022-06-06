@@ -1,19 +1,19 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { ethxABI, NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { sfApi } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 type WrapModalProps = {
   account: string;
   provider: ethers.providers.Web3Provider;
   show: boolean;
   handleClose: () => void;
-  paymentTokenAddress: string;
+  paymentToken: NativeAssetSuperToken;
 };
 
 function WrapModal({
@@ -21,19 +21,19 @@ function WrapModal({
   provider,
   show,
   handleClose,
-  paymentTokenAddress,
+  paymentToken,
 }: WrapModalProps) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState<boolean>(false);
 
-  const { isLoading, data: ethxBalance } = paymentTokenAddress
+  const { isLoading, data: ethxBalance } = paymentToken
     ? sfApi.useGetRealtimeBalanceQuery(
         {
           chainId: NETWORK_ID,
           accountAddress: account,
-          superTokenAddress: paymentTokenAddress,
+          superTokenAddress: paymentToken.address,
           estimationTimestamp: undefined,
         },
         { pollingInterval: 1000 }
@@ -63,16 +63,16 @@ function WrapModal({
   }, [provider, account]);
 
   const wrapETH = async (amount: string) => {
-    const ETHx = new ethers.Contract(paymentTokenAddress, ethxABI, provider);
-
-    const reciept = await ETHx.connect(provider.getSigner()).upgradeByETH({
-      value: ethers.utils.parseEther(amount),
-    });
+    const txn = await paymentToken
+      .upgrade({
+        amount: ethers.utils.parseEther(amount).toString(),
+      })
+      .exec(provider.getSigner());
 
     setIsWrapping(true);
 
     try {
-      await reciept.wait();
+      await txn.wait();
       // Wrap ETHx successfully!
       const ethBalance = await getETHBalance(provider, account);
       // Update balances
@@ -97,6 +97,8 @@ function WrapModal({
         console.log("amount is valid", amount);
         (async () => {
           await wrapETH(amount.toString());
+          const form = document.getElementById("wrapForm") as HTMLFormElement;
+          form.reset();
         })();
       }
     }
@@ -141,7 +143,12 @@ function WrapModal({
         className="bg-dark text-light"
         style={{ position: "relative" }}
       >
-        <form className="form-inline" noValidate onSubmit={onSubmit}>
+        <form
+          id="wrapForm"
+          className="form-inline"
+          noValidate
+          onSubmit={onSubmit}
+        >
           <label className="sr-only" htmlFor="amount">
             Amount
           </label>
