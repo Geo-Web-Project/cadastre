@@ -1,17 +1,20 @@
 import { BigNumber } from "ethers";
 import * as React from "react";
 import { Card } from "react-bootstrap";
+import { AssetContentManager } from "../../lib/AssetContentManager";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth, truncateStr } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 
 type OutstandingBidViewProps = SidebarProps & {
+  assetContentManager: AssetContentManager | null;
   newForSalePrice: BigNumber;
   licenseOwner: string;
 };
 
 function AuctionBidView({
+  assetContentManager,
   newForSalePrice,
   selectedParcelId,
   licenseOwner,
@@ -19,6 +22,21 @@ function AuctionBidView({
   const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
     string | null
   >(null);
+
+  React.useEffect(() => {
+    async function updateStreamId() {
+      if (!assetContentManager) {
+        setParcelIndexStreamId(null);
+        return;
+      }
+
+      const doc = await assetContentManager.getIndex();
+      setParcelIndexStreamId(doc.id.toString());
+    }
+
+    updateStreamId();
+  }, [assetContentManager]);
+
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
     18
