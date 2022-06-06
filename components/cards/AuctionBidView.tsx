@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
 import * as React from "react";
-import { Card } from "react-bootstrap";
+import Card from "react-bootstrap/Card";
+import Button from "react-bootstrap/Button";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
@@ -63,6 +64,23 @@ function AuctionBidView({
             className="text-light"
           >{`ceramic://${parcelIndexStreamId}`}</a>
         </Card.Text>
+        <br />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            variant="primary"
+            className="w-50"
+            onClick={() => console.log("TODO: Bid")}
+            disabled={false} // TODO
+          >
+            Place Bid
+          </Button>
+        </div>
       </Card.Body>
     </Card>
   );
