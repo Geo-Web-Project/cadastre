@@ -58,23 +58,21 @@ function TransactionSummaryView({
 
   return (
     <div>
-      <h3>Transaction Summary (ETHx)</h3>
+      <h3>Transaction Summary</h3>
       {txnNeeded ? (
         <>
           <p>
             {isFairLaunch
-              ? `Max Claim Payment (to Treasury): ${currentRequiredBid}`
-              : "Claim Payment: 0.00"}
+              ? `Max Claim Payment (to Treasury): ${currentRequiredBid} ETHx`
+              : "Claim Payment: 0.00 ETHx"}
           </p>
           <p>
             Stream: {networkFeeDelta.gt(0) ? "+" + stream : stream}
-            {"/s"}
+            {" ETHx/s"}
           </p>
           <p>
-            Stream Buffer:{" "}
-            {streamBuffer.gt(0)
-              ? "+" + streamBufferDisplay
-              : streamBufferDisplay}
+            Stream Buffer: {streamBuffer.gt(0) ? "+" + streamBufferDisplay : streamBufferDisplay}
+            {" ETHx"}
           </p>
         </>
       ) : (
