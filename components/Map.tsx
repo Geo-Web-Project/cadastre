@@ -28,7 +28,7 @@ import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
 export const ZOOM_GRID_LEVEL = 15;
-const GRID_DIM = 85;
+const GRID_DIM = 50;
 export const GW_MAX_LAT = 21;
 export const GW_MAX_LON = 22;
 const ZOOM_QUERY_LEVEL = 8;
