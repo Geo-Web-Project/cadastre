@@ -140,8 +140,7 @@ function Sidebar(props: SidebarProps) {
     auctionEnd &&
     startingBid &&
     endingBid &&
-    Date.now() > auctionStart.toNumber() &&
-    Date.now() < auctionEnd.toNumber();
+    Date.now() / 1000 < auctionEnd.toNumber();
 
   const requiredBid =
     auctionStart && auctionEnd && startingBid && endingBid
@@ -160,7 +159,7 @@ function Sidebar(props: SidebarProps) {
             ethers.utils.formatEther(requiredBid),
             4
           )}
-          auctionEnd={auctionEnd.toNumber()}
+          auctionEnd={auctionEnd.toNumber() * 1000}
         />
       ) : perSecondFeeNumerator && perSecondFeeDenominator ? (
         <ParcelInfo
