@@ -3,7 +3,7 @@ export const NETWORK_NAME = "Optimism Kovan";
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-rinkeby-subgraph";
+  "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-optimism-kovan";
 
 export const CERAMIC_URL = "https://g12-a-ceramic.3boxlabs.com/";
 export const CONNECT_NETWORK = "mainnet";

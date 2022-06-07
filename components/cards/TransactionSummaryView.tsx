@@ -13,6 +13,8 @@ const depositHoursMap: Record<number, number> = {
   1: 8,
   // rinkeby
   4: 2,
+  // optimism-kovan
+  69: 2,
 };
 
 type TransactionSummaryViewProps = SidebarProps & {
