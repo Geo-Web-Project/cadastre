@@ -1,7 +1,7 @@
-export const NETWORK_ID = 4;
-export const NETWORK_NAME = "Rinkeby";
+export const NETWORK_ID = 69;
+export const NETWORK_NAME = "Optimism Kovan";
 export const PAYMENT_TOKEN = "ETHx";
-export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.rinkeby.io";
+export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
   "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-rinkeby-subgraph";
 

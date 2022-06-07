@@ -108,12 +108,6 @@ function WalletPrompt() {
         <p
           style={{ fontSize: "26px", lineHeight: "45px" }}
         >{`Connect your Web3 wallet to the ${NETWORK_NAME} network to begin`}</p>
-        {/* <p style={{ fontSize: "26px", lineHeight: "45px" }}>{"Web3 wallet."}</p>  */}
-        <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-          {
-            "Note: The Cadastre uses IDX profiles to seamlessly manage the keys for linked content under your wallet address. After connecting your wallet, you’ll also be asked to connect/migrate/create your profile via 3ID Connect."
-          }
-        </p>
       </div>
     </div>
   );
