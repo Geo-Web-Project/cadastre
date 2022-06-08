@@ -5,7 +5,6 @@ import ReactMapGL, { MapEvent } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
-import GridHoverSource from "./sources/GridHoverSource";
 import ClaimSource from "./sources/ClaimSource";
 import { gql, useQuery } from "@apollo/client";
 import Sidebar from "./Sidebar";
@@ -22,13 +21,16 @@ import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
-import GeoWebCoordinate from "js-geo-web-coordinate";
 import firebase from "firebase/app";
 import { IPFS } from "ipfs-core";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
-export const ZOOM_GRID_LEVEL = 14;
-const GRID_DIM = 50;
+import { GeoWebCoordinate } from "js-geo-web-coordinate";
+
+export const ZOOM_GRID_LEVEL = 15;
+const GRID_DIM = 85;
+export const GW_MAX_LAT = 21;
+export const GW_MAX_LON = 22;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 1000;
 
@@ -40,6 +42,35 @@ export enum STATE {
   PARCEL_EDITING = 4,
   PARCEL_PURCHASING = 5,
   EDITING_GALLERY = 6,
+}
+
+export type Coord = {
+  x: number;
+  y: number;
+};
+
+export interface PolygonQuery {
+  geoWebCoordinates: GWCoordinateGQL[];
+}
+
+interface GeoPoint {
+  id: string;
+  lon: number;
+  lat: number;
+}
+
+interface LandParcel {
+  id: string;
+}
+
+interface GWCoordinateGQL {
+  id: string;
+  createdAtBlock: bigint;
+  landParcel: LandParcel;
+  pointBL: GeoPoint;
+  pointBR: GeoPoint;
+  pointTR: GeoPoint;
+  pointTL: GeoPoint;
 }
 
 const query = gql`
@@ -86,10 +117,10 @@ const query = gql`
   }
 `;
 
-function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
-  const gwCoord = GeoWebCoordinate.from_gps(lon, lat);
-  const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-  const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+function updateGrid(lat: number, lon: number, oldGrid: any, setGrid: any) {
+  const gwCoord = GeoWebCoordinate.fromGPS(lon, lat, GW_MAX_LON, GW_MAX_LAT);
+  const x = gwCoord.getX().toNumber();
+  const y = gwCoord.getY().toNumber();
 
   if (
     oldGrid != null &&
@@ -102,7 +133,11 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   const features = [];
   for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
     for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
-      features.push(coordToFeature(GeoWebCoordinate.make_gw_coord(_x, _y)));
+      features.push(
+        coordToFeature(
+          GeoWebCoordinate.fromXandY(_x, _y, GW_MAX_LON, GW_MAX_LAT)
+        )
+      );
     }
   }
 
@@ -115,17 +150,17 @@ function updateGrid(lat: any, lon: any, oldGrid: any, setGrid: any) {
   });
 }
 
-export function coordToFeature(gwCoord: any): GeoJSON.Feature {
+export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
   return {
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [GeoWebCoordinate.to_gps(gwCoord)],
+      coordinates: [gwCoord.toGPS()],
     },
     properties: {
-      gwCoord: gwCoord.toString(16),
-      gwCoordX: GeoWebCoordinate.get_x(gwCoord).toNumber(),
-      gwCoordY: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+      gwCoord: parseInt(gwCoord.toString()).toString(16),
+      gwCoordX: gwCoord.getX().toNumber(),
+      gwCoordY: gwCoord.getY().toNumber(),
     },
   };
 }
@@ -143,7 +178,7 @@ export type MapProps = {
 };
 
 function Map(props: MapProps) {
-  const { data, fetchMore, refetch } = useQuery(query, {
+  const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
       lastBlock: 0,
       minX: 0,
@@ -177,12 +212,14 @@ function Map(props: MapProps) {
     const newLastBlock =
       data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
 
-    const gwCoord = GeoWebCoordinate.from_gps(
+    const gwCoord = GeoWebCoordinate.fromGPS(
       viewport.longitude,
-      viewport.latitude
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
     );
-    const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-    const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
 
     fetchMore({
       variables: {
@@ -203,15 +240,14 @@ function Map(props: MapProps) {
   const [interactionState, setInteractionState] = useState<STATE>(
     STATE.VIEWING
   );
-  const [gridHoverCoord, setGridHoverCoord] = useState("");
   const [parcelHoverId, setParcelHoverId] = useState("");
 
-  const [claimBase1Coord, setClaimBase1Coord] = useState<any | null>(null);
-  const [claimBase2Coord, setClaimBase2Coord] = useState<any | null>(null);
+  const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
+  const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
   const [selectedParcelId, setSelectedParcelId] = useState("");
 
-  const [existingCoords, setExistingCoords] = useState(new Set());
+  const [existingCoords, setExistingCoords] = useState<Set<string>>(new Set());
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
@@ -239,12 +275,14 @@ function Map(props: MapProps) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
 
-    const gwCoord = GeoWebCoordinate.from_gps(
+    const gwCoord = GeoWebCoordinate.fromGPS(
       nextViewport.longitude,
-      nextViewport.latitude
+      nextViewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
     );
-    const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-    const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
 
     if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
       refetch({
@@ -305,12 +343,14 @@ function Map(props: MapProps) {
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
-        const gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
-          event.lngLat[1]
+          event.lngLat[1],
+          GW_MAX_LON,
+          GW_MAX_LAT
         );
 
-        if (!existingCoords.has(gwCoord.toString(10))) {
+        if (!existingCoords.has(gwCoord.toString())) {
           setParcelHoverId("");
         }
       }
@@ -360,12 +400,23 @@ function Map(props: MapProps) {
         setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else {
-        const gwCoord = GeoWebCoordinate.from_gps(
+        const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat[0],
-          event.lngLat[1]
+          event.lngLat[1],
+          GW_MAX_LON,
+          GW_MAX_LAT
         );
 
-        if (existingCoords.has(gwCoord.toString(10))) {
+        console.log("Coordinates:");
+        console.log(
+          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 19, 18)
+        );
+
+        console.log(
+          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 20, 19)
+        );
+
+        if (existingCoords.has(gwCoord.toString())) {
           return true;
         }
       }
@@ -373,10 +424,15 @@ function Map(props: MapProps) {
       return false;
     }
 
-    const gwCoord = GeoWebCoordinate.from_gps(event.lngLat[0], event.lngLat[1]);
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      event.lngLat[0],
+      event.lngLat[1],
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
     const coord = {
-      x: GeoWebCoordinate.get_x(gwCoord).toNumber(),
-      y: GeoWebCoordinate.get_y(gwCoord).toNumber(),
+      x: gwCoord.getX().toNumber(),
+      y: gwCoord.getY().toNumber(),
     };
 
     const nextViewport = {
@@ -428,12 +484,14 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data && data.geoWebCoordinates.length > 0) {
       // Fetch more coordinates
-      const gwCoord = GeoWebCoordinate.from_gps(
+      const gwCoord = GeoWebCoordinate.fromGPS(
         viewport.longitude,
-        viewport.latitude
+        viewport.latitude,
+        GW_MAX_LON,
+        GW_MAX_LAT
       );
-      const x = GeoWebCoordinate.get_x(gwCoord).toNumber();
-      const y = GeoWebCoordinate.get_y(gwCoord).toNumber();
+      const x = gwCoord.getX().toNumber();
+      const y = gwCoord.getY().toNumber();
 
       refetch({
         lastBlock: 0,
@@ -463,7 +521,7 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (data != null) {
-      const _existingCoords = new Set(
+      const _existingCoords = new Set<string>(
         data.geoWebCoordinates.flatMap((p: any) => p.id)
       );
       setExistingCoords(_existingCoords);
@@ -521,9 +579,8 @@ function Map(props: MapProps) {
           onClick={onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
-          <GridHoverSource gridHoverCoord={gridHoverCoord}></GridHoverSource>
           <ParcelSource
-            data={data}
+            data={data ?? null}
             isAvailable={isParcelAvailable}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}

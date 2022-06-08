@@ -37,7 +37,7 @@
     "ipfs-http-client": "^50.1.0",
     "ipfs-provider": "2.0.1",
     "ipld-dag-pb": "^0.22.3",
-    "js-geo-web-coordinate": "^0.2.0",
+    "js-geo-web-coordinate": "^0.3.7",
     "js-pinning-service-http-client": "^1.0.2",
     "key-did-resolver": "^1.4.0",
     "next": "^12.1.5",

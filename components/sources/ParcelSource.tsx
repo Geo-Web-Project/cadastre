@@ -1,9 +1,12 @@
+/* eslint-disable import/no-unresolved */
+import GeoJSON from "geojson";
 import * as React from "react";
 import { Source, Layer } from "react-map-gl";
+import { PolygonQuery } from "../Map";
 import { parcelLayer, parcelHighlightLayer } from "../map-style";
 
-function convertToGeoJson(data: any) {
-  const features = data.geoWebCoordinates.map((c: any) => {
+function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
+  const features: GeoJSON.Feature[] = data.geoWebCoordinates.map((c) => {
     const coordinates = [
       [
         [c.pointBL.lon, c.pointBL.lat],
@@ -27,7 +30,7 @@ function convertToGeoJson(data: any) {
 }
 
 type Props = {
-  data: any | null;
+  data: PolygonQuery | null;
   parcelHoverId: string;
   selectedParcelId: string;
   isAvailable: boolean;
@@ -35,7 +38,9 @@ type Props = {
 
 function ParcelSource(props: Props) {
   const { data, parcelHoverId, selectedParcelId, isAvailable } = props;
-  const [geoJsonFeatures, setGeoJsonFeatures] = React.useState([]);
+  const [geoJsonFeatures, setGeoJsonFeatures] = React.useState<
+    GeoJSON.Feature[]
+  >([]);
 
   React.useEffect(() => {
     if (data != null) {
