@@ -215,22 +215,6 @@ function FAQ() {
                       >
                         Torus
                       </a>
-                      ,{" "}
-                      <a
-                        href="https://portis.io/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Portis
-                      </a>
-                      , or{" "}
-                      <a
-                        href="https://fortmatic.com/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Formatic
-                      </a>
                       )
                     </li>
                     <li>
@@ -240,7 +224,7 @@ function FAQ() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Claim for free with your GitHub ID
+                        Claim for free
                       </a>{" "}
                       or{" "}
                       <a

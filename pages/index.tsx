@@ -71,7 +71,6 @@ function IndexPage() {
 
   const connectWallet = async () => {
     const _authState = await activate();
-    await switchNetwork(_authState?.provider.state.provider);
 
     const lib = getLibrary(_authState?.provider.state.provider);
     setLibrary(lib);
@@ -104,6 +103,8 @@ function IndexPage() {
 
     const start = async () => {
       const sessionSeed: Uint8Array = getOrSetSessionSeed();
+
+      await switchNetwork(authState.connected.provider.state.provider);
 
       const ethereumAuthProvider = new EthereumAuthProvider(
         authState.connected.provider.state.provider,
