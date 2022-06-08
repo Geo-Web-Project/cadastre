@@ -59,13 +59,13 @@ function TransactionSummaryView({
   return (
     <div>
       <h3>Transaction Summary</h3>
-      {txnNeeded && claimPayment ? (
+      {txnNeeded ? (
         <>
           <p>
             {isFairLaunch
               ? `Max Claim Payment (to Treasury): `
               : "Claim Payment: "}
-            {truncateEth(ethers.utils.formatEther(claimPayment), 4)} ETHx
+            {truncateEth(ethers.utils.formatEther(claimPayment ?? "0"), 4)} ETHx
           </p>
           <p>
             Stream: {networkFeeDelta.gt(0) ? "+" + stream : stream}
