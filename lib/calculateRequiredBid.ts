@@ -10,15 +10,14 @@ export const calculateRequiredBid = (
   startingBid: BigNumber,
   endingBid: BigNumber
 ) => {
-  const blockTimestamp = Date.now();
-  if (blockTimestamp > auctionEnd.toNumber()) {
+  const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
+  if (blockTimestamp.gt(auctionEnd)) {
     return endingBid;
   }
 
-  const timeElapsed = blockTimestamp - auctionStart.toNumber();
-  const auctionDuration = auctionEnd.toNumber() - auctionStart.toNumber();
-  const priceDecrease =
-    (startingBid.toNumber() * timeElapsed) / auctionDuration;
+  const timeElapsed = blockTimestamp.sub(auctionStart);
+  const auctionDuration = auctionEnd.sub(auctionStart);
+  const priceDecrease = startingBid.mul(timeElapsed).div(auctionDuration);
 
-  return startingBid.toNumber() - priceDecrease;
+  return startingBid.sub(priceDecrease);
 };

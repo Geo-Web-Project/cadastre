@@ -35,6 +35,7 @@ export type ActionFormProps = SidebarProps & {
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
   basicProfileStreamManager?: BasicProfileStreamManager | null;
+  requiredBid?: BigNumber;
 };
 
 export type ActionData = {
@@ -63,6 +64,7 @@ export function ActionForm(props: ActionFormProps) {
     setSelectedParcelId,
     paymentToken,
     summaryView,
+    requiredBid,
   } = props;
 
   const {
@@ -87,7 +89,10 @@ export function ActionForm(props: ActionFormProps) {
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
-    isNaN(Number(displayNewForSalePrice));
+    (isNaN(Number(displayNewForSalePrice)) ||
+      ethers.utils
+        .parseEther(displayNewForSalePrice)
+        .lt(requiredBid ?? BigNumber.from(0)));
 
   const networkFeeRatePerSecond =
     displayNewForSalePrice != null &&
@@ -257,7 +262,10 @@ export function ActionForm(props: ActionFormProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  For Sale Price must be a number greater than 0
+                  For Sale Price must be a number greater than{" "}
+                  {requiredBid
+                    ? truncateEth(ethers.utils.formatEther(requiredBid), 4)
+                    : "0"}
                 </Form.Control.Feedback>
               ) : null}
 

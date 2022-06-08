@@ -145,7 +145,7 @@ function Sidebar(props: SidebarProps) {
   const requiredBid =
     auctionStart && auctionEnd && startingBid && endingBid
       ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
-      : "0";
+      : BigNumber.from(0);
 
   return (
     <Col
@@ -153,7 +153,7 @@ function Sidebar(props: SidebarProps) {
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      {isFairLaunch ? (
+      {isFairLaunch && interactionState == STATE.CLAIM_SELECTED ? (
         <FairLaunchInfo
           currentRequiredBid={truncateEth(
             ethers.utils.formatEther(requiredBid),
@@ -182,10 +182,7 @@ function Sidebar(props: SidebarProps) {
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             licenseAddress={licenseContract.address}
-            currentRequiredBid={truncateEth(
-              ethers.utils.formatEther(requiredBid),
-              4
-            )}
+            requiredBid={requiredBid}
           ></ClaimAction>
         </>
       ) : null}
