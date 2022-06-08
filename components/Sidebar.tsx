@@ -160,6 +160,7 @@ function Sidebar(props: SidebarProps) {
             4
           )}
           auctionEnd={auctionEnd.toNumber() * 1000}
+          {...props}
         />
       ) : perSecondFeeNumerator && perSecondFeeDenominator ? (
         <ParcelInfo

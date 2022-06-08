@@ -6,12 +6,15 @@ import duration from "dayjs/plugin/duration";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { Button, Image } from "react-bootstrap";
+import { STATE } from "../Map";
+import { SidebarProps } from "../Sidebar";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 dayjs.extend(duration);
 
-type FairLaunchInfoProps = {
+type FairLaunchInfoProps = SidebarProps & {
   /** startingBid - priceDecrease. */
   currentRequiredBid: string;
   /** auctionEnd. */
@@ -19,7 +22,7 @@ type FairLaunchInfoProps = {
 };
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
-  const { currentRequiredBid, auctionEnd } = props;
+  const { currentRequiredBid, auctionEnd, setInteractionState } = props;
 
   const [now, setNow] = React.useState(dayjs.utc());
 
@@ -51,6 +54,15 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
             Fair Launch Claim
           </h1>
+        </Col>
+        <Col sm="2" className="text-right">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => setInteractionState(STATE.VIEWING)}
+          >
+            <Image src="close.svg" />
+          </Button>
         </Col>
       </Row>
       <Card border="secondary" className="bg-dark my-5">
