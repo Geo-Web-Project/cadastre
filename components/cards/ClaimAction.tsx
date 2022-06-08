@@ -35,6 +35,7 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
+    isFairLaunch,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -187,6 +188,11 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerSecond ? (
             <TransactionSummaryView
+              claimPayment={
+                isFairLaunch && displayNewForSalePrice
+                  ? ethers.utils.parseEther(displayNewForSalePrice)
+                  : BigNumber.from(0)
+              }
               newNetworkFee={networkFeeRatePerSecond}
               {...props}
             />

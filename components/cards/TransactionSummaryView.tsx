@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import * as React from "react";
 import { NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
@@ -20,7 +20,7 @@ const depositHoursMap: Record<number, number> = {
 type TransactionSummaryViewProps = SidebarProps & {
   existingNetworkFee?: BigNumber;
   newNetworkFee: BigNumber;
-  currentRequiredBid?: string;
+  claimPayment?: BigNumber;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
 };
@@ -29,8 +29,8 @@ function TransactionSummaryView({
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
   provider,
-  currentRequiredBid,
   isFairLaunch,
+  claimPayment,
 }: TransactionSummaryViewProps) {
   const [currentChainID, setCurrentChainID] =
     React.useState<number>(NETWORK_ID);
@@ -59,19 +59,23 @@ function TransactionSummaryView({
   return (
     <div>
       <h3>Transaction Summary</h3>
-      {txnNeeded ? (
+      {txnNeeded && claimPayment ? (
         <>
           <p>
             {isFairLaunch
-              ? `Max Claim Payment (to Treasury): ${currentRequiredBid} ETHx`
-              : "Claim Payment: 0.00 ETHx"}
+              ? `Max Claim Payment (to Treasury): `
+              : "Claim Payment: "}
+            {truncateEth(ethers.utils.formatEther(claimPayment), 4)} ETHx
           </p>
           <p>
             Stream: {networkFeeDelta.gt(0) ? "+" + stream : stream}
             {" ETHx/s"}
           </p>
           <p>
-            Stream Buffer: {streamBuffer.gt(0) ? "+" + streamBufferDisplay : streamBufferDisplay}
+            Stream Buffer:{" "}
+            {streamBuffer.gt(0)
+              ? "+" + streamBufferDisplay
+              : streamBufferDisplay}
             {" ETHx"}
           </p>
         </>

@@ -179,6 +179,7 @@ function Sidebar(props: SidebarProps) {
         <>
           <ClaimAction
             {...props}
+            isFairLaunch={isFairLaunch ?? undefined}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             licenseAddress={licenseContract.address}
