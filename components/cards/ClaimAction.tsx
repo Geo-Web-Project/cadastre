@@ -1,14 +1,14 @@
 import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
-import FaucetInfo from "./FaucetInfo";
 import { BigNumber, ethers } from "ethers";
-import GeoWebCoordinate from "js-geo-web-coordinate";
+import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID } from "../../lib/constants";
 import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
 
 enum Action {
   CLAIM,
@@ -21,7 +21,7 @@ export type ClaimActionProps = SidebarProps & {
   licenseAddress: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
-  currentRequiredBid: string;
+  requiredBid: BigNumber;
 };
 
 function ClaimAction(props: ClaimActionProps) {
@@ -35,6 +35,7 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
+    isFairLaunch,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -59,20 +60,19 @@ function ClaimAction(props: ClaimActionProps) {
       : null;
 
   async function _claim() {
-    const baseCoord = GeoWebCoordinate.make_gw_coord(
+    const baseCoord = GeoWebCoordinate.fromXandY(
       claimBase1Coord.x,
-      claimBase1Coord.y
+      claimBase1Coord.y,
+      GW_MAX_LON,
+      GW_MAX_LAT
     );
-    const destCoord = GeoWebCoordinate.make_gw_coord(
+    const destCoord = GeoWebCoordinate.fromXandY(
       claimBase2Coord.x,
-      claimBase2Coord.y
+      claimBase2Coord.y,
+      GW_MAX_LON,
+      GW_MAX_LAT
     );
-    let path = GeoWebCoordinate.make_rect_path(baseCoord, destCoord).map(
-      // FIXME: it should be 'BN' type, waiting for js-geo-web-coordinate upgrade.
-      (v: any) => {
-        return BigNumber.from(v.toString(10));
-      }
-    );
+    let path = GeoWebCoordinate.makeRectPath(baseCoord, destCoord);
     if (path.length == 0) {
       path = [BigNumber.from(0)];
     }
@@ -89,7 +89,7 @@ function ClaimAction(props: ClaimActionProps) {
 
     const claimData = ethers.utils.defaultAbiCoder.encode(
       ["uint64", "uint256[]"],
-      [BigNumber.from(baseCoord.toString(10)), path]
+      [BigNumber.from(baseCoord.toString()), path]
     );
 
     const actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
@@ -188,6 +188,11 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerSecond ? (
             <TransactionSummaryView
+              claimPayment={
+                isFairLaunch && displayNewForSalePrice
+                  ? ethers.utils.parseEther(displayNewForSalePrice)
+                  : BigNumber.from(0)
+              }
               newNetworkFee={networkFeeRatePerSecond}
               {...props}
             />
