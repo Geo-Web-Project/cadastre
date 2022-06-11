@@ -11,7 +11,7 @@ import { ethers } from "ethers";
 import { AccountTokenSnapshot } from "@superfluid-finance/sdk-core";
 
 type ProfileModalProps = {
-  balanceData: AccountTokenSnapshot;
+  accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
   showProfile: boolean;
   disconnectWallet: () => Promise<void>;
@@ -20,7 +20,7 @@ type ProfileModalProps = {
 
 function ProfileModal(props: ProfileModalProps) {
   const {
-    balanceData,
+    accountTokenSnapshot,
     account,
     showProfile,
     disconnectWallet,
@@ -95,9 +95,7 @@ function ProfileModal(props: ProfileModalProps) {
             Wallet Balance:{" "}
             <FlowingBalance
               format={(x) => ethers.utils.formatUnits(x)}
-              balanceWei={balanceData.balanceUntilUpdatedAt}
-              flowRateWei={balanceData.totalNetFlowRate}
-              balanceTimestamp={balanceData.updatedAtTimestamp}
+              accountTokenSnapshot={accountTokenSnapshot}
             />{" "}
             ETHx
           </Col>

@@ -211,17 +211,11 @@ function IndexPage() {
       );
     } else {
       return (
-        <>
-          {paymentToken == null ? (
-            <Spinner animation="border" role="status" />
-          ) : (
-            <Profile
-              account={authState.connected.accountID.address}
-              disconnectWallet={disconnectWallet}
-              paymentToken={paymentToken}
-            />
-          )}
-        </>
+        <Profile
+          account={authState.connected.accountID.address}
+          disconnectWallet={disconnectWallet}
+          paymentToken={paymentToken}
+        />
       );
     }
   };

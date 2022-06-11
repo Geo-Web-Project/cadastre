@@ -14,7 +14,7 @@ import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 type ProfileProps = {
   account: string;
   disconnectWallet: () => Promise<void>;
-  paymentToken: NativeAssetSuperToken;
+  paymentToken?: NativeAssetSuperToken;
 };
 
 function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
@@ -27,10 +27,10 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
       chainId: NETWORK_ID,
       filter: {
         account: account,
-        token: paymentToken.address,
+        token: paymentToken?.address ?? "",
       },
     },
-    { pollingInterval: 5000 }
+    { pollingInterval: 5000, skip: paymentToken == null }
   );
 
   return (
@@ -57,12 +57,10 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
                 format={(x) =>
                   truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
                 }
-                balanceWei={data.items[0].balanceUntilUpdatedAt}
-                flowRateWei={data.items[0].totalNetFlowRate}
-                balanceTimestamp={data.items[0].updatedAtTimestamp}
+                accountTokenSnapshot={data.items[0]}
               />
               <ProfileModal
-                balanceData={data.items[0]}
+                accountTokenSnapshot={data.items[0]}
                 account={account}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}

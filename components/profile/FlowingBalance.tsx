@@ -2,26 +2,31 @@
 
 import React, { FC, ReactElement, useEffect, useState } from "react";
 import { ethers } from "ethers";
+// eslint-disable-next-line import/named
+import { AccountTokenSnapshot } from "@superfluid-finance/sdk-core";
 
 const ANIMATION_MINIMUM_STEP_TIME = 100;
 
-export const FlowingBalance: FC<{
-  balanceWei: string;
-  balanceTimestamp: number;
-  flowRateWei: string;
+type FlowingBalanceProps = {
+  accountTokenSnapshot: AccountTokenSnapshot;
   format?: (flowingBalanceWei: string) => string;
-}> = ({
-  balanceWei,
-  balanceTimestamp,
-  flowRateWei,
+};
+
+export const FlowingBalance: FC<FlowingBalanceProps> = ({
+  accountTokenSnapshot,
   format = (x) => x,
 }): ReactElement => {
   const [formattedValue, setFormattedValue] = useState("");
   useEffect(() => {
-    const balanceBigNumber = ethers.BigNumber.from(balanceWei);
-    const flowRateBigNumber = ethers.BigNumber.from(flowRateWei);
-    const balanceTimestampBigNumber =
-      ethers.BigNumber.from(balanceTimestamp).mul(1000);
+    const balanceBigNumber = ethers.BigNumber.from(
+      accountTokenSnapshot.balanceUntilUpdatedAt
+    );
+    const flowRateBigNumber = ethers.BigNumber.from(
+      accountTokenSnapshot.totalNetFlowRate
+    );
+    const balanceTimestampBigNumber = ethers.BigNumber.from(
+      accountTokenSnapshot.updatedAtTimestamp
+    ).mul(1000);
 
     let stopAnimation = false;
     let lastAnimationTimestamp: DOMHighResTimeStamp = 0;
@@ -62,6 +67,6 @@ export const FlowingBalance: FC<{
     return () => {
       stopAnimation = true;
     };
-  }, [balanceTimestamp, balanceWei, flowRateWei, format]);
+  }, [accountTokenSnapshot, format]);
   return <span>{formattedValue}</span>;
 };
