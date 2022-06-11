@@ -1,7 +1,7 @@
 import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
-import ProfileModal from "./ProfileModal";
+import Dashboard from "./Dashboard";
 import { sfApi } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
@@ -62,7 +62,7 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
                 flowRateWei={data.netFlowRateWei}
                 balanceTimestamp={data.timestamp}
               />
-              <ProfileModal
+              <Dashboard
                 balanceData={data}
                 account={account}
                 showProfile={showProfile}
