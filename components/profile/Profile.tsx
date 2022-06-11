@@ -2,7 +2,7 @@ import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
@@ -14,7 +14,7 @@ import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 type ProfileProps = {
   account: string;
   disconnectWallet: () => Promise<void>;
-  paymentToken?: NativeAssetSuperToken;
+  paymentToken: NativeAssetSuperToken;
 };
 
 function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
@@ -22,17 +22,16 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
 
-  const { isLoading, data } = paymentToken
-    ? sfApi.useGetRealtimeBalanceQuery(
-        {
-          chainId: NETWORK_ID,
-          accountAddress: account,
-          superTokenAddress: paymentToken.address,
-          estimationTimestamp: undefined,
-        },
-        { pollingInterval: 5000 }
-      )
-    : { isLoading: true, data: null };
+  const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery(
+    {
+      chainId: NETWORK_ID,
+      filter: {
+        account: account,
+        token: paymentToken.address,
+      },
+    },
+    { pollingInterval: 5000 }
+  );
 
   return (
     <>
@@ -58,12 +57,12 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
                 format={(x) =>
                   truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
                 }
-                balanceWei={data.availableBalanceWei}
-                flowRateWei={data.netFlowRateWei}
-                balanceTimestamp={data.timestamp}
+                balanceWei={data.items[0].balanceUntilUpdatedAt}
+                flowRateWei={data.items[0].totalNetFlowRate}
+                balanceTimestamp={data.items[0].updatedAtTimestamp}
               />
               <ProfileModal
-                balanceData={data}
+                balanceData={data.items[0]}
                 account={account}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}

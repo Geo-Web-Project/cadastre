@@ -7,8 +7,18 @@ import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
 import { FlowingBalance } from "./FlowingBalance";
 import { ethers } from "ethers";
+// eslint-disable-next-line import/named
+import { AccountTokenSnapshot } from "@superfluid-finance/sdk-core";
 
-function ProfileModal(props: any) {
+type ProfileModalProps = {
+  balanceData: AccountTokenSnapshot;
+  account: string;
+  showProfile: boolean;
+  disconnectWallet: () => Promise<void>;
+  handleCloseProfile: () => void;
+};
+
+function ProfileModal(props: ProfileModalProps) {
   const {
     balanceData,
     account,
@@ -85,9 +95,9 @@ function ProfileModal(props: any) {
             Wallet Balance:{" "}
             <FlowingBalance
               format={(x) => ethers.utils.formatUnits(x)}
-              balanceWei={balanceData.availableBalanceWei}
-              flowRateWei={balanceData.netFlowRateWei}
-              balanceTimestamp={balanceData.timestamp}
+              balanceWei={balanceData.balanceUntilUpdatedAt}
+              flowRateWei={balanceData.totalNetFlowRate}
+              balanceTimestamp={balanceData.updatedAtTimestamp}
             />{" "}
             ETHx
           </Col>
