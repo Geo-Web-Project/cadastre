@@ -14,7 +14,7 @@
     "@reduxjs/toolkit": "^1.8.1",
     "@self.id/framework": "^0.3.0",
     "@superfluid-finance/sdk-core": "^0.4.0",
-    "@superfluid-finance/sdk-redux": "^0.2.2",
+    "@superfluid-finance/sdk-redux": "^0.3.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",

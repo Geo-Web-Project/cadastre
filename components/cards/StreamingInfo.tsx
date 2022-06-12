@@ -4,7 +4,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
@@ -17,11 +17,12 @@ type StreamingInfoProps = {
 };
 
 function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
-  const { isLoading, data } = sfApi.useGetRealtimeBalanceQuery({
+  const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
-    accountAddress: account,
-    superTokenAddress: paymentToken.address,
-    estimationTimestamp: undefined,
+    filter: {
+      account: account,
+      token: paymentToken.address,
+    },
   });
 
   if (isLoading) {
@@ -53,9 +54,7 @@ function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
                     format={(x) =>
                       truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
                     }
-                    balanceWei={data.availableBalanceWei}
-                    flowRateWei={data.netFlowRateWei}
-                    balanceTimestamp={data.timestamp}
+                    accountTokenSnapshot={data.items[0]}
                   />
                 ) : (
                   "--"

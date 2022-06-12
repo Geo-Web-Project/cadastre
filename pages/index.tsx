@@ -11,6 +11,7 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import {
   NETWORK_ID,
   CERAMIC_URL,
@@ -82,12 +83,6 @@ function IndexPage() {
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
     setPaymentToken(superToken);
     setFrameworkForSdkRedux(NETWORK_ID, framework);
-    // await connect(
-    //   new EthereumAuthProvider(
-    //     _authState.provider.state.provider,
-    //     _authState.accountID.toString()
-    //   )
-    // );
   };
 
   const disconnectWallet = async () => {

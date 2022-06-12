@@ -2,7 +2,7 @@ import React from "react";
 import { ethers } from "ethers";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
@@ -22,17 +22,16 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
 
-  const { isLoading, data } = paymentToken
-    ? sfApi.useGetRealtimeBalanceQuery(
-        {
-          chainId: NETWORK_ID,
-          accountAddress: account,
-          superTokenAddress: paymentToken.address,
-          estimationTimestamp: undefined,
-        },
-        { pollingInterval: 5000 }
-      )
-    : { isLoading: true, data: null };
+  const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery(
+    {
+      chainId: NETWORK_ID,
+      filter: {
+        account: account,
+        token: paymentToken?.address ?? "",
+      },
+    },
+    { pollingInterval: 5000, skip: paymentToken == null }
+  );
 
   return (
     <>
@@ -58,12 +57,10 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
                 format={(x) =>
                   truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
                 }
-                balanceWei={data.availableBalanceWei}
-                flowRateWei={data.netFlowRateWei}
-                balanceTimestamp={data.timestamp}
+                accountTokenSnapshot={data.items[0]}
               />
               <ProfileModal
-                balanceData={data}
+                accountTokenSnapshot={data.items[0]}
                 account={account}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
