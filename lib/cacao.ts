@@ -11,7 +11,6 @@ export function getOrSetSessionSeed(): Uint8Array {
     ? new Uint8Array(JSON.parse(sessionSeedRaw))
     : secureRandom.randomUint8Array(32);
   if (!sessionSeedRaw) {
-    console.log(sessionSeed);
     localStorage.setItem(
       "sessionSeed",
       JSON.stringify(Array.from(sessionSeed))
@@ -27,12 +26,16 @@ export async function getOrSetCacao(
   provider: any
 ) {
   const cacaoRaw = localStorage.getItem("cacao");
-  const cacao = cacaoRaw
+  let cacao = cacaoRaw
     ? JSON.parse(cacaoRaw)
     : await createCapability(didKey, accountId, provider);
-  if (!cacaoRaw) {
-    localStorage.setItem("cacao", JSON.stringify(cacao));
+  if (cacao.p.iss.replace("did:pkh:", "") !== accountId.toString()) {
+    console.debug("Resetting cacao session...");
+    clearCacaoSession();
+    getOrSetSessionSeed();
+    cacao = await createCapability(didKey, accountId, provider);
   }
+  localStorage.setItem("cacao", JSON.stringify(cacao));
 
   return cacao;
 }

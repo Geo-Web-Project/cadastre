@@ -3,7 +3,7 @@ import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
 import { NETWORK_ID } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
-import { sfApi } from "../../redux/store";
+import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
@@ -28,17 +28,13 @@ function WrapModal({
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState<boolean>(false);
 
-  const { isLoading, data: ethxBalance } = paymentToken
-    ? sfApi.useGetRealtimeBalanceQuery(
-        {
-          chainId: NETWORK_ID,
-          accountAddress: account,
-          superTokenAddress: paymentToken.address,
-          estimationTimestamp: undefined,
-        },
-        { pollingInterval: 1000 }
-      )
-    : { isLoading: true, data: null };
+  const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
+    chainId: NETWORK_ID,
+    filter: {
+      account: account,
+      token: paymentToken.address,
+    },
+  });
 
   React.useEffect(() => {
     let isMounted = true;
@@ -126,14 +122,12 @@ function WrapModal({
           <p>ETH: {ETHBalance ?? "---"}</p>
           <p>
             ETHx:{" "}
-            {isLoading || ethxBalance == null ? (
+            {isLoading || data == null ? (
               <Spinner animation="border" role="status"></Spinner>
             ) : (
               <FlowingBalance
                 format={(x) => ethers.utils.formatUnits(x)}
-                balanceWei={ethxBalance.availableBalanceWei}
-                flowRateWei={ethxBalance.netFlowRateWei}
-                balanceTimestamp={ethxBalance.timestamp}
+                accountTokenSnapshot={data.items[0]}
               />
             )}
           </p>
