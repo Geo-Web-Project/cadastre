@@ -39,7 +39,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     parcelData,
     provider,
-    basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     selectedParcelId,
@@ -80,16 +79,11 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
 
-  const existingNetworkFee =
-    displayCurrentForSalePrice &&
-    perSecondFeeNumerator &&
+  const existingNetworkFee = fromValueToRate(
+    currentForSalePrice,
+    perSecondFeeNumerator,
     perSecondFeeDenominator
-      ? fromValueToRate(
-          currentForSalePrice,
-          perSecondFeeNumerator,
-          perSecondFeeDenominator
-        )
-      : null;
+  );
 
   const newNetworkFee =
     !isForSalePriceInvalid &&
@@ -111,21 +105,15 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  /*async function _edit() {
-    updateActionData({ isActing: true });
+  async function placeBid() {
+    setIsActing(true);
 
-    if (!existingNetworkFee) {
-      throw new Error("Could not find existingNetworkFee");
+    if (!newForSalePrice) {
+      throw new Error("Could not find newForSalePrice");
     }
 
-    // Check for changes
-    if (
-      !displayNewForSalePrice ||
-      !newNetworkFee ||
-      displayNewForSalePrice == displayCurrentForSalePrice
-    ) {
-      // Content change only
-      return;
+    if (!newNetworkFee) {
+      throw new Error("Could not find newNetworkFee");
     }
 
     const sf = await sfInstance(NETWORK_ID, provider);
@@ -137,7 +125,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
     const actionData = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "bytes"],
-      [ethers.utils.parseEther(displayNewForSalePrice), bidData]
+      [newForSalePrice, bidData]
     );
 
     const userData = ethers.utils.defaultAbiCoder.encode(
@@ -152,23 +140,45 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       providerOrSigner: provider as any,
     });
 
-    const signer = provider.getSigner() as any;
-
-    const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
-
-    const updateFlowOperation = await sf.cfaV1.updateFlow({
-      flowRate: BigNumber.from(existingFlow.flowRate)
-        .add(networkFeeDelta)
-        .toString(),
+    // Approve amount above purchase price
+    const approveOp = paymentToken.approve({
       receiver: auctionSuperApp.address,
-      superToken: paymentToken.address,
-      userData,
+      amount: newForSalePrice.toString(),
     });
 
-    const txn = await updateFlowOperation.exec(signer);
+    const signer = provider.getSigner() as any;
 
-    await txn.wait();
-  }*/
+    let op;
+    if (BigNumber.from(existingFlow.flowRate).gt(0)) {
+      op = sf.cfaV1.updateFlow({
+        flowRate: BigNumber.from(existingFlow.flowRate)
+          .add(newNetworkFee)
+          .toString(),
+        receiver: auctionSuperApp.address,
+        superToken: paymentToken.address,
+        userData,
+      });
+    } else {
+      op = sf.cfaV1.createFlow({
+        receiver: auctionSuperApp.address,
+        flowRate: newNetworkFee.toString(),
+        superToken: paymentToken.address,
+        userData,
+      });
+    }
+
+    try {
+      // Perform these in a single batch call
+      const batchCall = sf.batchCall([approveOp, op]);
+      const txn = await batchCall.exec(signer);
+      await txn.wait();
+    } catch (err) {
+      console.error(err);
+      setDidFail(true);
+    }
+
+    setIsActing(false);
+  }
 
   return (
     <>
@@ -239,10 +249,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <Button
                 variant="primary"
                 className="w-100"
-                //onClick={() => submit()}
+                onClick={() => placeBid()}
                 disabled={isActing || isInvalid}
               >
-                {isActing ? spinner : "Confirm"}
+                {isActing ? spinner : "Bid"}
               </Button>
             </span>
           </Form>

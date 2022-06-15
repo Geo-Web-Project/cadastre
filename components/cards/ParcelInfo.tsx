@@ -132,7 +132,6 @@ function ParcelInfo(props: ParcelInfoProps) {
       return;
     }
 
-    console.log("SET: " + !(isOutstandingBid && outstandingBidder !== account));
     setIsParcelAvailable(!(isOutstandingBid && outstandingBidder !== account));
   }, [data]);
 

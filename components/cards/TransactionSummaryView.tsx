@@ -75,7 +75,9 @@ function TransactionSummaryView({
     );
   } else if (collateralDeposit && currentForSalePrice) {
     const displayCurrentForSalePrice = formatBalance(currentForSalePrice);
-    const displayCollateralDeposit = formatBalance(collateralDeposit);
+    const displayRefundableCollateral = formatBalance(
+      collateralDeposit.sub(currentForSalePrice)
+    );
     paymentView = (
       <>
         <p>Collateral Deposit:</p>
@@ -83,7 +85,7 @@ function TransactionSummaryView({
           &emsp;Purchase Payment: {displayCurrentForSalePrice} {PAYMENT_TOKEN}
         </p>
         <p>
-          &emsp;Refundable Collateral: {displayCollateralDeposit}{" "}
+          &emsp;Refundable Collateral: {displayRefundableCollateral}{" "}
           {PAYMENT_TOKEN}
         </p>
       </>
