@@ -71,9 +71,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
-    string | null
-  >(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] =
+    React.useState<string | null>(null);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
@@ -187,17 +186,20 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  // const initiateTransferButton = (
-  //   <Button
-  //     variant="primary"
-  //     className="w-100"
-  //     onClick={() => {
-  //       setInteractionState(STATE.PARCEL_PURCHASING);
-  //     }}
-  //   >
-  //     {isExpired ? "Auction Claim" : "Initiate Transfer"}
-  //   </Button>
-  // );
+  const placeBidButton = (
+    <>
+      <Button
+        variant="primary"
+        className="w-100"
+        onClick={() => {
+          setInteractionState(STATE.PARCEL_PURCHASING);
+        }}
+      >
+        Place Bid
+      </Button>
+      <AuctionInstructions />
+    </>
+  );
 
   let title;
   if (
@@ -235,7 +237,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         </>
       );
     } else {
-      // buttons = initiateTransferButton;
+      buttons = placeBidButton;
     }
   }
 
