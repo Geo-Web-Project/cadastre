@@ -4,7 +4,7 @@ import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
 import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
-import { PAYMENT_TOKEN } from "../../lib/constants";
+import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
@@ -13,13 +13,17 @@ import { SidebarProps } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import { BigNumber } from "ethers";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { PinningManager } from "../../lib/PinningManager";
-import { AssetContentManager } from "../../lib/AssetContentManager";
+import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { usePinningManager } from "../../lib/PinningManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
+import { DataModel } from "@glazed/datamodel";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { AssetContentManager } from "../../lib/AssetContentManager";
+import { AssetId, AccountId } from "caip";
+import BN from "bn.js";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -49,10 +53,7 @@ const parcelQuery = gql`
 export type ParcelInfoProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  pinningManager: PinningManager | null;
   licenseAddress: string;
-  assetContentManager: AssetContentManager | null;
-  basicProfileStreamManager: BasicProfileStreamManager | null;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -61,9 +62,11 @@ function ParcelInfo(props: ParcelInfoProps) {
     interactionState,
     setInteractionState,
     selectedParcelId,
-    assetContentManager,
-    basicProfileStreamManager,
     setIsParcelAvailable,
+    ceramic,
+    licenseContract,
+    ipfs,
+    firebasePerf,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -75,23 +78,20 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [parcelIndexStreamId, setParcelIndexStreamId] =
     React.useState<string | null>(null);
 
+  const [assetContentManager, setAssetContentManager] =
+    React.useState<AssetContentManager | null>(null);
+
+  const basicProfileStreamManager =
+    useBasicProfileStreamManager(assetContentManager);
+  const pinningManager = usePinningManager(
+    assetContentManager,
+    ipfs,
+    firebasePerf
+  );
+
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
     : null;
-
-  useEffect(() => {
-    async function updateStreamId() {
-      if (!assetContentManager) {
-        setParcelIndexStreamId(null);
-        return;
-      }
-
-      const doc = await assetContentManager.getIndex();
-      setParcelIndexStreamId(doc.id.toString());
-    }
-
-    updateStreamId();
-  }, [assetContentManager]);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -100,7 +100,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   );
 
   let forSalePrice;
-  let licenseOwner;
+  let licenseOwner: string | null = null;
   let isOutstandingBid = false;
   let outstandingBidder: string | null = null;
   let currentOwnerBidForSalePrice;
@@ -125,6 +125,52 @@ function ParcelInfo(props: ParcelInfoProps) {
       data.landParcel.license.outstandingBid.timestamp
     );
   }
+
+  React.useEffect(() => {
+    (async () => {
+      if (ceramic == null || !ceramic.did) {
+        console.error("Ceramic instance not found");
+        return;
+      }
+
+      setAssetContentManager(null);
+
+      if (selectedParcelId && licenseOwner) {
+        const assetId = new AssetId({
+          chainId: `eip155:${NETWORK_ID}`,
+          assetName: {
+            namespace: "erc721",
+            reference: licenseContract.address.toLowerCase(),
+          },
+          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+        });
+
+        const accountId = new AccountId({
+          chainId: `eip155:${NETWORK_ID}`,
+          address: licenseOwner,
+        });
+
+        const model = new DataModel({
+          ceramic,
+          aliases: GeoWebModel,
+        });
+
+        const _assetContentManager = new AssetContentManager(
+          ceramic,
+          model,
+          `did:pkh:${accountId.toString()}`,
+          assetId
+        );
+        setAssetContentManager(_assetContentManager);
+
+        const doc = await _assetContentManager.getIndex();
+        setParcelIndexStreamId(doc.id.toString());
+      } else {
+        setAssetContentManager(null);
+        setParcelIndexStreamId(null);
+      }
+    })();
+  }, [ceramic, selectedParcelId]);
 
   useEffect(() => {
     if (!outstandingBidder) {
@@ -229,7 +275,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
-    if (account.toLowerCase() == licenseOwner.toLowerCase()) {
+    if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
       buttons = (
         <>
           {editButton}
@@ -282,7 +328,9 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Licensee:</span>{" "}
-                {isLoading ? spinner : truncateStr(licenseOwner, 11)}
+                {isLoading || !licenseOwner
+                  ? spinner
+                  : truncateStr(licenseOwner, 11)}
               </p>
               <p className="text-truncate">
                 <span className="font-weight-bold">Stream ID:</span>{" "}
@@ -318,17 +366,13 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
           {interactionState == STATE.PARCEL_EDITING ? (
             <EditAction
-              // setSelectedParcelId={setSelectedParcelId}
+              basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data}
               {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID ? (
-            <PlaceBidAction
-              // setSelectedParcelId={setSelectedParcelId}
-              parcelData={data}
-              {...props}
-            />
+            <PlaceBidAction parcelData={data} {...props} />
           ) : null}
         </Col>
       </Row>

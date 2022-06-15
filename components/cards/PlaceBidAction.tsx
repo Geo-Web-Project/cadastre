@@ -25,8 +25,6 @@ import WrapModal from "../wrap/WrapModal";
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: BasicProfileStreamManager | null;
-  licenseAddress: string;
   parcelData: any;
 };
 
