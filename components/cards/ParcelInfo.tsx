@@ -19,6 +19,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
+import PlaceBidAction from "./PlaceBidAction";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -192,7 +193,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         variant="primary"
         className="w-100"
         onClick={() => {
-          setInteractionState(STATE.PARCEL_PURCHASING);
+          setInteractionState(STATE.PARCEL_PLACING_BID);
         }}
       >
         Place Bid
@@ -259,7 +260,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         <Col>
           {interactionState == STATE.PARCEL_SELECTED ||
           interactionState == STATE.PARCEL_EDITING ||
-          interactionState == STATE.PARCEL_PURCHASING ||
+          interactionState == STATE.PARCEL_PLACING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
@@ -323,23 +324,13 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {/* {interactionState == STATE.PARCEL_PURCHASING ? (
-            <PurchaseAction
-              purchaserContract={purchaserContract}
-              collectorContract={collectorContract}
-              account={account}
-              setInteractionState={setInteractionState}
-              setSelectedParcelId={setSelectedParcelId}
-              perSecondFeeNumerator={perSecondFeeNumerator}
-              perSecondFeeDenominator={perSecondFeeDenominator}
+          {interactionState == STATE.PARCEL_PLACING_BID ? (
+            <PlaceBidAction
+              // setSelectedParcelId={setSelectedParcelId}
               parcelData={data}
-              refetchParcelData={refetch}
-              auctionValue={auctionValue}
-              basicProfileStreamManager={basicProfileStreamManager}
-              existingNetworkFeeBalance={networkFeeBalance}
-              licenseAddress={licenseAddress}
+              {...props}
             />
-          ) : null} */}
+          ) : null}
         </Col>
       </Row>
       <GalleryModal
