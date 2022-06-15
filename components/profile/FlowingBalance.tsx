@@ -8,7 +8,7 @@ import { AccountTokenSnapshot } from "@superfluid-finance/sdk-core";
 const ANIMATION_MINIMUM_STEP_TIME = 100;
 
 type FlowingBalanceProps = {
-  accountTokenSnapshot: AccountTokenSnapshot;
+  accountTokenSnapshot: AccountTokenSnapshot | undefined;
   format?: (flowingBalanceWei: string) => string;
 };
 
@@ -19,13 +19,13 @@ export const FlowingBalance: FC<FlowingBalanceProps> = ({
   const [formattedValue, setFormattedValue] = useState("");
   useEffect(() => {
     const balanceBigNumber = ethers.BigNumber.from(
-      accountTokenSnapshot.balanceUntilUpdatedAt
+      accountTokenSnapshot ? accountTokenSnapshot.balanceUntilUpdatedAt : "0"
     );
     const flowRateBigNumber = ethers.BigNumber.from(
-      accountTokenSnapshot.totalNetFlowRate
+      accountTokenSnapshot ? accountTokenSnapshot.totalNetFlowRate : "0"
     );
     const balanceTimestampBigNumber = ethers.BigNumber.from(
-      accountTokenSnapshot.updatedAtTimestamp
+      accountTokenSnapshot ? accountTokenSnapshot.updatedAtTimestamp : "0"
     ).mul(1000);
 
     let stopAnimation = false;

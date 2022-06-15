@@ -11,7 +11,7 @@ import { ethers } from "ethers";
 import { AccountTokenSnapshot } from "@superfluid-finance/sdk-core";
 
 type ProfileModalProps = {
-  accountTokenSnapshot: AccountTokenSnapshot;
+  accountTokenSnapshot: AccountTokenSnapshot | undefined;
   account: string;
   showProfile: boolean;
   disconnectWallet: () => Promise<void>;
