@@ -3,19 +3,11 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import { usePinningManager } from "../lib/PinningManager";
-import { useBasicProfileStreamManager } from "../lib/stream-managers/BasicProfileStreamManager";
 import { STATE, MapProps } from "./Map";
-import { NETWORK_ID } from "../lib/constants";
-import BN from "bn.js";
-import { DataModel } from "@glazed/datamodel";
-import { model as GeoWebModel } from "@geo-web/datamodels";
 import { BigNumber, ethers } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 import { calculateRequiredBid } from "../lib/calculateRequiredBid";
 import { truncateEth } from "../lib/truncate";
-import { AssetContentManager } from "../lib/AssetContentManager";
-import { AssetId } from "caip";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -32,58 +24,8 @@ function Sidebar(props: SidebarProps) {
     auctionSuperApp,
     licenseContract,
     claimerContract,
-    ceramic,
-    ipfs,
-    firebasePerf,
     interactionState,
-    selectedParcelId,
   } = props;
-  const [assetContentManager, setAssetContentManager] =
-    React.useState<AssetContentManager | null>(null);
-  React.useEffect(() => {
-    (async () => {
-      if (ceramic == null || !ceramic.did) {
-        console.error("Ceramic instance not found");
-        return;
-      }
-
-      setAssetContentManager(null);
-
-      if (selectedParcelId) {
-        const assetId = new AssetId({
-          chainId: `eip155:${NETWORK_ID}`,
-          assetName: {
-            namespace: "erc721",
-            reference: licenseContract.address.toLowerCase(),
-          },
-          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-        });
-
-        const model = new DataModel({
-          ceramic,
-          aliases: GeoWebModel,
-        });
-
-        const _assetContentManager = new AssetContentManager(
-          ceramic,
-          model,
-          ceramic.did.capability.p.iss,
-          assetId
-        );
-        setAssetContentManager(_assetContentManager);
-      } else {
-        setAssetContentManager(null);
-      }
-    })();
-  }, [ceramic, selectedParcelId]);
-
-  const basicProfileStreamManager =
-    useBasicProfileStreamManager(assetContentManager);
-  const pinningManager = usePinningManager(
-    assetContentManager,
-    ipfs,
-    firebasePerf
-  );
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
     React.useState<BigNumber | null>(null);
@@ -103,9 +45,8 @@ function Sidebar(props: SidebarProps) {
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
-    null
-  );
+  const [auctionStart, setAuctionStart] =
+    React.useState<BigNumber | null>(null);
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
@@ -167,9 +108,6 @@ function Sidebar(props: SidebarProps) {
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
-          assetContentManager={assetContentManager}
-          basicProfileStreamManager={basicProfileStreamManager}
-          pinningManager={pinningManager}
           licenseAddress={licenseContract.address}
         ></ParcelInfo>
       ) : null}
