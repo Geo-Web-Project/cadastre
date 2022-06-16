@@ -109,7 +109,7 @@ function OutstandingBidView({
 
     const actionData = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "bytes"],
-      [newForSalePrice, bidData]
+      [BigNumber.from(0), bidData]
     );
 
     const userData = ethers.utils.defaultAbiCoder.encode(
@@ -129,7 +129,7 @@ function OutstandingBidView({
     let op;
     if (BigNumber.from(existingFlow.flowRate).eq(existingNetworkFee)) {
       op = sf.cfaV1.deleteFlow({
-        sender: signer.address,
+        sender: account,
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
       });
