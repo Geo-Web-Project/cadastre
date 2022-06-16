@@ -170,7 +170,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         setParcelIndexStreamId(null);
       }
     })();
-  }, [ceramic, selectedParcelId]);
+  }, [ceramic, selectedParcelId, licenseOwner]);
 
   useEffect(() => {
     if (!outstandingBidder) {
