@@ -67,9 +67,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     displayCurrentForSalePrice
   );
 
-  const newForSalePrice = displayNewForSalePrice
-    ? ethers.utils.parseEther(displayNewForSalePrice)
-    : null;
+  const newForSalePrice =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    !isNaN(Number(displayNewForSalePrice))
+      ? ethers.utils.parseEther(displayNewForSalePrice)
+      : null;
 
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
