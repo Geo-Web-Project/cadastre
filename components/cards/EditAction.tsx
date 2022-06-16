@@ -15,6 +15,7 @@ export type EditActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: BasicProfileStreamManager | null;
   licenseAddress: string;
+  hasOutstandingBid: boolean;
   parcelData: any;
 };
 
@@ -34,6 +35,7 @@ function EditAction(props: EditActionProps) {
     paymentToken,
     account,
     auctionSuperApp,
+    hasOutstandingBid,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.landParcel.license.currentOwnerBid.forSalePrice
@@ -160,7 +162,7 @@ function EditAction(props: EditActionProps) {
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          existingNetworkFee ? (
+          existingNetworkFee && !hasOutstandingBid ? (
             <TransactionSummaryView
               existingNetworkFee={existingNetworkFee}
               newNetworkFee={newNetworkFee ?? existingNetworkFee}

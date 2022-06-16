@@ -100,7 +100,7 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   let forSalePrice;
   let licenseOwner: string | null = null;
-  let isOutstandingBid = false;
+  let hasOutstandingBid = false;
   let outstandingBidder: string | null = null;
   let currentOwnerBidForSalePrice;
   let outstandingBidForSalePrice;
@@ -113,7 +113,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
     licenseOwner = data.landParcel.license.owner;
-    isOutstandingBid =
+    hasOutstandingBid =
       data.landParcel.license.outstandingBid.contributionRate > 0;
     outstandingBidForSalePrice =
       data.landParcel.license.outstandingBid.forSalePrice;
@@ -177,8 +177,8 @@ function ParcelInfo(props: ParcelInfoProps) {
       return;
     }
 
-    console.log("SET: " + !(isOutstandingBid && outstandingBidder !== account));
-    setIsParcelAvailable(!(isOutstandingBid && outstandingBidder !== account));
+    console.log("SET: " + !(hasOutstandingBid && outstandingBidder !== account));
+    setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
 
   const isLoading = loading || data == null || licenseOwner == null;
@@ -349,7 +349,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             <p>Unclaimed Coordinates</p>
           )}
           {interactionState == STATE.PARCEL_SELECTED &&
-          isOutstandingBid &&
+          hasOutstandingBid &&
           outstandingBidder !== account ? (
             <>
               <OutstandingBidView
@@ -365,6 +365,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data}
+              hasOutstandingBid={hasOutstandingBid}
               {...props}
             />
           ) : null}

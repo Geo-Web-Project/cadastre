@@ -36,6 +36,7 @@ export type ActionFormProps = SidebarProps & {
   summaryView: JSX.Element;
   basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
+  hasOutstandingBid: boolean;
 };
 
 export type ActionData = {
@@ -65,6 +66,7 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
+    hasOutstandingBid,
   } = props;
 
   const {
@@ -249,13 +251,15 @@ export function ActionForm(props: ActionFormProps) {
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
-                className="bg-dark text-light"
+                className={
+                  hasOutstandingBid ? "bg-dark text-info" : "bg-dark text-light"
+                }
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
                 defaultValue={displayCurrentForSalePrice}
-                disabled={isActing || isLoading}
+                disabled={isActing || isLoading || hasOutstandingBid}
                 onChange={(e) =>
                   updateActionData({ displayNewForSalePrice: e.target.value })
                 }
