@@ -5,7 +5,6 @@ import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID } from "../../lib/constants";
-import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
@@ -36,6 +35,7 @@ function ClaimAction(props: ClaimActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     isFairLaunch,
+    sfFramework,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -101,16 +101,14 @@ function ClaimAction(props: ClaimActionProps) {
 
     let txn;
 
-    const sf = await sfInstance(NETWORK_ID, provider);
-
-    const existingFlow = await sf.cfaV1.getFlow({
+    const existingFlow = await sfFramework.cfaV1.getFlow({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
       providerOrSigner: provider as any,
     });
 
-    const approveOperation = await paymentToken.approve({
+    const approveOperation = paymentToken.approve({
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
@@ -120,14 +118,14 @@ function ClaimAction(props: ClaimActionProps) {
     const signer = provider.getSigner() as any;
 
     if (existingFlow.flowRate !== "0") {
-      // update an exisiting flow
+      // update an existing flow
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
         [Action.CLAIM, actionDataToPassInUserData]
       );
 
-      const updateFlowOperation = await sf.cfaV1.updateFlow({
+      const updateFlowOperation = sfFramework.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
           .add(newFlowRate)
           .toString(),
@@ -136,7 +134,7 @@ function ClaimAction(props: ClaimActionProps) {
         userData,
       });
 
-      txn = await sf
+      txn = await sfFramework
         .batchCall([approveOperation, updateFlowOperation])
         .exec(signer);
     } else {
@@ -149,14 +147,14 @@ function ClaimAction(props: ClaimActionProps) {
 
       const flowRate = newFlowRate.toString();
 
-      const createFlowOperation = await sf.cfaV1.createFlow({
+      const createFlowOperation = sfFramework.cfaV1.createFlow({
         flowRate,
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
         userData,
       });
 
-      txn = await sf
+      txn = await sfFramework
         .batchCall([approveOperation, createFlowOperation])
         .exec(signer);
     }
@@ -174,6 +172,8 @@ function ClaimAction(props: ClaimActionProps) {
       receipt.blockNumber,
       receipt.blockNumber
     );
+    console.log(receipt);
+    console.log(res);
     const licenseId = res[0].args[0].toString();
     return licenseId;
   }
