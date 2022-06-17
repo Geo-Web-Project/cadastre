@@ -18,6 +18,7 @@ import { usePinningManager } from "../../lib/PinningManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
+import PlaceBidAction from "./PlaceBidAction";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
@@ -171,7 +172,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         setParcelIndexStreamId(null);
       }
     })();
-  }, [ceramic, selectedParcelId]);
+  }, [ceramic, selectedParcelId, licenseOwner]);
 
   useEffect(() => {
     if (!outstandingBidder) {
@@ -179,9 +180,6 @@ function ParcelInfo(props: ParcelInfoProps) {
       return;
     }
 
-    console.log(
-      "SET: " + !(hasOutstandingBid && outstandingBidder !== account)
-    );
     setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
 
@@ -236,17 +234,20 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  // const initiateTransferButton = (
-  //   <Button
-  //     variant="primary"
-  //     className="w-100"
-  //     onClick={() => {
-  //       setInteractionState(STATE.PARCEL_PURCHASING);
-  //     }}
-  //   >
-  //     {isExpired ? "Auction Claim" : "Initiate Transfer"}
-  //   </Button>
-  // );
+  const placeBidButton = (
+    <>
+      <Button
+        variant="primary"
+        className="w-100"
+        onClick={() => {
+          setInteractionState(STATE.PARCEL_PLACING_BID);
+        }}
+      >
+        Place Bid
+      </Button>
+      <AuctionInstructions />
+    </>
+  );
 
   let title;
   if (
@@ -284,7 +285,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         </>
       );
     } else {
-      // buttons = initiateTransferButton;
+      buttons = placeBidButton;
     }
   }
 
@@ -306,7 +307,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         <Col>
           {interactionState == STATE.PARCEL_SELECTED ||
           interactionState == STATE.PARCEL_EDITING ||
-          interactionState == STATE.PARCEL_PURCHASING ||
+          interactionState == STATE.PARCEL_PLACING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
@@ -378,23 +379,9 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {/* {interactionState == STATE.PARCEL_PURCHASING ? (
-            <PurchaseAction
-              purchaserContract={purchaserContract}
-              collectorContract={collectorContract}
-              account={account}
-              setInteractionState={setInteractionState}
-              setSelectedParcelId={setSelectedParcelId}
-              perSecondFeeNumerator={perSecondFeeNumerator}
-              perSecondFeeDenominator={perSecondFeeDenominator}
-              parcelData={data}
-              refetchParcelData={refetch}
-              auctionValue={auctionValue}
-              basicProfileStreamManager={basicProfileStreamManager}
-              existingNetworkFeeBalance={networkFeeBalance}
-              licenseAddress={licenseAddress}
-            />
-          ) : null} */}
+          {interactionState == STATE.PARCEL_PLACING_BID ? (
+            <PlaceBidAction parcelData={data} {...props} />
+          ) : null}
         </Col>
       </Row>
       <GalleryModal

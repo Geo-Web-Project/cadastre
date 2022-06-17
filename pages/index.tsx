@@ -11,7 +11,6 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import Spinner from "react-bootstrap/Spinner";
 import {
   NETWORK_ID,
   CERAMIC_URL,
@@ -31,7 +30,7 @@ import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
@@ -52,23 +51,21 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] = React.useState<
-    Contracts["geoWebERC721LicenseContract"] | null
-  >(null);
-  const [auctionSuperApp, setAuctionSuperApp] = React.useState<
-    Contracts["geoWebAuctionSuperAppContract"] | null
-  >(null);
-  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<
-    Contracts["geoWebFairLaunchClaimerContract"] | null
-  >(null);
+  const [licenseContract, setLicenseContract] =
+    React.useState<Contracts["geoWebERC721LicenseContract"] | null>(null);
+  const [auctionSuperApp, setAuctionSuperApp] =
+    React.useState<Contracts["geoWebAuctionSuperAppContract"] | null>(null);
+  const [fairLaunchClaimer, setFairLaunchClaimer] =
+    React.useState<Contracts["geoWebFairLaunchClaimerContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -78,16 +75,19 @@ function IndexPage() {
 
     const framework = await Framework.create({
       chainId: NETWORK_ID,
-      provider: lib,
+      provider: new ethers.providers.InfuraProvider(
+        NETWORK_ID,
+        process.env.NEXT_PUBLIC_INFURA_ID
+      ),
     });
+    setSfFramework(framework);
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
     setPaymentToken(superToken);
-    setFrameworkForSdkRedux(NETWORK_ID, framework);
+    setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
   };
 
   const disconnectWallet = async () => {
-    // await disconnect();
-    await deactivate();
+    deactivate();
     clearCacaoSession();
   };
 
@@ -259,7 +259,8 @@ function IndexPage() {
         paymentToken &&
         ceramic &&
         ipfs &&
-        firebasePerf ? (
+        firebasePerf &&
+        sfFramework ? (
           <Row>
             <Map
               licenseContract={licenseContract}
@@ -271,6 +272,7 @@ function IndexPage() {
               ipfs={ipfs}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
+              sfFramework={sfFramework}
             ></Map>
           </Row>
         ) : (

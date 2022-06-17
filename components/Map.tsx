@@ -23,7 +23,7 @@ import { ethers } from "ethers";
 
 import firebase from "firebase/app";
 import { IPFS } from "ipfs-core";
-import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
@@ -40,7 +40,7 @@ export enum STATE {
   CLAIM_SELECTED = 2,
   PARCEL_SELECTED = 3,
   PARCEL_EDITING = 4,
-  PARCEL_PURCHASING = 5,
+  PARCEL_PLACING_BID = 5,
   EDITING_GALLERY = 6,
 }
 
@@ -175,6 +175,7 @@ export type MapProps = {
   ipfs: IPFS;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
+  sfFramework: Framework;
 };
 
 function Map(props: MapProps) {

@@ -12,7 +12,8 @@ import {
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { ethers } from "ethers";
 import { createWrapper } from "next-redux-wrapper";
-import { sfInstance } from "../lib/sfInstance";
+import { NETWORK_ID } from "../lib/constants";
+import { Framework } from "@superfluid-finance/sdk-core";
 
 export const sfApi = initializeRpcApiSlice(
   createApiWithReactHooks
@@ -25,16 +26,14 @@ export const sfSubgraph = initializeSubgraphApiSlice(
 export const sfTransactions = initializeTransactionTrackerSlice();
 
 export const makeStore = () => {
-  const chainId = 4;
-
-  setFrameworkForSdkRedux(chainId, async () => {
-    return await sfInstance(
-      chainId,
-      new ethers.providers.InfuraProvider(
-        chainId,
+  setFrameworkForSdkRedux(NETWORK_ID, async () => {
+    return await Framework.create({
+      chainId: NETWORK_ID,
+      provider: new ethers.providers.InfuraProvider(
+        NETWORK_ID,
         process.env.NEXT_PUBLIC_INFURA_ID
-      )
-    );
+      ),
+    });
   });
 
   return configureStore({
