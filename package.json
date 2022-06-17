@@ -10,7 +10,7 @@
     "@ceramicnetwork/stream-tile": "^2.1.3",
     "@ceramicstudio/multiauth": "^0.2.3",
     "@geo-web/datamodels": "^2.3.5",
-    "@geo-web/sdk": "^1.1.0",
+    "@geo-web/sdk": "^1.1.2",
     "@reduxjs/toolkit": "^1.8.1",
     "@self.id/framework": "^0.3.0",
     "@superfluid-finance/sdk-core": "^0.4.0",

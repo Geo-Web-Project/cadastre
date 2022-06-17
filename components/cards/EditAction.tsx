@@ -136,7 +136,7 @@ function EditAction(props: EditActionProps) {
 
     const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
 
-    const updateFlowOperation = await sfFramework.cfaV1.updateFlow({
+    const updateFlowOperation = sfFramework.cfaV1.updateFlow({
       flowRate: BigNumber.from(existingFlow.flowRate)
         .add(networkFeeDelta)
         .toString(),
