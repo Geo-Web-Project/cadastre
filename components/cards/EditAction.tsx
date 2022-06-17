@@ -7,7 +7,6 @@ import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { NETWORK_ID } from "../../lib/constants";
-import { sfInstance } from "../../lib/sfInstance";
 import StreamingInfo from "./StreamingInfo";
 
 export type EditActionProps = SidebarProps & {
@@ -34,6 +33,7 @@ function EditAction(props: EditActionProps) {
     paymentToken,
     account,
     auctionSuperApp,
+    sfFramework,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.landParcel.license.currentOwnerBid.forSalePrice
@@ -110,8 +110,6 @@ function EditAction(props: EditActionProps) {
       return;
     }
 
-    const sf = await sfInstance(NETWORK_ID, provider);
-
     const bidData = ethers.utils.defaultAbiCoder.encode(
       ["uint256"],
       [selectedParcelId]
@@ -127,7 +125,7 @@ function EditAction(props: EditActionProps) {
       [Action.BID, actionData]
     );
 
-    const existingFlow = await sf.cfaV1.getFlow({
+    const existingFlow = await sfFramework.cfaV1.getFlow({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
@@ -138,7 +136,7 @@ function EditAction(props: EditActionProps) {
 
     const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
 
-    const updateFlowOperation = sf.cfaV1.updateFlow({
+    const updateFlowOperation = sfFramework.cfaV1.updateFlow({
       flowRate: BigNumber.from(existingFlow.flowRate)
         .add(networkFeeDelta)
         .toString(),

@@ -10,7 +10,6 @@ import {
   NETWORK_ID,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
-import { sfInstance } from "../../lib/sfInstance";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -43,6 +42,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     paymentToken,
     account,
     auctionSuperApp,
+    sfFramework,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -117,8 +117,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       throw new Error("Could not find newNetworkFee");
     }
 
-    const sf = await sfInstance(NETWORK_ID, provider);
-
     const bidData = ethers.utils.defaultAbiCoder.encode(
       ["uint256"],
       [selectedParcelId]
@@ -134,7 +132,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       [Action.BID, actionData]
     );
 
-    const existingFlow = await sf.cfaV1.getFlow({
+    const existingFlow = await sfFramework.cfaV1.getFlow({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
@@ -151,7 +149,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
     let op;
     if (BigNumber.from(existingFlow.flowRate).gt(0)) {
-      op = sf.cfaV1.updateFlow({
+      op = sfFramework.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
           .add(newNetworkFee)
           .toString(),
@@ -160,7 +158,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         userData,
       });
     } else {
-      op = sf.cfaV1.createFlow({
+      op = sfFramework.cfaV1.createFlow({
         receiver: auctionSuperApp.address,
         flowRate: newNetworkFee.toString(),
         superToken: paymentToken.address,
@@ -170,7 +168,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
     try {
       // Perform these in a single batch call
-      const batchCall = sf.batchCall([approveOp, op]);
+      const batchCall = sfFramework.batchCall([approveOp, op]);
       const txn = await batchCall.exec(signer);
       await txn.wait();
     } catch (err) {
