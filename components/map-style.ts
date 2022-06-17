@@ -44,6 +44,6 @@ export const parcelHighlightLayer: LayerProps = {
   type: "fill",
   paint: {
     "fill-color": "#2FC1C1",
-    "fill-opacity": 1.0,
+    "fill-opacity": 0.75,
   },
 };
