@@ -117,8 +117,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
 
-  const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
-
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
 
@@ -131,6 +129,9 @@ function RejectBidAction(props: RejectBidActionProps) {
     penaltyRateNumerator && penaltyRateDenominator
       ? bidForSalePrice.mul(penaltyRateNumerator).div(penaltyRateDenominator)
       : null;
+
+  const isInvalid =
+    isForSalePriceInvalid || !displayNewForSalePrice || !penaltyPayment;
 
   React.useEffect(() => {
     async function checkBidPeriod() {
@@ -158,7 +159,7 @@ function RejectBidAction(props: RejectBidActionProps) {
         .format("YYYY-MM-DD HH:mm")
     : null;
 
-  async function placeBid() {
+  async function rejectBid() {
     setIsActing(true);
 
     if (!newForSalePrice) {
@@ -167,6 +168,10 @@ function RejectBidAction(props: RejectBidActionProps) {
 
     if (!newNetworkFee) {
       throw new Error("Could not find newNetworkFee");
+    }
+
+    if (!penaltyPayment) {
+      throw new Error("Could not find penaltyPayment");
     }
 
     const bidData = ethers.utils.defaultAbiCoder.encode(
@@ -194,7 +199,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     // Approve amount above purchase price
     const approveOp = paymentToken.approve({
       receiver: auctionSuperApp.address,
-      amount: newForSalePrice.toString(),
+      amount: newForSalePrice.add(penaltyPayment).toString(),
     });
 
     const signer = provider.getSigner() as any;
@@ -203,6 +208,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     if (BigNumber.from(existingFlow.flowRate).gt(0)) {
       op = sfFramework.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
+          .sub(existingNetworkFee)
           .add(newNetworkFee)
           .toString(),
         receiver: auctionSuperApp.address,
@@ -312,7 +318,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               <Button
                 variant="primary"
                 className="w-100"
-                onClick={() => placeBid()}
+                onClick={() => rejectBid()}
                 disabled={isActing || isInvalid}
               >
                 {isActing ? spinner : "Submit"}
