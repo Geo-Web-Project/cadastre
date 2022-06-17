@@ -9,7 +9,6 @@ import { SidebarProps } from "../Sidebar";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
-import { sfInstance } from "../../lib/sfInstance";
 import { fromValueToRate } from "../../lib/utils";
 import Alert from "react-bootstrap/Alert";
 
@@ -42,6 +41,7 @@ function OutstandingBidView({
   account,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
+  sfFramework,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -100,8 +100,6 @@ function OutstandingBidView({
       throw new Error("Could not find existingNetworkFee");
     }
 
-    const sf = await sfInstance(NETWORK_ID, provider);
-
     const bidData = ethers.utils.defaultAbiCoder.encode(
       ["uint256"],
       [selectedParcelId]
@@ -117,7 +115,7 @@ function OutstandingBidView({
       [Action.BID, actionData]
     );
 
-    const existingFlow = await sf.cfaV1.getFlow({
+    const existingFlow = await sfFramework.cfaV1.getFlow({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
@@ -128,13 +126,13 @@ function OutstandingBidView({
 
     let op;
     if (BigNumber.from(existingFlow.flowRate).eq(existingNetworkFee)) {
-      op = sf.cfaV1.deleteFlow({
+      op = sfFramework.cfaV1.deleteFlow({
         sender: account,
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
       });
     } else {
-      op = sf.cfaV1.updateFlow({
+      op = sfFramework.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
           .sub(existingNetworkFee)
           .toString(),

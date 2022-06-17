@@ -358,8 +358,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_SELECTED &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          currentOwnerBidForSalePrice &&
-          outstandingBidder !== account ? (
+          currentOwnerBidForSalePrice ? (
             <>
               <OutstandingBidView
                 newForSalePrice={outstandingBidForSalePrice}
