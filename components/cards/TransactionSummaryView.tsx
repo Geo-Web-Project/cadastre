@@ -22,6 +22,7 @@ type TransactionSummaryViewProps = SidebarProps & {
   newNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
   collateralDeposit?: BigNumber;
+  penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
@@ -35,6 +36,7 @@ function TransactionSummaryView({
   claimPayment,
   collateralDeposit,
   currentForSalePrice,
+  penaltyPayment,
 }: TransactionSummaryViewProps) {
   const [currentChainID, setCurrentChainID] =
     React.useState<number>(NETWORK_ID);
@@ -92,6 +94,13 @@ function TransactionSummaryView({
           {PAYMENT_TOKEN}
         </p>
       </>
+    );
+  } else if (penaltyPayment) {
+    const displayPenaltyPayment = formatBalance(penaltyPayment);
+    paymentView = (
+      <p>
+        Penalty Payment: {displayPenaltyPayment} {PAYMENT_TOKEN}
+      </p>
     );
   }
 

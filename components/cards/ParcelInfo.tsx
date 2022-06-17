@@ -19,6 +19,7 @@ import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
+import RejectBidAction from "./RejectBidAction";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
@@ -308,6 +309,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_SELECTED ||
           interactionState == STATE.PARCEL_EDITING ||
           interactionState == STATE.PARCEL_PLACING_BID ||
+          interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
@@ -380,6 +382,16 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID ? (
             <PlaceBidAction parcelData={data} {...props} />
+          ) : null}
+          {interactionState == STATE.PARCEL_REJECTING_BID &&
+          hasOutstandingBid &&
+          outstandingBidForSalePrice ? (
+            <RejectBidAction
+              parcelData={data}
+              bidForSalePrice={outstandingBidForSalePrice}
+              bidTimestamp={outstandingBidTimestamp ?? null}
+              {...props}
+            />
           ) : null}
         </Col>
       </Row>

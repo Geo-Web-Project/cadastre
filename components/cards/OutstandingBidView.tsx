@@ -11,6 +11,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
 import Alert from "react-bootstrap/Alert";
+import { STATE } from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -42,6 +43,7 @@ function OutstandingBidView({
   perSecondFeeNumerator,
   perSecondFeeDenominator,
   sfFramework,
+  setInteractionState,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -182,7 +184,12 @@ function OutstandingBidView({
             >
               {isActing ? spinner : "Accept Bid"}
             </Button>
-            <Button variant="danger" className="w-100 mb-2" disabled={isActing}>
+            <Button
+              variant="danger"
+              className="w-100 mb-2"
+              disabled={isActing}
+              onClick={() => setInteractionState(STATE.PARCEL_REJECTING_BID)}
+            >
               Reject Bid
             </Button>
             {didFail && !isActing ? (

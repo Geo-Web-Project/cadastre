@@ -20,11 +20,20 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import WrapModal from "../wrap/WrapModal";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import AuctionInstructions from "../AuctionInstructions";
 
-export type PlaceBidActionProps = SidebarProps & {
+dayjs.extend(utc);
+dayjs.extend(advancedFormat);
+
+export type RejectBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: any;
+  bidTimestamp: BigNumber | null;
+  bidForSalePrice: BigNumber;
 };
 
 enum Action {
@@ -32,7 +41,7 @@ enum Action {
   BID,
 }
 
-function PlaceBidAction(props: PlaceBidActionProps) {
+function RejectBidAction(props: RejectBidActionProps) {
   const {
     parcelData,
     provider,
@@ -43,13 +52,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     auctionSuperApp,
     sfFramework,
+    bidTimestamp,
+    bidForSalePrice,
   } = props;
+
+  const bidForSalePriceDisplay = truncateEth(
+    formatBalance(bidForSalePrice),
+    18
+  );
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
-    React.useState<string | null>(null);
+    React.useState<string>(bidForSalePriceDisplay);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -68,17 +84,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   );
 
   const newForSalePrice =
-    displayNewForSalePrice != null &&
-    displayNewForSalePrice.length > 0 &&
-    !isNaN(Number(displayNewForSalePrice))
+    displayNewForSalePrice.length > 0 && !isNaN(Number(displayNewForSalePrice))
       ? ethers.utils.parseEther(displayNewForSalePrice)
       : null;
 
   const isForSalePriceInvalid: boolean =
-    displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
     (isNaN(Number(displayNewForSalePrice)) ||
-      ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
+      ethers.utils.parseEther(displayNewForSalePrice).lt(bidForSalePrice));
 
   const existingNetworkFee = fromValueToRate(
     currentForSalePrice,
@@ -105,6 +118,45 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     perSecondFeeDenominator.toNumber();
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
+
+  const [bidPeriodLength, setBidPeriodLength] =
+    React.useState<BigNumber | null>(null);
+
+  const [penaltyRateNumerator, setPenaltyRateNumerator] =
+    React.useState<BigNumber | null>(null);
+  const [penaltyRateDenominator, setPenaltyRateDenominator] =
+    React.useState<BigNumber | null>(null);
+
+  const penaltyPayment =
+    penaltyRateNumerator && penaltyRateDenominator
+      ? bidForSalePrice.mul(penaltyRateNumerator).div(penaltyRateDenominator)
+      : null;
+
+  React.useEffect(() => {
+    async function checkBidPeriod() {
+      if (!auctionSuperApp) return;
+
+      setBidPeriodLength(await auctionSuperApp.bidPeriodLengthInSeconds());
+    }
+
+    async function checkPenaltyRate() {
+      if (!auctionSuperApp) return;
+
+      setPenaltyRateNumerator(await auctionSuperApp.penaltyNumerator());
+      setPenaltyRateDenominator(await auctionSuperApp.penaltyDenominator());
+    }
+
+    checkBidPeriod();
+    checkPenaltyRate();
+  }, [auctionSuperApp]);
+
+  const bidDeadline =
+    bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
+  const formattedBidDeadline = bidDeadline
+    ? dayjs(bidDeadline.toNumber() * 1000)
+        .utc()
+        .format("YYYY-MM-DD HH:mm")
+    : null;
 
   async function placeBid() {
     setIsActing(true);
@@ -183,13 +235,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     <>
       <Card border="secondary" className="bg-dark mt-5">
         <Card.Header>
-          <h3>Place Bid</h3>
+          <h3>Reject Bid</h3>
         </Card.Header>
         <Card.Body>
+          <p>
+            For Sale Price (Bid): {bidForSalePriceDisplay} {PAYMENT_TOKEN}
+          </p>
+          <p>
+            Response Deadline:{" "}
+            {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
+          </p>
           <Form>
             <Form.Group>
               <Form.Text className="text-primary mb-1">
-                New For Sale Price ({PAYMENT_TOKEN}, Fully Collateralized)
+                New For Sale Price ({PAYMENT_TOKEN})
               </Form.Text>
               <Form.Control
                 required
@@ -197,6 +256,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 className="bg-dark text-light"
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
+                defaultValue={bidForSalePriceDisplay}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
                 disabled={isActing}
@@ -204,7 +264,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  Must be equal or exceed the current For Sale Price
+                  Must be equal or exceed the bid For Sale Price
                 </Form.Control.Feedback>
               ) : null}
 
@@ -226,6 +286,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 aria-describedby="network-fee"
               />
             </Form.Group>
+            <AuctionInstructions />
             <br />
             <hr className="action-form_divider" />
             <br />
@@ -234,7 +295,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 existingNetworkFee={existingNetworkFee}
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
-                collateralDeposit={newForSalePrice ?? undefined}
+                penaltyPayment={penaltyPayment ?? undefined}
                 {...props}
               />
             ) : null}
@@ -254,7 +315,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 onClick={() => placeBid()}
                 disabled={isActing || isInvalid}
               >
-                {isActing ? spinner : "Bid"}
+                {isActing ? spinner : "Submit"}
               </Button>
             </span>
           </Form>
@@ -302,4 +363,4 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   );
 }
 
-export default PlaceBidAction;
+export default RejectBidAction;

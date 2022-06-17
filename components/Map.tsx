@@ -42,6 +42,7 @@ export enum STATE {
   PARCEL_EDITING = 4,
   PARCEL_PLACING_BID = 5,
   EDITING_GALLERY = 6,
+  PARCEL_REJECTING_BID = 7,
 }
 
 export type Coord = {
