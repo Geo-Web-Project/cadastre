@@ -19,6 +19,7 @@ import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
+import RejectBidAction from "./RejectBidAction";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
@@ -101,10 +102,10 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   let forSalePrice;
   let licenseOwner: string | null = null;
-  let isOutstandingBid = false;
+  let hasOutstandingBid = false;
   let outstandingBidder: string | null = null;
-  let currentOwnerBidForSalePrice;
-  let outstandingBidForSalePrice;
+  let currentOwnerBidForSalePrice: BigNumber | null = null;
+  let outstandingBidForSalePrice: BigNumber | null = null;
   let outstandingBidTimestamp;
   if (data && data.landParcel && data.landParcel.license) {
     forSalePrice = (
@@ -114,12 +115,14 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
     licenseOwner = data.landParcel.license.owner;
-    isOutstandingBid =
+    hasOutstandingBid =
       data.landParcel.license.outstandingBid.contributionRate > 0;
-    outstandingBidForSalePrice =
-      data.landParcel.license.outstandingBid.forSalePrice;
-    currentOwnerBidForSalePrice =
-      data.landParcel.license.currentOwnerBid.forSalePrice;
+    outstandingBidForSalePrice = BigNumber.from(
+      data.landParcel.license.outstandingBid.forSalePrice
+    );
+    currentOwnerBidForSalePrice = BigNumber.from(
+      data.landParcel.license.currentOwnerBid.forSalePrice
+    );
     outstandingBidder = data.landParcel.license.outstandingBid.bidder;
     outstandingBidTimestamp = BigNumber.from(
       data.landParcel.license.outstandingBid.timestamp
@@ -178,7 +181,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       return;
     }
 
-    setIsParcelAvailable(!(isOutstandingBid && outstandingBidder !== account));
+    setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
 
   const isLoading = loading || data == null || licenseOwner == null;
@@ -301,11 +304,12 @@ function ParcelInfo(props: ParcelInfoProps) {
           </Button>
         </Col>
       </Row>
-      <Row>
+      <Row className="pb-5">
         <Col>
           {interactionState == STATE.PARCEL_SELECTED ||
           interactionState == STATE.PARCEL_EDITING ||
           interactionState == STATE.PARCEL_PLACING_BID ||
+          interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
               <p className="font-weight-bold text-truncate">
@@ -347,18 +351,22 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <br />
               {buttons}
+              <br />
+              <br />
             </>
           ) : (
             <p>Unclaimed Coordinates</p>
           )}
           {interactionState == STATE.PARCEL_SELECTED &&
-          isOutstandingBid &&
-          outstandingBidder !== account ? (
+          hasOutstandingBid &&
+          outstandingBidForSalePrice &&
+          currentOwnerBidForSalePrice ? (
             <>
               <OutstandingBidView
                 newForSalePrice={outstandingBidForSalePrice}
                 existingForSalePrice={currentOwnerBidForSalePrice}
                 bidTimestamp={outstandingBidTimestamp ?? null}
+                licensorIsOwner={licenseOwner === account}
                 {...props}
               />
               <AuctionInstructions />
@@ -368,11 +376,22 @@ function ParcelInfo(props: ParcelInfoProps) {
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data}
+              hasOutstandingBid={hasOutstandingBid}
               {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID ? (
             <PlaceBidAction parcelData={data} {...props} />
+          ) : null}
+          {interactionState == STATE.PARCEL_REJECTING_BID &&
+          hasOutstandingBid &&
+          outstandingBidForSalePrice ? (
+            <RejectBidAction
+              parcelData={data}
+              bidForSalePrice={outstandingBidForSalePrice}
+              bidTimestamp={outstandingBidTimestamp ?? null}
+              {...props}
+            />
           ) : null}
         </Col>
       </Row>
