@@ -29,7 +29,7 @@ import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { setSignerForSdkRedux  } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
@@ -69,12 +69,15 @@ function IndexPage() {
   const initFramework = async (lib: Web3Provider) => {
     const framework = await Framework.create({
       chainId: NETWORK_ID,
-      provider: lib
+      provider: new ethers.providers.InfuraProvider(
+        NETWORK_ID,
+        process.env.NEXT_PUBLIC_INFURA_ID
+      ),
     });
     setSfFramework(framework);
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
     setPaymentToken(superToken);
-    setFrameworkForSdkRedux(NETWORK_ID, framework);
+    setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
   };
   useEffect(() => {
     if (authState.status !== "connected") return;
@@ -85,7 +88,9 @@ function IndexPage() {
     };
     authState.connected.provider.state.provider.on("chainChanged", onChangeChain);
     return () => {
-      authState.connected?.provider?.state?.provider?.off("chainChanged", onChangeChain);
+      if (authState.connected?.provider?.state?.provider?.off) {
+        authState.connected.provider.state.provider.off("chainChanged", onChangeChain);
+      }
     };
   }, [authState]);
 
