@@ -4,7 +4,7 @@ import Map from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -15,7 +15,7 @@ import {
   NETWORK_ID,
   CERAMIC_URL,
   IPFS_BOOTSTRAP_PEER,
-  IPFS_PRELOAD_NODE,
+  IPFS_PRELOAD_NODE
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
@@ -24,13 +24,12 @@ import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 import { getResolver as getKeyResolver } from "key-did-resolver";
 import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
-
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
+import { setFrameworkForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
@@ -40,6 +39,7 @@ import {
   getOrSetCacao,
   getOrSetSessionSeed,
 } from "../lib/cacao";
+import { Web3Provider } from "@ethersproject/providers";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -62,28 +62,38 @@ function IndexPage() {
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<NativeAssetSuperToken | undefined>(undefined);
   const [sfFramework, setSfFramework] =
     React.useState<Framework | undefined>(undefined);
 
-  const connectWallet = async () => {
-    const _authState = await activate();
-
-    const lib = getLibrary(_authState?.provider.state.provider);
-    setLibrary(lib);
-
+  const initFramework = async (lib: Web3Provider) => {
     const framework = await Framework.create({
       chainId: NETWORK_ID,
-      provider: new ethers.providers.InfuraProvider(
-        NETWORK_ID,
-        process.env.NEXT_PUBLIC_INFURA_ID
-      ),
+      provider: lib
     });
     setSfFramework(framework);
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
     setPaymentToken(superToken);
-    setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
+    setFrameworkForSdkRedux(NETWORK_ID, framework);
+  };
+  useEffect(() => {
+    if (authState.status !== "connected") return;
+    const onChangeChain = () => {
+      const lib = getLibrary(authState.connected.provider.state.provider);
+      setLibrary(lib);
+      initFramework(lib);
+    };
+    authState.connected.provider.state.provider.on("chainChanged", onChangeChain);
+    return () => {
+      authState.connected?.provider?.state?.provider?.off("chainChanged", onChangeChain);
+    };
+  }, [authState]);
+
+  const connectWallet = async () => {
+    const _authState = await activate();
+    const lib = getLibrary(_authState?.provider.state.provider);
+    setLibrary(lib);
+    await initFramework(lib);
   };
 
   const disconnectWallet = async () => {
