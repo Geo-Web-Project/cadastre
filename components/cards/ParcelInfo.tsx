@@ -396,6 +396,8 @@ function ParcelInfo(props: ParcelInfoProps) {
         </Col>
       </Row>
       <GalleryModal
+        pinningManager={pinningManager}
+        assetContentManager={assetContentManager}
         show={interactionState == STATE.EDITING_GALLERY}
         {...props}
       ></GalleryModal>
