@@ -36,7 +36,7 @@ export type ActionFormProps = SidebarProps & {
   summaryView: JSX.Element;
   basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
-  hasOutstandingBid: boolean;
+  hasOutstandingBid?: boolean;
 };
 
 export type ActionData = {
@@ -66,7 +66,7 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
-    hasOutstandingBid,
+    hasOutstandingBid = false,
   } = props;
 
   const {

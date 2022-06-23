@@ -14,9 +14,13 @@ import {
   useMediaGalleryItemData,
 } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
+import { AssetContentManager } from "../../lib/AssetContentManager";
+import { PinningManager } from "../../lib/PinningManager";
 
 export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
+  assetContentManager: AssetContentManager | null;
+  pinningManager: PinningManager | null;
 };
 
 function GalleryModal(props: GalleryModalProps) {
