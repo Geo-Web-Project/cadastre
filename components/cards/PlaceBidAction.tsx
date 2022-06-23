@@ -108,6 +108,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   async function placeBid() {
     setIsActing(true);
+    setDidFail(false);
 
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");

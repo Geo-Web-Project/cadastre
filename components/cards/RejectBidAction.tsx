@@ -161,6 +161,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   async function rejectBid() {
     setIsActing(true);
+    setDidFail(false);
 
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");
