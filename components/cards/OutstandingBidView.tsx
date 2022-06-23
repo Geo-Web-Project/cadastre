@@ -93,6 +93,7 @@ function OutstandingBidView({
 
   async function acceptBid() {
     setIsActing(true);
+    setDidFail(false);
 
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");

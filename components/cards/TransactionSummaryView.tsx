@@ -48,21 +48,22 @@ function TransactionSummaryView({
     })();
   }, [provider]);
 
-  const txnReady = newNetworkFee
-    ? !existingNetworkFee.eq(newNetworkFee)
-    : false;
+  const txnReady = newNetworkFee != null;
+
+  const isDeltaPayment = !collateralDeposit && !claimPayment;
 
   const networkFeeDelta = newNetworkFee
     ? newNetworkFee.sub(existingNetworkFee)
     : BigNumber.from(0);
 
-  const stream = networkFeeDelta
-    ? truncateEth(formatBalance(networkFeeDelta), 18)
-    : "0";
+  const stream =
+    !isDeltaPayment && newNetworkFee
+      ? newNetworkFee
+      : networkFeeDelta ?? BigNumber.from(0);
 
-  const streamBuffer = networkFeeDelta.mul(
-    depositHoursMap[currentChainID] * 60 * 60
-  );
+  const streamDisplay = truncateEth(formatBalance(stream), 18);
+
+  const streamBuffer = stream.mul(depositHoursMap[currentChainID] * 60 * 60);
 
   const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
 
@@ -106,7 +107,7 @@ function TransactionSummaryView({
 
   const streamView = txnReady ? (
     <p>
-      Stream: {networkFeeDelta.gt(0) ? "+" + stream : stream}
+      Stream: {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
       {` ${PAYMENT_TOKEN}/s`}
     </p>
   ) : (
@@ -116,7 +117,7 @@ function TransactionSummaryView({
   const streamBufferView = txnReady ? (
     <p>
       Stream Buffer:{" "}
-      {streamBuffer.gt(0) ? "+" + streamBufferDisplay : streamBufferDisplay}
+      {isDeltaPayment ? "+" + streamBufferDisplay : streamBufferDisplay}
       {` ${PAYMENT_TOKEN}`}
     </p>
   ) : (

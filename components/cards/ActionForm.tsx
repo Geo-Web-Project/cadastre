@@ -129,7 +129,7 @@ export function ActionForm(props: ActionFormProps) {
   }
 
   async function submit() {
-    updateActionData({ isActing: true });
+    updateActionData({ isActing: true, didFail: false });
 
     let parcelId: string | void;
     try {
