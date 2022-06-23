@@ -32,7 +32,7 @@ const GRID_DIM = 50;
 export const GW_MAX_LAT = 21;
 export const GW_MAX_LON = 22;
 const ZOOM_QUERY_LEVEL = 8;
-const QUERY_DIM = 5000;
+const QUERY_DIM = 1000;
 
 export enum STATE {
   VIEWING = 0,
