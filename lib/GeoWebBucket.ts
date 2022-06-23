@@ -131,6 +131,9 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
       this.latestPinnedRoot
     );
     console.debug(`Found latestPinnedLinks: ${this.latestPinnedLinks}`);
+
+    // Reload stream
+    await this.ceramic.loadStream(this.stream!.id);
   }
 
   async triggerPin() {
