@@ -4,7 +4,11 @@ import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
 import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
-import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
+import {
+  PAYMENT_TOKEN,
+  NETWORK_ID,
+  CERAMIC_EXPLORER,
+} from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
@@ -342,7 +346,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                   spinner
                 ) : (
                   <a
-                    href={`https://tiles.ceramic.community/document/${parcelIndexStreamId}`}
+                    href={`${CERAMIC_EXPLORER}/${parcelIndexStreamId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"

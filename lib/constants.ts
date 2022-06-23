@@ -7,6 +7,7 @@ export const SUBGRAPH_URL =
 
 export const CERAMIC_URL = "https://g12-a-ceramic.3boxlabs.com/";
 export const CONNECT_NETWORK = "mainnet";
+export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
 
 export const IPFS_BOOTSTRAP_PEER =
   "/dns4/preload.ipfs.geoweb.network/tcp/4002/wss/p2p/12D3KooWKcc7Jz6jxCJeq8LRi6chufG16hbezYnT2DUhSZRy3whU";
