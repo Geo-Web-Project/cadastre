@@ -48,9 +48,7 @@ function TransactionSummaryView({
     })();
   }, [provider]);
 
-  const txnReady = newNetworkFee
-    ? !existingNetworkFee.eq(newNetworkFee)
-    : false;
+  const txnReady = newNetworkFee != null;
 
   const isDeltaPayment = !collateralDeposit && !claimPayment;
 
@@ -109,10 +107,7 @@ function TransactionSummaryView({
 
   const streamView = txnReady ? (
     <p>
-      Stream:{" "}
-      {isDeltaPayment && networkFeeDelta.gt(0)
-        ? "+" + streamDisplay
-        : streamDisplay}
+      Stream: {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
       {` ${PAYMENT_TOKEN}/s`}
     </p>
   ) : (
@@ -122,9 +117,7 @@ function TransactionSummaryView({
   const streamBufferView = txnReady ? (
     <p>
       Stream Buffer:{" "}
-      {isDeltaPayment && streamBuffer.gt(0)
-        ? "+" + streamBufferDisplay
-        : streamBufferDisplay}
+      {isDeltaPayment ? "+" + streamBufferDisplay : streamBufferDisplay}
       {` ${PAYMENT_TOKEN}`}
     </p>
   ) : (
