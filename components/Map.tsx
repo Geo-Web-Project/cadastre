@@ -166,6 +166,15 @@ export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
   };
 }
 
+function normalizeQueryVariables(x: number, y: number) {
+  return {
+    minX: Math.floor((x - QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
+    maxX: Math.floor((x + QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
+    minY: Math.floor((y - QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
+    maxY: Math.floor((y + QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
+  };
+}
+
 export type MapProps = {
   auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
   licenseContract: Contracts["geoWebERC721LicenseContract"];
@@ -224,16 +233,19 @@ function Map(props: MapProps) {
       GW_MAX_LON,
       GW_MAX_LAT
     );
+
     const x = gwCoord.getX().toNumber();
     const y = gwCoord.getY().toNumber();
+
+    const params = normalizeQueryVariables(x, y);
+
+    console.debug("Fetching more");
+    console.debug(params);
 
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
-        minX: x - QUERY_DIM,
-        maxX: x + QUERY_DIM,
-        minY: y - QUERY_DIM,
-        maxY: y + QUERY_DIM,
+        ...params,
       },
     });
   }, [data, fetchMore]);
@@ -289,15 +301,16 @@ function Map(props: MapProps) {
     );
     const x = gwCoord.getX().toNumber();
     const y = gwCoord.getY().toNumber();
+    const params = normalizeQueryVariables(x, y);
 
     if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
-      refetch({
+      const opts = {
         lastBlock: 0,
-        minX: x - QUERY_DIM,
-        maxX: x + QUERY_DIM,
-        minY: y - QUERY_DIM,
-        maxY: y + QUERY_DIM,
-      });
+        ...params,
+      };
+      console.debug("Refetch on zoom");
+      console.debug(opts);
+      refetch(opts);
 
       setShouldUpdateOnNextZoom(false);
     }
@@ -311,13 +324,13 @@ function Map(props: MapProps) {
       (Math.abs(x - oldCoordX) > QUERY_DIM ||
         Math.abs(y - oldCoordY) > QUERY_DIM)
     ) {
-      refetch({
+      const opts = {
         lastBlock: 0,
-        minX: x - QUERY_DIM,
-        maxX: x + QUERY_DIM,
-        minY: y - QUERY_DIM,
-        maxY: y + QUERY_DIM,
-      });
+        ...params,
+      };
+      console.debug("Refetch on move");
+      console.debug(opts);
+      refetch(opts);
 
       setOldCoordX(x);
       setOldCoordY(y);
@@ -413,15 +426,6 @@ function Map(props: MapProps) {
           GW_MAX_LAT
         );
 
-        console.log("Coordinates:");
-        console.log(
-          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 19, 18)
-        );
-
-        console.log(
-          GeoWebCoordinate.fromGPS(event.lngLat[0], event.lngLat[1], 20, 19)
-        );
-
         if (existingCoords.has(gwCoord.toString())) {
           return true;
         }
@@ -488,26 +492,6 @@ function Map(props: MapProps) {
   }
 
   useEffect(() => {
-    if (data && data.geoWebCoordinates.length > 0 && viewport != null) {
-      // Fetch more coordinates
-      const gwCoord = GeoWebCoordinate.fromGPS(
-        viewport.longitude,
-        viewport.latitude,
-        GW_MAX_LON,
-        GW_MAX_LAT
-      );
-      const x = gwCoord.getX().toNumber();
-      const y = gwCoord.getY().toNumber();
-
-      refetch({
-        lastBlock: 0,
-        minX: x - QUERY_DIM,
-        maxX: x + QUERY_DIM,
-        minY: y - QUERY_DIM,
-        maxY: y + QUERY_DIM,
-      });
-    }
-
     switch (interactionState) {
       case STATE.VIEWING:
         setClaimBase1Coord(null);
