@@ -285,7 +285,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           {editGalleryButton}
         </>
       );
-    } else {
+    } else if (!hasOutstandingBid) {
       buttons = placeBidButton;
     }
   }
@@ -351,8 +351,6 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <br />
               {buttons}
-              <br />
-              <br />
             </>
           ) : (
             <p>Unclaimed Coordinates</p>
