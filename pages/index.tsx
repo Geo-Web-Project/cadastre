@@ -177,23 +177,24 @@ function IndexPage() {
   // Setup Contracts on App Load
   React.useEffect(() => {
     async function contractsSetup() {
-      if (library == null) {
+      if (sfFramework == null) {
         return;
       }
-
-      const signer = library.getSigner();
 
       const {
         geoWebERC721LicenseContract,
         geoWebAuctionSuperAppContract,
         geoWebFairLaunchClaimerContract,
-      } = getContractsForChainOrThrow(NETWORK_ID, signer);
+      } = getContractsForChainOrThrow(
+        NETWORK_ID,
+        sfFramework.settings.provider
+      );
       setLicenseContract(geoWebERC721LicenseContract);
       setAuctionSuperApp(geoWebAuctionSuperAppContract);
       setFairLaunchClaimer(geoWebFairLaunchClaimerContract);
     }
     contractsSetup();
-  }, [library]);
+  }, [sfFramework]);
 
   const Connector = () => {
     if (authState.status !== "connected") {
