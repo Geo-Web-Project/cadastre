@@ -4,12 +4,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import {
-  PAYMENT_TOKEN,
-  NETWORK_ID,
-  SECONDS_IN_YEAR,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -20,6 +15,7 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import WrapModal from "../wrap/WrapModal";
+import { STATE } from "../Map";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -43,6 +39,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     auctionSuperApp,
     sfFramework,
+    setInteractionState,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -175,9 +172,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     } catch (err) {
       console.error(err);
       setDidFail(true);
+      setIsActing(false);
+      return;
     }
 
     setIsActing(false);
+    setInteractionState(STATE.PARCEL_SELECTED);
   }
 
   return (

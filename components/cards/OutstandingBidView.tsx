@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
 import { Card } from "react-bootstrap";
-import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
@@ -151,9 +151,12 @@ function OutstandingBidView({
     } catch (err) {
       console.error(err);
       setDidFail(true);
+      setIsActing(false);
+      return;
     }
 
     setIsActing(false);
+    setInteractionState(STATE.PARCEL_SELECTED);
   }
 
   return (

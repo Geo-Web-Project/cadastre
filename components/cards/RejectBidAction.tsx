@@ -4,12 +4,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import {
-  PAYMENT_TOKEN,
-  NETWORK_ID,
-  SECONDS_IN_YEAR,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -24,6 +19,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import AuctionInstructions from "../AuctionInstructions";
+import { STATE } from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -54,6 +50,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     sfFramework,
     bidTimestamp,
     bidForSalePrice,
+    setInteractionState,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -233,9 +230,12 @@ function RejectBidAction(props: RejectBidActionProps) {
     } catch (err) {
       console.error(err);
       setDidFail(true);
+      setIsActing(false);
+      return;
     }
 
     setIsActing(false);
+    setInteractionState(STATE.PARCEL_SELECTED);
   }
 
   return (

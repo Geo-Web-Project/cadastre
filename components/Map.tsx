@@ -208,7 +208,11 @@ function Map(props: MapProps) {
 
   // Fetch more until none left
   useEffect(() => {
-    if (data == null || data.geoWebCoordinates.length == 0) {
+    if (
+      data == null ||
+      data.geoWebCoordinates.length == 0 ||
+      viewport == null
+    ) {
       return;
     }
     const newLastBlock =
@@ -234,7 +238,7 @@ function Map(props: MapProps) {
     });
   }, [data, fetchMore]);
 
-  const [viewport, setViewport] = useState<any>({});
+  const [viewport, setViewport] = useState<Record<string, any> | null>(null);
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoordX, setOldCoordX] = useState(0);
   const [oldCoordY, setOldCoordY] = useState(0);
@@ -255,7 +259,7 @@ function Map(props: MapProps) {
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
 
   const isGridVisible =
-    viewport.zoom >= ZOOM_GRID_LEVEL &&
+    viewport?.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
 
@@ -274,7 +278,7 @@ function Map(props: MapProps) {
         interactionState == STATE.CLAIM_SELECTED) &&
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
-      updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+      updateGrid(viewport?.latitude, viewport?.longitude, grid, setGrid);
     }
 
     const gwCoord = GeoWebCoordinate.fromGPS(
@@ -334,7 +338,7 @@ function Map(props: MapProps) {
   );
 
   function onHover(event: MapEvent) {
-    if (event.features == null || viewport.zoom < 5) {
+    if (event.features == null || viewport?.zoom < 5) {
       return;
     }
 
@@ -381,7 +385,7 @@ function Map(props: MapProps) {
   }
 
   function onClick(event: MapEvent) {
-    if (viewport.zoom < 5) {
+    if (viewport?.zoom < 5) {
       return;
     }
 
@@ -484,7 +488,7 @@ function Map(props: MapProps) {
   }
 
   useEffect(() => {
-    if (data && data.geoWebCoordinates.length > 0) {
+    if (data && data.geoWebCoordinates.length > 0 && viewport != null) {
       // Fetch more coordinates
       const gwCoord = GeoWebCoordinate.fromGPS(
         viewport.longitude,
