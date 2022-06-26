@@ -1,11 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Abel&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 
 $theme-colors: (
-  "primary": #2fc1c1,
-  "secondary": #4b5588,
-  "dark": #202333,
-  "purple": rgba(75, 85, 136, 0.25),
-  "info": #707179,
+        "primary": #2fc1c1,
+        "secondary": #4b5588,
+        "dark": #202333,
+        "purple": rgba(75, 85, 136, 0.25),
+        "info": #707179,
 );
 
 $font-family-base: "Open Sans";
@@ -18,6 +18,15 @@ $font-family-base: "Open Sans";
 
 .fixed-top {
   z-index: 500;
+}
+
+.fit-content {
+  width: fit-content;
+}
+
+.faucet-link {
+  text-decoration: underline;
+  font-size: 14px;
 }
 
 .wrap-modal {
