@@ -34,7 +34,8 @@ import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
-import { IPFS } from "ipfs-core";
+import type { IPFS } from "ipfs-core-types";
+import * as IPFSCore from "ipfs-core";
 import {
   clearCacaoSession,
   getOrSetCacao,
@@ -141,7 +142,7 @@ function IndexPage() {
               apiAddress: "/ip4/127.0.0.1/tcp/5001",
             }),
             jsIpfs({
-              loadJsIpfsModule: () => require("ipfs-core"),
+              loadJsIpfsModule: () => IPFSCore,
               options: {
                 config: {
                   Bootstrap: [
@@ -155,7 +156,7 @@ function IndexPage() {
                 },
                 preload: {
                   enabled: true,
-                  addresses: [IPFS_PRELOAD_NODE],
+                  addresses: [IPFS_PRELOAD_NODE, "/ip4/10.80.63.1/tcp/6744"],
                 },
               },
             }),

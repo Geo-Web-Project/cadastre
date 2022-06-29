@@ -22,7 +22,7 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
 import firebase from "firebase/app";
-import { IPFS } from "ipfs-core";
+import type { IPFS } from "ipfs-core-types";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";

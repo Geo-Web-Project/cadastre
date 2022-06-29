@@ -8,20 +8,20 @@
 
 import { STORAGE_WORKER_ENDPOINT } from "./constants";
 import { TileStreamManager } from "./stream-managers/TileStreamManager";
-import CID from "cids";
 import axios from "axios";
-import { IPFS } from "ipfs-core";
-import { DAGLink } from "ipld-dag-pb";
+import { CID } from "multiformats/cid";
+import type { IPFS } from "ipfs-core-types";
+import { createLink } from "@ipld/dag-pb";
 import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
 import { Web3Storage } from "web3.storage";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
   assetContentManager: AssetContentManager;
-  bucketRoot?: CID;
+  bucketRoot?: CID | null;
   latestQueuedLinks?: any[];
   latestPinnedLinks?: any[];
-  latestPinnedRoot?: CID;
+  latestPinnedRoot?: CID | null;
   private _ipfs: IPFS;
   private web3Storage = new Web3Storage({
     token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
@@ -58,7 +58,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   async fetchOrProvisionBucket(queueDidFail?: (err: Error) => void) {
     const pinsetIndex = this.getStreamContent();
     if (pinsetIndex && pinsetIndex.root) {
-      this.bucketRoot = new CID(pinsetIndex.root.split("ipfs://")[1]);
+      this.bucketRoot = CID.parse(pinsetIndex.root.split("ipfs://")[1]);
       await this.fetchLatestPinset();
       if (this.latestQueuedLinks) {
         this.triggerPin().catch((err) => {
@@ -128,7 +128,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
     const latestCommitId = result.data.latestCommitId;
     const pinsetStream = await this.ceramic.loadStream(latestCommitId);
-    this.latestPinnedRoot = new CID(
+    this.latestPinnedRoot = CID.parse(
       pinsetStream.content.root.split("ipfs://")[1]
     );
 
@@ -136,7 +136,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
       `Finding links for latest pinned pinset: ${this.latestPinnedRoot}`
     );
     this.latestPinnedLinks = await this._ipfs.object.links(
-      this.latestPinnedRoot
+      this.latestPinnedRoot!
     );
     console.debug(`Found latestPinnedLinks: ${this.latestPinnedLinks}`);
 
@@ -146,7 +146,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
   async triggerPin() {
     // Manual preload
-    await this._ipfs.preload(this.bucketRoot!);
+    await this._ipfs.refs(this.bucketRoot!, { recursive: true });
 
     const result = await axios.post(
       `${STORAGE_WORKER_ENDPOINT}/pinset/${
@@ -190,24 +190,28 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
   async addCid(name: string, cid: string) {
     // Check existing links
-    const cidObject = new CID(cid);
+    const cidObject = CID.parse(cid);
+    const existingRoot = await this._ipfs.object.get(this.bucketRoot!);
     const existingLinks = await this._ipfs.object.links(this.bucketRoot!);
     if (existingLinks.filter((v) => v.Name == name).length > 0) {
       console.debug(`Link is already in pinset: ${name}`);
       return;
     }
     // Patch object
-    const objectStat = await this._ipfs.object.stat(cidObject);
-    const link = new DAGLink(name, objectStat.CumulativeSize, cidObject);
-    this.bucketRoot = await this._ipfs.object.patch.addLink(
-      this.bucketRoot!,
-      link
-    );
-    this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
+    const objectStat = await this._ipfs.object.stat(cidObject!);
+    const link = createLink(name, objectStat.CumulativeSize, cidObject!);
+    existingLinks.push(link);
+    existingLinks.sort((a, b) => a.Name!.localeCompare(b.Name!));
+    this.bucketRoot = await this._ipfs.object.put({
+      ...existingRoot,
+      Links: existingLinks,
+    });
+
+    this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot!);
 
     // Update IDX index
     await this.createOrUpdateStream({
-      root: `ipfs://${this.bucketRoot.toString()}`,
+      root: `ipfs://${this.bucketRoot!.toString()}`,
     });
   }
 
@@ -221,7 +225,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
     // Update IDX index
     await this.createOrUpdateStream({
-      root: `ipfs://${this.bucketRoot.toString()}`,
+      root: `ipfs://${this.bucketRoot!.toString()}`,
     });
 
     await this.triggerPin();

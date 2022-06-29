@@ -2,7 +2,7 @@
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
-import { IPFS } from "ipfs-core";
+import type { IPFS } from "ipfs-core-types";
 import firebase from "firebase/app";
 import { AssetContentManager } from "./AssetContentManager";
 
