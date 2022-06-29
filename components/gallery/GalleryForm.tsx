@@ -5,6 +5,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
+import ProgressBar from "react-bootstrap/ProgressBar";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 
@@ -26,6 +27,11 @@ export type GalleryFormProps = GalleryModalProps & {
   >;
 };
 
+type UploadState = {
+  loaded: number;
+  total: number;
+};
+
 function GalleryForm(props: GalleryFormProps) {
   const {
     mediaGalleryStreamManager,
@@ -40,6 +46,13 @@ function GalleryForm(props: GalleryFormProps) {
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadState, setUploadState] = React.useState<UploadState>({
+    loaded: 0,
+    total: 1,
+  });
+  const uploadProgress = Math.floor(
+    (uploadState.loaded * 100) / uploadState.total
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
@@ -99,6 +112,7 @@ function GalleryForm(props: GalleryFormProps) {
   }
 
   async function captureFile(event: React.ChangeEvent<any>) {
+    event.persist();
     event.stopPropagation();
     event.preventDefault();
 
@@ -114,19 +128,43 @@ function GalleryForm(props: GalleryFormProps) {
     const { encoding, type } = format;
     setFileFormat(encoding);
 
-    // Manually preload synchronously
-    ipfs.preload.stop();
-    const added = await ipfs.add(file);
-    ipfs.preload.start();
-    await ipfs.preload(added.cid);
+    // Add to IPFS
+    await ipfs.add(file);
 
-    updateMediaGalleryItem({
-      "@type": type,
-      contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
-      encodingFormat: encoding,
-    });
+    // Upload to Estuary
+    const formData = new FormData();
+    formData.append("data", file);
+    const xhr = new XMLHttpRequest();
+    xhr.responseType = "json";
+    xhr.upload.onprogress = (event) => {
+      setUploadState({
+        loaded: event.loaded,
+        total: event.total,
+      });
+    };
 
-    setIsUploading(false);
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        updateMediaGalleryItem({
+          "@type": type,
+          contentUrl: `ipfs://${xhr.response.cid}`,
+          encodingFormat: encoding,
+        });
+
+        setIsUploading(false);
+        setUploadState({
+          loaded: 0,
+          total: 1,
+        });
+      }
+    };
+
+    xhr.open(
+      "POST",
+      "https://shuttle-4.estuary.tech/content/add?collection=82c6b382-f203-43dd-b43b-572e1b433ac8"
+    );
+    xhr.setRequestHeader("Authorization");
+    xhr.send(formData);
   }
 
   function clearForm() {
@@ -283,6 +321,7 @@ function GalleryForm(props: GalleryFormProps) {
                 {!isUploading ? "Upload" : spinner}
               </Button>
             </InputGroup>
+            {isUploading ? <ProgressBar now={uploadProgress} /> : null}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">
