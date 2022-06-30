@@ -5,11 +5,15 @@ import Queue from "queue-promise";
 import type { IPFS } from "ipfs-core-types";
 import firebase from "firebase/app";
 import { AssetContentManager } from "./AssetContentManager";
+import { Cacao, SiweMessage } from "ceramic-cacao";
+import axios from "axios";
+import { STORAGE_WORKER_ENDPOINT } from "./constants";
 
 export class PinningManager {
   private _geoWebBucket: GeoWebBucket;
   private _ipfs: IPFS;
   private _perf: firebase.performance.Performance;
+  private cacao: Cacao;
 
   succeededPins: Set<string>;
   failedPins: Set<string>;
@@ -18,18 +22,40 @@ export class PinningManager {
   constructor(
     geoWebBucket: GeoWebBucket,
     ipfs: IPFS,
-    firebasePerformance: firebase.performance.Performance
+    firebasePerformance: firebase.performance.Performance,
+    cacao: Cacao
   ) {
     this._geoWebBucket = geoWebBucket;
     this._ipfs = ipfs;
     this.succeededPins = new Set();
     this.failedPins = new Set();
     this._perf = firebasePerformance;
+    this.cacao = cacao;
     this.pinningQueue = new Queue({
       concurrent: 1,
       interval: 500,
     });
     this.pinningQueue.start();
+  }
+
+  async authenticate() {
+    try {
+      const nonceResult = await axios.get(
+        `${STORAGE_WORKER_ENDPOINT}/estuary/nonce`
+      );
+      const nonce = nonceResult.data["nonce"];
+
+      const message = SiweMessage.fromCacao(this.cacao);
+
+      const tokenResult = await axios.post(
+        `${STORAGE_WORKER_ENDPOINT}/estuary/token`,
+        { message: message.toMessage(), signature: message.signature! },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      console.log(tokenResult);
+    } catch (err) {
+      return;
+    }
   }
 
   async retryPin() {
@@ -178,8 +204,11 @@ export function usePinningManager(
       const _pinningManager = new PinningManager(
         bucket,
         ipfs,
-        firebasePerformance
+        firebasePerformance,
+        assetContentManager.ceramic.did!.capability
       );
+
+      await _pinningManager.authenticate();
 
       await bucket.fetchOrProvisionBucket((err) => {
         _pinningManager.queueDidFail();

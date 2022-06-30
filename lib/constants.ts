@@ -14,7 +14,6 @@ export const IPFS_BOOTSTRAP_PEER =
 export const IPFS_PRELOAD_NODE = "/dns4/preload.ipfs.geoweb.network/https";
 
 export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
-export const STORAGE_WORKER_ENDPOINT =
-  "https://storage-workers.geo-web.workers.dev";
+export const STORAGE_WORKER_ENDPOINT = "http://127.0.0.1:8787";
 
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
