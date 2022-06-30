@@ -36,11 +36,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
-import {
-  clearCacaoSession,
-  getOrSetCacao,
-  getOrSetSessionSeed,
-} from "../lib/cacao";
+import { AuthManager } from "../lib/AuthManager";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -98,39 +94,14 @@ function IndexPage() {
     }
 
     const start = async () => {
-      const sessionSeed: Uint8Array = getOrSetSessionSeed();
-
       await switchNetwork(authState.connected.provider.state.provider);
-
-      const ethereumAuthProvider = new EthereumAuthProvider(
-        authState.connected.provider.state.provider,
-        authState.connected.accountID.address
-      );
-      const accountId = await ethereumAuthProvider.accountId();
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
-      const didProvider = new Ed25519Provider(sessionSeed);
-
-      const didKey = new DID({
-        provider: didProvider,
-        resolver: {
-          ...getKeyResolver(),
-        },
-        parent: `did:pkh:${accountId.toString()}`,
-      });
-      await didKey.authenticate();
-
-      // Check or request capability from user
-      const cacao = await getOrSetCacao(
-        didKey,
-        accountId,
+      const didKeyWithCap = await AuthManager.authenticate(
+        authState.connected.accountID.address,
         authState.connected.provider.state.provider
       );
-
-      const didKeyWithCap = didKey.withCapability(cacao);
-      await didKeyWithCap.authenticate();
-
       ceramic.did = didKeyWithCap;
       setCeramic(ceramic);
 
