@@ -14,6 +14,7 @@ import { IPFS } from "ipfs-core";
 import { DAGLink } from "ipld-dag-pb";
 import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
+import { Web3Storage } from "web3.storage";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
   assetContentManager: AssetContentManager;
@@ -22,6 +23,9 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   latestPinnedLinks?: any[];
   latestPinnedRoot?: CID;
   private _ipfs: IPFS;
+  private web3Storage = new Web3Storage({
+    token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+  });
 
   constructor(_assetContentManager: AssetContentManager, ipfs: IPFS) {
     super(
@@ -53,7 +57,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   /* Check for existing bucket or provision a new one */
   async fetchOrProvisionBucket(queueDidFail?: (err: Error) => void) {
     const pinsetIndex = this.getStreamContent();
-    if (pinsetIndex) {
+    if (pinsetIndex && pinsetIndex.root) {
       this.bucketRoot = new CID(pinsetIndex.root.split("ipfs://")[1]);
       await this.fetchLatestPinset();
       if (this.latestQueuedLinks) {
@@ -88,6 +92,10 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   async fetchLatestPinset() {
     // Check if pinset can be found
     const fetchLinksP = this._ipfs.object.links(this.bucketRoot!);
+    const status = await this.web3Storage.status(
+      "bafkreierwuo2x2kledfwfpxlo7begf67pisqk4ak5fwrxwjpgzp7eynjxe"
+    );
+    console.log(status);
     const timeoutP = new Promise((resolve, reject) => {
       setTimeout(resolve, 60000, null);
     });
