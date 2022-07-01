@@ -15,6 +15,7 @@ import {
   getFormatType,
 } from "./GalleryFileFormat";
 import { MediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
+/* eslint-disable import/no-unresolved */
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
 import { GalleryModalProps } from "./GalleryModal";
 
