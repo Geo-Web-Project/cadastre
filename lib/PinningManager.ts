@@ -10,27 +10,16 @@ import axios from "axios";
 import { STORAGE_WORKER_ENDPOINT } from "./constants";
 
 export class PinningManager {
-  private _geoWebBucket: GeoWebBucket;
-  private _ipfs: IPFS;
-  private _perf: firebase.performance.Performance;
-  private cacao: Cacao;
-
   succeededPins: Set<string>;
   failedPins: Set<string>;
   pinningQueue: Queue;
 
   constructor(
-    geoWebBucket: GeoWebBucket,
-    ipfs: IPFS,
-    firebasePerformance: firebase.performance.Performance,
-    cacao: Cacao
+    private geoWebBucket: GeoWebBucket,
+    private perf: firebase.performance.Performance
   ) {
-    this._geoWebBucket = geoWebBucket;
-    this._ipfs = ipfs;
     this.succeededPins = new Set();
     this.failedPins = new Set();
-    this._perf = firebasePerformance;
-    this.cacao = cacao;
     this.pinningQueue = new Queue({
       concurrent: 1,
       interval: 500,
@@ -38,29 +27,9 @@ export class PinningManager {
     this.pinningQueue.start();
   }
 
-  async authenticate() {
-    try {
-      const nonceResult = await axios.get(
-        `${STORAGE_WORKER_ENDPOINT}/estuary/nonce`
-      );
-      const nonce = nonceResult.data["nonce"];
-
-      const message = SiweMessage.fromCacao(this.cacao);
-
-      const tokenResult = await axios.post(
-        `${STORAGE_WORKER_ENDPOINT}/estuary/token`,
-        { message: message.toMessage(), signature: message.signature! },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      console.log(tokenResult);
-    } catch (err) {
-      return;
-    }
-  }
-
   async retryPin() {
-    if (this._geoWebBucket.latestQueuedLinks) {
-      this._geoWebBucket.latestQueuedLinks.forEach((v) => {
+    if (this.geoWebBucket.latestQueuedLinks) {
+      this.geoWebBucket.latestQueuedLinks.forEach((v) => {
         if (!this.isPinned(v.Name)) {
           this.failedPins.delete(v.Name);
         }
@@ -68,7 +37,7 @@ export class PinningManager {
     }
 
     try {
-      await this._geoWebBucket.triggerPin();
+      await this.geoWebBucket.triggerPin();
     } catch (err) {
       this.queueDidFail();
     }
@@ -78,17 +47,17 @@ export class PinningManager {
     await new Promise<void>((resolve, reject) => {
       this.pinningQueue.enqueue(async () => {
         console.debug(`Pinning: ${name}, ${cid}`);
-        const trace = this._perf.trace("pin_cid");
+        const trace = this.perf.trace("pin_cid");
         trace.start();
         this.failedPins.delete(name);
         try {
-          await this._geoWebBucket.addCid(name, cid);
+          await this.geoWebBucket.addCid(name, cid);
           resolve();
         } catch (err) {
           reject(err);
         }
 
-        this._geoWebBucket
+        this.geoWebBucket
           .triggerPin()
           .then(() => {
             this.succeededPins.add(name);
@@ -112,7 +81,7 @@ export class PinningManager {
       this.pinningQueue.enqueue(async () => {
         console.debug(`Removing pin: ${name}`);
         try {
-          await this._geoWebBucket.removeCid(name);
+          await this.geoWebBucket.removeCid(name);
           resolve();
         } catch (err) {
           reject(err);
@@ -123,21 +92,21 @@ export class PinningManager {
   }
 
   isPinned(name: string) {
-    return this._geoWebBucket.isPinned(name);
+    return this.geoWebBucket.isPinned(name);
   }
 
   isQueued(name: string) {
-    return this._geoWebBucket.isQueued(name);
+    return this.geoWebBucket.isQueued(name);
   }
 
   latestQueuedLinks() {
-    return this._geoWebBucket.latestQueuedLinks;
+    return this.geoWebBucket.latestQueuedLinks;
   }
 
   queueDidFail() {
     console.warn(`Current pinset in queue failed`);
-    if (this._geoWebBucket.latestQueuedLinks) {
-      this._geoWebBucket.latestQueuedLinks.forEach((v) => {
+    if (this.geoWebBucket.latestQueuedLinks) {
+      this.geoWebBucket.latestQueuedLinks.forEach((v) => {
         if (!this.isPinned(v.Name)) {
           this.failedPins.add(v.Name);
         }
@@ -146,11 +115,11 @@ export class PinningManager {
   }
 
   async reset() {
-    return this._geoWebBucket.reset();
+    return this.geoWebBucket.reset();
   }
 
   async getLink() {
-    return await this._geoWebBucket.getBucketLink();
+    return await this.geoWebBucket.getBucketLink();
   }
 
   getStorageLimit() {
@@ -158,19 +127,7 @@ export class PinningManager {
   }
 
   async getStorageUsed() {
-    const objectStat = await this._ipfs.object.stat(
-      this._geoWebBucket.bucketRoot!
-    );
-    const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot!);
-    const linkSizes = links.reduce((sizes, link) => {
-      const newSizes = sizes;
-      newSizes[link.Hash.toString()] = link.Tsize;
-      return newSizes;
-    }, {} as Record<string, any>);
-    const uniqueLinkSize = Object.values(linkSizes).reduce((total, size) => {
-      return total + size;
-    }, 0);
-    return uniqueLinkSize + objectStat.BlockSize;
+    return 0;
   }
 }
 
@@ -201,14 +158,7 @@ export function usePinningManager(
       await bucket.setExistingStreamId(pinsetStreamId);
       console.debug(`Setup geoWebPinset complete.`);
 
-      const _pinningManager = new PinningManager(
-        bucket,
-        ipfs,
-        firebasePerformance,
-        assetContentManager.ceramic.did!.capability
-      );
-
-      await _pinningManager.authenticate();
+      const _pinningManager = new PinningManager(bucket, firebasePerformance);
 
       await bucket.fetchOrProvisionBucket((err) => {
         _pinningManager.queueDidFail();

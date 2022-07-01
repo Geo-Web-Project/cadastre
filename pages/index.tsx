@@ -37,6 +37,7 @@ import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
 import { AuthManager } from "../lib/AuthManager";
+import { AccountId } from "caip";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -55,6 +56,8 @@ function IndexPage() {
   const [fairLaunchClaimer, setFairLaunchClaimer] =
     React.useState<Contracts["geoWebFairLaunchClaimerContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
+  const [authManager, setAuthManager] =
+    React.useState<AuthManager | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
@@ -85,7 +88,7 @@ function IndexPage() {
 
   const disconnectWallet = async () => {
     deactivate();
-    clearCacaoSession();
+    AuthManager.clearCacaoSession();
   };
 
   React.useEffect(() => {
@@ -96,12 +99,20 @@ function IndexPage() {
     const start = async () => {
       await switchNetwork(authState.connected.provider.state.provider);
 
-      // Create Ceramic and DID with resolvers
-      const ceramic = new CeramicClient(CERAMIC_URL);
-      const didKeyWithCap = await AuthManager.authenticate(
-        authState.connected.accountID.address,
+      // Create AuthManager
+      const accountId = new AccountId({
+        address: authState.connected.accountID.address,
+        chainId: `eip155:${NETWORK_ID}`,
+      });
+      const authManager = new AuthManager(
+        accountId,
         authState.connected.provider.state.provider
       );
+      const didKeyWithCap = await authManager.authenticate();
+      setAuthManager(authManager);
+
+      // Create Ceramic and DID with resolvers
+      const ceramic = new CeramicClient(CERAMIC_URL);
       ceramic.did = didKeyWithCap;
       setCeramic(ceramic);
 
