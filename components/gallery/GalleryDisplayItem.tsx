@@ -56,10 +56,8 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const name = cid
     ? `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`
     : null;
-  const isPinned =
-    pinningManager && name ? pinningManager.isPinned(name) : false;
-  const isQueued =
-    pinningManager && name ? pinningManager.isQueued(name) : false;
+  const isPinned = pinningManager && cid ? pinningManager.isPinned(cid) : false;
+  const isQueued = pinningManager && cid ? pinningManager.isQueued(cid) : false;
   const failedPins = pinningManager ? pinningManager.failedPins : new Set();
 
   React.useEffect(() => {
@@ -69,7 +67,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
 
     if (isPinned) {
       setPinState(PinState.PINNED);
-    } else if (failedPins.has(name)) {
+    } else if (failedPins.has(cid)) {
       setPinState(PinState.FAILED);
     } else {
       setPinState(PinState.PINNING);

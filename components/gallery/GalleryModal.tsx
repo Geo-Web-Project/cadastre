@@ -57,13 +57,13 @@ function GalleryModal(props: GalleryModalProps) {
   }, [selectedMediaGalleryItemId]);
 
   const [storageLink, setStorageLink] = React.useState<string | null>(null);
-  const [storageUsed, setStorageUsed] = React.useState(null);
+  const [storageUsed, setStorageUsed] = React.useState<number | null>(null);
   const storageCapacity = pinningManager
     ? pinningManager.getStorageLimit()
     : null;
 
   let storageDisplayStr;
-  if (storageUsed && storageCapacity) {
+  if (storageUsed != null && storageCapacity) {
     // storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB of ${(
     //   storageCapacity / 1000000
     // ).toFixed(1)} MB Used`;

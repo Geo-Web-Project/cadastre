@@ -20,6 +20,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
+import { AuthManager } from "../lib/AuthManager";
 
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
@@ -186,6 +187,7 @@ export type MapProps = {
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
+  authManager: AuthManager;
 };
 
 function Map(props: MapProps) {

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
@@ -8,7 +7,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
-
+import { ESTUARY_UPLOAD_ENDPOINT } from "../../lib/constants";
 import {
   galleryFileFormats,
   getFormat,
@@ -42,6 +41,7 @@ function GalleryForm(props: GalleryFormProps) {
     pinningManager,
     selectedParcelId,
     setSelectedParcelId,
+    authManager,
   } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
@@ -128,15 +128,13 @@ function GalleryForm(props: GalleryFormProps) {
     const { encoding, type } = format;
     setFileFormat(encoding);
 
-    // Add to IPFS
-    await ipfs.add(file);
-
     // Upload to Estuary
     const formData = new FormData();
     formData.append("data", file);
     const xhr = new XMLHttpRequest();
     xhr.responseType = "json";
     xhr.upload.onprogress = (event) => {
+      console.log(event);
       setUploadState({
         loaded: event.loaded,
         total: event.total,
@@ -159,11 +157,11 @@ function GalleryForm(props: GalleryFormProps) {
       }
     };
 
-    xhr.open(
-      "POST",
-      "https://shuttle-4.estuary.tech/content/add?collection=82c6b382-f203-43dd-b43b-572e1b433ac8"
+    xhr.open("POST", `${ESTUARY_UPLOAD_ENDPOINT}/content/add`);
+    xhr.setRequestHeader(
+      "Authorization",
+      `Bearer ${authManager.estuaryToken!}`
     );
-    xhr.setRequestHeader("Authorization");
     xhr.send(formData);
   }
 

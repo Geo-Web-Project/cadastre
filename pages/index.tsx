@@ -246,7 +246,8 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         firebasePerf &&
-        sfFramework ? (
+        sfFramework &&
+        authManager ? (
           <Row>
             <Map
               licenseContract={licenseContract}
@@ -259,6 +260,7 @@ function IndexPage() {
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
+              authManager={authManager}
             ></Map>
           </Row>
         ) : (

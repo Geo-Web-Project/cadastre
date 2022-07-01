@@ -1,13 +1,8 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
-import type { IPFS } from "ipfs-core-types";
 import firebase from "firebase/app";
 import { AssetContentManager } from "./AssetContentManager";
-import { Cacao, SiweMessage } from "ceramic-cacao";
-import axios from "axios";
-import { STORAGE_WORKER_ENDPOINT } from "./constants";
 
 export class PinningManager {
   succeededPins: Set<string>;
@@ -30,8 +25,8 @@ export class PinningManager {
   async retryPin() {
     if (this.geoWebBucket.latestQueuedLinks) {
       this.geoWebBucket.latestQueuedLinks.forEach((v) => {
-        if (!this.isPinned(v.Name)) {
-          this.failedPins.delete(v.Name);
+        if (!this.isPinned(v)) {
+          this.failedPins.delete(v);
         }
       });
     }
@@ -91,12 +86,12 @@ export class PinningManager {
     });
   }
 
-  isPinned(name: string) {
-    return this.geoWebBucket.isPinned(name);
+  isPinned(cid: string) {
+    return this.geoWebBucket.isPinned(cid);
   }
 
-  isQueued(name: string) {
-    return this.geoWebBucket.isQueued(name);
+  isQueued(cid: string) {
+    return this.geoWebBucket.isQueued(cid);
   }
 
   latestQueuedLinks() {
@@ -107,8 +102,8 @@ export class PinningManager {
     console.warn(`Current pinset in queue failed`);
     if (this.geoWebBucket.latestQueuedLinks) {
       this.geoWebBucket.latestQueuedLinks.forEach((v) => {
-        if (!this.isPinned(v.Name)) {
-          this.failedPins.add(v.Name);
+        if (!this.isPinned(v)) {
+          this.failedPins.add(v);
         }
       });
     }
@@ -133,7 +128,6 @@ export class PinningManager {
 
 export function usePinningManager(
   assetContentManager: AssetContentManager | null,
-  ipfs: IPFS | null,
   firebasePerformance: firebase.performance.Performance | null
 ) {
   const [pinningManager, setPinningManager] =
@@ -141,14 +135,14 @@ export function usePinningManager(
 
   React.useEffect(() => {
     async function setupManager() {
-      if (!assetContentManager || !ipfs || !firebasePerformance) {
+      if (!assetContentManager || !firebasePerformance) {
         setPinningManager(null);
         return;
       }
 
       console.debug("Setting up pinning manager...");
 
-      const bucket = new GeoWebBucket(assetContentManager, ipfs);
+      const bucket = new GeoWebBucket(assetContentManager);
 
       const pinsetStreamId = await assetContentManager.getRecordID(
         "geoWebPinset"
@@ -170,7 +164,7 @@ export function usePinningManager(
     }
 
     setupManager();
-  }, [assetContentManager, ipfs, firebasePerformance]);
+  }, [assetContentManager, firebasePerformance]);
 
   return pinningManager;
 }

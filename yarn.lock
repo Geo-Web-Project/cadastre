@@ -3006,10 +3006,10 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/datamodels@^2.3.5":
-  version "2.3.5"
-  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-2.3.5.tgz#27ff2e9f40bec2dc84d6da9e5d396163a25c7ab5"
-  integrity sha512-eXNX+sMViTRnib/zv+ftWw14zQnB5eGdd0PdE6pZoWwLLx7fRLaqEhKXqZdD/u5F/Yig4LPrTX5djeBxFfhPlw==
+"@geo-web/datamodels@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/datamodels/-/datamodels-2.4.0.tgz#13556a857a60e8cc739c2d6cb86e4bc4200b20a0"
+  integrity sha512-ZU++VZY3NC5WhrPD4+cpPFGJOFO/IDtF269qbyRLIadCp/sT3jaLQIzTK5gIfyHqnEP4H/rib3z0bA2YThvmuw==
   dependencies:
     "@ceramicnetwork/http-client" "^1.5.7"
     "@datamodels/identity-profile-basic" "^0.1.2"

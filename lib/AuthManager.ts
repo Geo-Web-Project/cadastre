@@ -33,9 +33,16 @@ export class AuthManager {
     await didKeyWithCap.authenticate();
 
     const existingToken = localStorage.getItem("estuaryToken");
+    const existingTokenExpires = localStorage.getItem("estuaryTokenExpires");
 
-    if (!existingToken) {
+    if (
+      !existingToken ||
+      !existingTokenExpires ||
+      new Date() >= new Date(existingTokenExpires)
+    ) {
       await this.refreshToken(cacao);
+    } else {
+      this.estuaryToken = existingToken;
     }
 
     return didKeyWithCap;
@@ -52,6 +59,7 @@ export class AuthManager {
 
       this.estuaryToken = tokenResult.data.token;
       localStorage.setItem("estuaryToken", tokenResult.data.token);
+      localStorage.setItem("estuaryTokenExpires", tokenResult.data.expiry);
     } catch (err: unknown | AxiosError) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 422) {

@@ -9,28 +9,21 @@
 import { STORAGE_WORKER_ENDPOINT } from "./constants";
 import { TileStreamManager } from "./stream-managers/TileStreamManager";
 import axios from "axios";
-import { CID } from "multiformats/cid";
-import type { IPFS } from "ipfs-core-types";
-import { createLink } from "@ipld/dag-pb";
 import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
   assetContentManager: AssetContentManager;
-  bucketRoot?: CID | null;
-  latestQueuedLinks?: any[];
-  latestPinnedLinks?: any[];
-  latestPinnedRoot?: CID | null;
-  private _ipfs: IPFS;
+  latestQueuedLinks?: string[];
+  latestPinnedLinks?: string[];
 
-  constructor(_assetContentManager: AssetContentManager, ipfs: IPFS) {
+  constructor(_assetContentManager: AssetContentManager) {
     super(
       _assetContentManager.ceramic,
       _assetContentManager.model.getSchemaURL("Pinset"),
       _assetContentManager.controller
     );
     this.assetContentManager = _assetContentManager;
-    this._ipfs = ipfs;
   }
 
   async createOrUpdateStream(content: Pinset) {
@@ -54,30 +47,31 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   async fetchOrProvisionBucket(queueDidFail?: (err: Error) => void) {
     const pinsetIndex = this.getStreamContent();
     if (pinsetIndex) {
-      this.bucketRoot = CID.parse(pinsetIndex.root.split("ipfs://")[1]);
-      await this.fetchLatestPinset();
-      if (this.latestQueuedLinks) {
+      this.latestQueuedLinks = pinsetIndex.items ?? [];
+      console.debug(`Found latestQueuedLinks: ${this.latestQueuedLinks}`);
+      this.latestPinnedLinks = await this.fetchLatestPinset();
+
+      if (
+        difference(
+          new Set(this.latestQueuedLinks),
+          new Set(this.latestPinnedLinks)
+        ).size > 0
+      ) {
         this.triggerPin().catch((err) => {
           if (queueDidFail) queueDidFail(err);
         });
       }
     } else {
-      this.bucketRoot = await this._ipfs.object.new({
-        template: "unixfs-dir",
-      });
-      this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
+      this.latestQueuedLinks = [];
+      this.latestPinnedLinks = [];
     }
   }
 
   async reset() {
     console.debug(`Resetting pinset...`);
 
-    // Update IDX index
-    const emptyPinset = await this._ipfs.object.new({
-      template: "unixfs-dir",
-    });
     await this.createOrUpdateStream({
-      root: `ipfs://${emptyPinset.toString()}`,
+      items: [],
     });
 
     await this.fetchOrProvisionBucket();
@@ -86,168 +80,92 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   }
 
   async fetchLatestPinset() {
-    // Check if pinset can be found
-    const fetchLinksP = this._ipfs.object.links(this.bucketRoot!);
-    const timeoutP = new Promise((resolve, reject) => {
-      setTimeout(resolve, 60000, null);
-    });
-    console.debug(`Finding links for latest pinset: ${this.bucketRoot}`);
-    const _latestQueuedLinks = (await Promise.race([
-      fetchLinksP,
-      timeoutP,
-    ])) as any[];
-    if (_latestQueuedLinks) {
-      // Found
-      this.latestQueuedLinks = _latestQueuedLinks;
-      console.debug(`Found latestQueuedLinks: ${this.latestQueuedLinks}`);
-    } else {
-      // Not found after timeout
-      console.warn(`Could not find pinset: ${this.bucketRoot}`);
-      this.latestQueuedLinks = undefined;
-      return;
-    }
-
     let result;
     try {
       result = await axios.get(
-        `${STORAGE_WORKER_ENDPOINT}/pinset/${
+        `${STORAGE_WORKER_ENDPOINT}/dids/${
           this._controller
-        }/latest?assetId=${this.assetContentManager.assetId.toString()}`
+        }/assets/${this.assetContentManager.assetId
+          .toString()
+          .replaceAll("/", "_")}/collection`
       );
     } catch (err) {
-      return;
+      return undefined;
     }
 
-    const latestCommitId = result.data.latestCommitId;
-    const pinsetStream = await this.ceramic.loadStream(latestCommitId);
-    this.latestPinnedRoot = CID.parse(
-      pinsetStream.content.root.split("ipfs://")[1]
-    );
-
-    console.debug(
-      `Finding links for latest pinned pinset: ${this.latestPinnedRoot}`
-    );
-    this.latestPinnedLinks = await this._ipfs.object.links(
-      this.latestPinnedRoot!
-    );
+    this.latestPinnedLinks = result.data.items ?? [];
     console.debug(`Found latestPinnedLinks: ${this.latestPinnedLinks}`);
-
-    // Reload stream
-    await this.ceramic.loadStream(this.stream!.id);
+    return this.latestPinnedLinks;
   }
 
   async triggerPin() {
-    // Manual preload
-    await this._ipfs.refs(this.bucketRoot!, { recursive: true });
-
     const result = await axios.post(
-      `${STORAGE_WORKER_ENDPOINT}/pinset/${
+      `${STORAGE_WORKER_ENDPOINT}/dids/${
         this._controller
-      }/request?assetId=${this.assetContentManager.assetId.toString()}`,
-      { pinsetRecordID: this.stream!.commitId.toString() },
+      }/assets/${this.assetContentManager.assetId
+        .toString()
+        .replaceAll("/", "_")}/collection`,
+      { pinsetRecordId: this.stream!.commitId.toString() },
       { headers: { "Content-Type": "application/json" } }
     );
 
-    if (result.data.status == "pinned") {
+    if (result.status == 202) {
       this.fetchLatestPinset();
       return;
-    } else if (result.data.status == "failed") {
+    } else {
       throw new Error("Trigger pin failed");
     }
-
-    // Poll status async
-    await new Promise<void>((resolve, reject) => {
-      let timeout = 1000;
-      const poll = async () => {
-        const pollResult = await axios.get(
-          `${STORAGE_WORKER_ENDPOINT}/pinset/${
-            this._controller
-          }/request/${this.stream!.commitId.toString()}?assetId=${this.assetContentManager.assetId.toString()}`
-        );
-
-        if (pollResult.data.status == "pinned") {
-          this.fetchLatestPinset();
-          resolve();
-        } else if (pollResult.data.status == "failed") {
-          reject();
-        } else {
-          setTimeout(async () => await poll(), timeout);
-          timeout = timeout * 1.5;
-        }
-      };
-
-      poll();
-    });
   }
 
   async addCid(name: string, cid: string) {
-    // Check existing links
-    const cidObject = CID.parse(cid);
-    const existingRoot = await this._ipfs.object.get(this.bucketRoot!);
-    const existingLinks = await this._ipfs.object.links(this.bucketRoot!);
-    if (existingLinks.filter((v) => v.Name == name).length > 0) {
+    const existingLinks = this.latestPinnedLinks ?? [];
+    if (existingLinks.filter((v) => v == cid).length > 0) {
       console.debug(`Link is already in pinset: ${name}`);
       return;
     }
-    // Patch object
-    const objectStat = await this._ipfs.object.stat(cidObject!);
-    const link = createLink(name, objectStat.CumulativeSize, cidObject!);
-    existingLinks.push(link);
-    existingLinks.sort((a, b) => a.Name!.localeCompare(b.Name!));
-    this.bucketRoot = await this._ipfs.object.put({
-      ...existingRoot,
-      Links: existingLinks,
-    });
+    existingLinks.push(cid);
 
-    this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot!);
-
-    // Update IDX index
     await this.createOrUpdateStream({
-      root: `ipfs://${this.bucketRoot!.toString()}`,
+      items: existingLinks,
     });
   }
 
-  async removeCid(name: string) {
-    // Patch object
-    this.bucketRoot = await this._ipfs.object.patch.rmLink(
-      this.bucketRoot!,
-      name
-    );
-    this.latestQueuedLinks = await this._ipfs.object.links(this.bucketRoot);
-
-    // Update IDX index
+  async removeCid(cid: string) {
+    const existingLinks = this.latestPinnedLinks ?? [];
     await this.createOrUpdateStream({
-      root: `ipfs://${this.bucketRoot.toString()}`,
+      items: existingLinks.filter((v) => v != cid),
     });
-
-    await this.triggerPin();
   }
 
   /* Check if certain object is pinned */
-  isPinned(name: string) {
+  isPinned(cid: string) {
     if (!this.latestPinnedLinks) {
       return false;
     }
 
-    return this.latestPinnedLinks.filter((v) => v.Name == name).length > 0;
+    return this.latestPinnedLinks.filter((v) => v === cid).length > 0;
   }
 
   /* Check if certain object is queued in latest pinset in IDX index */
-  isQueued(name: string) {
+  isQueued(cid: string) {
     if (!this.latestQueuedLinks) {
       return false;
     }
 
-    return this.latestQueuedLinks.filter((v) => v.Name == name).length > 0;
+    return this.latestQueuedLinks.filter((v) => v === cid).length > 0;
   }
 
   async getBucketLink() {
-    return this.bucketRoot
-      ? `https://dweb.link/ipfs/${this.bucketRoot.toString()}`
-      : null;
+    return "";
+  }
+}
+
+function difference<T>(setA: Set<T>, setB: Set<T>) {
+  const diff = new Set(setA);
+
+  for (const elem of setB) {
+    diff.delete(elem);
   }
 
-  // async listArchives() {
-  //   return await this._buckets.archives(this._bucketRoot.key);
-  // }
+  return diff;
 }

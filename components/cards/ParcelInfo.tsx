@@ -70,7 +70,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     setIsParcelAvailable,
     ceramic,
     licenseContract,
-    ipfs,
     firebasePerf,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
@@ -88,11 +87,7 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
-  const pinningManager = usePinningManager(
-    assetContentManager,
-    ipfs,
-    firebasePerf
-  );
+  const pinningManager = usePinningManager(assetContentManager, firebasePerf);
 
   const parcelContent = basicProfileStreamManager
     ? basicProfileStreamManager.getStreamContent()
