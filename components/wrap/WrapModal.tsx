@@ -7,6 +7,8 @@ import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { useMemo } from "react";
+import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 
 type WrapModalProps = {
   account: string;
@@ -100,6 +102,13 @@ function WrapModal({
     }
   };
 
+  const tokenOptions: TokenOptions = useMemo(() => ({
+    address: paymentToken.address,
+    symbol: "ETHx",
+    decimals: 16,
+    image: ""
+  }), [paymentToken.address]);
+
   return (
     <Modal show={show} onHide={handleClose} centered className="wrap-modal">
       <Modal.Header className="bg-dark border-0">
@@ -120,17 +129,20 @@ function WrapModal({
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
           <p>ETH: {ETHBalance ?? "---"}</p>
-          <p>
-            ETHx:{" "}
-            {isLoading || data == null ? (
-              <Spinner animation="border" role="status"></Spinner>
-            ) : (
-              <FlowingBalance
-                format={(x) => ethers.utils.formatUnits(x)}
-                accountTokenSnapshot={data.items[0]}
-              />
-            )}
-          </p>
+          <div className="d-flex">
+            <p className="mb-0 mr-3">
+              ETHx:{" "}
+              {isLoading || data == null ? (
+                <Spinner animation="border" role="status"></Spinner>
+              ) : (
+                <FlowingBalance
+                  format={(x) => ethers.utils.formatUnits(x)}
+                  accountTokenSnapshot={data.items[0]}
+                />
+              )}
+            </p>
+            <CopyTokenAddress options={tokenOptions}/>
+          </div>
         </div>
       </Modal.Body>
       <Modal.Footer
