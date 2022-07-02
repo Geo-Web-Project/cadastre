@@ -5,14 +5,15 @@ import Queue from "queue-promise";
 import type { IPFS } from "ipfs-core-types";
 import firebase from "firebase/app";
 import { AssetContentManager } from "./AssetContentManager";
+import { CID } from "multiformats/cid";
 
 export class PinningManager {
   private _geoWebBucket: GeoWebBucket;
   private _ipfs: IPFS;
   private _perf: firebase.performance.Performance;
 
-  succeededPins: Set<string>;
-  failedPins: Set<string>;
+  succeededPins: Set<CID>;
+  failedPins: Set<CID>;
   pinningQueue: Queue;
 
   constructor(
@@ -35,8 +36,8 @@ export class PinningManager {
   async retryPin() {
     if (this._geoWebBucket.latestQueuedLinks) {
       this._geoWebBucket.latestQueuedLinks.forEach((v) => {
-        if (!this.isPinned(v.Name)) {
-          this.failedPins.delete(v.Name);
+        if (!this.isPinned(v)) {
+          this.failedPins.delete(v);
         }
       });
     }
@@ -48,13 +49,13 @@ export class PinningManager {
     }
   }
 
-  async pinCid(name: string, cid: string) {
+  async pinCid(name: string, cid: CID) {
     await new Promise<void>((resolve, reject) => {
       this.pinningQueue.enqueue(async () => {
         console.debug(`Pinning: ${name}, ${cid}`);
         const trace = this._perf.trace("pin_cid");
         trace.start();
-        this.failedPins.delete(name);
+        this.failedPins.delete(cid);
         try {
           await this._geoWebBucket.addCid(name, cid);
           resolve();
@@ -65,13 +66,13 @@ export class PinningManager {
         this._geoWebBucket
           .triggerPin()
           .then(() => {
-            this.succeededPins.add(name);
+            this.succeededPins.add(cid);
             trace.putAttribute("success", "true");
             trace.stop();
           })
           .catch((err) => {
             console.warn(err);
-            this.failedPins.add(name);
+            this.failedPins.add(cid);
             trace.putAttribute("success", "false");
             trace.stop();
           });
@@ -96,12 +97,12 @@ export class PinningManager {
     });
   }
 
-  isPinned(name: string) {
-    return this._geoWebBucket.isPinned(name);
+  isPinned(cid: CID) {
+    return this._geoWebBucket.isPinned(cid);
   }
 
-  isQueued(name: string) {
-    return this._geoWebBucket.isQueued(name);
+  isQueued(cid: CID) {
+    return this._geoWebBucket.isQueued(cid);
   }
 
   latestQueuedLinks() {
@@ -112,8 +113,8 @@ export class PinningManager {
     console.warn(`Current pinset in queue failed`);
     if (this._geoWebBucket.latestQueuedLinks) {
       this._geoWebBucket.latestQueuedLinks.forEach((v) => {
-        if (!this.isPinned(v.Name)) {
-          this.failedPins.add(v.Name);
+        if (!this.isPinned(v)) {
+          this.failedPins.add(v);
         }
       });
     }

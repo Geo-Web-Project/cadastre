@@ -8,6 +8,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
+import { CID } from "multiformats/cid";
 
 import {
   galleryFileFormats,
@@ -129,42 +130,15 @@ function GalleryForm(props: GalleryFormProps) {
     setFileFormat(encoding);
 
     // Add to IPFS
-    await ipfs.add(file);
+    const added = await ipfs.add(file);
 
-    // Upload to Estuary
-    const formData = new FormData();
-    formData.append("data", file);
-    const xhr = new XMLHttpRequest();
-    xhr.responseType = "json";
-    xhr.upload.onprogress = (event) => {
-      setUploadState({
-        loaded: event.loaded,
-        total: event.total,
-      });
-    };
+    updateMediaGalleryItem({
+      "@type": type,
+      contentUrl: `ipfs://${added.cid.toString()}`,
+      encodingFormat: encoding,
+    });
 
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        updateMediaGalleryItem({
-          "@type": type,
-          contentUrl: `ipfs://${xhr.response.cid}`,
-          encodingFormat: encoding,
-        });
-
-        setIsUploading(false);
-        setUploadState({
-          loaded: 0,
-          total: 1,
-        });
-      }
-    };
-
-    xhr.open(
-      "POST",
-      "https://shuttle-4.estuary.tech/content/add?collection=82c6b382-f203-43dd-b43b-572e1b433ac8"
-    );
-    xhr.setRequestHeader("Authorization");
-    xhr.send(formData);
+    setIsUploading(false);
   }
 
   function clearForm() {
@@ -202,7 +176,8 @@ function GalleryForm(props: GalleryFormProps) {
       );
 
       // Pin item
-      const cid = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
+      const cidStr = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
+      const cid = cidStr ? CID.parse(cidStr) : null;
       const name = cid
         ? `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`
         : null;
@@ -321,7 +296,7 @@ function GalleryForm(props: GalleryFormProps) {
                 {!isUploading ? "Upload" : spinner}
               </Button>
             </InputGroup>
-            {isUploading ? <ProgressBar now={uploadProgress} /> : null}
+            {/* {isUploading ? <ProgressBar now={uploadProgress} /> : null} */}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">

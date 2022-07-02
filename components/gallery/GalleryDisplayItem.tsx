@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import { GalleryModalProps } from "./GalleryModal";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
+import { CID } from "multiformats/cid";
 
 const DISPLAY_TYPES: Record<string, string> = {
   "3DModel": "3D Model",
@@ -52,14 +53,13 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
 
   const data = mediaGalleryItemStreamManager.getStreamContent();
-  const cid = data?.contentUrl?.replace("ipfs://", "");
+  const cidStr = data?.contentUrl?.replace("ipfs://", "");
+  const cid = cidStr ? CID.parse(cidStr) : null;
   const name = cid
     ? `${mediaGalleryItemStreamManager.getStreamId()}-${cid}`
     : null;
-  const isPinned =
-    pinningManager && name ? pinningManager.isPinned(name) : false;
-  const isQueued =
-    pinningManager && name ? pinningManager.isQueued(name) : false;
+  const isPinned = pinningManager && cid ? pinningManager.isPinned(cid) : false;
+  const isQueued = pinningManager && cid ? pinningManager.isQueued(cid) : false;
   const failedPins = pinningManager ? pinningManager.failedPins : new Set();
 
   React.useEffect(() => {
@@ -81,35 +81,6 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       }
     }
   }, [pinningManager, failedPins.size, isPinned, isQueued]);
-
-  // Trigger preload
-  React.useEffect(() => {
-    async function triggerPreload() {
-      if (!ipfs || !cid) {
-        return;
-      }
-
-      let success = false;
-      try {
-        await ipfs.refs(cid, { recursive: true });
-
-        success = true;
-      } catch (err) {
-        console.error(err);
-        setPinState(PinState.NOT_FOUND);
-      }
-
-      setTimeout(() => {
-        if (!success) {
-          setPinState(PinState.NOT_FOUND);
-        }
-      }, 10000);
-    }
-
-    if (pinState == PinState.PINNING) {
-      triggerPreload();
-    }
-  }, [pinState]);
 
   const spinner = (
     <span className="spinner-border" role="status">
