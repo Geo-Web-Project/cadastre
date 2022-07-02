@@ -117,6 +117,25 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     } catch (err) {
       return;
     }
+
+    const latestPinnedRootStr = localStorage.getItem(this.localPinsetKey());
+    const latestPinnedRoot = latestPinnedRootStr
+      ? CID.parse(latestPinnedRootStr)
+      : undefined;
+
+    if (latestPinnedRoot) {
+      console.debug(
+        `Finding links for latest pinned pinset: ${latestPinnedRoot}`
+      );
+      this.latestPinnedLinks = (
+        await this._ipfs.object.links(latestPinnedRoot)
+      ).map((l) => l.Hash);
+      console.debug(`Found latestPinnedLinks: ${this.latestPinnedLinks}`);
+    }
+  }
+
+  private localPinsetKey() {
+    return `latestPinset:${this.assetContentManager.assetId.toString()}`;
   }
 
   private async checkWeb3Storage(): Promise<boolean> {
@@ -124,6 +143,10 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     const isPinned = result
       ? result.pins.filter((pin) => pin.status === "Pinned").length > 0
       : false;
+
+    if (isPinned) {
+      localStorage.setItem(this.localPinsetKey(), this.bucketRoot!.toString());
+    }
     return isPinned;
   }
 
@@ -135,11 +158,12 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
     // Poll status async
     await new Promise<void>((resolve, reject) => {
-      let timeout = 1000;
+      let timeout = 5000;
       const poll = async () => {
         const isPinned = await this.checkWeb3Storage();
 
         if (isPinned) {
+          this.latestPinnedLinks = this.latestQueuedLinks;
           resolve();
         } else {
           setTimeout(async () => await poll(), timeout);
