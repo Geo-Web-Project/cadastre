@@ -58,11 +58,6 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     if (pinsetIndex && pinsetIndex.root) {
       this.bucketRoot = CID.parse(pinsetIndex.root.split("ipfs://")[1]);
       await this.fetchLatestPinset();
-      if (this.latestQueuedLinks) {
-        this.triggerPin().catch((err) => {
-          if (queueDidFail) queueDidFail(err);
-        });
-      }
     } else {
       this.bucketRoot = await this._ipfs.object.new({
         template: "unixfs-dir",
@@ -113,16 +108,23 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
     let result;
     try {
-      result = await this.web3Storage.status(this.bucketRoot!.toString());
-      const isPinned = result
-        ? result.pins.filter((pin) => pin.status === "Pinned").length > 0
-        : false;
+      const isPinned = await this.checkWeb3Storage();
       if (isPinned) {
         this.latestPinnedLinks = this.latestQueuedLinks;
+      } else {
+        this.triggerPin();
       }
     } catch (err) {
       return;
     }
+  }
+
+  private async checkWeb3Storage(): Promise<boolean> {
+    const result = await this.web3Storage.status(this.bucketRoot!.toString());
+    const isPinned = result
+      ? result.pins.filter((pin) => pin.status === "Pinned").length > 0
+      : false;
+    return isPinned;
   }
 
   async triggerPin() {
@@ -130,6 +132,23 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     const reader = await CarReader.fromIterable(car);
     await this.web3Storage.putCar(reader);
     this.fetchLatestPinset();
+
+    // Poll status async
+    await new Promise<void>((resolve, reject) => {
+      let timeout = 1000;
+      const poll = async () => {
+        const isPinned = await this.checkWeb3Storage();
+
+        if (isPinned) {
+          resolve();
+        } else {
+          setTimeout(async () => await poll(), timeout);
+          timeout = timeout * 1.5;
+        }
+      };
+
+      poll();
+    });
   }
 
   async addCid(name: string, cid: CID) {
