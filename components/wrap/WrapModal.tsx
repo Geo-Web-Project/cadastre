@@ -105,7 +105,7 @@ function WrapModal({
   const tokenOptions: TokenOptions = useMemo(() => ({
     address: paymentToken.address,
     symbol: "ETHx",
-    decimals: 16,
+    decimals: 18,
     image: ""
   }), [paymentToken.address]);
 
@@ -125,23 +125,23 @@ function WrapModal({
           <span aria-hidden="true">&times;</span>
         </button>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light">
+      <Modal.Body className="bg-dark text-light position-relative">
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
           <p>ETH: {ETHBalance ?? "---"}</p>
-          <div className="d-flex">
-            <p className="mb-0 mr-3">
-              ETHx:{" "}
-              {isLoading || data == null ? (
-                <Spinner animation="border" role="status"></Spinner>
-              ) : (
-                <FlowingBalance
-                  format={(x) => ethers.utils.formatUnits(x)}
-                  accountTokenSnapshot={data.items[0]}
-                />
-              )}
-            </p>
-            <CopyTokenAddress options={tokenOptions}/>
+          <p className="mb-0 mr-3">
+            ETHx:{" "}
+            {isLoading || data == null ? (
+              <Spinner animation="border" role="status"></Spinner>
+            ) : (
+              <FlowingBalance
+                format={(x) => ethers.utils.formatUnits(x)}
+                accountTokenSnapshot={data.items[0]}
+              />
+            )}
+          </p>
+          <div className="position-absolute" style={{ bottom: "16px", right: "16px" }}>
+            <CopyTokenAddress options={tokenOptions} />
           </div>
         </div>
       </Modal.Body>
