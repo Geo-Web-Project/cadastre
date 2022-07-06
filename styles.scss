@@ -6,6 +6,7 @@ $theme-colors: (
         "dark": #202333,
         "purple": rgba(75, 85, 136, 0.25),
         "info": #707179,
+        "gray": #e6e7ee,
 );
 
 $font-family-base: "Open Sans";
@@ -32,7 +33,7 @@ $font-family-base: "Open Sans";
 .wrap-modal {
   @media (min-width: 576px) {
     .modal-dialog {
-      max-width: 432px;
+      max-width: 512px;
       margin: 1.75rem auto;
     }
   }
