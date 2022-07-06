@@ -34,7 +34,8 @@ import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
-import { IPFS } from "ipfs-core";
+import type { IPFS } from "ipfs-core-types";
+import * as IPFSCore from "ipfs-core";
 import {
   clearCacaoSession,
   getOrSetCacao,
@@ -141,21 +142,10 @@ function IndexPage() {
               apiAddress: "/ip4/127.0.0.1/tcp/5001",
             }),
             jsIpfs({
-              loadJsIpfsModule: () => require("ipfs-core"),
+              loadJsIpfsModule: () => IPFSCore,
               options: {
-                config: {
-                  Bootstrap: [
-                    IPFS_BOOTSTRAP_PEER,
-                    "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
-                    "/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
-                    "/dnsaddr/bootstrap.libp2p.io/p2p/QmZa1sAxajnQjVM8WjWXoMbmPd7NsWhfKsPkErzpm9wGkp",
-                    "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
-                    "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
-                  ],
-                },
                 preload: {
-                  enabled: true,
-                  addresses: [IPFS_PRELOAD_NODE],
+                  enabled: false,
                 },
               },
             }),

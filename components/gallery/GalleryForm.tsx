@@ -5,8 +5,10 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
+import ProgressBar from "react-bootstrap/ProgressBar";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
+import { CID } from "multiformats/cid";
 
 import {
   galleryFileFormats,
@@ -26,6 +28,11 @@ export type GalleryFormProps = GalleryModalProps & {
   >;
 };
 
+type UploadState = {
+  loaded: number;
+  total: number;
+};
+
 function GalleryForm(props: GalleryFormProps) {
   const {
     mediaGalleryStreamManager,
@@ -40,6 +47,13 @@ function GalleryForm(props: GalleryFormProps) {
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadState, setUploadState] = React.useState<UploadState>({
+    loaded: 0,
+    total: 1,
+  });
+  const uploadProgress = Math.floor(
+    (uploadState.loaded * 100) / uploadState.total
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
@@ -99,6 +113,7 @@ function GalleryForm(props: GalleryFormProps) {
   }
 
   async function captureFile(event: React.ChangeEvent<any>) {
+    event.persist();
     event.stopPropagation();
     event.preventDefault();
 
@@ -114,15 +129,12 @@ function GalleryForm(props: GalleryFormProps) {
     const { encoding, type } = format;
     setFileFormat(encoding);
 
-    // Manually preload synchronously
-    ipfs.preload.stop();
+    // Add to IPFS
     const added = await ipfs.add(file);
-    ipfs.preload.start();
-    await ipfs.preload(added.cid);
 
     updateMediaGalleryItem({
       "@type": type,
-      contentUrl: `ipfs://${added.cid.toV1().toBaseEncodedString("base32")}`,
+      contentUrl: `ipfs://${added.cid.toString()}`,
       encodingFormat: encoding,
     });
 
@@ -164,7 +176,8 @@ function GalleryForm(props: GalleryFormProps) {
       );
 
       // Pin item
-      const cid = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
+      const cidStr = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
+      const cid = cidStr ? CID.parse(cidStr) : null;
       const name = cid
         ? `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`
         : null;
@@ -283,6 +296,7 @@ function GalleryForm(props: GalleryFormProps) {
                 {!isUploading ? "Upload" : spinner}
               </Button>
             </InputGroup>
+            {/* {isUploading ? <ProgressBar now={uploadProgress} /> : null} */}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">
