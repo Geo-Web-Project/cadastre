@@ -7,12 +7,10 @@ function ClaimInfo() {
       <Card.Header>Claim Instructions</Card.Header>
       <Card.Body>
         <Card.Text>
-          Resize your land parcel claim by moving your mouse.
-          Your claim can not overlap with an existing claim.
+          Single-click again to set your claim shape.
         </Card.Text>
         <Card.Text>
-          Click once to lock in the shape of your claim. You will complete
-          your claim details in a form shown in this panel.
+          Click and drag the map to pan, if needed.
         </Card.Text>
         <Card.Text>Hit ESC to exit claim mode.</Card.Text>
       </Card.Body>
