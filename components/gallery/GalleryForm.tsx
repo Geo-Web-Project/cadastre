@@ -47,13 +47,6 @@ function GalleryForm(props: GalleryFormProps) {
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
-  const [uploadState, setUploadState] = React.useState<UploadState>({
-    loaded: 0,
-    total: 1,
-  });
-  const uploadProgress = Math.floor(
-    (uploadState.loaded * 100) / uploadState.total
-  );
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
