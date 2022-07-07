@@ -172,8 +172,6 @@ function ClaimAction(props: ClaimActionProps) {
       receipt.blockNumber,
       receipt.blockNumber
     );
-    console.log(receipt);
-    console.log(res);
     const licenseId = res[0].args[0].toString();
     return licenseId;
   }

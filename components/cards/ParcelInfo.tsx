@@ -29,7 +29,6 @@ import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
-import TriggerTransferView from "./TriggerTransferView";
 
 const parcelQuery = gql`
   query LandParcel($id: String) {
@@ -365,25 +364,13 @@ function ParcelInfo(props: ParcelInfoProps) {
           outstandingBidForSalePrice &&
           currentOwnerBidForSalePrice ? (
             <>
-              {outstandingBidTimestamp &&
-              new Date(Number(outstandingBidTimestamp) * 1000) > new Date() ? (
-                <OutstandingBidView
-                  newForSalePrice={outstandingBidForSalePrice}
-                  existingForSalePrice={currentOwnerBidForSalePrice}
-                  bidTimestamp={outstandingBidTimestamp ?? null}
-                  licensorIsOwner={licenseOwner === account}
-                  {...props}
-                />
-              ) : (
-                <TriggerTransferView
-                  newForSalePrice={outstandingBidForSalePrice}
-                  existingForSalePrice={currentOwnerBidForSalePrice}
-                  bidTimestamp={outstandingBidTimestamp ?? null}
-                  licensorIsOwner={licenseOwner === account}
-                  {...props}
-                />
-              )}
-
+              <OutstandingBidView
+                newForSalePrice={outstandingBidForSalePrice}
+                existingForSalePrice={currentOwnerBidForSalePrice}
+                bidTimestamp={outstandingBidTimestamp ?? null}
+                licensorIsOwner={licenseOwner === account}
+                {...props}
+              />
               <AuctionInstructions />
             </>
           ) : null}
