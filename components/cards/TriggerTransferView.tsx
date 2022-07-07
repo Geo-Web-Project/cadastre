@@ -21,7 +21,7 @@ enum Action {
   BID,
 }
 
-type OutstandingBidViewProps = SidebarProps & {
+type TriggerTransferViewProps = SidebarProps & {
   newForSalePrice: BigNumber;
   existingForSalePrice: BigNumber;
   bidTimestamp: BigNumber | null;
@@ -30,7 +30,7 @@ type OutstandingBidViewProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
 };
 
-function OutstandingBidView({
+function TriggerTransferView({
   newForSalePrice,
   existingForSalePrice,
   bidTimestamp,
@@ -38,25 +38,15 @@ function OutstandingBidView({
   licensorIsOwner,
   provider,
   selectedParcelId,
-  paymentToken,
-  account,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  sfFramework,
+  setSelectedParcelId,
   setInteractionState,
-}: OutstandingBidViewProps) {
+}: TriggerTransferViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
     18
-  );
-
-  const existingNetworkFee = fromValueToRate(
-    existingForSalePrice,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator
   );
 
   const existingForSalePriceDisplay = truncateEth(
@@ -91,62 +81,16 @@ function OutstandingBidView({
         .format("YYYY-MM-DD HH:mm")
     : null;
 
-  async function acceptBid() {
+  async function triggerTransfer() {
     setIsActing(true);
     setDidFail(false);
 
-    if (!newForSalePrice) {
-      throw new Error("Could not find newForSalePrice");
-    }
-
-    if (!existingNetworkFee) {
-      throw new Error("Could not find existingNetworkFee");
-    }
-
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
-    );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [BigNumber.from(0), bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
     const signer = provider.getSigner() as any;
 
-    let op;
-    if (BigNumber.from(existingFlow.flowRate).eq(existingNetworkFee)) {
-      op = sfFramework.cfaV1.deleteFlow({
-        sender: account,
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-      });
-    } else {
-      op = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .sub(existingNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-    }
-
     try {
-      const txn = await op.exec(signer);
+      const txn = await auctionSuperApp
+        .connect(signer)
+        .claimOutstandingBid(selectedParcelId);
       await txn.wait();
     } catch (err) {
       console.error(err);
@@ -157,13 +101,13 @@ function OutstandingBidView({
 
     setIsActing(false);
     setInteractionState(STATE.PARCEL_SELECTED);
+
+    setSelectedParcelId("");
+    setSelectedParcelId(selectedParcelId);
   }
 
   return (
     <Card className="bg-purple mt-5">
-      <Card.Header>
-        <h3>Outstanding Bid</h3>
-      </Card.Header>
       <Card.Body>
         <p>
           For Sale Price (Bid): {newForSalePriceDisplay} {PAYMENT_TOKEN}
@@ -178,43 +122,27 @@ function OutstandingBidView({
           Response Deadline:{" "}
           {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
         </p>
-        {licensorIsOwner ? (
-          <>
-            <Button
-              variant="success"
-              className="w-100 mb-2"
-              disabled={isActing}
-              onClick={() => acceptBid()}
-            >
-              {isActing ? spinner : "Accept Bid"}
-            </Button>
-            <Button
-              variant="danger"
-              className="w-100 mb-2"
-              disabled={isActing}
-              onClick={() => setInteractionState(STATE.PARCEL_REJECTING_BID)}
-            >
-              Reject Bid
-            </Button>
-            {didFail && !isActing ? (
-              <Alert
-                variant="danger"
-                dismissible
-                onClick={() => setDidFail(false)}
-              >
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Transaction failed
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>
-                  Oops! Something went wrong. Please try again.
-                </p>
-              </Alert>
-            ) : null}
-          </>
+        <Button
+          variant="primary"
+          className="w-100 mb-2"
+          disabled={isActing}
+          onClick={() => triggerTransfer()}
+        >
+          {isActing ? spinner : "Trigger Transfer"}
+        </Button>
+        {didFail && !isActing ? (
+          <Alert variant="danger" dismissible onClick={() => setDidFail(false)}>
+            <Alert.Heading style={{ fontSize: "1em" }}>
+              Transaction failed
+            </Alert.Heading>
+            <p style={{ fontSize: "0.8em" }}>
+              Oops! Something went wrong. Please try again.
+            </p>
+          </Alert>
         ) : null}
       </Card.Body>
     </Card>
   );
 }
 
-export default OutstandingBidView;
+export default TriggerTransferView;
