@@ -239,7 +239,7 @@ function IndexPage() {
             ></Map>
           </Row>
         ) : (
-          <Home />
+          <Home connectWallet={connectWallet} status={authState.status} />
         )}
       </Container>
     </>
