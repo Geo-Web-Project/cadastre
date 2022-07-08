@@ -1,148 +1,75 @@
-import { NETWORK_NAME } from "../lib/constants";
-import { Image } from "react-bootstrap";
+import Image from "react-bootstrap/Image";
+import Button from "react-bootstrap/Button";
+import React from "react";
+import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 function HomeContent() {
   return (
-    <div
-      style={{
-        position: "absolute",
-        width: "68%",
-        height: "80%",
-        left: "4%",
-        top: "55%",
-        color: "#FFFFFF",
-        fontStyle: "normal",
-        fontWeight: "normal",
-      }}
-    >
-      <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"The Geo Web is an augmented reality metaworld."}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "It’s created with a set of open protocols and a system of property rights for anchoring digital content like augmented reality, non-fungible tokens (NFTs), games, images, video, audio, full websites, etc. to real world locations."
-        }
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "Think of it like a persistent virtual layer covering Earth on which content can be anchored and discovered."
-        }
-      </p>
-      <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"Claim your home or business’s digital land on the Geo Web."}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "This application, the Cadastre, is used to claim, transfer, and manage digital land parcels which correspond to locations on Earth. Land holders get exclusive rights to anchor digital content within a parcel’s boundaries on the network, so what are you waiting for? "
-        }
-      </p>
-      <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"Browse the Geo Web with a universal geospatial browser."}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {" The Geo Web’s v1 browser can be found at browse.geoweb.eth.link/"}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "It’s best expereienced on mobile/wearable devices. On a Geo Web browser, a user’s geolocation is used to automatically resolve the corresponding parcel’s content. It creates a frictionless and unified experience for always-on smart device displays and soon-to-arrive consumer smart glasses. In time, the Geo Web’s experience can become as natural as physical reality. "
-        }
-      </p>
-      <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"The Geo Web is a public good. "}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "Everyone owns the Geo Web. It uses a unique property rights system known as partial common ownership to encourage efficient market dynamics, positive network effects, and egalitarian opportunity. Network funds generated from the system are used to fund more public goods and reward builders, creatives, and users for their contributions to the network. "
-        }
-      </p>
-      <p style={{ fontSize: "26px", lineHeight: "45px" }}>
-        {"Why should I care? "}
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "Web 2.0 is controlled by massive corporations who’s incentives don’t align with the common person’s. We see the impact of this in our economy, politics, and social well-being today. The internet will only increase in importance as augmented reality and digital content begin to prevade the physical world. The infrastructure that defines this REALITY shouldn’t governed by private, for-profit corporations. "
-        }
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "The Web 3.0 movement (including the Geo Web) is looking to reverse these ills of centralization. We believe that the Geo Web’s permissionless, community-owned internet infrastructure can help create a better future with augmented SHARED reality."
-        }
-      </p>
-      <p style={{ fontSize: "14px", lineHeight: "22px" }}>
-        {
-          "If you’re still here reading... props. You can dive even deeper on Geo Web vision at https://docs.geoweb.network/. Otherwise, connect your wallet, and go explore the Geo Web!"
-        }
-      </p>
-    </div>
-  );
-}
+    <div style={{color: "white", lineHeight: "160%"}} className="px-3">
+      <div className="mb-5">
+        <h3 className="mb-3">What is the Geo Web?</h3>
+        <p>
+          The Geo Web is a fair and productive property rights system for anchoring digital media to physical locations. It creates a shared augmented reality layer of the metaverse.
+        </p>
+      </div>
 
-function WalletPrompt() {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        right: 0,
-        top: "100px",
-        width: "22%",
-        height: "220%",
-        background: "#202333",
-        color: "#FFFFFF",
-        fontStyle: "normal",
-        fontWeight: "normal",
-      }}
-    >
-      <Image
-        src="vector.png"
-        style={{ position: "absolute", left: "40%", top: "5%", width: "20%" }}
-      />
-      <div
-        style={{
-          textAlign: "center",
-          width: "80%",
-          left: "10%",
-          position: "absolute",
-          top: "11%",
-        }}
-      >
-        <p
-          style={{ fontSize: "26px", lineHeight: "45px" }}
-        >{`Connect your Web3 wallet to the ${NETWORK_NAME} network to begin`}</p>
+      <div className="mb-5">
+        <h3 className="mb-3">
+          The Geo Web uses partial common ownership to administer its land market and fund public goods:
+        </h3>
+        <ol>
+          <li className="py-1">Geo Web land parcels are NFTs that correspond to physical world locations.</li>
+          <li className="py-1">All land parcels have a publicly triggerable `For Sale Price` set by the current licensor.</li>
+          <li className="py-1">The current licensor must pay an annual `Network Fee` equal to 10% of their current `For Sale Price` to maintain their rights.</li>
+          <li className="py-1">`Network Fees` are used to fund public goods (not a centralized corporation). You have a say in how these funds are used!</li>
+        </ol>
+      </div>
+
+      <div className="mb-5">
+        <h3 className="mb-3">The Geo Web is a geospatial successor to the World Wide Web.</h3>
+        <p>
+          Landholders can anchor NFTs, AR/VR, images, video, audio, data, and more within the geospatial bounds of their parcel as part of an open ecosystem (think of parcels like three-dimensional websites). Users naturally discover content anchored to Geo Web parcels with Spatial Browsers that navigate with geolocation instead of URLs.
+        </p>
       </div>
     </div>
   );
 }
 
-function Home() {
-  return (
-    <>
-      <div
-        style={{
-          position: "absolute",
-          left: "-2%",
-          top: "100px",
-          width: "80%",
-          height: "220%",
-          background: "url(bg.jpg) no-repeat center",
-          backgroundSize: "cover",
-        }}
-      />
-      <iframe
-        style={{
-          position: "absolute",
-          left: "4%",
-          top: "18%",
-          background: "#C4C4C4",
-        }}
-        width="24%"
-        height="34%"
-        src={"https://www.youtube.com/embed/i5cnw43IveE"}
-      />
-      <HomeContent />
+function Home({connectWallet, status}: {connectWallet: () => void, status: string}) {
 
-      {/* */}
-      <WalletPrompt />
-    </>
+  return (
+    <div style={{
+      background: "url(bg.jpg) no-repeat center",
+      backgroundSize: "cover",
+      paddingBottom: "24px",
+      position:"absolute",
+      left: "0",
+      top: "0",
+      padding: "16px"
+    }}>
+      <div style={{paddingTop: "128px", gap: "24px"}} className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2">
+        <HomeContent />
+        <div className="px-3 mb-5 d-flex align-items-center flex-column">
+          <img className="mb-2" src="/arMedia.gif" alt="arMedia" />
+          <span style={{fontSize: "12px", color: "white"}}>Browsing a AR Media Gallery on the Geo Web</span>
+        </div>
+      </div>
+      <div className="d-flex flex-column align-items-center">
+        <Button
+          variant="primary"
+          className="text-light font-weight-bold border-dark mx-auto fit-content"
+          style={{ padding: "16px 18px" }}
+          disabled={status === "connecting"}
+          onClick={connectWallet}
+        >
+          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
+          <span>Get Started</span>
+        </Button>
+        <img src="/claming.gif" className="mt-5" style={{maxWidth: "80%"}}  alt="" />
+        <span style={{fontSize: "12px", marginTop: "18px", color: "white"}}>Claiming a land parcel in New York City on the Geo Web</span>
+      </div>
+
+    </div>
   );
 }
 
