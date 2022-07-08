@@ -11,19 +11,11 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import {
-  NETWORK_ID,
-  CERAMIC_URL,
-  IPFS_BOOTSTRAP_PEER,
-  IPFS_PRELOAD_NODE,
-} from "../lib/constants";
+import { NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { switchNetwork } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
-import { getResolver as getKeyResolver } from "key-did-resolver";
-import { DID } from "dids";
-import { Ed25519Provider } from "key-did-provider-ed25519";
 
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -36,11 +28,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
-import {
-  clearCacaoSession,
-  getOrSetCacao,
-  getOrSetSessionSeed,
-} from "../lib/cacao";
+import { DIDSession } from "@glazed/did-session";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -98,7 +86,8 @@ function IndexPage() {
     }
 
     const start = async () => {
-      const sessionSeed: Uint8Array = getOrSetSessionSeed();
+      localStorage.removeItem("cacao");
+      localStorage.removeItem("sessionSeed");
 
       await switchNetwork(authState.connected.provider.state.provider);
 
@@ -107,31 +96,12 @@ function IndexPage() {
         authState.connected.accountID.address
       );
       const accountId = await ethereumAuthProvider.accountId();
+      const session = new DIDSession({ authProvider: ethereumAuthProvider });
+      const did = await session.authorize();
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
-      const didProvider = new Ed25519Provider(sessionSeed);
-
-      const didKey = new DID({
-        provider: didProvider,
-        resolver: {
-          ...getKeyResolver(),
-        },
-        parent: `did:pkh:${accountId.toString()}`,
-      });
-      await didKey.authenticate();
-
-      // Check or request capability from user
-      const cacao = await getOrSetCacao(
-        didKey,
-        accountId,
-        authState.connected.provider.state.provider
-      );
-
-      const didKeyWithCap = didKey.withCapability(cacao);
-      await didKeyWithCap.authenticate();
-
-      ceramic.did = didKeyWithCap;
+      ceramic.did = did;
       setCeramic(ceramic);
 
       if (!ipfs) {

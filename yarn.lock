@@ -1426,6 +1426,18 @@
     near-api-js "^0.44.2"
     uint8arrays "^3.0.0"
 
+"@ceramicnetwork/blockchain-utils-linking@^2.0.6":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/blockchain-utils-linking/-/blockchain-utils-linking-2.0.7.tgz#cc07be967316ad461271d525e62b27eba43a59fe"
+  integrity sha512-NgTEb+zWvMVKmkD2i1JKueIBPkV2LkC0v2B4hPshi/lmwo1BPlTRfAf3lDCAt7NfM1XSiKEDzilA3E5wdIVqpw==
+  dependencies:
+    "@ceramicnetwork/streamid" "^2.2.0"
+    "@stablelib/sha256" "^1.0.1"
+    caip "~1.1.0"
+    ceramic-cacao "^1.1.1"
+    near-api-js "^0.44.2"
+    uint8arrays "^3.0.0"
+
 "@ceramicnetwork/blockchain-utils-validation@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/blockchain-utils-validation/-/blockchain-utils-validation-0.1.2.tgz#fa8027b64be9100c82902b8f519e8c12d9ae0e84"
@@ -1750,6 +1762,17 @@
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@ceramicnetwork/streamid/-/streamid-2.1.0.tgz#ee3b9e917550bb67618701730b59e2bfede7f8a4"
   integrity sha512-Yf2fFRmctWAq2PgoBTNy4S38JH14dqAb5uk+H2fHdC4iCqsBUGd8kvQ2lH9ifGabOQCkjG4g+LsMxGCTHD0TyQ==
+  dependencies:
+    "@ipld/dag-cbor" "^7.0.0"
+    multiformats "^9.5.8"
+    typescript-memoize "^1.1.0"
+    uint8arrays "^3.0.0"
+    varint "^6.0.0"
+
+"@ceramicnetwork/streamid@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@ceramicnetwork/streamid/-/streamid-2.2.0.tgz#4b442fe75a02031cb72bc0b1f5e6b59decc0242c"
+  integrity sha512-39jTsPwM2Y0flYBptTJmSR9YbIbZ/y9kmzVOVm1hyh3j3liDqHLnj8g+kn4PY4ye1pV6cvXT52SVwc99/R5fNg==
   dependencies:
     "@ipld/dag-cbor" "^7.0.0"
     multiformats "^9.5.8"
@@ -2803,6 +2826,15 @@
   dependencies:
     "@ceramicnetwork/blockchain-utils-linking" "^2.0.0"
     "@ceramicnetwork/stream-tile" "^2.0.0"
+
+"@glazed/did-session@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@glazed/did-session/-/did-session-0.1.1.tgz#53d8cf23b0c7c7b4ec124caf97bd8f1e6bdc64ce"
+  integrity sha512-OyKt89Ek7aciehqtFR6GiGtheqpfwLaZq3R+mFJY9rc++qAmRPt+omKXnXd5I6O6a6XCwUfvEFrGqqzM13cO9g==
+  dependencies:
+    "@ceramicnetwork/blockchain-utils-linking" "^2.0.6"
+    "@ceramicnetwork/stream-tile" "^2.2.2"
+    ceramic-cacao "^1.1.1"
 
 "@glazed/tile-loader@^0.2.0", "@glazed/tile-loader@^0.2.1":
   version "0.2.1"
