@@ -44,6 +44,7 @@ function OutstandingBidView({
   perSecondFeeDenominator,
   sfFramework,
   setInteractionState,
+  setSelectedParcelId,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -66,6 +67,8 @@ function OutstandingBidView({
 
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
+  const [ownerBidContributionRate, setOwnerBidContributionRate] =
+    React.useState<BigNumber | null>(null);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -78,6 +81,9 @@ function OutstandingBidView({
       if (!auctionSuperApp) return;
 
       setBidPeriodLength(await auctionSuperApp.bidPeriodLengthInSeconds());
+      setOwnerBidContributionRate(
+        await auctionSuperApp.ownerBidContributionRate(selectedParcelId)
+      );
     }
 
     checkBidPeriod();
@@ -90,6 +96,13 @@ function OutstandingBidView({
         .utc()
         .format("YYYY-MM-DD HH:mm")
     : null;
+
+  const isPastDeadline =
+    bidDeadline && new Date(Number(bidDeadline) * 1000) <= new Date();
+
+  const shouldAllowTrigger =
+    ownerBidContributionRate &&
+    (ownerBidContributionRate.eq(0) || isPastDeadline);
 
   async function acceptBid() {
     setIsActing(true);
@@ -159,8 +172,33 @@ function OutstandingBidView({
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
+  async function triggerTransfer() {
+    setIsActing(true);
+    setDidFail(false);
+
+    const signer = provider.getSigner() as any;
+
+    try {
+      const txn = await auctionSuperApp
+        .connect(signer)
+        .claimOutstandingBid(selectedParcelId);
+      await txn.wait();
+    } catch (err) {
+      console.error(err);
+      setDidFail(true);
+      setIsActing(false);
+      return;
+    }
+
+    setIsActing(false);
+    setInteractionState(STATE.PARCEL_SELECTED);
+
+    setSelectedParcelId("");
+    setSelectedParcelId(selectedParcelId);
+  }
+
   return (
-    <Card className="bg-purple mt-2">
+    <Card className="bg-purple mt-5">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
@@ -178,7 +216,7 @@ function OutstandingBidView({
           Response Deadline:{" "}
           {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
         </p>
-        {licensorIsOwner ? (
+        {licensorIsOwner && !shouldAllowTrigger ? (
           <>
             <Button
               variant="success"
@@ -196,21 +234,27 @@ function OutstandingBidView({
             >
               Reject Bid
             </Button>
-            {didFail && !isActing ? (
-              <Alert
-                variant="danger"
-                dismissible
-                onClick={() => setDidFail(false)}
-              >
-                <Alert.Heading style={{ fontSize: "1em" }}>
-                  Transaction failed
-                </Alert.Heading>
-                <p style={{ fontSize: "0.8em" }}>
-                  Oops! Something went wrong. Please try again.
-                </p>
-              </Alert>
-            ) : null}
           </>
+        ) : null}
+        {shouldAllowTrigger ? (
+          <Button
+            variant="primary"
+            className="w-100 mb-2"
+            disabled={isActing}
+            onClick={() => triggerTransfer()}
+          >
+            {isActing ? spinner : "Trigger Transfer"}
+          </Button>
+        ) : null}
+        {didFail && !isActing ? (
+          <Alert variant="danger" dismissible onClick={() => setDidFail(false)}>
+            <Alert.Heading style={{ fontSize: "1em" }}>
+              Transaction failed
+            </Alert.Heading>
+            <p style={{ fontSize: "0.8em" }}>
+              Oops! Something went wrong. Please try again.
+            </p>
+          </Alert>
         ) : null}
       </Card.Body>
     </Card>
