@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
-export type TooltipInfoProps = {
+export type InfoTooltipProps = {
   content: JSX.Element;
   target: JSX.Element;
 };
 
-function TooltipInfo(props: TooltipInfoProps) {
+function InfoTooltip(props: InfoTooltipProps) {
   const { content, target } = props;
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -34,4 +34,4 @@ function TooltipInfo(props: TooltipInfoProps) {
   );
 }
 
-export default TooltipInfo;
+export default InfoTooltip;
