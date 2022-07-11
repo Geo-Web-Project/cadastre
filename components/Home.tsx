@@ -51,7 +51,7 @@ function Home({connectWallet, status}: {connectWallet: () => void, status: strin
         <HomeContent />
         <div className="px-3 mb-5 d-flex align-items-center flex-column">
           <img className="mb-2" src="/arMedia.gif" alt="arMedia" />
-          <span style={{fontSize: "12px", color: "white"}}>Browsing a AR Media Gallery on the Geo Web</span>
+          <span style={{fontSize: "12px", color: "white"}}>Browsing an AR Media Gallery on the Geo Web</span>
         </div>
       </div>
       <div className="d-flex flex-column align-items-center">
