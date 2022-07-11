@@ -9,6 +9,7 @@ import Card from "react-bootstrap/Card";
 import { Button, Image } from "react-bootstrap";
 import { STATE } from "../Map";
 import { SidebarProps } from "../Sidebar";
+import InfoTooltip from "../InfoTooltip";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -20,6 +21,16 @@ type FairLaunchInfoProps = SidebarProps & {
   /** auctionEnd. */
   auctionEnd: number;
 };
+
+const infoIcon = (
+  <Image
+    style={{
+      width: "1.1rem",
+      marginLeft: "4px",
+    }}
+    src="info.svg"
+  />
+);
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
   const { currentRequiredBid, auctionEnd, setInteractionState } = props;
@@ -67,8 +78,25 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
       </Row>
       <Card border="secondary" className="bg-dark my-5">
         <Card.Body>
-          <Card.Title className="text-primary font-weight-bold">
-            Auction Details
+          <Card.Title className="text-primary font-weight-bold d-flex justify-content-between ">
+            <span>Auction Details</span>
+            <InfoTooltip
+              content={
+                <div style={{ textAlign: "left" }}>
+                  To promote a fair launch and help limit gas fee costs, Geo Web
+                  land claims were initiated with a global Dutch auction. The
+                  auction requires one-time payments (bids) to execute valid
+                  parcel claims. These auction payments are made in addition to
+                  the ongoing partial common ownership market requirements.
+                  <br />
+                  <br />
+                  The auction started at [Auction Starting Price] ETHx and will
+                  linearly decrease in price over two weeks to an ongoing claim
+                  price of 0 ETHx.
+                </div>
+              }
+              target={infoIcon}
+            />
           </Card.Title>
           <Card.Text>Current Required Bid: {currentRequiredBid} ETHx</Card.Text>
           <Card.Text>Auction End: {formattedAuctionEnd} UTC</Card.Text>
