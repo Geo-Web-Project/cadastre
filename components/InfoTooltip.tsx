@@ -17,7 +17,7 @@ function InfoTooltip(props: InfoTooltipProps) {
     <OverlayTrigger
       trigger={["hover", "focus"]}
       show={showTooltip}
-      placement="top-start"
+      placement="right-end"
       overlay={
         <Tooltip
           onMouseEnter={handleOnMouseEnter}
