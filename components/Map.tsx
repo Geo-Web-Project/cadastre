@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named
-import ReactMapGL, { MapEvent } from "react-map-gl";
+import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
@@ -595,6 +595,7 @@ function Map(props: MapProps) {
             }
             position="top-right"
           />
+          <NavigationControl style={{ right: "2vw", bottom: "90px" }} />
         </ReactMapGL>
       </Col>
       <ButtonGroup
