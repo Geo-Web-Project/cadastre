@@ -203,9 +203,9 @@ function Map(props: MapProps) {
   const mapRef = useRef();
 
   const [mapstyle, setMapstyle] = React.useState(
-    "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+    "mapbox://styles/mapbox/satellite-streets-v11"
   );
-  const [mapStyleName, setMapStyleName] = React.useState("street");
+  const [mapStyleName, setMapStyleName] = React.useState("satellite");
 
   const handleMapstyle = (newStyle: string) => {
     if (newStyle === "satellite")
