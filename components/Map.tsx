@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named
-import ReactMapGL, { MapEvent } from "react-map-gl";
+import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
 import Geocoder from "react-map-gl-geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
@@ -203,9 +203,9 @@ function Map(props: MapProps) {
   const mapRef = useRef();
 
   const [mapstyle, setMapstyle] = React.useState(
-    "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln"
+    "mapbox://styles/mapbox/satellite-streets-v11"
   );
-  const [mapStyleName, setMapStyleName] = React.useState("street");
+  const [mapStyleName, setMapStyleName] = React.useState("satellite");
 
   const handleMapstyle = (newStyle: string) => {
     if (newStyle === "satellite")
@@ -250,7 +250,11 @@ function Map(props: MapProps) {
     });
   }, [data, fetchMore]);
 
-  const [viewport, setViewport] = useState<Record<string, any> | null>(null);
+  const [viewport, setViewport] = useState<Record<string, any> | null>({
+    latitude: 40.780503,
+    longitude: -73.96663,
+    zoom: 13,
+  });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoordX, setOldCoordX] = useState(0);
   const [oldCoordY, setOldCoordY] = useState(0);
@@ -591,6 +595,7 @@ function Map(props: MapProps) {
             }
             position="top-right"
           />
+          <NavigationControl style={{ right: "2vw", bottom: "90px" }} />
         </ReactMapGL>
       </Col>
       <ButtonGroup
