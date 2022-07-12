@@ -250,7 +250,11 @@ function Map(props: MapProps) {
     });
   }, [data, fetchMore]);
 
-  const [viewport, setViewport] = useState<Record<string, any> | null>(null);
+  const [viewport, setViewport] = useState<Record<string, any> | null>({
+    latitude: 40.780503,
+    longitude: -73.96663,
+    zoom: 13,
+  });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoordX, setOldCoordX] = useState(0);
   const [oldCoordY, setOldCoordY] = useState(0);
