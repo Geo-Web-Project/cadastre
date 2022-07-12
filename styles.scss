@@ -15,25 +15,25 @@ $font-family-base: "Open Sans";
   background-color: black;
 }
 
+.mapboxgl-ctrl-group {
+  border: 1px solid map-get($theme-colors, "secondary" );
+  border-radius: 4px;
+}
+
 .mapboxgl-ctrl-icon {
   background: map-get($theme-colors, "dark");
 }
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon:first-child {
   background-image: url("./public/zoom-in.svg");
-  border: 1px solid map-get($theme-colors, "secondary" );
-  border-radius: 4px 4px 0 0;
 }
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon:first-child {
   background-image: url("./public/zoom-out.svg");
-  border: 1px solid map-get($theme-colors, "secondary" );
 }
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon:first-child {
   background-image: url("./public/compass.svg");
-  border: 1px solid map-get($theme-colors, "secondary" );
-  border-radius: 0 0 4px 4px;
 }
 
 @import "~bootstrap/scss/bootstrap";
