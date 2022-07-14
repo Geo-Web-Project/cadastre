@@ -3,6 +3,7 @@ import { Source, Layer } from "react-map-gl";
 import { claimLayer } from "../map-style";
 import { Coord, coordToFeature, GW_MAX_LAT, GW_MAX_LON } from "../Map";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
+import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 
 type Props = {
   existingCoords: Set<string>;
@@ -10,6 +11,9 @@ type Props = {
   claimBase2Coord: Coord | null;
   isValidClaim: boolean;
   setIsValidClaim: React.Dispatch<React.SetStateAction<boolean>>;
+  parcelClaimSize: number;
+  setParcelClaimSize: React.Dispatch<React.SetStateAction<number>>;
+};
 };
 
 function ClaimSource(props: Props) {
@@ -19,6 +23,8 @@ function ClaimSource(props: Props) {
     claimBase2Coord,
     isValidClaim,
     setIsValidClaim,
+    parcelClaimSize,
+    setParcelClaimSize,
   } = props;
   const [features, setFeatures] = React.useState<Set<any>>(new Set());
 
@@ -44,7 +50,10 @@ function ClaimSource(props: Props) {
           );
           _features.add(coordToFeature(gwCoord));
 
-          if (existingCoords.has(gwCoord.toString())) {
+          if (
+            existingCoords.has(gwCoord.toString()) ||
+            parcelClaimSize > MAX_PARCEL_CLAIM
+          ) {
             _isValid = false;
           }
         }
@@ -53,7 +62,14 @@ function ClaimSource(props: Props) {
 
     setFeatures(_features);
     setIsValidClaim(_isValid);
-  }, [claimBase1Coord, claimBase2Coord, existingCoords, setIsValidClaim]);
+    setParcelClaimSize(_features.size);
+  }, [
+    claimBase1Coord,
+    claimBase2Coord,
+    existingCoords,
+    setIsValidClaim,
+    setParcelClaimSize,
+  ]);
 
   return (
     <Source
