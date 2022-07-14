@@ -23,7 +23,7 @@ function ClaimInfo({ parcelClaimSize, setInteractionState }) {
           >
             {parcelClaimSize}/{MAX_PARCEL_CLAIM} Maximum Coordinates
           </span>
-          </Card.Text>
+        </Card.Text>
         <Card.Text>Single click again to set your parcel shape.</Card.Text>
         <Card.Text>Click and drag the map to pan, if needed.</Card.Text>
         <Button
