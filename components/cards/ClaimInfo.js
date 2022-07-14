@@ -1,7 +1,7 @@
 import * as React from "react";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/image";
+import Image from "react-bootstrap/Image";
 import { STATE } from "../Map";
 import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 
