@@ -16,6 +16,7 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
+import InfoTooltip from "../InfoTooltip";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -27,6 +28,16 @@ enum Action {
   CLAIM,
   BID,
 }
+
+const infoIcon = (
+  <Image
+    style={{
+      width: "1.1rem",
+      marginLeft: "4px",
+    }}
+    src="info.svg"
+  />
+);
 
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
@@ -191,6 +202,28 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <Form.Group>
               <Form.Text className="text-primary mb-1">
                 New For Sale Price ({PAYMENT_TOKEN}, Fully Collateralized)
+                <InfoTooltip
+                  content={
+                    <div style={{ textAlign: "left" }}>
+                      The current licensor will have 7 days to respond to your
+                      bid. They must pay a 10% penalty if they reject your bid.
+                      If they do not act during this window, you must submit
+                      another transaction to take effective control of the
+                      parcel.
+                      <br />
+                      <br />
+                      <a
+                        href="https://docs.geoweb.network/concepts/partial-common-ownership"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        You can read more about Partial Common Ownership in our
+                        docs.
+                      </a>
+                    </div>
+                  }
+                  target={infoIcon}
+                />
               </Form.Text>
               <Form.Control
                 required
@@ -212,6 +245,22 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <br />
               <Form.Text className="text-primary mb-1">
                 {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
+                <InfoTooltip
+                  content={
+                    <div style={{ textAlign: "left" }}>
+                      Network fees are proportional to your For Sale Price. They
+                      discourage squatting & create a healthier market. They are
+                      used to fund public goods—promoting positive-sum outcomes.
+                      You have a say in how they're spent!
+                      <br />
+                      <br />
+                      You pay these fees by opening a per-second stream. Your
+                      total yearly payment will be slightly lower than the
+                      displayed value due to rounding.
+                    </div>
+                  }
+                  target={infoIcon}
+                />
               </Form.Text>
               <Form.Control
                 className="bg-dark text-info"

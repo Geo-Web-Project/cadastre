@@ -4,6 +4,7 @@ import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
+import InfoTooltip from "../InfoTooltip";
 
 /**
  * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
@@ -73,7 +74,21 @@ function TransactionSummaryView({
     paymentView = (
       <p>
         {isFairLaunch ? `Max Claim Payment (to Treasury): ` : "Claim Payment: "}
-        {truncateEth(ethers.utils.formatEther(claimPayment), 4)} {PAYMENT_TOKEN}
+        <InfoTooltip
+          content={
+            <div style={{ textAlign: "left" }}>
+              {isFairLaunch
+                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
+                : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
+            </div>
+          }
+          target={
+            <span style={{ textDecoration: "underline" }}>
+              {truncateEth(ethers.utils.formatEther(claimPayment), 4)}{" "}
+              {PAYMENT_TOKEN}
+            </span>
+          }
+        />
       </p>
     );
   } else if (collateralDeposit && currentForSalePrice) {
@@ -85,14 +100,52 @@ function TransactionSummaryView({
     paymentView = (
       <>
         <p>
-          Collateral Deposit: {displayCollateralDeposit} {PAYMENT_TOKEN}
+          Collateral Deposit:{" "}
+          <InfoTooltip
+            content={
+              <div style={{ textAlign: "left" }}>
+                Bids must be fully collateralized. If your bid is rejected, this
+                full amount will be returned.
+              </div>
+            }
+            target={
+              <span style={{ textDecoration: "underline" }}>
+                {displayCollateralDeposit} {PAYMENT_TOKEN}
+              </span>
+            }
+          />
         </p>
         <p>
-          &emsp;Purchase Payment: {displayCurrentForSalePrice} {PAYMENT_TOKEN}
+          &emsp;Purchase Payment:{" "}
+          <InfoTooltip
+            content={
+              <div style={{ textAlign: "left" }}>
+                This is the amount that will be transferred to the current
+                licensor if they accept your bid.
+              </div>
+            }
+            target={
+              <span style={{ textDecoration: "underline" }}>
+                {displayCurrentForSalePrice} {PAYMENT_TOKEN}
+              </span>
+            }
+          />
         </p>
         <p>
-          &emsp;Refundable Collateral: {displayRefundableCollateral}{" "}
-          {PAYMENT_TOKEN}
+          &emsp;Refundable Collateral:{" "}
+          <InfoTooltip
+            content={
+              <div style={{ textAlign: "left" }}>
+                This is the amount that will be returned to you if your bid is
+                accepted.
+              </div>
+            }
+            target={
+              <span style={{ textDecoration: "underline" }}>
+                {displayRefundableCollateral} {PAYMENT_TOKEN}
+              </span>
+            }
+          />
         </p>
       </>
     );
@@ -100,29 +153,113 @@ function TransactionSummaryView({
     const displayPenaltyPayment = formatBalance(penaltyPayment);
     paymentView = (
       <p>
-        Penalty Payment: {displayPenaltyPayment} {PAYMENT_TOKEN}
+        Penalty Payment:{" "}
+        <InfoTooltip
+          content={
+            <div style={{ textAlign: "left" }}>
+              This is the amount you must pay to the Geo Web treasury to reject
+              the incoming bid (10% of the bidder’s For Sale Price). This
+              penalty is enforced to discourage underpricing of your parcel(s).
+            </div>
+          }
+          target={
+            <span style={{ textDecoration: "underline" }}>
+              {displayPenaltyPayment} {PAYMENT_TOKEN}
+            </span>
+          }
+        />
       </p>
     );
   }
 
-  const streamView = txnReady ? (
+  const streamView = (
     <p>
-      Stream: {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
-      {` ${PAYMENT_TOKEN}/s`}
+      Stream:{" "}
+      <InfoTooltip
+        content={
+          <div style={{ textAlign: "left" }}>
+            {collateralDeposit
+              ? "This is the amount you authorize your network fee stream to be increased if your bid is accepted."
+              : "The amount that will be added (or subtracted) from your total network fee stream."}
+          </div>
+        }
+        target={
+          <span style={{ textDecoration: "underline" }}>
+            {txnReady ? (
+              <>
+                {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
+                {` ${PAYMENT_TOKEN}/s`}
+              </>
+            ) : (
+              `N/A`
+            )}
+          </span>
+        }
+      />
     </p>
-  ) : (
-    <p>Stream: N/A</p>
   );
 
-  const streamBufferView = txnReady ? (
+  const streamBufferView = (
     <p>
       Stream Buffer:{" "}
-      {isDeltaPayment ? "+" + streamBufferDisplay : streamBufferDisplay}
-      {` ${PAYMENT_TOKEN}`}
+      <InfoTooltip
+        content={
+          <div style={{ textAlign: "left" }}>
+            {collateralDeposit ? (
+              <>
+                This is the amount you authorize to add to your buffer deposit
+                if your bid is accepted.
+                <br />
+                <br />
+                It is used to incentivize closing your stream(s) if your ETHx
+                balance reaches 0.
+              </>
+            ) : (
+              <>
+                This is the required adjustment to your stream buffer deposit.
+                <br />
+                <br />
+                It is used to incentivize closing your stream(s) if your ETHx
+                balance reaches 0.
+              </>
+            )}
+          </div>
+        }
+        target={
+          <span style={{ textDecoration: "underline" }}>
+            {txnReady ? (
+              <>
+                {isDeltaPayment
+                  ? "+" + streamBufferDisplay
+                  : streamBufferDisplay}
+                {` ${PAYMENT_TOKEN}`}
+              </>
+            ) : (
+              `N/A`
+            )}
+          </span>
+        }
+      />
     </p>
-  ) : (
-    <p>Stream Buffer: N/A</p>
   );
+
+  /**
+   * For use for "Foreclosure Action", #TODO
+   * let foreclosureActionView = (
+    <p>
+      Max Claim Payment (to Licensor):{" "}
+      <InfoTooltip
+        content={
+          <div style={{ textAlign: "left" }}>
+            This is the amount you authorize for your claim payment. You'll only
+            pay the Dutch auction price at the time of transaction confirmation.
+          </div>
+        }
+        target={<></>}
+      />
+    </p>
+  );
+   */
 
   return (
     <div>

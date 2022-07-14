@@ -15,6 +15,27 @@ $font-family-base: "Open Sans";
   background-color: black;
 }
 
+.mapboxgl-ctrl-group {
+  border: 1px solid map-get($theme-colors, "secondary" );
+  border-radius: 4px;
+}
+
+.mapboxgl-ctrl-icon {
+  background: map-get($theme-colors, "dark");
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon:first-child {
+  background-image: url("./public/zoom-in.svg");
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon:first-child {
+  background-image: url("./public/zoom-out.svg");
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon:first-child {
+  background-image: url("./public/compass.svg");
+}
+
 @import "~bootstrap/scss/bootstrap";
 
 .fixed-top {
@@ -43,4 +64,8 @@ $font-family-base: "Open Sans";
   margin-right: 8rem;
   margin-left: 8rem;
   border-top: 1px solid #ced4da;
+}
+
+.tooltip-inner {
+  max-width: 300px;
 }

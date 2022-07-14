@@ -14,6 +14,7 @@ import {
 } from "../../lib/constants";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
+import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
@@ -86,6 +87,16 @@ export function ActionForm(props: ActionFormProps) {
     <span className="spinner-border" role="status">
       <span className="sr-only">Sending Transaction...</span>
     </span>
+  );
+
+  const infoIcon = (
+    <Image
+      style={{
+        width: "1.1rem",
+        marginLeft: "4px",
+      }}
+      src="info.svg"
+    />
   );
 
   const isForSalePriceInvalid: boolean =
@@ -247,6 +258,29 @@ export function ActionForm(props: ActionFormProps) {
               <br />
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
+                <InfoTooltip
+                  content={
+                    <div style={{ textAlign: "left" }}>
+                      Be honest about your personal valuation!
+                      <br />
+                      <br />
+                      You'll have 7 days to accept or reject any bid that meets
+                      this price. You must pay a penalty equal to 10% of the
+                      bidder's new For Sale Price if you wish to reject the bid.{" "}
+                      <br />
+                      <br />
+                      <a
+                        href="https://docs.geoweb.network/concepts/partial-common-ownership"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        You can read more about Partial Common Ownership in our
+                        docs.
+                      </a>
+                    </div>
+                  }
+                  target={infoIcon}
+                />
               </Form.Text>
               <Form.Control
                 required
@@ -276,6 +310,22 @@ export function ActionForm(props: ActionFormProps) {
               <br />
               <Form.Text className="text-primary mb-1">
                 {annualFeePercentage}% Network Fee ({PAYMENT_TOKEN}, Streamed)
+                <InfoTooltip
+                  content={
+                    <div style={{ textAlign: "left" }}>
+                      Network fees are proportional to your For Sale Price. They
+                      discourage squatting & create a healthier market. They are
+                      used to fund public goods—promoting positive-sum outcomes.
+                      You have a say in how they're spent!
+                      <br />
+                      <br />
+                      You pay these fees by opening a per-second stream. Your
+                      total yearly payment will be slightly lower than the
+                      displayed value due to rounding.
+                    </div>
+                  }
+                  target={infoIcon}
+                />
               </Form.Text>
               <Form.Control
                 className="bg-dark text-info"
