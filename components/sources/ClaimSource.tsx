@@ -14,7 +14,6 @@ type Props = {
   parcelClaimSize: number;
   setParcelClaimSize: React.Dispatch<React.SetStateAction<number>>;
 };
-};
 
 function ClaimSource(props: Props) {
   const {
