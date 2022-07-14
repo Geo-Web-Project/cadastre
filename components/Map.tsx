@@ -269,6 +269,7 @@ function Map(props: MapProps) {
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
+  const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
@@ -541,6 +542,7 @@ function Map(props: MapProps) {
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
           setIsParcelAvailable={setIsParcelAvailable}
+          parcelClaimSize={parcelClaimSize}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
@@ -581,6 +583,8 @@ function Map(props: MapProps) {
             claimBase2Coord={claimBase2Coord}
             isValidClaim={isValidClaim}
             setIsValidClaim={setIsValidClaim}
+            parcelClaimSize={parcelClaimSize}
+            setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
           <Geocoder
             mapRef={mapRef}
