@@ -18,3 +18,4 @@ export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
 
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
+export const MAX_PARCEL_CLAIM = 900;
