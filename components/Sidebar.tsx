@@ -17,6 +17,7 @@ export type SidebarProps = MapProps & {
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
+  parcelClaimSize: number;
 };
 
 function Sidebar(props: SidebarProps) {
@@ -25,6 +26,8 @@ function Sidebar(props: SidebarProps) {
     licenseContract,
     claimerContract,
     interactionState,
+    setInteractionState,
+    parcelClaimSize,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -111,7 +114,12 @@ function Sidebar(props: SidebarProps) {
           licenseAddress={licenseContract.address}
         ></ParcelInfo>
       ) : null}
-      {interactionState == STATE.CLAIM_SELECTING ? <ClaimInfo /> : null}
+      {interactionState == STATE.CLAIM_SELECTING ? (
+        <ClaimInfo
+          setInteractionState={setInteractionState}
+          parcelClaimSize={parcelClaimSize}
+        />
+      ) : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&
       perSecondFeeDenominator ? (
