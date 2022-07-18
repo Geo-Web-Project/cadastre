@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, useEffect } from "react";
 import { Source, Layer } from "react-map-gl";
 import { claimLayer } from "../map-style";
 import { Coord, coordToFeature, GW_MAX_LAT, GW_MAX_LON } from "../Map";
@@ -25,11 +25,11 @@ function ClaimSource(props: Props) {
     parcelClaimSize,
     setParcelClaimSize,
   } = props;
-  const [features, setFeatures] = React.useState<Set<any>>(new Set());
 
-  React.useEffect(() => {
-    const _features = new Set();
-    let _isValid = true;
+  let gwCoord = {};
+
+  const geoJsonFeatures = useMemo(() => {
+    const _features = [];
     if (claimBase1Coord != null && claimBase2Coord != null) {
       for (
         let _x = Math.min(claimBase1Coord.x, claimBase2Coord.x);
@@ -41,34 +41,26 @@ function ClaimSource(props: Props) {
           _y <= Math.max(claimBase1Coord.y, claimBase2Coord.y);
           _y++
         ) {
-          const gwCoord = GeoWebCoordinate.fromXandY(
-            _x,
-            _y,
-            GW_MAX_LON,
-            GW_MAX_LAT
-          );
-          _features.add(coordToFeature(gwCoord));
-
-          if (
-            existingCoords.has(gwCoord.toString()) ||
-            parcelClaimSize > MAX_PARCEL_CLAIM
-          ) {
-            _isValid = false;
-          }
+          gwCoord = GeoWebCoordinate.fromXandY(_x, _y, GW_MAX_LON, GW_MAX_LAT);
+          _features.push(coordToFeature(gwCoord));
         }
       }
     }
+    return _features;
+  }, [claimBase1Coord, claimBase2Coord]);
 
-    setFeatures(_features);
+  useEffect(() => {
+    let _isValid = true;
+    if (
+      existingCoords.has(gwCoord.toString()) ||
+      parcelClaimSize > MAX_PARCEL_CLAIM
+    ) {
+      _isValid = false;
+    }
+
     setIsValidClaim(_isValid);
-    setParcelClaimSize(_features.size);
-  }, [
-    claimBase1Coord,
-    claimBase2Coord,
-    existingCoords,
-    setIsValidClaim,
-    setParcelClaimSize,
-  ]);
+    setParcelClaimSize(geoJsonFeatures.length);
+  }, [existingCoords, setIsValidClaim, setParcelClaimSize, geoJsonFeatures]);
 
   return (
     <Source
@@ -76,7 +68,7 @@ function ClaimSource(props: Props) {
       type="geojson"
       data={{
         type: "FeatureCollection",
-        features: Array.from(features),
+        features: geoJsonFeatures,
       }}
     >
       <Layer {...claimLayer(isValidClaim)} />

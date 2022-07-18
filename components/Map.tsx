@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 // eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
-import Geocoder from "react-map-gl-geocoder";
+import Geocoder from "../lib/Geocoder";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 import ClaimSource from "./sources/ClaimSource";
@@ -17,7 +17,7 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers } from "ethers";
 
@@ -199,7 +199,6 @@ function Map(props: MapProps) {
     },
   });
 
-  const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef();
 
   const [mapstyle, setMapstyle] = React.useState(
@@ -274,17 +273,50 @@ function Map(props: MapProps) {
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
   const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
+  const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
+    string[]
+  >(["parcels-layer"]);
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
 
-  const _onViewportSearch = useCallback((nextViewport: any) => {
-    setViewport(nextViewport);
-  }, []);
+  const flyToLocation = useCallback(
+    ({ longitude, latitude, duration, zoom }) => {
+      mapRef.current?.flyTo({
+        center: [longitude, latitude],
+        duration,
+        zoom,
+      });
+    },
+    []
+  );
 
-  function _onViewportChange(nextViewport: any) {
+  function _onLoad() {
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+    const params = normalizeQueryVariables(x, y);
+
+    const opts = {
+      lastBlock: 0,
+      ...params,
+    };
+    console.debug("Refetch on load");
+    console.debug(opts);
+    refetch(opts);
+
+    setOldCoordX(x);
+    setOldCoordY(y);
+  }
+
+  function _onMove(nextViewport: any) {
     if (interactionState == STATE.EDITING_GALLERY) {
       return;
     }
@@ -342,20 +374,7 @@ function Map(props: MapProps) {
     }
   }
 
-  // if using Geocoder default settings, you can just use handleViewportChange directly
-  const _onGeocoderViewportChange = useCallback(
-    (newViewport: any) => {
-      const geocoderDefaultOverrides = { transitionDuration: 1000 };
-
-      return _onViewportSearch({
-        ...newViewport,
-        ...geocoderDefaultOverrides,
-      });
-    },
-    [_onViewportSearch]
-  );
-
-  function onHover(event: MapEvent) {
+  function _onMouseEnter(event: MapEvent) {
     if (event.features == null || viewport?.zoom < 5) {
       return;
     }
@@ -368,8 +387,8 @@ function Map(props: MapProps) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
-          event.lngLat[0],
-          event.lngLat[1],
+          event.lngLat.lng,
+          event.lngLat.lat,
           GW_MAX_LON,
           GW_MAX_LAT
         );
@@ -402,7 +421,7 @@ function Map(props: MapProps) {
     }
   }
 
-  function onClick(event: MapEvent) {
+  function _onClick(event: MapEvent) {
     if (viewport?.zoom < 5) {
       return;
     }
@@ -425,8 +444,8 @@ function Map(props: MapProps) {
         return true;
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
-          event.lngLat[0],
-          event.lngLat[1],
+          event.lngLat.lng,
+          event.lngLat.lat,
           GW_MAX_LON,
           GW_MAX_LAT
         );
@@ -440,8 +459,8 @@ function Map(props: MapProps) {
     }
 
     const gwCoord = GeoWebCoordinate.fromGPS(
-      event.lngLat[0],
-      event.lngLat[1],
+      event.lngLat.lng,
+      event.lngLat.lat,
       GW_MAX_LON,
       GW_MAX_LAT
     );
@@ -451,10 +470,8 @@ function Map(props: MapProps) {
     };
 
     const nextViewport = {
-      latitude: event.lngLat[1],
-      longitude: event.lngLat[0],
-      zoom: ZOOM_GRID_LEVEL + 1,
-      transitionDuration: 500,
+      latitude: event.lngLat.lat,
+      longitude: event.lngLat.lng,
     };
 
     switch (interactionState) {
@@ -468,7 +485,12 @@ function Map(props: MapProps) {
         setInteractionState(STATE.CLAIM_SELECTING);
 
         setViewport(nextViewport);
-        _onViewportChange(nextViewport);
+        flyToLocation({
+          longitude: nextViewport.longitude,
+          latitude: nextViewport.latitude,
+          zoom: ZOOM_GRID_LEVEL + 1,
+          duration: 500,
+        });
         break;
       case STATE.CLAIM_SELECTING:
         if (!isValidClaim) {
@@ -503,11 +525,15 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+        setInteractiveLayerIds(["parcels-layer"]);
         break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
         setClaimBase2Coord(null);
         setParcelHoverId(selectedParcelId);
+        break;
+      case STATE.CLAIM_SELECTING:
+        setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
         break;
       default:
         break;
@@ -525,6 +551,7 @@ function Map(props: MapProps) {
     const listener = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setInteractionState(STATE.VIEWING);
+        setInteractiveLayerIds(["parcels-layer"]);
       }
     };
     window.addEventListener("keydown", listener);
@@ -550,29 +577,21 @@ function Map(props: MapProps) {
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
-        <div
-          id="geocoder"
-          ref={geocoderContainerRef}
-          style={{
-            position: "absolute",
-            top: "14vh",
-            right: "0vw",
-            zIndex: 1,
-          }}
-        />
         <ReactMapGL
+          style={{
+            width: interactionState != STATE.VIEWING ? "75vw" : "100vw",
+            height: interactionState != STATE.VIEWING ? "100vh" : "100vh",
+          }}
           ref={mapRef}
           {...viewport}
-          width={interactionState != STATE.VIEWING ? "75vw" : "100vw"}
-          height={interactionState != STATE.VIEWING ? "100vh" : "100vh"}
-          mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+          mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle={mapstyle}
-          mapOptions={{
-            renderWorldCopies: false,
-          }}
-          onViewportChange={_onViewportChange}
-          onHover={onHover}
-          onClick={onClick}
+          interactiveLayerIds={interactiveLayerIds}
+          renderWorldCopies={false}
+          onLoad={_onLoad}
+          onMove={(e) => _onMove(e.viewState)}
+          onMouseEnter={_onMouseEnter}
+          onClick={_onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
@@ -591,15 +610,10 @@ function Map(props: MapProps) {
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
           <Geocoder
-            mapRef={mapRef}
-            containerRef={geocoderContainerRef}
-            onViewportChange={_onGeocoderViewportChange}
-            mapboxApiAccessToken={
-              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN
-            }
+            mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
             position="top-right"
           />
-          <NavigationControl style={{ right: "2vw", bottom: "90px" }} />
+          <NavigationControl position="bottom-right" />
         </ReactMapGL>
       </Col>
       <ButtonGroup
