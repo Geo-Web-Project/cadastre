@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import GeoJSON from "geojson";
-import * as React from "react";
+import { useMemo } from "react";
 import { Source, Layer } from "react-map-gl";
 import { PolygonQuery } from "../Map";
 import { parcelLayer, parcelHighlightLayer } from "../map-style";
@@ -38,14 +38,13 @@ type Props = {
 
 function ParcelSource(props: Props) {
   const { data, parcelHoverId, selectedParcelId, isAvailable } = props;
-  const [geoJsonFeatures, setGeoJsonFeatures] = React.useState<
-    GeoJSON.Feature[]
-  >([]);
 
-  React.useEffect(() => {
-    if (data != null) {
-      setGeoJsonFeatures(convertToGeoJson(data));
+  const geoJsonFeatures = useMemo(() => {
+    let features = [];
+    if (data !== null) {
+      features = convertToGeoJson(data);
     }
+    return features;
   }, [data]);
 
   return (
