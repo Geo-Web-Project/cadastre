@@ -1,17 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
-import { GeoWebCoordinate } from "js-geo-web-coordinate";
-import { ParcelInfoProps } from "./ParcelInfo";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { NETWORK_ID, AUCTION_LENGTH } from "../../lib/constants";
-import { _calculateAuctionValue } from "./AuctionInfo";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
-import { formatBalance } from "../../lib/formatBalance";
-import { truncateEth } from "../../lib/truncate";
 
 enum Action {
   CLAIM,
@@ -23,8 +16,6 @@ export type ReclaimActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   requiredBid: BigNumber;
   licenseOwner: string;
-  forSalePrice: BigNumber;
-  auctionStart: BigNumber;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -36,8 +27,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     auctionSuperApp,
     provider,
     selectedParcelId,
-    forSalePrice,
-    auctionStart,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     sfFramework,
@@ -63,15 +52,6 @@ function ReclaimAction(props: ReclaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
-
-      /*
-  const requiredBid = useMemo(() => {
-    if (forSalePrice && auctionStart) {
-      return _calculateAuctionValue(forSalePrice, auctionStart, AUCTION_LENGTH);
-    }
-    return null;
-  }, [forSalePrice, auctionStart]);
-       */
 
   async function _reclaim() {
     if (!displayNewForSalePrice || !newNetworkFee || isForSalePriceInvalid) {
@@ -107,13 +87,11 @@ function ReclaimAction(props: ReclaimActionProps) {
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
 
-    const newFlowRate = newNetworkFee;
-
     const signer = provider.getSigner() as any;
 
     const updateFlowOperation = sfFramework.cfaV1.updateFlow({
       flowRate: BigNumber.from(existingFlow.flowRate)
-        .add(newFlowRate)
+        .add(newNetworkFee)
         .toString(),
       receiver: auctionSuperApp.address,
       superToken: paymentToken.address,
@@ -128,7 +106,7 @@ function ReclaimAction(props: ReclaimActionProps) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
 
-    const receipt = await txn.wait();
+    await txn.wait();
     setInteractionState(STATE.PARCEL_SELECTED);
 
     return selectedParcelId;

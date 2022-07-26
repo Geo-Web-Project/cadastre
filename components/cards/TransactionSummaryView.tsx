@@ -86,7 +86,7 @@ function TransactionSummaryView({
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {isFairLaunch
+              {isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
                 ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
                 : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
             </div>
@@ -251,24 +251,6 @@ function TransactionSummaryView({
       />
     </p>
   );
-
-  /**
-   * For use for "Foreclosure Action", #TODO
-   * let foreclosureActionView = (
-    <p>
-      Max Claim Payment (to Licensor):{" "}
-      <InfoTooltip
-        content={
-          <div style={{ textAlign: "left" }}>
-            This is the amount you authorize for your claim payment. You'll only
-            pay the Dutch auction price at the time of transaction confirmation.
-          </div>
-        }
-        target={<></>}
-      />
-    </p>
-  );
-   */
 
   return (
     <div>

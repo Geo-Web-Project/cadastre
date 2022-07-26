@@ -118,11 +118,11 @@ function AuctionInfo({
     <>
       <Card className="bg-purple">
         <Card.Header>
-          <h3>
+          <h4>
             {interactionState == STATE.PARCEL_RECLAIMING
               ? "Auction Details"
               : "Foreclosure Auction"}
-          </h3>
+          </h4>
         </Card.Header>
         <Card.Body className="pb-4">
           <p className="text-truncate">
