@@ -5,6 +5,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
+import { STATE } from "../Map";
 
 /**
  * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
@@ -32,6 +33,9 @@ type TransactionSummaryViewProps = SidebarProps & {
 function TransactionSummaryView({
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
+  account,
+  interactionState,
+  licenseOwner,
   provider,
   isFairLaunch,
   claimPayment,
@@ -73,7 +77,12 @@ function TransactionSummaryView({
   if (claimPayment) {
     paymentView = (
       <p>
-        {isFairLaunch ? `Max Claim Payment (to Treasury): ` : "Claim Payment: "}
+        {isFairLaunch
+          ? `Max Claim Payment (to Treasury): `
+          : interactionState == STATE.PARCEL_RECLAIMING &&
+            account.toLowerCase() != licenseOwner.toLowerCase()
+          ? "Max Claim Payment (to Licensor): "
+          : "Claim Payment: "}
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>

@@ -30,6 +30,7 @@ export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseAddress: string;
+  licenseOwner?: string;
   loading: boolean;
   performAction: () => Promise<string | void>;
   actionData: ActionData;
@@ -52,6 +53,7 @@ export type ActionData = {
 export function ActionForm(props: ActionFormProps) {
   const {
     account,
+    licenseOwner,
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -60,6 +62,7 @@ export function ActionForm(props: ActionFormProps) {
     actionData,
     setActionData,
     basicProfileStreamManager,
+    interactionState,
     setInteractionState,
     licenseAddress,
     ceramic,
@@ -212,50 +215,57 @@ export function ActionForm(props: ActionFormProps) {
         <Card.Body>
           <Form>
             <Form.Group>
-              <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
-              <Form.Control
-                isInvalid={isParcelNameInvalid}
-                className="bg-dark text-light"
-                type="text"
-                placeholder="Parcel Name"
-                aria-label="Parcel Name"
-                aria-describedby="parcel-name"
-                defaultValue={parcelName}
-                disabled={isActing || isLoading}
-                onChange={(e) =>
-                  updateActionData({ parcelName: e.target.value })
-                }
-              />
-              {isParcelNameInvalid ? (
-                <Form.Control.Feedback type="invalid">
-                  Parcel name cannot be longer than 150 characters
-                </Form.Control.Feedback>
-              ) : null}
-              <br />
-              <Form.Text className="text-primary mb-1">
-                Content Link (http://, https://, ipfs://, ipns://)
-              </Form.Text>
-              <Form.Control
-                isInvalid={isURIInvalid}
-                className="bg-dark text-light"
-                type="text"
-                placeholder="URI (http://, https://, ipfs://, ipns://)"
-                aria-label="Web Content URI"
-                aria-describedby="web-content-uri"
-                defaultValue={parcelWebContentURI}
-                disabled={isActing || isLoading}
-                onChange={(e) =>
-                  updateActionData({ parcelWebContentURI: e.target.value })
-                }
-              />
-              {isURIInvalid ? (
-                <Form.Control.Feedback type="invalid">
-                  Web content URI must be one of
-                  (http://,https://,ipfs://,ipns://) and less than 150
-                  characters
-                </Form.Control.Feedback>
-              ) : null}
-              <br />
+              {interactionState == STATE.PARCEL_RECLAIMING &&
+              account.toLowerCase() == licenseOwner.toLowerCase() ? null : (
+                <>
+                  <Form.Text className="text-primary mb-1">
+                    Parcel Name
+                  </Form.Text>
+                  <Form.Control
+                    isInvalid={isParcelNameInvalid}
+                    className="bg-dark text-light"
+                    type="text"
+                    placeholder="Parcel Name"
+                    aria-label="Parcel Name"
+                    aria-describedby="parcel-name"
+                    defaultValue={parcelName}
+                    disabled={isActing || isLoading}
+                    onChange={(e) =>
+                      updateActionData({ parcelName: e.target.value })
+                    }
+                  />
+                  {isParcelNameInvalid ? (
+                    <Form.Control.Feedback type="invalid">
+                      Parcel name cannot be longer than 150 characters
+                    </Form.Control.Feedback>
+                  ) : null}
+                  <br />
+                  <Form.Text className="text-primary mb-1">
+                    Content Link (http://, https://, ipfs://, ipns://)
+                  </Form.Text>
+                  <Form.Control
+                    isInvalid={isURIInvalid}
+                    className="bg-dark text-light"
+                    type="text"
+                    placeholder="URI (http://, https://, ipfs://, ipns://)"
+                    aria-label="Web Content URI"
+                    aria-describedby="web-content-uri"
+                    defaultValue={parcelWebContentURI}
+                    disabled={isActing || isLoading}
+                    onChange={(e) =>
+                      updateActionData({ parcelWebContentURI: e.target.value })
+                    }
+                  />
+                  {isURIInvalid ? (
+                    <Form.Control.Feedback type="invalid">
+                      Web content URI must be one of
+                      (http://,https://,ipfs://,ipns://) and less than 150
+                      characters
+                    </Form.Control.Feedback>
+                  ) : null}
+                  <br />
+                </>
+              )}
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
