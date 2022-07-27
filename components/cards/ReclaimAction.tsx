@@ -109,7 +109,7 @@ function ReclaimAction(props: ReclaimActionProps) {
 
     await txn.wait();
 
-    return selectedParcelId;
+    return BigNumber.from(selectedParcelId).toNumber();
   }
 
   return (

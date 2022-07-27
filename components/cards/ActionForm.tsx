@@ -190,10 +190,7 @@ export function ActionForm(props: ActionFormProps) {
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
 
-      if (interactionState != STATE.PARCEL_RECLAIMING) {
-        setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-      }
-
+      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
     } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
