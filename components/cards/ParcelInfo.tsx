@@ -94,8 +94,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
 
-  const [requiredBid, setRequiredBid] =
-    React.useState<BigNumber | null>(null);
+  const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);

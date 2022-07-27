@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ActionData, ActionForm } from "./ActionForm";
+import { STATE } from "../Map";
 import { BigNumber, ethers } from "ethers";
+import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate } from "../../lib/utils";
@@ -30,7 +31,9 @@ function ReclaimAction(props: ReclaimActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     sfFramework,
+    setInteractionState,
   } = props;
+
   const [actionData, setActionData] = useState<ActionData>({
     isActing: false,
     didFail: false,
@@ -122,7 +125,11 @@ function ReclaimAction(props: ReclaimActionProps) {
         summaryView={
           newNetworkFee ? (
             <TransactionSummaryView
-              claimPayment={account.toLowerCase() == licenseOwner.toLowerCase()  ? BigNumber.from("0") : requiredBid}
+              claimPayment={
+                account.toLowerCase() == licenseOwner.toLowerCase()
+                  ? BigNumber.from("0")
+                  : requiredBid
+              }
               newNetworkFee={newNetworkFee}
               {...props}
             />

@@ -76,7 +76,7 @@ function ParcelSource(props: Props) {
           ["==", "parcelId", selectedParcelId],
         ]}
       />
-      {invalidLicenseId === selectedParcelId && (
+      {invalidLicenseId == selectedParcelId && (
         <Layer
           {...parcelInvalidLayer}
           filter={["==", "parcelId", selectedParcelId]}

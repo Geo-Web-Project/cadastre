@@ -8,11 +8,7 @@ import { PAYMENT_TOKEN, AUCTION_LENGTH } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 
-export function _calculateAuctionValue(
-  forSalePrice,
-  auctionStart,
-  auctionLength
-) {
+function _calculateAuctionValue(forSalePrice, auctionStart, auctionLength) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
   const length = BigNumber.from(auctionLength);
   if (blockTimestamp.gt(auctionStart.add(length))) {
@@ -28,6 +24,7 @@ function _calculateTimeString(remaining) {
   if (remaining <= 0) {
     return "0d 0h 0m 0s";
   }
+
   const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
   const hours = Math.floor(
     (remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -49,16 +46,18 @@ export type AuctionInfoProps = {
   setRequiredBid: React.Dispatch<React.SetStateAction<BigNumber>>;
 };
 
-function AuctionInfo({
-  account,
-  licenseOwner,
-  forSalePrice,
-  auctionStart,
-  interactionState,
-  setInteractionState,
-  requiredBid,
-  setRequiredBid,
-}: AuctionInfoProps) {
+function AuctionInfo(props: AuctionInfoProps) {
+  const {
+    account,
+    licenseOwner,
+    forSalePrice,
+    auctionStart,
+    interactionState,
+    setInteractionState,
+    requiredBid,
+    setRequiredBid,
+  } = props;
+
   const [auctionEnd, setAuctionEnd] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(null);
 
