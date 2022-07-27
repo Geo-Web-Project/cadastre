@@ -390,7 +390,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : interactionState == STATE.PARCEL_RECLAIMING ? null : (
             <p>Unclaimed Coordinates</p>
           )}
-          {invalidLicenseId == selectedParcelId ? (
+          {interactionState == STATE.PARCEL_SELECTED && invalidLicenseId == selectedParcelId ? (
             <AuctionInfo
               account={account}
               licenseOwner={licenseOwner}

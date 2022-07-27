@@ -16,6 +16,7 @@ export type ReclaimActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   requiredBid: BigNumber;
   licenseOwner: string;
+  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -27,6 +28,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     auctionSuperApp,
     provider,
     selectedParcelId,
+    setInvalidLicenseId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     sfFramework,
@@ -108,6 +110,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     }
 
     await txn.wait();
+    setInvalidLicenseId("");
 
     return BigNumber.from(selectedParcelId).toNumber();
   }
