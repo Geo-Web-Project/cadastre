@@ -189,7 +189,11 @@ export function ActionForm(props: ActionFormProps) {
         _assetContentManager
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
-      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
+
+      if (interactionState != STATE.PARCEL_RECLAIMING) {
+        setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
+      }
+
     } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
       await basicProfileStreamManager.createOrUpdateStream(content);
@@ -216,7 +220,7 @@ export function ActionForm(props: ActionFormProps) {
           <Form>
             <Form.Group>
               {interactionState == STATE.PARCEL_RECLAIMING &&
-              account.toLowerCase() == licenseOwner.toLowerCase() ? null : (
+              account.toLowerCase() == licenseOwner?.toLowerCase() ? null : (
                 <>
                   <Form.Text className="text-primary mb-1">
                     Parcel Name

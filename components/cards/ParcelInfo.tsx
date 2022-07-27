@@ -209,7 +209,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
 
-  const isLoading = loading || data == null || licenseOwner == null;
+  const isLoading = loading || data == null;
 
   let hrefWebContent;
   // Translate ipfs:// to case-insensitive base
@@ -289,7 +289,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     title = (
       <>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {account.toLowerCase() == licenseOwner.toLowerCase()
+          {account.toLowerCase() == licenseOwner?.toLowerCase()
             ? "Reclaim"
             : "Foreclosure Claim"}
         </h1>

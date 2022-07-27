@@ -80,7 +80,7 @@ function TransactionSummaryView({
         {isFairLaunch
           ? `Max Claim Payment (to Treasury): `
           : interactionState == STATE.PARCEL_RECLAIMING &&
-            account.toLowerCase() != licenseOwner.toLowerCase()
+            account.toLowerCase() != licenseOwner?.toLowerCase()
           ? "Max Claim Payment (to Licensor): "
           : "Claim Payment: "}
         <InfoTooltip

@@ -107,7 +107,7 @@ function AuctionInfo(props: AuctionInfoProps) {
         setInteractionState(STATE.PARCEL_RECLAIMING);
       }}
     >
-      {account.toLowerCase() == licenseOwner.toLowerCase()
+      {account.toLowerCase() == licenseOwner?.toLowerCase()
         ? "Reclaim"
         : "Claim"}
     </Button>

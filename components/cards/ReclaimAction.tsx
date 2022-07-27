@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { STATE } from "../Map";
 import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
@@ -31,7 +30,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     sfFramework,
-    setInteractionState,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -110,7 +108,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     }
 
     await txn.wait();
-    setInteractionState(STATE.PARCEL_SELECTED);
 
     return selectedParcelId;
   }
@@ -126,7 +123,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           newNetworkFee ? (
             <TransactionSummaryView
               claimPayment={
-                account.toLowerCase() == licenseOwner.toLowerCase()
+                account.toLowerCase() == licenseOwner?.toLowerCase()
                   ? BigNumber.from("0")
                   : requiredBid
               }
