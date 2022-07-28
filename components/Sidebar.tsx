@@ -106,7 +106,7 @@ function Sidebar(props: SidebarProps) {
         <FairLaunchInfo
           currentRequiredBid={truncateEth(
             ethers.utils.formatEther(requiredBid),
-            4
+            8
           )}
           auctionEnd={auctionEnd.toNumber() * 1000}
           {...props}
