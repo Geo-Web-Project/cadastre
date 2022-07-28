@@ -43,6 +43,7 @@ export enum STATE {
   PARCEL_PLACING_BID = 5,
   EDITING_GALLERY = 6,
   PARCEL_REJECTING_BID = 7,
+  PARCEL_RECLAIMING = 8,
 }
 
 export type Coord = {
@@ -276,6 +277,7 @@ function Map(props: MapProps) {
   const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
     string[]
   >(["parcels-layer"]);
+  const [invalidLicenseId, setInvalidLicenseId] = useState("");
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
@@ -374,7 +376,7 @@ function Map(props: MapProps) {
     }
   }
 
-  function _onMouseEnter(event: MapEvent) {
+  function _onMouseMove(event: MapEvent) {
     if (event.features == null || viewport?.zoom < 5) {
       return;
     }
@@ -574,6 +576,8 @@ function Map(props: MapProps) {
           setSelectedParcelId={setSelectedParcelId}
           setIsParcelAvailable={setIsParcelAvailable}
           parcelClaimSize={parcelClaimSize}
+          invalidLicenseId={invalidLicenseId}
+          setInvalidLicenseId={setInvalidLicenseId}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
@@ -590,7 +594,7 @@ function Map(props: MapProps) {
           renderWorldCopies={false}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
-          onMouseEnter={_onMouseEnter}
+          onMouseMove={_onMouseMove}
           onClick={_onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
@@ -599,6 +603,7 @@ function Map(props: MapProps) {
             isAvailable={isParcelAvailable}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}
+            invalidLicenseId={invalidLicenseId}
           ></ParcelSource>
           <ClaimSource
             existingCoords={existingCoords}

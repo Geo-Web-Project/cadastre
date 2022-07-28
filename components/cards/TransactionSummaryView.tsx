@@ -5,6 +5,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
+import { STATE } from "../Map";
 
 /**
  * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
@@ -32,6 +33,9 @@ type TransactionSummaryViewProps = SidebarProps & {
 function TransactionSummaryView({
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
+  account,
+  interactionState,
+  licenseOwner,
   provider,
   isFairLaunch,
   claimPayment,
@@ -73,18 +77,23 @@ function TransactionSummaryView({
   if (claimPayment) {
     paymentView = (
       <p>
-        {isFairLaunch ? `Max Claim Payment (to Treasury): ` : "Claim Payment: "}
+        {isFairLaunch
+          ? `Max Claim Payment (to Treasury): `
+          : interactionState == STATE.PARCEL_RECLAIMING &&
+            account.toLowerCase() != licenseOwner?.toLowerCase()
+          ? "Max Claim Payment (to Licensor): "
+          : "Claim Payment: "}
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {isFairLaunch
+              {isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
                 ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
                 : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
             </div>
           }
           target={
             <span style={{ textDecoration: "underline" }}>
-              {truncateEth(ethers.utils.formatEther(claimPayment), 4)}{" "}
+              {truncateEth(ethers.utils.formatEther(claimPayment), 8)}{" "}
               {PAYMENT_TOKEN}
             </span>
           }
@@ -242,24 +251,6 @@ function TransactionSummaryView({
       />
     </p>
   );
-
-  /**
-   * For use for "Foreclosure Action", #TODO
-   * let foreclosureActionView = (
-    <p>
-      Max Claim Payment (to Licensor):{" "}
-      <InfoTooltip
-        content={
-          <div style={{ textAlign: "left" }}>
-            This is the amount you authorize for your claim payment. You'll only
-            pay the Dutch auction price at the time of transaction confirmation.
-          </div>
-        }
-        target={<></>}
-      />
-    </p>
-  );
-   */
 
   return (
     <div>

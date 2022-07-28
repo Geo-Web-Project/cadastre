@@ -16,6 +16,7 @@ import CID from "cids";
 import { SidebarProps } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
+import ReclaimAction from "./ReclaimAction";
 import { BigNumber } from "ethers";
 import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { usePinningManager } from "../../lib/PinningManager";
@@ -24,6 +25,7 @@ import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
+import AuctionInfo from "./AuctionInfo";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
@@ -41,6 +43,7 @@ const parcelQuery = gql`
           perSecondFeeNumerator
           perSecondFeeDenominator
           forSalePrice
+          timestamp
         }
         outstandingBid {
           timestamp
@@ -59,6 +62,7 @@ export type ParcelInfoProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseAddress: string;
+  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -72,6 +76,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     licenseContract,
     ipfs,
     firebasePerf,
+    invalidLicenseId,
+    setInvalidLicenseId,
+    auctionSuperApp,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -80,11 +87,14 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] =
-    React.useState<string | null>(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
+    string | null
+  >(null);
 
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
+
+  const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -109,6 +119,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   let hasOutstandingBid = false;
   let outstandingBidder: string | null = null;
   let currentOwnerBidForSalePrice: BigNumber | null = null;
+  let currentOwnerBidTimestamp: BigNumber | null = null;
   let outstandingBidForSalePrice: BigNumber | null = null;
   let outstandingBidTimestamp;
   if (data && data.landParcel && data.landParcel.license) {
@@ -127,10 +138,22 @@ function ParcelInfo(props: ParcelInfoProps) {
     currentOwnerBidForSalePrice = BigNumber.from(
       data.landParcel.license.currentOwnerBid.forSalePrice
     );
+    currentOwnerBidTimestamp = BigNumber.from(
+      data.landParcel.license.currentOwnerBid.timestamp
+    );
     outstandingBidder = data.landParcel.license.outstandingBid.bidder;
     outstandingBidTimestamp = BigNumber.from(
       data.landParcel.license.outstandingBid.timestamp
     );
+    auctionSuperApp
+      .ownerBidContributionRate(selectedParcelId)
+      .then((ownerBidContributionRate) => {
+        if (ownerBidContributionRate.eq(0)) {
+          setInvalidLicenseId(selectedParcelId);
+        } else {
+          setInvalidLicenseId("");
+        }
+      });
   }
 
   React.useEffect(() => {
@@ -188,7 +211,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
 
-  const isLoading = loading || data == null || licenseOwner == null;
+  const isLoading = loading || data == null;
 
   let hrefWebContent;
   // Translate ipfs:// to case-insensitive base
@@ -262,6 +285,16 @@ function ParcelInfo(props: ParcelInfoProps) {
     title = (
       <>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Claim a Parcel</h1>
+      </>
+    );
+  } else if (interactionState == STATE.PARCEL_RECLAIMING) {
+    title = (
+      <>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+          {account.toLowerCase() == licenseOwner?.toLowerCase()
+            ? "Reclaim"
+            : "Foreclosure Claim"}
+        </h1>
       </>
     );
   } else {
@@ -354,11 +387,25 @@ function ParcelInfo(props: ParcelInfoProps) {
                 )}
               </p>
               <br />
-              {buttons}
+              {invalidLicenseId == selectedParcelId ? null : buttons}
             </>
-          ) : (
+          ) : interactionState == STATE.PARCEL_RECLAIMING ? null : (
             <p>Unclaimed Coordinates</p>
           )}
+          {interactionState == STATE.PARCEL_RECLAIMING ||
+          (interactionState == STATE.PARCEL_SELECTED &&
+            invalidLicenseId == selectedParcelId) ? (
+            <AuctionInfo
+              account={account}
+              licenseOwner={licenseOwner}
+              forSalePrice={currentOwnerBidForSalePrice}
+              auctionStart={currentOwnerBidTimestamp}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              requiredBid={requiredBid}
+              setRequiredBid={setRequiredBid}
+            />
+          ) : null}
           {interactionState == STATE.PARCEL_SELECTED &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
@@ -394,6 +441,16 @@ function ParcelInfo(props: ParcelInfoProps) {
               bidTimestamp={outstandingBidTimestamp ?? null}
               {...props}
             />
+          ) : null}
+          {interactionState == STATE.PARCEL_RECLAIMING ? (
+            <ReclaimAction
+              {...props}
+              licenseAddress={licenseContract.address}
+              licenseOwner={licenseOwner}
+              forSalePrice={currentOwnerBidForSalePrice}
+              auctionStart={currentOwnerBidTimestamp}
+              requiredBid={requiredBid}
+            ></ReclaimAction>
           ) : null}
         </Col>
       </Row>

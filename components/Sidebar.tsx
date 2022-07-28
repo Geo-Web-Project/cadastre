@@ -18,6 +18,8 @@ export type SidebarProps = MapProps & {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
   parcelClaimSize: number;
+  invalidLicenseId: string;
+  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function Sidebar(props: SidebarProps) {
@@ -28,6 +30,8 @@ function Sidebar(props: SidebarProps) {
     interactionState,
     setInteractionState,
     parcelClaimSize,
+    invalidLicenseId,
+    setInvalidLicenseId,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -48,8 +52,9 @@ function Sidebar(props: SidebarProps) {
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] =
-    React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
@@ -101,7 +106,7 @@ function Sidebar(props: SidebarProps) {
         <FairLaunchInfo
           currentRequiredBid={truncateEth(
             ethers.utils.formatEther(requiredBid),
-            4
+            8
           )}
           auctionEnd={auctionEnd.toNumber() * 1000}
           {...props}
