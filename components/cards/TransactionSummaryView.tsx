@@ -93,7 +93,7 @@ function TransactionSummaryView({
           }
           target={
             <span style={{ textDecoration: "underline" }}>
-              {truncateEth(ethers.utils.formatEther(claimPayment), 4)}{" "}
+              {truncateEth(ethers.utils.formatEther(claimPayment), 8)}{" "}
               {PAYMENT_TOKEN}
             </span>
           }

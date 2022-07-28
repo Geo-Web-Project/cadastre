@@ -313,7 +313,7 @@ export function ActionForm(props: ActionFormProps) {
                 <Form.Control.Feedback type="invalid">
                   For Sale Price must be a number greater than{" "}
                   {requiredBid
-                    ? truncateEth(ethers.utils.formatEther(requiredBid), 4)
+                    ? truncateEth(ethers.utils.formatEther(requiredBid), 8)
                     : "0"}
                 </Form.Control.Feedback>
               ) : null}
