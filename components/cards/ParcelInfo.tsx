@@ -150,6 +150,8 @@ function ParcelInfo(props: ParcelInfoProps) {
       .then((ownerBidContributionRate) => {
         if (ownerBidContributionRate.eq(0)) {
           setInvalidLicenseId(selectedParcelId);
+        } else {
+          setInvalidLicenseId("");
         }
       });
   }
@@ -390,7 +392,9 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : interactionState == STATE.PARCEL_RECLAIMING ? null : (
             <p>Unclaimed Coordinates</p>
           )}
-          {interactionState == STATE.PARCEL_SELECTED && invalidLicenseId == selectedParcelId ? (
+          {interactionState == STATE.PARCEL_RECLAIMING ||
+          (interactionState == STATE.PARCEL_SELECTED &&
+            invalidLicenseId == selectedParcelId) ? (
             <AuctionInfo
               account={account}
               licenseOwner={licenseOwner}

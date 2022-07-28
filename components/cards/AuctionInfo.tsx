@@ -63,7 +63,7 @@ function AuctionInfo(props: AuctionInfoProps) {
 
   const formattedRequiredBid = useMemo(() => {
     if (requiredBid) {
-      return truncateEth(formatBalance(requiredBid), 4);
+      return truncateEth(formatBalance(requiredBid), 8);
     }
     return null;
   }, [requiredBid]);

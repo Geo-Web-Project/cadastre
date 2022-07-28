@@ -16,7 +16,6 @@ export type ReclaimActionProps = SidebarProps & {
   perSecondFeeDenominator: BigNumber;
   requiredBid: BigNumber;
   licenseOwner: string;
-  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -28,7 +27,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     auctionSuperApp,
     provider,
     selectedParcelId,
-    setInvalidLicenseId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     sfFramework,
@@ -73,10 +71,8 @@ function ReclaimAction(props: ReclaimActionProps) {
       [ethers.utils.parseEther(displayNewForSalePrice), claimData]
     );
 
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionDataToPassInUserData]
-    );
+    let userData;
+    let txn;
 
     const existingFlow = await sfFramework.cfaV1.getFlow({
       superToken: paymentToken.address,
@@ -92,25 +88,52 @@ function ReclaimAction(props: ReclaimActionProps) {
 
     const signer = provider.getSigner() as any;
 
-    const updateFlowOperation = sfFramework.cfaV1.updateFlow({
-      flowRate: BigNumber.from(existingFlow.flowRate)
-        .add(newNetworkFee)
-        .toString(),
-      receiver: auctionSuperApp.address,
-      superToken: paymentToken.address,
-      userData,
-    });
+    if (existingFlow.flowRate !== "0") {
+      //update an exisiting flow
 
-    const txn = await sfFramework
-      .batchCall([approveOperation, updateFlowOperation])
+      userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint8", "bytes"],
+        [Action.BID, actionDataToPassInUserData]
+      );
+
+      const updateFlowOperation = sfFramework.cfaV1.updateFlow({
+        flowRate: BigNumber.from(existingFlow.flowRate)
+          .add(newNetworkFee)
+          .toString(),
+        receiver: auctionSuperApp.address,
+        superToken: paymentToken.address,
+        userData,
+      });
+
+      txn = await sfFramework
+        .batchCall([approveOperation, updateFlowOperation])
+        .exec(signer);
+    } else {
+      // create a new flow
+
+      userData = ethers.utils.defaultAbiCoder.encode(
+        ["uint8", "bytes"],
+        [Action.BID, actionDataToPassInUserData]
+      );
+
+      const createFlowOperation = sfFramework.cfaV1.createFlow({
+        flowRate: newNetworkFee.toString(),
+        receiver: auctionSuperApp.address,
+        superToken: paymentToken.address,
+        userData,
+      });
+
+    txn = await sfFramework
+      .batchCall([approveOperation, createFlowOperation])
       .exec(signer);
+
+    }
 
     if (!txn) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
 
     await txn.wait();
-    setInvalidLicenseId("");
 
     return BigNumber.from(selectedParcelId).toNumber();
   }
