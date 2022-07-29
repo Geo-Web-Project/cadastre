@@ -6,7 +6,6 @@ import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps } from "./Map";
 import { BigNumber, ethers } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
-import { calculateRequiredBid } from "../lib/calculateRequiredBid";
 import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
@@ -56,6 +55,9 @@ function Sidebar(props: SidebarProps) {
     null
   );
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
+  const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
 
   React.useEffect(() => {
     let isMounted = true;
@@ -91,11 +93,6 @@ function Sidebar(props: SidebarProps) {
     endingBid &&
     Date.now() / 1000 < auctionEnd.toNumber();
 
-  const requiredBid =
-    auctionStart && auctionEnd && startingBid && endingBid
-      ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
-      : BigNumber.from(0);
-
   return (
     <Col
       sm="3"
@@ -104,11 +101,12 @@ function Sidebar(props: SidebarProps) {
     >
       {isFairLaunch && interactionState == STATE.CLAIM_SELECTED ? (
         <FairLaunchInfo
-          currentRequiredBid={truncateEth(
-            ethers.utils.formatEther(requiredBid),
-            8
-          )}
-          auctionEnd={auctionEnd.toNumber() * 1000}
+          auctionStart={auctionStart}
+          auctionEnd={auctionEnd}
+          startingBid={startingBid}
+          endingBid={endingBid}
+          requiredBid={requiredBid}
+          setRequiredBid={setRequiredBid}
           {...props}
         />
       ) : perSecondFeeNumerator && perSecondFeeDenominator ? (

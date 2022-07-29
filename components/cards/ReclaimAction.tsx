@@ -123,10 +123,9 @@ function ReclaimAction(props: ReclaimActionProps) {
         userData,
       });
 
-    txn = await sfFramework
-      .batchCall([approveOperation, createFlowOperation])
-      .exec(signer);
-
+      txn = await sfFramework
+        .batchCall([approveOperation, createFlowOperation])
+        .exec(signer);
     }
 
     if (!txn) {
