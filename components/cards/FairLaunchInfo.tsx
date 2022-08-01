@@ -1,4 +1,5 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -10,16 +11,23 @@ import { Button, Image } from "react-bootstrap";
 import { STATE } from "../Map";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
+import { calculateRequiredBid } from "../../lib/calculateRequiredBid";
+import { calculateTimeString } from "../../lib/utils";
+import { truncateEth } from "../../lib/truncate";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 dayjs.extend(duration);
 
 type FairLaunchInfoProps = SidebarProps & {
-  /** startingBid - priceDecrease. */
-  currentRequiredBid: string;
+  auctionStart: BigNumber;
   /** auctionEnd. */
-  auctionEnd: number;
+  auctionEnd: BigNumber;
+  startingBid: BigNumber;
+  endingBid: BigNumber;
+  /** startingBid - priceDecrease. */
+  requiredBid: BigNumber;
+  setRequiredBid: React.Dispatch<React.SetStateAction<BigNumber>>;
 };
 
 const infoIcon = (
@@ -33,30 +41,38 @@ const infoIcon = (
 );
 
 function FairLaunchInfo(props: FairLaunchInfoProps) {
-  const { currentRequiredBid, auctionEnd, setInteractionState } = props;
+  const {
+    auctionStart,
+    auctionEnd,
+    startingBid,
+    endingBid,
+    requiredBid,
+    setRequiredBid,
+    setInteractionState,
+  } = props;
 
-  const [now, setNow] = React.useState(dayjs.utc());
+  const [timeRemaining, setTimeRemaining] = useState(null);
 
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(dayjs.utc());
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  // React.useEffect(() => {
-  const duration = dayjs.duration(dayjs.utc(auctionEnd).diff(now));
-  //   console.log(duration.days(), duration.hours(), duration.minutes(), duration.seconds());
-  // }, [now]);
-
-  // console.log(dayjs(1318781876406).utc().format("DD/MM/YYYY HH:mm"));
-
-  const formattedAuctionEnd = dayjs(auctionEnd)
+  const formattedAuctionEnd = dayjs(auctionEnd.toNumber() * 1000)
     .utc()
     .format("YYYY-MM-DD HH:mm");
+
+  useEffect(() => {
+    let interval;
+
+    if (auctionStart && auctionEnd && startingBid && endingBid) {
+      interval = setInterval(() => {
+        const remaining = auctionEnd.toNumber() * 1000 - Date.now();
+        setTimeRemaining(calculateTimeString(remaining));
+
+        setRequiredBid(
+          calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
+        );
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [auctionStart, auctionEnd, startingBid, endingBid]);
 
   return (
     <>
@@ -98,10 +114,13 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
               target={infoIcon}
             />
           </Card.Title>
-          <Card.Text>Current Required Bid: {currentRequiredBid} ETHx</Card.Text>
+          <Card.Text>
+            Current Required Bid:{" "}
+            {truncateEth(ethers.utils.formatEther(requiredBid), 8)} ETHx
+          </Card.Text>
           <Card.Text>Auction End: {formattedAuctionEnd} UTC</Card.Text>
           <Card.Text>
-            Time Remaining: <span>{duration.format("DD:HH:mm:ss")}</span>
+            Time Remaining: <span>{timeRemaining}</span>
           </Card.Text>
         </Card.Body>
       </Card>

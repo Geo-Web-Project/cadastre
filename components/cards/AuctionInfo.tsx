@@ -7,6 +7,7 @@ import { STATE } from "../Map";
 import { PAYMENT_TOKEN, AUCTION_LENGTH } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
+import { calculateTimeString } from "../../lib/utils";
 
 function _calculateAuctionValue(forSalePrice, auctionStart, auctionLength) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
@@ -18,21 +19,6 @@ function _calculateAuctionValue(forSalePrice, auctionStart, auctionLength) {
   const timeElapsed = blockTimestamp.sub(auctionStart);
   const priceDecrease = forSalePrice.mul(timeElapsed).div(length);
   return forSalePrice.sub(priceDecrease);
-}
-
-function _calculateTimeString(remaining) {
-  if (remaining <= 0) {
-    return "0d 0h 0m 0s";
-  }
-
-  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-  const hours = Math.floor(
-    (remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  );
-  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-
-  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
 export type AuctionInfoProps = {
@@ -80,7 +66,7 @@ function AuctionInfo(props: AuctionInfoProps) {
 
       interval = setInterval(() => {
         const remaining = invalidationTime - Date.now();
-        setTimeRemaining(_calculateTimeString(remaining));
+        setTimeRemaining(calculateTimeString(remaining));
 
         setRequiredBid(
           _calculateAuctionValue(forSalePrice, auctionStart, AUCTION_LENGTH)
