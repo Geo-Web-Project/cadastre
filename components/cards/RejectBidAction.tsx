@@ -10,7 +10,6 @@ import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import { truncateEth } from "../../lib/truncate";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
@@ -21,6 +20,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
+import TransactionError from "./TransactionError";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -35,14 +35,14 @@ export type RejectBidActionProps = SidebarProps & {
 
 enum Action {
   CLAIM,
-  BID,
+  BID
 }
 
 const infoIcon = (
   <Image
     style={{
       width: "1.1rem",
-      marginLeft: "4px",
+      marginLeft: "4px"
     }}
     src="info.svg"
   />
@@ -61,7 +61,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     sfFramework,
     bidTimestamp,
     bidForSalePrice,
-    setInteractionState,
+    setInteractionState
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -71,6 +71,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
@@ -202,13 +203,13 @@ function RejectBidAction(props: RejectBidActionProps) {
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
+      providerOrSigner: provider as any
     });
 
     // Approve amount above purchase price
     const approveOp = paymentToken.approve({
       receiver: auctionSuperApp.address,
-      amount: newForSalePrice.add(penaltyPayment).toString(),
+      amount: newForSalePrice.add(penaltyPayment).toString()
     });
 
     const signer = provider.getSigner() as any;
@@ -222,14 +223,14 @@ function RejectBidAction(props: RejectBidActionProps) {
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
-        userData,
+        userData
       });
     } else {
       op = sfFramework.cfaV1.createFlow({
         receiver: auctionSuperApp.address,
         flowRate: newNetworkFee.toString(),
         superToken: paymentToken.address,
-        userData,
+        userData
       });
     }
 
@@ -240,6 +241,9 @@ function RejectBidAction(props: RejectBidActionProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -382,18 +386,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
           <br />
           {didFail && !isActing ? (
-            <Alert
-              variant="danger"
-              dismissible
-              onClick={() => setDidFail(false)}
-            >
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Transaction failed
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>
-                Oops! Something went wrong. Please try again.
-              </p>
-            </Alert>
+            <TransactionError message={errorMessage} />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">

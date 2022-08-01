@@ -10,15 +10,15 @@ import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
-import Alert from "react-bootstrap/Alert";
 import { STATE } from "../Map";
+import TransactionError from "./TransactionError";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 
 enum Action {
   CLAIM,
-  BID,
+  BID
 }
 
 type OutstandingBidViewProps = SidebarProps & {
@@ -44,10 +44,11 @@ function OutstandingBidView({
   perSecondFeeDenominator,
   sfFramework,
   setInteractionState,
-  setSelectedParcelId,
+  setSelectedParcelId
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -135,7 +136,7 @@ function OutstandingBidView({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
+      providerOrSigner: provider as any
     });
 
     const signer = provider.getSigner() as any;
@@ -145,7 +146,7 @@ function OutstandingBidView({
       op = sfFramework.cfaV1.deleteFlow({
         sender: account,
         receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
+        superToken: paymentToken.address
       });
     } else {
       op = sfFramework.cfaV1.updateFlow({
@@ -154,7 +155,7 @@ function OutstandingBidView({
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
-        userData,
+        userData
       });
     }
 
@@ -163,6 +164,9 @@ function OutstandingBidView({
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -185,6 +189,9 @@ function OutstandingBidView({
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -247,14 +254,7 @@ function OutstandingBidView({
           </Button>
         ) : null}
         {didFail && !isActing ? (
-          <Alert variant="danger" dismissible onClick={() => setDidFail(false)}>
-            <Alert.Heading style={{ fontSize: "1em" }}>
-              Transaction failed
-            </Alert.Heading>
-            <p style={{ fontSize: "0.8em" }}>
-              Oops! Something went wrong. Please try again.
-            </p>
-          </Alert>
+          <TransactionError message={errorMessage} />
         ) : null}
       </Card.Body>
     </Card>
