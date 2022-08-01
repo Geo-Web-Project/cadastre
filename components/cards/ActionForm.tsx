@@ -6,11 +6,10 @@ import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  SECONDS_IN_YEAR,
+  SECONDS_IN_YEAR
 } from "../../lib/constants";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
@@ -25,6 +24,7 @@ import { AssetId } from "caip";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
+import TransactionError from "./TransactionError";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -48,6 +48,7 @@ export type ActionData = {
   displayCurrentForSalePrice?: string;
   didFail?: boolean;
   isActing?: boolean;
+  errorMessage?: string;
 };
 
 export function ActionForm(props: ActionFormProps) {
@@ -70,7 +71,7 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
-    hasOutstandingBid = false,
+    hasOutstandingBid = false
   } = props;
 
   const {
@@ -80,6 +81,7 @@ export function ActionForm(props: ActionFormProps) {
     displayCurrentForSalePrice,
     didFail,
     isActing,
+    errorMessage
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
@@ -96,7 +98,7 @@ export function ActionForm(props: ActionFormProps) {
     <Image
       style={{
         width: "1.1rem",
-        marginLeft: "4px",
+        marginLeft: "4px"
       }}
       src="info.svg"
     />
@@ -151,7 +153,11 @@ export function ActionForm(props: ActionFormProps) {
       parcelId = await performAction();
     } catch (err) {
       console.error(err);
-      updateActionData({ isActing: false, didFail: true });
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: err.errorObject.reason.replace("execution reverted: ", "")
+      });
       return;
     }
 
@@ -168,14 +174,14 @@ export function ActionForm(props: ActionFormProps) {
         chainId: `eip155:${NETWORK_ID}`,
         assetName: {
           namespace: "erc721",
-          reference: licenseAddress.toLowerCase(),
+          reference: licenseAddress.toLowerCase()
         },
-        tokenId: parcelId.toString(),
+        tokenId: parcelId.toString()
       });
 
       const model = new DataModel({
         ceramic,
-        aliases: GeoWebModel,
+        aliases: GeoWebModel
       });
 
       const _assetContentManager = new AssetContentManager(
@@ -378,18 +384,7 @@ export function ActionForm(props: ActionFormProps) {
 
           <br />
           {didFail && !isActing ? (
-            <Alert
-              variant="danger"
-              dismissible
-              onClick={() => updateActionData({ didFail: false })}
-            >
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Transaction failed
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>
-                Oops! Something went wrong. Please try again.
-              </p>
-            </Alert>
+            <TransactionError message={errorMessage} />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
