@@ -11,7 +11,9 @@ function TransactionError(props: TransactionErrorProps) {
         Transaction Failed
       </Alert.Heading>
       <p style={{ fontSize: "0.8em" }}>{`Something went wrong: ${
-        props.message ? props.message : "unknown reason"
+        props.message
+          ? props.message.replace(/([^.])$/, "$1.")
+          : "unknown reason."
       }`}</p>
     </Alert>
   );
