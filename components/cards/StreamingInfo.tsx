@@ -31,42 +31,35 @@ function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
 
   return (
     <Card border="secondary" className="bg-dark my-5">
+      <Card.Header>
+        <h5 className="font-weight-bold">Important Note on Streaming Funds</h5>
+      </Card.Header>
       <Card.Body>
-        <Container>
+        <Container className="p-0">
           <Row>
-            <Col xs={1} style={{ alignSelf: "center" }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className="bi bi-exclamation-circle-fill"
-                viewBox="0 0 16 16"
-              >
-                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-              </svg>
-            </Col>
             <Col>
               <p>
                 Your current ETHx balance is{" "}
                 {data ? (
                   <FlowingBalance
                     format={(x) =>
-                      truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
+                      truncateEth(ethers.utils.formatUnits(x), 8) + " ETHx."
                     }
                     accountTokenSnapshot={data.items[0]}
                   />
                 ) : (
                   "--"
                 )}
-                . We recommend wrapping enough ETH to cover at least&nbsp; 3
-                months of payments for ALL of your outstanding streams&nbsp;
-                plus any required 1-time payments and deposits.
+                <br />
+                <br />
+                Your parcels will be put in foreclosure auctions if your ETHx
+                balance reaches 0 or you cancel your corresponding network fee
+                streams. Make sure to keep a sufficient ETHx balance at all
+                times!
               </p>
             </Col>
           </Row>
           <Row>
-            <Col xs={1}> </Col>
             <Col>
               <p>
                 {/* FIXME: add href link for paymnent dashboard if it is finished. */}
