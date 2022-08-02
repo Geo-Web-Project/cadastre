@@ -95,7 +95,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
       <Card border="secondary" className="bg-dark my-5">
         <Card.Body>
           <Card.Title className="text-primary font-weight-bold d-flex justify-content-between ">
-            <span>Auction Details</span>
+            <span>Dutch Auction Details</span>
             <InfoTooltip
               content={
                 <div style={{ textAlign: "left" }}>
