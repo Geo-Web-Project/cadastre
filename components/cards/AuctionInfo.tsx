@@ -105,8 +105,8 @@ function AuctionInfo(props: AuctionInfoProps) {
         <Card.Header>
           <h4>
             {interactionState == STATE.PARCEL_RECLAIMING
-              ? "Auction Details"
-              : "Foreclosure Auction"}
+              ? "Dutch Auction Details"
+              : "Foreclosure Dutch Auction"}
           </h4>
         </Card.Header>
         <Card.Body className="pb-4">
