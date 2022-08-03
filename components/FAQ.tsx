@@ -85,7 +85,7 @@ function FAQ() {
                   <p>
                     Users interact with Geo Web content through a{" "}
                     <a
-                      href="https://browse.geoweb.eth.link/"
+                      href="https://geoweb.app/"
                       target="_blank"
                       rel="noreferrer"
                     >
