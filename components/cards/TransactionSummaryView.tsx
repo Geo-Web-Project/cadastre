@@ -20,8 +20,8 @@ const depositHoursMap: Record<number, number> = {
 };
 
 type TransactionSummaryViewProps = SidebarProps & {
-  existingNetworkFee?: BigNumber;
-  newNetworkFee: BigNumber | null;
+  existingAnnualNetworkFee?: BigNumber;
+  newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
   collateralDeposit?: BigNumber;
   penaltyPayment?: BigNumber;
@@ -31,8 +31,8 @@ type TransactionSummaryViewProps = SidebarProps & {
 };
 
 function TransactionSummaryView({
-  existingNetworkFee = BigNumber.from(0),
-  newNetworkFee,
+  existingAnnualNetworkFee = BigNumber.from(0),
+  newAnnualNetworkFee,
   account,
   interactionState,
   licenseOwner,
@@ -53,22 +53,22 @@ function TransactionSummaryView({
     })();
   }, [provider]);
 
-  const txnReady = newNetworkFee != null;
+  const txnReady = newAnnualNetworkFee != null;
 
   const isDeltaPayment = !collateralDeposit && !claimPayment;
 
-  const networkFeeDelta = newNetworkFee
-    ? newNetworkFee.sub(existingNetworkFee)
+  const networkFeeDelta = newAnnualNetworkFee
+    ? newAnnualNetworkFee.sub(existingAnnualNetworkFee)
     : BigNumber.from(0);
 
   const stream =
-    !isDeltaPayment && newNetworkFee
-      ? newNetworkFee
+    !isDeltaPayment && newAnnualNetworkFee
+      ? newAnnualNetworkFee
       : networkFeeDelta ?? BigNumber.from(0);
 
-  const streamDisplay = truncateEth(formatBalance(stream.mul(SECONDS_IN_YEAR)), 18);
+  const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const streamBuffer = stream.mul(depositHoursMap[currentChainID] * 60 * 60);
+  const streamBuffer = stream.mul(depositHoursMap[currentChainID]).div(365 * 24);
 
   const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
 

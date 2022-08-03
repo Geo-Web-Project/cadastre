@@ -108,6 +108,12 @@ function RejectBidAction(props: RejectBidActionProps) {
     perSecondFeeDenominator
   );
 
+  const existingAnnualNetworkFee = fromValueToRate(
+    currentForSalePrice,
+    perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
+    perSecondFeeDenominator
+  );
+
   const newNetworkFee =
     !isForSalePriceInvalid &&
     newForSalePrice &&
@@ -116,6 +122,18 @@ function RejectBidAction(props: RejectBidActionProps) {
       ? fromValueToRate(
           newForSalePrice,
           perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+
+  const newAnnualNetworkFee =
+    !isForSalePriceInvalid &&
+    newForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+      ? fromValueToRate(
+          newForSalePrice,
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
           perSecondFeeDenominator
         )
       : null;
@@ -354,10 +372,10 @@ function RejectBidAction(props: RejectBidActionProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            {!isForSalePriceInvalid && existingNetworkFee ? (
+            {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
-                existingNetworkFee={existingNetworkFee}
-                newNetworkFee={newNetworkFee}
+                existingAnnualNetworkFee={existingAnnualNetworkFee}
+                newAnnualNetworkFee={newAnnualNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}

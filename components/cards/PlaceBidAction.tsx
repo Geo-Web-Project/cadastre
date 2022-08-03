@@ -89,10 +89,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     displayNewForSalePrice.length > 0 &&
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
-
-  const existingNetworkFee = fromValueToRate(
+  
+  const existingAnnualNetworkFee = fromValueToRate(
     currentForSalePrice,
-    perSecondFeeNumerator,
+    perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
     perSecondFeeDenominator
   );
 
@@ -104,6 +104,18 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       ? fromValueToRate(
           newForSalePrice,
           perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+  
+  const newAnnualNetworkFee =
+    !isForSalePriceInvalid &&
+    newForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+      ? fromValueToRate(
+          newForSalePrice,
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
           perSecondFeeDenominator
         )
       : null;
@@ -284,10 +296,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            {!isForSalePriceInvalid && existingNetworkFee ? (
+            {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
-                existingNetworkFee={existingNetworkFee}
-                newNetworkFee={newNetworkFee}
+                existingAnnualNetworkFee={existingAnnualNetworkFee}
+                newAnnualNetworkFee={newAnnualNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 {...props}

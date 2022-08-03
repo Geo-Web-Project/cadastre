@@ -4,7 +4,7 @@ import { BigNumber, ethers } from "ethers";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
@@ -51,11 +51,20 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice.length > 0 &&
     isNaN(Number(displayNewForSalePrice));
 
-  const networkFeeRatePerSecond =
+  const newFlowRate =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
           perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+  
+  const networkFeeRatePerYear =
+    !isForSalePriceInvalid && displayNewForSalePrice
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
           perSecondFeeDenominator
         )
       : null;
@@ -80,7 +89,7 @@ function ClaimAction(props: ClaimActionProps) {
 
     if (
       !displayNewForSalePrice ||
-      !networkFeeRatePerSecond ||
+      !newFlowRate ||
       isForSalePriceInvalid
     ) {
       throw new Error(
@@ -113,8 +122,6 @@ function ClaimAction(props: ClaimActionProps) {
       receiver: auctionSuperApp.address,
       amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
     });
-
-    const newFlowRate = networkFeeRatePerSecond;
 
     const signer = provider.getSigner() as any;
 
@@ -185,10 +192,10 @@ function ClaimAction(props: ClaimActionProps) {
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          networkFeeRatePerSecond ? (
+          networkFeeRatePerYear ? (
             <TransactionSummaryView
               claimPayment={isFairLaunch ? requiredBid : BigNumber.from(0)}
-              newNetworkFee={networkFeeRatePerSecond}
+              newAnnualNetworkFee={networkFeeRatePerYear}
               {...props}
             />
           ) : (
