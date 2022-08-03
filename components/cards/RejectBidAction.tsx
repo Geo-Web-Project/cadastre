@@ -126,18 +126,6 @@ function RejectBidAction(props: RejectBidActionProps) {
         )
       : null;
 
-  const newAnnualNetworkFee =
-    !isForSalePriceInvalid &&
-    newForSalePrice &&
-    perSecondFeeNumerator &&
-    perSecondFeeDenominator
-      ? fromValueToRate(
-          newForSalePrice,
-          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
-          perSecondFeeDenominator
-        )
-      : null;
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
@@ -375,7 +363,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
-                newAnnualNetworkFee={newAnnualNetworkFee}
+                newAnnualNetworkFee={annualNetworkFeeRate}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}

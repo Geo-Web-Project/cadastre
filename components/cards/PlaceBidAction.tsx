@@ -107,18 +107,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
-  const newAnnualNetworkFee =
-    !isForSalePriceInvalid &&
-    newForSalePrice &&
-    perSecondFeeNumerator &&
-    perSecondFeeDenominator
-      ? fromValueToRate(
-          newForSalePrice,
-          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
-          perSecondFeeDenominator
-        )
-      : null;
 
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
@@ -299,7 +287,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
-                newAnnualNetworkFee={newAnnualNetworkFee}
+                newAnnualNetworkFee={annualNetworkFeeRate}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 {...props}
