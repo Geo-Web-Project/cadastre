@@ -108,11 +108,11 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = newNetworkFee?.mul(SECONDS_IN_YEAR);
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
+
+  const annualNetworkFeeRate = newForSalePrice?.mul(annualFeePercentage).div(100);
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 

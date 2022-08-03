@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
-import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
+import { NETWORK_ID, PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
@@ -66,7 +66,7 @@ function TransactionSummaryView({
       ? newNetworkFee
       : networkFeeDelta ?? BigNumber.from(0);
 
-  const streamDisplay = truncateEth(formatBalance(stream), 18);
+  const streamDisplay = truncateEth(formatBalance(stream.mul(SECONDS_IN_YEAR)), 18);
 
   const streamBuffer = stream.mul(depositHoursMap[currentChainID] * 60 * 60);
 
@@ -197,7 +197,7 @@ function TransactionSummaryView({
             {txnReady ? (
               <>
                 {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
-                {` ${PAYMENT_TOKEN}/s`}
+                {` ${PAYMENT_TOKEN}/year`}
               </>
             ) : (
               `N/A`
