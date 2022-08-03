@@ -40,21 +40,26 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] =
-    React.useState<Contracts["geoWebERC721LicenseContract"] | null>(null);
-  const [auctionSuperApp, setAuctionSuperApp] =
-    React.useState<Contracts["geoWebAuctionSuperAppContract"] | null>(null);
-  const [fairLaunchClaimer, setFairLaunchClaimer] =
-    React.useState<Contracts["geoWebFairLaunchClaimerContract"] | null>(null);
+  const [licenseContract, setLicenseContract] = React.useState<
+    Contracts["geoWebERC721LicenseContract"] | null
+  >(null);
+  const [auctionSuperApp, setAuctionSuperApp] = React.useState<
+    Contracts["geoWebAuctionSuperAppContract"] | null
+  >(null);
+  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<
+    Contracts["geoWebFairLaunchClaimerContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
 
   const connectWallet = async () => {
     const _authState = await activate();

@@ -9,7 +9,7 @@ import Col from "react-bootstrap/Col";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  SECONDS_IN_YEAR
+  SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
@@ -71,7 +71,7 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
-    hasOutstandingBid = false
+    hasOutstandingBid = false,
   } = props;
 
   const {
@@ -81,7 +81,7 @@ export function ActionForm(props: ActionFormProps) {
     displayCurrentForSalePrice,
     didFail,
     isActing,
-    errorMessage
+    errorMessage,
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
@@ -98,7 +98,7 @@ export function ActionForm(props: ActionFormProps) {
     <Image
       style={{
         width: "1.1rem",
-        marginLeft: "4px"
+        marginLeft: "4px",
       }}
       src="info.svg"
     />
@@ -162,7 +162,10 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({
         isActing: false,
         didFail: true,
-        errorMessage: err.errorObject.reason.replace("execution reverted: ", "")
+        errorMessage: err.errorObject.reason.replace(
+          "execution reverted: ",
+          ""
+        ),
       });
       return;
     }
@@ -180,14 +183,14 @@ export function ActionForm(props: ActionFormProps) {
         chainId: `eip155:${NETWORK_ID}`,
         assetName: {
           namespace: "erc721",
-          reference: licenseAddress.toLowerCase()
+          reference: licenseAddress.toLowerCase(),
         },
-        tokenId: parcelId.toString()
+        tokenId: parcelId.toString(),
       });
 
       const model = new DataModel({
         ceramic,
-        aliases: GeoWebModel
+        aliases: GeoWebModel,
       });
 
       const _assetContentManager = new AssetContentManager(

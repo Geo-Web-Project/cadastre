@@ -35,14 +35,14 @@ export type RejectBidActionProps = SidebarProps & {
 
 enum Action {
   CLAIM,
-  BID
+  BID,
 }
 
 const infoIcon = (
   <Image
     style={{
       width: "1.1rem",
-      marginLeft: "4px"
+      marginLeft: "4px",
     }}
     src="info.svg"
   />
@@ -61,7 +61,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     sfFramework,
     bidTimestamp,
     bidForSalePrice,
-    setInteractionState
+    setInteractionState,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -209,13 +209,13 @@ function RejectBidAction(props: RejectBidActionProps) {
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any
+      providerOrSigner: provider as any,
     });
 
     // Approve amount above purchase price
     const approveOp = paymentToken.approve({
       receiver: auctionSuperApp.address,
-      amount: newForSalePrice.add(penaltyPayment).toString()
+      amount: newForSalePrice.add(penaltyPayment).toString(),
     });
 
     const signer = provider.getSigner() as any;
@@ -229,14 +229,14 @@ function RejectBidAction(props: RejectBidActionProps) {
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
-        userData
+        userData,
       });
     } else {
       op = sfFramework.cfaV1.createFlow({
         receiver: auctionSuperApp.address,
         flowRate: newNetworkFee.toString(),
         superToken: paymentToken.address,
-        userData
+        userData,
       });
     }
 
