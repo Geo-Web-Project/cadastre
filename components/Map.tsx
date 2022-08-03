@@ -471,11 +471,6 @@ function Map(props: MapProps) {
       y: gwCoord.getY().toNumber(),
     };
 
-    const nextViewport = {
-      latitude: event.lngLat.lat,
-      longitude: event.lngLat.lng,
-    };
-
     switch (interactionState) {
       case STATE.VIEWING:
         if (_checkParcelClick()) {
@@ -486,10 +481,9 @@ function Map(props: MapProps) {
         setClaimBase2Coord(coord);
         setInteractionState(STATE.CLAIM_SELECTING);
 
-        setViewport(nextViewport);
         flyToLocation({
-          longitude: nextViewport.longitude,
-          latitude: nextViewport.latitude,
+          longitude: event.lngLat.lng,
+          latitude: event.lngLat.lat,
           zoom: ZOOM_GRID_LEVEL + 1,
           duration: 500,
         });
@@ -591,7 +585,8 @@ function Map(props: MapProps) {
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle={mapstyle}
           interactiveLayerIds={interactiveLayerIds}
-          renderWorldCopies={false}
+          projection="globe"
+          fog={{}}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
           onMouseMove={_onMouseMove}
