@@ -18,7 +18,7 @@ dayjs.extend(advancedFormat);
 
 enum Action {
   CLAIM,
-  BID
+  BID,
 }
 
 type OutstandingBidViewProps = SidebarProps & {
@@ -44,7 +44,7 @@ function OutstandingBidView({
   perSecondFeeDenominator,
   sfFramework,
   setInteractionState,
-  setSelectedParcelId
+  setSelectedParcelId,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -136,7 +136,7 @@ function OutstandingBidView({
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any
+      providerOrSigner: provider as any,
     });
 
     const signer = provider.getSigner() as any;
@@ -146,7 +146,7 @@ function OutstandingBidView({
       op = sfFramework.cfaV1.deleteFlow({
         sender: account,
         receiver: auctionSuperApp.address,
-        superToken: paymentToken.address
+        superToken: paymentToken.address,
       });
     } else {
       op = sfFramework.cfaV1.updateFlow({
@@ -155,7 +155,7 @@ function OutstandingBidView({
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
-        userData
+        userData,
       });
     }
 

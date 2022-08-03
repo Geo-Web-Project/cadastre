@@ -26,14 +26,14 @@ export type PlaceBidActionProps = SidebarProps & {
 
 enum Action {
   CLAIM,
-  BID
+  BID,
 }
 
 const infoIcon = (
   <Image
     style={{
       width: "1.1rem",
-      marginLeft: "4px"
+      marginLeft: "4px",
     }}
     src="info.svg"
   />
@@ -50,7 +50,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     auctionSuperApp,
     sfFramework,
-    setInteractionState
+    setInteractionState,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -147,13 +147,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       superToken: paymentToken.address,
       sender: account,
       receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any
+      providerOrSigner: provider as any,
     });
 
     // Approve amount above purchase price
     const approveOp = paymentToken.approve({
       receiver: auctionSuperApp.address,
-      amount: newForSalePrice.toString()
+      amount: newForSalePrice.toString(),
     });
 
     const signer = provider.getSigner() as any;
@@ -166,14 +166,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
-        userData
+        userData,
       });
     } else {
       op = sfFramework.cfaV1.createFlow({
         receiver: auctionSuperApp.address,
         flowRate: newNetworkFee.toString(),
         superToken: paymentToken.address,
-        userData
+        userData,
       });
     }
 

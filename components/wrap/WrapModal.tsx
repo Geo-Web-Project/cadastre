@@ -102,12 +102,15 @@ function WrapModal({
     }
   };
 
-  const tokenOptions: TokenOptions = useMemo(() => ({
-    address: paymentToken.address,
-    symbol: "ETHx",
-    decimals: 18,
-    image: ""
-  }), [paymentToken.address]);
+  const tokenOptions: TokenOptions = useMemo(
+    () => ({
+      address: paymentToken.address,
+      symbol: "ETHx",
+      decimals: 18,
+      image: "",
+    }),
+    [paymentToken.address]
+  );
 
   return (
     <Modal show={show} onHide={handleClose} centered className="wrap-modal">
@@ -140,7 +143,10 @@ function WrapModal({
               />
             )}
           </p>
-          <div className="position-absolute" style={{ bottom: "16px", right: "16px" }}>
+          <div
+            className="position-absolute"
+            style={{ bottom: "16px", right: "16px" }}
+          >
             <CopyTokenAddress options={tokenOptions} />
           </div>
         </div>
