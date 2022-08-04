@@ -189,17 +189,17 @@ export type MapProps = {
   sfFramework: Framework;
 };
 
-const MAP_STYLE_KEY = 'storedMapStyleName';
+const MAP_STYLE_KEY = "storedMapStyleName";
 
 enum MapStyleName {
   satellite = "satellite",
-  street = "street"
+  street = "street",
 }
 
 const mapStyleUrlByName: Record<MapStyleName, string> = {
   [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v11",
   [MapStyleName.street]: "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln",
-}
+};
 
 function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
@@ -214,7 +214,9 @@ function Map(props: MapProps) {
 
   const mapRef = useRef();
 
-  const [mapStyleName, setMapStyleName] = React.useState(localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite);
+  const [mapStyleName, setMapStyleName] = React.useState(
+    localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite
+  );
 
   const handleMapstyle = (newStyle: MapStyleName) => {
     localStorage.setItem(MAP_STYLE_KEY, newStyle);
