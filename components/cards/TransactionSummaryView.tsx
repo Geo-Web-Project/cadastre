@@ -87,7 +87,7 @@ function TransactionSummaryView({
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {interactionState == STATE.PARCEL_RECLAIMING 
+              {interactionState == STATE.PARCEL_RECLAIMING && account.toLowerCase() === licenseOwner?.toLowerCase() 
                 ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream." 
                 : isFairLaunch 
                 ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation." : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
