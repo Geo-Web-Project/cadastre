@@ -26,6 +26,7 @@ type TransactionSummaryViewProps = SidebarProps & {
   collateralDeposit?: BigNumber;
   penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
+  licenseOwner?: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
 };
@@ -86,9 +87,11 @@ function TransactionSummaryView({
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
-                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
-                : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
+              {interactionState == STATE.PARCEL_RECLAIMING 
+                ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream." 
+                : isFairLaunch 
+                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation." : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
+
             </div>
           }
           target={
