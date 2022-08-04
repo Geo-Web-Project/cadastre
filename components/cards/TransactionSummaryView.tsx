@@ -199,10 +199,7 @@ function TransactionSummaryView({
         target={
           <span style={{ textDecoration: "underline" }}>
             {txnReady ? (
-              <>
-                {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
-                {` ${PAYMENT_TOKEN}/year`}
-              </>
+              {`${streamDisplay} ${PAYMENT_TOKEN}/year`}
             ) : (
               `N/A`
             )}
@@ -241,12 +238,7 @@ function TransactionSummaryView({
         target={
           <span style={{ textDecoration: "underline" }}>
             {txnReady ? (
-              <>
-                {isDeltaPayment
-                  ? "+" + streamBufferDisplay
-                  : streamBufferDisplay}
-                {` ${PAYMENT_TOKEN}`}
-              </>
+              {`${streamBufferDisplay} ${PAYMENT_TOKEN}`}
             ) : (
               `N/A`
             )}
