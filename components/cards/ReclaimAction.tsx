@@ -5,6 +5,7 @@ import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 
 enum Action {
   CLAIM,
@@ -50,6 +51,15 @@ function ReclaimAction(props: ReclaimActionProps) {
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
           perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+  
+  const newAnnualNetworkFee =
+    !isForSalePriceInvalid && displayNewForSalePrice
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
           perSecondFeeDenominator
         )
       : null;
@@ -145,14 +155,14 @@ function ReclaimAction(props: ReclaimActionProps) {
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          newNetworkFee ? (
+          newAnnualNetworkFee ? (
             <TransactionSummaryView
               claimPayment={
                 account.toLowerCase() == licenseOwner?.toLowerCase()
                   ? BigNumber.from("0")
                   : requiredBid
               }
-              newNetworkFee={newNetworkFee}
+              newAnnualNetworkFee={newAnnualNetworkFee}
               {...props}
             />
           ) : (

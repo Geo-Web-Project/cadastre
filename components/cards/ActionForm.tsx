@@ -123,11 +123,17 @@ export function ActionForm(props: ActionFormProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(SECONDS_IN_YEAR);
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
+  
+  const annualNetworkFeeRate = 
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    !isNaN(Number(displayNewForSalePrice)) 
+      ? ethers.utils.parseEther(displayNewForSalePrice).mul(annualFeePercentage).div(100)
+    : null;
+  
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
