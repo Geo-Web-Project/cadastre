@@ -257,7 +257,7 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (newParcel.id) {
       const lastParcel =
-        data?.geoWebCoordinates[data.geoWebCoordinates.length - 1].landParcel;
+        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.landParcel;
 
       if (lastParcel?.id === newParcel.id) {
         clearInterval(newParcel.timerId);
