@@ -215,41 +215,6 @@ function Map(props: MapProps) {
     setMapStyleName(newStyle);
   };
 
-  // Fetch more until none left
-  useEffect(() => {
-    if (
-      data == null ||
-      data.geoWebCoordinates.length == 0 ||
-      viewport == null
-    ) {
-      return;
-    }
-    const newLastBlock =
-      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
-
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      viewport.longitude,
-      viewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-
-    const params = normalizeQueryVariables(x, y);
-
-    console.debug("Fetching more");
-    console.debug(params);
-
-    fetchMore({
-      variables: {
-        lastBlock: newLastBlock,
-        ...params,
-      },
-    });
-  }, [data, fetchMore]);
-
   const [viewport, setViewport] = useState<Record<string, any> | null>({
     latitude: 40.780503,
     longitude: -73.96663,
@@ -278,11 +243,40 @@ function Map(props: MapProps) {
     string[]
   >(["parcels-layer"]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
+  const [newParcel, setNewParcel] = React.useState<{
+    id: string;
+    timerId: number | null;
+  }>({ id: "", timerId: null });
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
+
+  // Fetch more until none left
+  useEffect(() => {
+    if (newParcel.id) {
+      const lastParcel =
+        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.landParcel;
+
+      if (lastParcel?.id === newParcel.id) {
+        clearInterval(newParcel.timerId);
+        setNewParcel({ id: "", timerId: null });
+        return;
+      }
+
+      if (!newParcel.timerId) {
+        setNewParcel({
+          ...newParcel,
+          timerId: setInterval(_fetchMoreParcels, 2000),
+        });
+      }
+    }
+
+    _fetchMoreParcels();
+
+    return () => clearInterval(newParcel.timerId);
+  }, [data, newParcel.id, fetchMore]);
 
   const flyToLocation = useCallback(
     ({ longitude, latitude, duration, zoom }) => {
@@ -294,6 +288,46 @@ function Map(props: MapProps) {
     },
     []
   );
+
+  function _fetchMoreParcels() {
+    if (data == null || viewport == null) {
+      return;
+    }
+
+    let newLastBlock;
+
+    if (data.geoWebCoordinates.length > 0) {
+      newLastBlock =
+        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
+          .createdAtBlock;
+    } else if (newParcel.id) {
+      newLastBlock = 0;
+    } else {
+      return;
+    }
+
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+
+    const params = normalizeQueryVariables(x, y);
+
+    console.debug("Fetching more");
+    console.debug(params);
+
+    fetchMore({
+      variables: {
+        lastBlock: newLastBlock,
+        ...params,
+      },
+    });
+  }
 
   function _onLoad() {
     const gwCoord = GeoWebCoordinate.fromGPS(
@@ -572,6 +606,7 @@ function Map(props: MapProps) {
           parcelClaimSize={parcelClaimSize}
           invalidLicenseId={invalidLicenseId}
           setInvalidLicenseId={setInvalidLicenseId}
+          setNewParcel={setNewParcel}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">

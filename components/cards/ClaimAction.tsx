@@ -2,6 +2,7 @@ import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
+import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -37,6 +38,7 @@ function ClaimAction(props: ClaimActionProps) {
     isFairLaunch,
     sfFramework,
     requiredBid,
+    setNewParcel,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -59,7 +61,7 @@ function ClaimAction(props: ClaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
+
   const networkFeeRatePerYear =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(
@@ -87,11 +89,7 @@ function ClaimAction(props: ClaimActionProps) {
       path = [BigNumber.from(0)];
     }
 
-    if (
-      !displayNewForSalePrice ||
-      !newFlowRate ||
-      isForSalePriceInvalid
-    ) {
+    if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
@@ -181,6 +179,10 @@ function ClaimAction(props: ClaimActionProps) {
       receipt.blockNumber
     );
     const licenseId = res[0].args[0].toString();
+    setNewParcel((prev) => {
+      return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
+    });
+
     return licenseId;
   }
 
