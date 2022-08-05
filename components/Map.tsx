@@ -271,8 +271,6 @@ function Map(props: MapProps) {
           timerId: setInterval(_fetchMoreParcels, 2000),
         });
       }
-
-      return;
     }
 
     _fetchMoreParcels();
