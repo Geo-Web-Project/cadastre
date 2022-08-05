@@ -34,7 +34,7 @@ const { httpClient, jsIpfs } = providers;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
-  return new ethers.providers.Web3Provider(provider);
+  return new ethers.providers.Web3Provider(provider, "any");
 }
 
 function IndexPage() {
