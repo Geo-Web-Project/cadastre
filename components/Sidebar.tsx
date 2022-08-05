@@ -19,6 +19,9 @@ export type SidebarProps = MapProps & {
   parcelClaimSize: number;
   invalidLicenseId: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
+  setNewParcel: React.Dispatch<
+    React.SetStateAction<{ id: string; timerId: number | null }>
+  >;
 };
 
 function Sidebar(props: SidebarProps) {
