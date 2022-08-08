@@ -1,8 +1,8 @@
+import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-// eslint-disable-next-line import/named
-import { gql, useQuery } from "@apollo/client";
 import Col from "react-bootstrap/Col";
+// eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
 import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
