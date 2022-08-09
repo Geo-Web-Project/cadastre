@@ -6,13 +6,13 @@ function FaucetInfo() {
   return (
     <Card border="secondary" className="bg-dark my-5">
       <Card.Body>
-        <Card.Title className="text-primary font-weight-bold">
+        <Card.Title className="text-primary fw-bold">
           Claim {PAYMENT_TOKEN}
         </Card.Title>
-        <p className="font-italic">
+        <p className="fst-italic">
           You need {PAYMENT_TOKEN} to transact on this Cadastre Testnet.
         </p>
-        <p className="font-italic">
+        <p className="fst-italic">
           Get free {PAYMENT_TOKEN} from this{" "}
           <a href={PAYMENT_TOKEN_FAUCET_URL} target="_blank" rel="noreferrer">
             faucet.

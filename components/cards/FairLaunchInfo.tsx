@@ -94,7 +94,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
       </Row>
       <Card border="secondary" className="bg-dark my-5">
         <Card.Body>
-          <Card.Title className="text-primary font-weight-bold d-flex justify-content-between ">
+          <Card.Title className="text-primary fw-bold d-flex justify-content-between ">
             <span>Dutch Auction Details</span>
             <InfoTooltip
               content={

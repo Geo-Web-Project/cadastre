@@ -29,7 +29,7 @@ function ContextAwareToggle({
 
   return (
     <Accordion.Item
-      className="font-weight-bold border-dark"
+      className="fw-bold border-dark"
       as={Card.Header}
       onClick={decoratedOnClick}
       style={{ fontSize: "1.25em" }}
@@ -50,7 +50,7 @@ function FAQ() {
     <>
       <Button
         variant="outline-primary"
-        className="text-light font-weight-bold border-dark"
+        className="text-light fw-bold border-dark"
         style={{ height: "100px", width: "100px" }}
         onClick={handleShow}
       >

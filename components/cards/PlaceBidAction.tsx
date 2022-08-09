@@ -324,7 +324,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>
