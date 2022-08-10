@@ -141,7 +141,7 @@ function GalleryModal(props: GalleryModalProps) {
                 Edit Media Gallery
               </Modal.Title>
             </Col>
-            <Col sm="1" className="text-right">
+            <Col sm="1" className="text-end">
               <Button variant="link" size="sm" onClick={handleClose}>
                 <Image src="close.svg" />
               </Button>

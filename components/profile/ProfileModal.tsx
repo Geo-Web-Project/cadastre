@@ -45,7 +45,7 @@ function ProfileModal(props: ProfileModalProps) {
             <Col sm="10">
               <Modal.Title className="text-primary">Profile</Modal.Title>
             </Col>
-            <Col sm="2" className="text-right">
+            <Col sm="2" className="text-end">
               <Button
                 variant="link"
                 size="sm"
@@ -57,13 +57,13 @@ function ProfileModal(props: ProfileModalProps) {
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light text-left">
+      <Modal.Body className="bg-dark text-light text-start">
         <Row className="mx-0">
-          <Col className="text-left mb-3" xs="1">
+          <Col className="text-start mb-3" xs="1">
             <Image src="./ProfileIcon.png" />
           </Col>
           <Col
-            className="text-left mb-3 mt-1 pl-0 mr-1"
+            className="text-start mb-3 mt-1 ps-0 me-1"
             xs="10"
             sm="8"
             style={{
@@ -72,7 +72,7 @@ function ProfileModal(props: ProfileModalProps) {
           >
             {account}
           </Col>
-          <Col className="text-right" xs="2" sm="1">
+          <Col className="text-end" xs="2" sm="1">
             <Button
               size="sm"
               onClick={deactivateProfile}
@@ -87,7 +87,7 @@ function ProfileModal(props: ProfileModalProps) {
         </Row>
         <Row className="mt-3">
           <Col
-            className="text-left p-3 mx-3"
+            className="text-start p-3 mx-3"
             style={{
               background: "#111320",
             }}

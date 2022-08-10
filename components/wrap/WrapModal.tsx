@@ -132,7 +132,7 @@ function WrapModal({
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
           <p>ETH: {ETHBalance ?? "---"}</p>
-          <p className="mb-0 mr-3">
+          <p className="mb-0 me-3">
             ETHx:{" "}
             {isLoading || data == null ? (
               <Spinner animation="border" role="status"></Spinner>
@@ -168,7 +168,7 @@ function WrapModal({
             required
             autoFocus
             type="text"
-            className="form-control mb-2 mr-sm-6 text-white"
+            className="form-control mb-2 me-sm-6 text-white"
             style={{
               backgroundColor: "#111320",
               border: "none",

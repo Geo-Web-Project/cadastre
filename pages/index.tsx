@@ -213,7 +213,7 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-          <Col sm="3" className="p-0 text-right">
+          <Col sm="3" className="p-0 text-end">
             <Connector />
           </Col>
         </Navbar>

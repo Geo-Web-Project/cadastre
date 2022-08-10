@@ -331,7 +331,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     <>
       <Row className="mb-3">
         <Col sm="10">{title}</Col>
-        <Col sm="2" className="text-right">
+        <Col sm="2" className="text-end">
           <Button
             variant="link"
             size="sm"

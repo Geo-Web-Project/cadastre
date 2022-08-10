@@ -260,7 +260,7 @@ function GalleryForm(props: GalleryFormProps) {
 
   return (
     <>
-      <Form id="galleryForm" className="pt-2 text-left">
+      <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <InputGroup>
@@ -354,7 +354,7 @@ function GalleryForm(props: GalleryFormProps) {
             </Form.Control>
           </Col>
         </Row>
-        <Row className="px-3 text-right">
+        <Row className="px-3 text-end">
           <Col xs="auto" lg={{ offset: 6 }} className="mb-3">
             <Button variant="danger" onClick={clearForm}>
               Cancel

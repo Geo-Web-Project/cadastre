@@ -82,7 +82,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
             Fair Launch Claim
           </h1>
         </Col>
-        <Col sm="2" className="text-right">
+        <Col sm="2" className="text-end">
           <Button
             variant="link"
             size="sm"
