@@ -266,7 +266,7 @@ function GalleryForm(props: GalleryFormProps) {
             <InputGroup>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
-                className="text-white"
+                className="text-white mt-1"
                 type="text"
                 placeholder="Upload media or add an existing CID"
                 readOnly={
@@ -279,6 +279,7 @@ function GalleryForm(props: GalleryFormProps) {
                 type="file"
                 id="uploadCid"
                 style={{ backgroundColor: "#111320", border: "none" }}
+                className="mt-1"
                 accept={getFormatCS()}
                 disabled={
                   isUploading || selectedMediaGalleryItemManager != null
@@ -303,7 +304,7 @@ function GalleryForm(props: GalleryFormProps) {
               <Form.Text className="text-primary mb-1">File Format</Form.Text>
               <Form.Control
                 as="select"
-                className="text-white"
+                className="text-white mt-1"
                 style={{ backgroundColor: "#111320", border: "none" }}
                 onChange={onSelectFileFormat}
                 value={detectedFileFormat ?? fileFormat ?? undefined}
@@ -327,7 +328,7 @@ function GalleryForm(props: GalleryFormProps) {
           <Col sm="12" lg="6" className="mb-3">
             <Form.Control
               style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white"
+              className="text-white mt-1"
               type="text"
               placeholder="Display Name of Media"
               value={mediaGalleryItem.name}
@@ -345,7 +346,7 @@ function GalleryForm(props: GalleryFormProps) {
             </Form.Text>
             <Form.Control
               as="select"
-              className="text-white"
+              className="text-white mt-1"
               style={{ backgroundColor: "#111320", border: "none" }}
               onChange={onSelectPinningService}
               disabled

@@ -239,7 +239,7 @@ export function ActionForm(props: ActionFormProps) {
                   </Form.Text>
                   <Form.Control
                     isInvalid={isParcelNameInvalid}
-                    className="bg-dark text-light"
+                    className="bg-dark text-light mt-1"
                     type="text"
                     placeholder="Parcel Name"
                     aria-label="Parcel Name"
@@ -261,7 +261,7 @@ export function ActionForm(props: ActionFormProps) {
                   </Form.Text>
                   <Form.Control
                     isInvalid={isURIInvalid}
-                    className="bg-dark text-light"
+                    className="bg-dark text-light mt-1"
                     type="text"
                     placeholder="URI (http://, https://, ipfs://, ipns://)"
                     aria-label="Web Content URI"
@@ -312,7 +312,7 @@ export function ActionForm(props: ActionFormProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className={
-                  hasOutstandingBid ? "bg-dark text-info" : "bg-dark text-light"
+                  hasOutstandingBid ? "bg-dark text-info mt-1" : "bg-dark text-light mt-1"
                 }
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
@@ -354,7 +354,7 @@ export function ActionForm(props: ActionFormProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
