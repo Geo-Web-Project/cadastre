@@ -233,7 +233,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
-                className="bg-dark text-light"
+                className="bg-dark text-light mt-1"
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
@@ -268,7 +268,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
