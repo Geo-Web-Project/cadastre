@@ -6,6 +6,8 @@ $dark: #202333;
 $purple: rgba(75, 85, 136, 0.25);
 $info: #707179;
 $gray: #e6e7ee;
+$danger: #dc3545;
+$light: #f8f9fa;
 
 $theme-colors: (
   "primary": $primary,
@@ -14,6 +16,8 @@ $theme-colors: (
   "purple": $purple,
   "info": $info,
   "gray": $gray,
+  "danger": $danger,
+  "light": $light
 );
 
 $font-family-base: "Open Sans";
