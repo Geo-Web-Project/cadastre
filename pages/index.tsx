@@ -198,7 +198,7 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple border-opacity-25"
         >
-          <Col sm="3" className="p-0">
+          <Col sm="3" className="ps-3 pe-3">
             <FAQ />
           </Col>
           <Col sm="6" className="text-center p-2 mx-auto">
@@ -213,7 +213,7 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-          <Col sm="3" className="p-0 text-end">
+          <Col sm="3" className="ps-3 pe-3 text-end">
             <Connector />
           </Col>
         </Navbar>
