@@ -84,7 +84,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only"></span>
+      <span className="visually-hidden"></span>
     </span>
   );
 

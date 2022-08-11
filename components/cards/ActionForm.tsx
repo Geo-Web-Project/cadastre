@@ -90,7 +90,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 

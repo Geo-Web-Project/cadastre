@@ -161,7 +161,7 @@ function WrapModal({
           noValidate
           onSubmit={onSubmit}
         >
-          <label className="sr-only" htmlFor="amount">
+          <label className="visually-hidden" htmlFor="amount">
             Amount
           </label>
           <input

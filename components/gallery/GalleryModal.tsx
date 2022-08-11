@@ -43,7 +43,7 @@ function GalleryModal(props: GalleryModalProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
