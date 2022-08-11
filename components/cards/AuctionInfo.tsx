@@ -101,7 +101,7 @@ function AuctionInfo(props: AuctionInfoProps) {
 
   return (
     <>
-      <Card className="bg-purple">
+      <Card className="bg-purple bg-opacity-25">
         <Card.Header>
           <h4>
             {interactionState == STATE.PARCEL_RECLAIMING
