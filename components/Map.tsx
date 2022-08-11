@@ -663,7 +663,7 @@ function Map(props: MapProps) {
         style={{
           position: "absolute",
           bottom: "4%",
-          right: "2%",
+          right: "1.25%",
           width: '132px',
           borderRadius: 12,
         }}
