@@ -120,13 +120,11 @@ function WrapModal({
         </Modal.Title>
         <button
           type="button"
-          className="close text-light"
+          className="btn-close btn-close-white"
           data-dismiss="modal"
           aria-label="Close"
           onClick={handleClose}
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
+        />
       </Modal.Header>
       <Modal.Body className="bg-dark text-light position-relative">
         <p>Current Balances</p>
