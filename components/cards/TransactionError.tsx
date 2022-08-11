@@ -6,7 +6,7 @@ export type TransactionErrorProps = {
 
 function TransactionError(props: TransactionErrorProps) {
   return (
-    <Alert variant="danger">
+    <Alert variant="danger" dismissible>
       <Alert.Heading style={{ fontSize: "1em" }}>
         Transaction Failed
       </Alert.Heading>

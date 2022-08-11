@@ -13,7 +13,7 @@ import {
   // eslint-disable-next-line import/named
   PartialConnectorConfig,
 } from "@ceramicstudio/multiauth";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles.scss";
 import {
   injected,

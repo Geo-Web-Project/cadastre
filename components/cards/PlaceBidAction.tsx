@@ -89,7 +89,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     displayNewForSalePrice.length > 0 &&
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
-  
+
   const existingAnnualNetworkFee = fromValueToRate(
     currentForSalePrice,
     perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
@@ -112,7 +112,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
 
-  const annualNetworkFeeRate = newForSalePrice?.mul(annualFeePercentage).div(100);
+  const annualNetworkFeeRate = newForSalePrice
+    ?.mul(annualFeePercentage)
+    .div(100);
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
