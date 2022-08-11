@@ -196,7 +196,7 @@ function IndexPage() {
           variant="dark"
           fixed="top"
           style={{ height: "100px" }}
-          className="border-bottom border-purple"
+          className="border-bottom border-purple border-opacity-25"
         >
           <Col sm="3" className="p-0">
             <FAQ />
