@@ -174,6 +174,7 @@ function WrapModal({
               border: "none",
               position: "absolute",
               left: "16px",
+              width: "auto",
             }}
             id="amount"
             placeholder="0.00"
