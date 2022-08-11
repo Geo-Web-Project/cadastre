@@ -126,14 +126,17 @@ export function ActionForm(props: ActionFormProps) {
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
-  
-  const annualNetworkFeeRate = 
+
+  const annualNetworkFeeRate =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
-    !isNaN(Number(displayNewForSalePrice)) 
-      ? ethers.utils.parseEther(displayNewForSalePrice).mul(annualFeePercentage).div(100)
-    : null;
-  
+    !isNaN(Number(displayNewForSalePrice))
+      ? ethers.utils
+          .parseEther(displayNewForSalePrice)
+          .mul(annualFeePercentage)
+          .div(100)
+      : null;
+
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -312,7 +315,9 @@ export function ActionForm(props: ActionFormProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className={
-                  hasOutstandingBid ? "bg-dark text-info mt-1" : "bg-dark text-light mt-1"
+                  hasOutstandingBid
+                    ? "bg-dark text-info mt-1"
+                    : "bg-dark text-light mt-1"
                 }
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
