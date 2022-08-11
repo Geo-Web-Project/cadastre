@@ -1,17 +1,25 @@
 @import url("https://fonts.googleapis.com/css2?family=Abel&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 
+$primary: #2fc1c1;
+$secondary: #4b5588;
+$dark: #202333;
+$purple: rgba(75, 85, 136, 0.25);
+$info: #707179;
+$gray: #e6e7ee;
+
 $theme-colors: (
-  "primary": #2fc1c1,
-  "secondary": #4b5588,
-  "dark": #202333,
-  "purple": rgba(75, 85, 136, 0.25),
-  "info": #707179,
-  "gray": #e6e7ee,
+  "primary": $primary,
+  "secondary": $secondary,
+  "dark": $dark,
+  "purple": $purple,
+  "info": $info,
+  "gray": $gray,
 );
 
 $font-family-base: "Open Sans";
 
 $link-decoration: none;
+$link-hover-decoration: underline;
 
 .mapboxgl-canvas {
   background-color: black;
