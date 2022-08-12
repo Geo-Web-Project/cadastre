@@ -110,7 +110,7 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
@@ -331,7 +331,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     <>
       <Row className="mb-3">
         <Col sm="10">{title}</Col>
-        <Col sm="2" className="text-right">
+        <Col sm="2" className="text-end">
           <Button
             variant="link"
             size="sm"
@@ -349,7 +349,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
-              <p className="font-weight-bold text-truncate">
+              <p className="fw-bold text-truncate">
                 {!parcelContent ? null : hrefWebContent ? (
                   <a
                     href={hrefWebContent}
@@ -360,21 +360,21 @@ function ParcelInfo(props: ParcelInfoProps) {
                 ) : null}
               </p>
               <p>
-                <span className="font-weight-bold">For Sale Price:</span>{" "}
+                <span className="fw-bold">For Sale Price:</span>{" "}
                 {isLoading ? spinner : forSalePrice}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Parcel ID:</span>{" "}
+                <span className="fw-bold">Parcel ID:</span>{" "}
                 {isLoading ? spinner : selectedParcelId}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Licensee:</span>{" "}
+                <span className="fw-bold">Licensee:</span>{" "}
                 {isLoading || !licenseOwner
                   ? spinner
                   : truncateStr(licenseOwner, 11)}
               </p>
               <p className="text-truncate">
-                <span className="font-weight-bold">Stream ID:</span>{" "}
+                <span className="fw-bold">Stream ID:</span>{" "}
                 {parcelIndexStreamId == null ? (
                   spinner
                 ) : (

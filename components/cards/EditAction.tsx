@@ -82,7 +82,7 @@ function EditAction(props: EditActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
+
   const existingAnnualNetworkFee =
     displayCurrentForSalePrice &&
     perSecondFeeNumerator &&
@@ -105,7 +105,7 @@ function EditAction(props: EditActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
+
   const newAnnualNetworkFee =
     !isForSalePriceInvalid &&
     displayNewForSalePrice &&
@@ -186,7 +186,9 @@ function EditAction(props: EditActionProps) {
           existingAnnualNetworkFee && !hasOutstandingBid ? (
             <TransactionSummaryView
               existingAnnualNetworkFee={existingAnnualNetworkFee}
-              newAnnualNetworkFee={newAnnualNetworkFee ?? existingAnnualNetworkFee}
+              newAnnualNetworkFee={
+                newAnnualNetworkFee ?? existingAnnualNetworkFee
+              }
               {...props}
             />
           ) : (

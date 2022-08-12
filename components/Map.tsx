@@ -664,6 +664,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom: "4%",
           right: "2%",
+          width: "123px",
           borderRadius: 12,
         }}
         aria-label="Basic example"

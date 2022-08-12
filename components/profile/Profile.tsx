@@ -34,11 +34,11 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
   );
 
   return (
-    <div className="d-flex flex-column ml-auto align-items-center fit-content">
+    <div className="d-flex flex-column ms-auto align-items-center fit-content">
       {/* <Badge
         pill
         bg="info"
-        className="mr-4 py-2 px-3 text-light"
+        className="me-4 py-2 px-3 text-light"
       >
         <span style={{ fontWeight: 600 }}>{NETWORK_NAME}</span>
       </Badge> */}
