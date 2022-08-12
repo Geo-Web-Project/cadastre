@@ -254,7 +254,10 @@ function OutstandingBidView({
           </Button>
         ) : null}
         {didFail && !isActing ? (
-          <TransactionError message={errorMessage} />
+          <TransactionError
+            message={errorMessage}
+            onClick={() => setDidFail(false)}
+          />
         ) : null}
       </Card.Body>
     </Card>

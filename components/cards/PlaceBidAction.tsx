@@ -318,7 +318,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
           <br />
           {didFail && !isActing ? (
-            <TransactionError message={errorMessage} />
+            <TransactionError
+              message={errorMessage}
+              onClick={() => setDidFail(false)}
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
