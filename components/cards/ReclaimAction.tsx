@@ -54,7 +54,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
+
   const newAnnualNetworkFee =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(

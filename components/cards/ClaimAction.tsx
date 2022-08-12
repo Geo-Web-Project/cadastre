@@ -59,7 +59,7 @@ function ClaimAction(props: ClaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  
+
   const networkFeeRatePerYear =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(
@@ -87,11 +87,7 @@ function ClaimAction(props: ClaimActionProps) {
       path = [BigNumber.from(0)];
     }
 
-    if (
-      !displayNewForSalePrice ||
-      !newFlowRate ||
-      isForSalePriceInvalid
-    ) {
+    if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
