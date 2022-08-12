@@ -1,29 +1,29 @@
+import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Col from "react-bootstrap/Col";
 // eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
 import Geocoder from "../lib/Geocoder";
+import Sidebar from "./Sidebar";
+import ClaimSource from "./sources/ClaimSource";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
-import ClaimSource from "./sources/ClaimSource";
-import { gql, useQuery } from "@apollo/client";
-import Sidebar from "./Sidebar";
-import Col from "react-bootstrap/Col";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 
-import "mapbox-gl/dist/mapbox-gl.css";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { ethers } from "ethers";
+import "mapbox-gl/dist/mapbox-gl.css";
 
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
@@ -189,6 +189,18 @@ export type MapProps = {
   sfFramework: Framework;
 };
 
+const MAP_STYLE_KEY = "storedMapStyleName";
+
+enum MapStyleName {
+  satellite = "satellite",
+  street = "street",
+}
+
+const mapStyleUrlByName: Record<MapStyleName, string> = {
+  [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v11",
+  [MapStyleName.street]: "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln",
+};
+
 function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -202,53 +214,14 @@ function Map(props: MapProps) {
 
   const mapRef = useRef();
 
-  const [mapstyle, setMapstyle] = React.useState(
-    "mapbox://styles/mapbox/satellite-streets-v11"
+  const [mapStyleName, setMapStyleName] = React.useState(
+    localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite
   );
-  const [mapStyleName, setMapStyleName] = React.useState("satellite");
 
-  const handleMapstyle = (newStyle: string) => {
-    if (newStyle === "satellite")
-      setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
-    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
-
+  const handleMapstyle = (newStyle: MapStyleName) => {
+    localStorage.setItem(MAP_STYLE_KEY, newStyle);
     setMapStyleName(newStyle);
   };
-
-  // Fetch more until none left
-  useEffect(() => {
-    if (
-      data == null ||
-      data.geoWebCoordinates.length == 0 ||
-      viewport == null
-    ) {
-      return;
-    }
-    const newLastBlock =
-      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
-
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      viewport.longitude,
-      viewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-
-    const params = normalizeQueryVariables(x, y);
-
-    console.debug("Fetching more");
-    console.debug(params);
-
-    fetchMore({
-      variables: {
-        lastBlock: newLastBlock,
-        ...params,
-      },
-    });
-  }, [data, fetchMore]);
 
   const [viewport, setViewport] = useState<Record<string, any> | null>({
     latitude: 40.780503,
@@ -278,11 +251,40 @@ function Map(props: MapProps) {
     string[]
   >(["parcels-layer"]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
+  const [newParcel, setNewParcel] = React.useState<{
+    id: string;
+    timerId: number | null;
+  }>({ id: "", timerId: null });
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
+
+  // Fetch more until none left
+  useEffect(() => {
+    if (newParcel.id) {
+      const lastParcel =
+        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.landParcel;
+
+      if (lastParcel?.id === newParcel.id) {
+        clearInterval(newParcel.timerId);
+        setNewParcel({ id: "", timerId: null });
+        return;
+      }
+
+      if (!newParcel.timerId) {
+        setNewParcel({
+          ...newParcel,
+          timerId: setInterval(_fetchMoreParcels, 2000),
+        });
+      }
+    }
+
+    _fetchMoreParcels();
+
+    return () => clearInterval(newParcel.timerId);
+  }, [data, newParcel.id, fetchMore]);
 
   const flyToLocation = useCallback(
     ({ longitude, latitude, duration, zoom }) => {
@@ -294,6 +296,46 @@ function Map(props: MapProps) {
     },
     []
   );
+
+  function _fetchMoreParcels() {
+    if (data == null || viewport == null) {
+      return;
+    }
+
+    let newLastBlock;
+
+    if (data.geoWebCoordinates.length > 0) {
+      newLastBlock =
+        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
+          .createdAtBlock;
+    } else if (newParcel.id) {
+      newLastBlock = 0;
+    } else {
+      return;
+    }
+
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+
+    const params = normalizeQueryVariables(x, y);
+
+    console.debug("Fetching more");
+    console.debug(params);
+
+    fetchMore({
+      variables: {
+        lastBlock: newLastBlock,
+        ...params,
+      },
+    });
+  }
 
   function _onLoad() {
     const gwCoord = GeoWebCoordinate.fromGPS(
@@ -572,6 +614,7 @@ function Map(props: MapProps) {
           parcelClaimSize={parcelClaimSize}
           invalidLicenseId={invalidLicenseId}
           setInvalidLicenseId={setInvalidLicenseId}
+          setNewParcel={setNewParcel}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
@@ -583,7 +626,7 @@ function Map(props: MapProps) {
           ref={mapRef}
           {...viewport}
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle={mapstyle}
+          mapStyle={mapStyleUrlByName[mapStyleName]}
           interactiveLayerIds={interactiveLayerIds}
           projection="globe"
           fog={{}}
@@ -621,6 +664,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom: "4%",
           right: "2%",
+          width: "123px",
           borderRadius: 12,
         }}
         aria-label="Basic example"
@@ -630,7 +674,7 @@ function Map(props: MapProps) {
             backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("street")}
+          onClick={() => handleMapstyle(MapStyleName.street)}
         >
           <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
@@ -640,7 +684,7 @@ function Map(props: MapProps) {
               mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("satellite")}
+          onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
           <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>

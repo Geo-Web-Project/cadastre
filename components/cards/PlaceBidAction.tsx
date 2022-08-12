@@ -66,7 +66,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 
@@ -235,7 +235,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
-                className="bg-dark text-light"
+                className="bg-dark text-light mt-1"
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
@@ -270,7 +270,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
@@ -318,7 +318,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
           <br />
           {didFail && !isActing ? (
-            <TransactionError message={errorMessage} />
+            <TransactionError
+              message={errorMessage}
+              onClick={() => setDidFail(false)}
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
@@ -326,7 +329,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>

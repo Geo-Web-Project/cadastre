@@ -73,7 +73,7 @@ function OutstandingBidView({
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
@@ -205,7 +205,7 @@ function OutstandingBidView({
   }
 
   return (
-    <Card className="bg-purple mt-5">
+    <Card className="bg-purple bg-opacity-25 mt-5">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
@@ -254,7 +254,10 @@ function OutstandingBidView({
           </Button>
         ) : null}
         {didFail && !isActing ? (
-          <TransactionError message={errorMessage} />
+          <TransactionError
+            message={errorMessage}
+            onClick={() => setDidFail(false)}
+          />
         ) : null}
       </Card.Body>
     </Card>
