@@ -10,13 +10,13 @@ import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import { truncateEth } from "../../lib/truncate";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
+import TransactionError from "./TransactionError";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -55,16 +55,18 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
-    React.useState<string | null>(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
+    string | null
+  >(null);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 
@@ -88,9 +90,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
 
-  const existingNetworkFee = fromValueToRate(
+  const existingAnnualNetworkFee = fromValueToRate(
     currentForSalePrice,
-    perSecondFeeNumerator,
+    perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
     perSecondFeeDenominator
   );
 
@@ -106,11 +108,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = newNetworkFee?.mul(SECONDS_IN_YEAR);
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
+
+  const annualNetworkFeeRate = newForSalePrice
+    ?.mul(annualFeePercentage)
+    .div(100);
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
@@ -182,6 +186,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -228,7 +235,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
-                className="bg-dark text-light"
+                className="bg-dark text-light mt-1"
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
@@ -263,7 +270,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
@@ -279,10 +286,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            {!isForSalePriceInvalid && existingNetworkFee ? (
+            {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
-                existingNetworkFee={existingNetworkFee}
-                newNetworkFee={newNetworkFee}
+                existingAnnualNetworkFee={existingAnnualNetworkFee}
+                newAnnualNetworkFee={annualNetworkFeeRate}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 {...props}
@@ -311,18 +318,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
           <br />
           {didFail && !isActing ? (
-            <Alert
-              variant="danger"
-              dismissible
+            <TransactionError
+              message={errorMessage}
               onClick={() => setDidFail(false)}
-            >
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Transaction failed
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>
-                Oops! Something went wrong. Please try again.
-              </p>
-            </Alert>
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
@@ -330,7 +329,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>

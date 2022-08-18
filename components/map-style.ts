@@ -47,3 +47,11 @@ export const parcelHighlightLayer: LayerProps = {
     "fill-opacity": 0.75,
   },
 };
+export const parcelInvalidLayer: LayerProps = {
+  id: "parcels-invalid-layer",
+  type: "fill",
+  paint: {
+    "fill-color": "#E11515",
+    "fill-opacity": 0.75,
+  },
+};

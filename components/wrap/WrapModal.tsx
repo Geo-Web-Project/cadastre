@@ -102,12 +102,15 @@ function WrapModal({
     }
   };
 
-  const tokenOptions: TokenOptions = useMemo(() => ({
-    address: paymentToken.address,
-    symbol: "ETHx",
-    decimals: 18,
-    image: ""
-  }), [paymentToken.address]);
+  const tokenOptions: TokenOptions = useMemo(
+    () => ({
+      address: paymentToken.address,
+      symbol: "ETHx",
+      decimals: 18,
+      image: "",
+    }),
+    [paymentToken.address]
+  );
 
   return (
     <Modal show={show} onHide={handleClose} centered className="wrap-modal">
@@ -117,19 +120,17 @@ function WrapModal({
         </Modal.Title>
         <button
           type="button"
-          className="close text-light"
+          className="btn-close btn-close-white"
           data-dismiss="modal"
           aria-label="Close"
           onClick={handleClose}
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
+        />
       </Modal.Header>
       <Modal.Body className="bg-dark text-light position-relative">
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
           <p>ETH: {ETHBalance ?? "---"}</p>
-          <p className="mb-0 mr-3">
+          <p className="mb-0 me-3">
             ETHx:{" "}
             {isLoading || data == null ? (
               <Spinner animation="border" role="status"></Spinner>
@@ -140,7 +141,10 @@ function WrapModal({
               />
             )}
           </p>
-          <div className="position-absolute" style={{ bottom: "16px", right: "16px" }}>
+          <div
+            className="position-absolute"
+            style={{ bottom: "16px", right: "16px" }}
+          >
             <CopyTokenAddress options={tokenOptions} />
           </div>
         </div>
@@ -155,19 +159,20 @@ function WrapModal({
           noValidate
           onSubmit={onSubmit}
         >
-          <label className="sr-only" htmlFor="amount">
+          <label className="visually-hidden" htmlFor="amount">
             Amount
           </label>
           <input
             required
             autoFocus
             type="text"
-            className="form-control mb-2 mr-sm-6 text-white"
+            className="form-control mb-2 me-sm-6 text-white"
             style={{
               backgroundColor: "#111320",
               border: "none",
               position: "absolute",
               left: "16px",
+              width: "auto",
             }}
             id="amount"
             placeholder="0.00"

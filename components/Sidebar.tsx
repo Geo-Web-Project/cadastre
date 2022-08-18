@@ -6,7 +6,6 @@ import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps } from "./Map";
 import { BigNumber, ethers } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
-import { calculateRequiredBid } from "../lib/calculateRequiredBid";
 import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
@@ -18,6 +17,11 @@ export type SidebarProps = MapProps & {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
   parcelClaimSize: number;
+  invalidLicenseId: string;
+  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
+  setNewParcel: React.Dispatch<
+    React.SetStateAction<{ id: string; timerId: number | null }>
+  >;
 };
 
 function Sidebar(props: SidebarProps) {
@@ -28,6 +32,8 @@ function Sidebar(props: SidebarProps) {
     interactionState,
     setInteractionState,
     parcelClaimSize,
+    invalidLicenseId,
+    setInvalidLicenseId,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -48,9 +54,13 @@ function Sidebar(props: SidebarProps) {
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] =
-    React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
+  const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
 
   React.useEffect(() => {
     let isMounted = true;
@@ -86,11 +96,6 @@ function Sidebar(props: SidebarProps) {
     endingBid &&
     Date.now() / 1000 < auctionEnd.toNumber();
 
-  const requiredBid =
-    auctionStart && auctionEnd && startingBid && endingBid
-      ? calculateRequiredBid(auctionStart, auctionEnd, startingBid, endingBid)
-      : BigNumber.from(0);
-
   return (
     <Col
       sm="3"
@@ -99,11 +104,12 @@ function Sidebar(props: SidebarProps) {
     >
       {isFairLaunch && interactionState == STATE.CLAIM_SELECTED ? (
         <FairLaunchInfo
-          currentRequiredBid={truncateEth(
-            ethers.utils.formatEther(requiredBid),
-            4
-          )}
-          auctionEnd={auctionEnd.toNumber() * 1000}
+          auctionStart={auctionStart}
+          auctionEnd={auctionEnd}
+          startingBid={startingBid}
+          endingBid={endingBid}
+          requiredBid={requiredBid}
+          setRequiredBid={setRequiredBid}
           {...props}
         />
       ) : perSecondFeeNumerator && perSecondFeeDenominator ? (

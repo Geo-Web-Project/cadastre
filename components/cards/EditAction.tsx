@@ -6,7 +6,7 @@ import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 
 export type EditActionProps = SidebarProps & {
@@ -83,6 +83,17 @@ function EditAction(props: EditActionProps) {
         )
       : null;
 
+  const existingAnnualNetworkFee =
+    displayCurrentForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayCurrentForSalePrice),
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
+          perSecondFeeDenominator
+        )
+      : null;
+
   const newNetworkFee =
     !isForSalePriceInvalid &&
     displayNewForSalePrice &&
@@ -91,6 +102,18 @@ function EditAction(props: EditActionProps) {
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
           perSecondFeeNumerator,
+          perSecondFeeDenominator
+        )
+      : null;
+
+  const newAnnualNetworkFee =
+    !isForSalePriceInvalid &&
+    displayNewForSalePrice &&
+    perSecondFeeNumerator &&
+    perSecondFeeDenominator
+      ? fromValueToRate(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
           perSecondFeeDenominator
         )
       : null;
@@ -160,10 +183,12 @@ function EditAction(props: EditActionProps) {
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          existingNetworkFee && !hasOutstandingBid ? (
+          existingAnnualNetworkFee && !hasOutstandingBid ? (
             <TransactionSummaryView
-              existingNetworkFee={existingNetworkFee}
-              newNetworkFee={newNetworkFee ?? existingNetworkFee}
+              existingAnnualNetworkFee={existingAnnualNetworkFee}
+              newAnnualNetworkFee={
+                newAnnualNetworkFee ?? existingAnnualNetworkFee
+              }
               {...props}
             />
           ) : (

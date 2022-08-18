@@ -1,23 +1,55 @@
 @import url("https://fonts.googleapis.com/css2?family=Abel&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 
+$primary: #2fc1c1;
+$secondary: #4b5588;
+$dark: #202333;
+$purple: rgba(75, 85, 136, 0.25);
+$info: #707179;
+$gray: #e6e7ee;
+$danger: #dc3545;
+$light: #f8f9fa;
+$success: #28a745;
+
 $theme-colors: (
-        "primary": #2fc1c1,
-        "secondary": #4b5588,
-        "dark": #202333,
-        "purple": rgba(75, 85, 136, 0.25),
-        "info": #707179,
-        "gray": #e6e7ee,
+  "primary": $primary,
+  "secondary": $secondary,
+  "dark": $dark,
+  "purple": $purple,
+  "info": $info,
+  "gray": $gray,
+  "danger": $danger,
+  "light": $light,
+  "success": $success
 );
 
 $font-family-base: "Open Sans";
+
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+$tooltip-arrow-height: 0.2rem;
 
 .mapboxgl-canvas {
   background-color: black;
 }
 
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+  margin: 0 !important;
+}
+
+.mapboxgl-ctrl-geocoder.mapboxgl-ctrl {
+  position: absolute;
+  top: 120px;
+  right: 2vw;
+}
+
 .mapboxgl-ctrl-group {
-  border: 1px solid map-get($theme-colors, "secondary" );
-  border-radius: 4px;
+  position: absolute;
+  bottom: 90px;
+  right: 2vw;
+  border: 1px solid map-get($theme-colors, "secondary");
+  border-radius: 6px !important;
 }
 
 .mapboxgl-ctrl-icon {
@@ -68,4 +100,8 @@ $font-family-base: "Open Sans";
 
 .tooltip-inner {
   max-width: 300px;
+}
+
+.btn {
+  color: $light !important;
 }

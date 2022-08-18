@@ -34,27 +34,32 @@ const { httpClient, jsIpfs } = providers;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
-  return new ethers.providers.Web3Provider(provider);
+  return new ethers.providers.Web3Provider(provider, "any");
 }
 
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] =
-    React.useState<Contracts["geoWebERC721LicenseContract"] | null>(null);
-  const [auctionSuperApp, setAuctionSuperApp] =
-    React.useState<Contracts["geoWebAuctionSuperAppContract"] | null>(null);
-  const [fairLaunchClaimer, setFairLaunchClaimer] =
-    React.useState<Contracts["geoWebFairLaunchClaimerContract"] | null>(null);
+  const [licenseContract, setLicenseContract] = React.useState<
+    Contracts["geoWebERC721LicenseContract"] | null
+  >(null);
+  const [auctionSuperApp, setAuctionSuperApp] = React.useState<
+    Contracts["geoWebAuctionSuperAppContract"] | null
+  >(null);
+  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<
+    Contracts["geoWebFairLaunchClaimerContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -161,7 +166,7 @@ function IndexPage() {
       return (
         <Button
           variant="outline-primary"
-          className="text-light font-weight-bold border-dark"
+          className="text-light fw-bold border-dark"
           style={{ height: "100px" }}
           disabled={authState.status === "connecting"}
           onClick={() => {
@@ -191,9 +196,9 @@ function IndexPage() {
           variant="dark"
           fixed="top"
           style={{ height: "100px" }}
-          className="border-bottom border-purple"
+          className="border-bottom border-purple border-opacity-25"
         >
-          <Col sm="3" className="p-0">
+          <Col sm="3" className="ps-3 pe-3">
             <FAQ />
           </Col>
           <Col sm="6" className="text-center p-2 mx-auto">
@@ -208,7 +213,7 @@ function IndexPage() {
               Claim, transfer, and manage digital land
             </div>
           </Col>
-          <Col sm="3" className="p-0 text-right">
+          <Col sm="3" className="ps-3 pe-3 text-end">
             <Connector />
           </Col>
         </Navbar>

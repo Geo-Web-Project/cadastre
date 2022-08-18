@@ -10,7 +10,6 @@ import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import { truncateEth } from "../../lib/truncate";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
@@ -21,6 +20,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
+import TransactionError from "./TransactionError";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -71,6 +71,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
@@ -80,7 +81,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 
@@ -107,6 +108,12 @@ function RejectBidAction(props: RejectBidActionProps) {
     perSecondFeeDenominator
   );
 
+  const existingAnnualNetworkFee = fromValueToRate(
+    currentForSalePrice,
+    perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
+    perSecondFeeDenominator
+  );
+
   const newNetworkFee =
     !isForSalePriceInvalid &&
     newForSalePrice &&
@@ -119,11 +126,13 @@ function RejectBidAction(props: RejectBidActionProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = newNetworkFee?.mul(SECONDS_IN_YEAR);
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
+
+  const annualNetworkFeeRate = newForSalePrice
+    ?.mul(annualFeePercentage)
+    .div(100);
 
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
@@ -240,6 +249,9 @@ function RejectBidAction(props: RejectBidActionProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -297,7 +309,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               <Form.Control
                 required
                 isInvalid={isForSalePriceInvalid}
-                className="bg-dark text-light"
+                className="bg-dark text-light mt-1"
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 defaultValue={bidForSalePriceDisplay}
@@ -333,7 +345,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
@@ -350,10 +362,10 @@ function RejectBidAction(props: RejectBidActionProps) {
             <br />
             <hr className="action-form_divider" />
             <br />
-            {!isForSalePriceInvalid && existingNetworkFee ? (
+            {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
-                existingNetworkFee={existingNetworkFee}
-                newNetworkFee={newNetworkFee}
+                existingAnnualNetworkFee={existingAnnualNetworkFee}
+                newAnnualNetworkFee={annualNetworkFeeRate}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}
@@ -382,18 +394,10 @@ function RejectBidAction(props: RejectBidActionProps) {
 
           <br />
           {didFail && !isActing ? (
-            <Alert
-              variant="danger"
-              dismissible
+            <TransactionError
+              message={errorMessage}
               onClick={() => setDidFail(false)}
-            >
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Transaction failed
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>
-                Oops! Something went wrong. Please try again.
-              </p>
-            </Alert>
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
@@ -401,7 +405,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>

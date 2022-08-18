@@ -1,10 +1,15 @@
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
-import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
+import {
+  NETWORK_ID,
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+} from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
+import { STATE } from "../Map";
 
 /**
  * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
@@ -19,19 +24,23 @@ const depositHoursMap: Record<number, number> = {
 };
 
 type TransactionSummaryViewProps = SidebarProps & {
-  existingNetworkFee?: BigNumber;
-  newNetworkFee: BigNumber | null;
+  existingAnnualNetworkFee?: BigNumber;
+  newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
   collateralDeposit?: BigNumber;
   penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
+  licenseOwner?: string;
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
 };
 
 function TransactionSummaryView({
-  existingNetworkFee = BigNumber.from(0),
-  newNetworkFee,
+  existingAnnualNetworkFee = BigNumber.from(0),
+  newAnnualNetworkFee,
+  account,
+  interactionState,
+  licenseOwner,
   provider,
   isFairLaunch,
   claimPayment,
@@ -49,22 +58,24 @@ function TransactionSummaryView({
     })();
   }, [provider]);
 
-  const txnReady = newNetworkFee != null;
+  const txnReady = newAnnualNetworkFee != null;
 
   const isDeltaPayment = !collateralDeposit && !claimPayment;
 
-  const networkFeeDelta = newNetworkFee
-    ? newNetworkFee.sub(existingNetworkFee)
+  const networkFeeDelta = newAnnualNetworkFee
+    ? newAnnualNetworkFee.sub(existingAnnualNetworkFee)
     : BigNumber.from(0);
 
   const stream =
-    !isDeltaPayment && newNetworkFee
-      ? newNetworkFee
+    !isDeltaPayment && newAnnualNetworkFee
+      ? newAnnualNetworkFee
       : networkFeeDelta ?? BigNumber.from(0);
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const streamBuffer = stream.mul(depositHoursMap[currentChainID] * 60 * 60);
+  const streamBuffer = stream
+    .mul(depositHoursMap[currentChainID])
+    .div(365 * 24);
 
   const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
 
@@ -73,18 +84,26 @@ function TransactionSummaryView({
   if (claimPayment) {
     paymentView = (
       <p>
-        {isFairLaunch ? `Max Claim Payment (to Treasury): ` : "Claim Payment: "}
+        {isFairLaunch
+          ? `Max Claim Payment (to Treasury): `
+          : interactionState == STATE.PARCEL_RECLAIMING &&
+            account.toLowerCase() != licenseOwner?.toLowerCase()
+          ? "Max Claim Payment (to Licensor): "
+          : "Claim Payment: "}
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {isFairLaunch
+              {interactionState == STATE.PARCEL_RECLAIMING &&
+              account.toLowerCase() === licenseOwner?.toLowerCase()
+                ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream."
+                : isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
                 ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
                 : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
             </div>
           }
           target={
             <span style={{ textDecoration: "underline" }}>
-              {truncateEth(ethers.utils.formatEther(claimPayment), 4)}{" "}
+              {truncateEth(ethers.utils.formatEther(claimPayment), 8)}{" "}
               {PAYMENT_TOKEN}
             </span>
           }
@@ -185,14 +204,7 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? (
-              <>
-                {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
-                {` ${PAYMENT_TOKEN}/s`}
-              </>
-            ) : (
-              `N/A`
-            )}
+            {txnReady ? `${streamDisplay} ${PAYMENT_TOKEN}/year` : `N/A`}
           </span>
         }
       />
@@ -227,39 +239,12 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? (
-              <>
-                {isDeltaPayment
-                  ? "+" + streamBufferDisplay
-                  : streamBufferDisplay}
-                {` ${PAYMENT_TOKEN}`}
-              </>
-            ) : (
-              `N/A`
-            )}
+            {txnReady ? `${streamBufferDisplay} ${PAYMENT_TOKEN}` : `N/A`}
           </span>
         }
       />
     </p>
   );
-
-  /**
-   * For use for "Foreclosure Action", #TODO
-   * let foreclosureActionView = (
-    <p>
-      Max Claim Payment (to Licensor):{" "}
-      <InfoTooltip
-        content={
-          <div style={{ textAlign: "left" }}>
-            This is the amount you authorize for your claim payment. You'll only
-            pay the Dutch auction price at the time of transaction confirmation.
-          </div>
-        }
-        target={<></>}
-      />
-    </p>
-  );
-   */
 
   return (
     <div>

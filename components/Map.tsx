@@ -1,29 +1,29 @@
+import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Col from "react-bootstrap/Col";
 // eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
-import Geocoder from "react-map-gl-geocoder";
+import Geocoder from "../lib/Geocoder";
+import Sidebar from "./Sidebar";
+import ClaimSource from "./sources/ClaimSource";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
-import ClaimSource from "./sources/ClaimSource";
-import { gql, useQuery } from "@apollo/client";
-import Sidebar from "./Sidebar";
-import Col from "react-bootstrap/Col";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 
-import "mapbox-gl/dist/mapbox-gl.css";
-import "react-map-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { ethers } from "ethers";
+import "mapbox-gl/dist/mapbox-gl.css";
 
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
@@ -43,6 +43,7 @@ export enum STATE {
   PARCEL_PLACING_BID = 5,
   EDITING_GALLERY = 6,
   PARCEL_REJECTING_BID = 7,
+  PARCEL_RECLAIMING = 8,
 }
 
 export type Coord = {
@@ -188,6 +189,18 @@ export type MapProps = {
   sfFramework: Framework;
 };
 
+const MAP_STYLE_KEY = "storedMapStyleName";
+
+enum MapStyleName {
+  satellite = "satellite",
+  street = "street",
+}
+
+const mapStyleUrlByName: Record<MapStyleName, string> = {
+  [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v11",
+  [MapStyleName.street]: "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln",
+};
+
 function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -199,56 +212,16 @@ function Map(props: MapProps) {
     },
   });
 
-  const geocoderContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef();
 
-  const [mapstyle, setMapstyle] = React.useState(
-    "mapbox://styles/mapbox/satellite-streets-v11"
+  const [mapStyleName, setMapStyleName] = React.useState(
+    localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite
   );
-  const [mapStyleName, setMapStyleName] = React.useState("satellite");
 
-  const handleMapstyle = (newStyle: string) => {
-    if (newStyle === "satellite")
-      setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
-    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
-
+  const handleMapstyle = (newStyle: MapStyleName) => {
+    localStorage.setItem(MAP_STYLE_KEY, newStyle);
     setMapStyleName(newStyle);
   };
-
-  // Fetch more until none left
-  useEffect(() => {
-    if (
-      data == null ||
-      data.geoWebCoordinates.length == 0 ||
-      viewport == null
-    ) {
-      return;
-    }
-    const newLastBlock =
-      data.geoWebCoordinates[data.geoWebCoordinates.length - 1].createdAtBlock;
-
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      viewport.longitude,
-      viewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-
-    const params = normalizeQueryVariables(x, y);
-
-    console.debug("Fetching more");
-    console.debug(params);
-
-    fetchMore({
-      variables: {
-        lastBlock: newLastBlock,
-        ...params,
-      },
-    });
-  }, [data, fetchMore]);
 
   const [viewport, setViewport] = useState<Record<string, any> | null>({
     latitude: 40.780503,
@@ -274,17 +247,120 @@ function Map(props: MapProps) {
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
   const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
+  const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
+    string[]
+  >(["parcels-layer"]);
+  const [invalidLicenseId, setInvalidLicenseId] = useState("");
+  const [newParcel, setNewParcel] = React.useState<{
+    id: string;
+    timerId: number | null;
+  }>({ id: "", timerId: null });
 
   const isGridVisible =
     viewport?.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
 
-  const _onViewportSearch = useCallback((nextViewport: any) => {
-    setViewport(nextViewport);
-  }, []);
+  // Fetch more until none left
+  useEffect(() => {
+    if (newParcel.id) {
+      const lastParcel =
+        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.landParcel;
 
-  function _onViewportChange(nextViewport: any) {
+      if (lastParcel?.id === newParcel.id) {
+        clearInterval(newParcel.timerId);
+        setNewParcel({ id: "", timerId: null });
+        return;
+      }
+
+      if (!newParcel.timerId) {
+        setNewParcel({
+          ...newParcel,
+          timerId: setInterval(_fetchMoreParcels, 2000),
+        });
+      }
+    }
+
+    _fetchMoreParcels();
+
+    return () => clearInterval(newParcel.timerId);
+  }, [data, newParcel.id, fetchMore]);
+
+  const flyToLocation = useCallback(
+    ({ longitude, latitude, duration, zoom }) => {
+      mapRef.current?.flyTo({
+        center: [longitude, latitude],
+        duration,
+        zoom,
+      });
+    },
+    []
+  );
+
+  function _fetchMoreParcels() {
+    if (data == null || viewport == null) {
+      return;
+    }
+
+    let newLastBlock;
+
+    if (data.geoWebCoordinates.length > 0) {
+      newLastBlock =
+        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
+          .createdAtBlock;
+    } else if (newParcel.id) {
+      newLastBlock = 0;
+    } else {
+      return;
+    }
+
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+
+    const params = normalizeQueryVariables(x, y);
+
+    console.debug("Fetching more");
+    console.debug(params);
+
+    fetchMore({
+      variables: {
+        lastBlock: newLastBlock,
+        ...params,
+      },
+    });
+  }
+
+  function _onLoad() {
+    const gwCoord = GeoWebCoordinate.fromGPS(
+      viewport.longitude,
+      viewport.latitude,
+      GW_MAX_LON,
+      GW_MAX_LAT
+    );
+    const x = gwCoord.getX().toNumber();
+    const y = gwCoord.getY().toNumber();
+    const params = normalizeQueryVariables(x, y);
+
+    const opts = {
+      lastBlock: 0,
+      ...params,
+    };
+    console.debug("Refetch on load");
+    console.debug(opts);
+    refetch(opts);
+
+    setOldCoordX(x);
+    setOldCoordY(y);
+  }
+
+  function _onMove(nextViewport: any) {
     if (interactionState == STATE.EDITING_GALLERY) {
       return;
     }
@@ -342,20 +418,7 @@ function Map(props: MapProps) {
     }
   }
 
-  // if using Geocoder default settings, you can just use handleViewportChange directly
-  const _onGeocoderViewportChange = useCallback(
-    (newViewport: any) => {
-      const geocoderDefaultOverrides = { transitionDuration: 1000 };
-
-      return _onViewportSearch({
-        ...newViewport,
-        ...geocoderDefaultOverrides,
-      });
-    },
-    [_onViewportSearch]
-  );
-
-  function onHover(event: MapEvent) {
+  function _onMouseMove(event: MapEvent) {
     if (event.features == null || viewport?.zoom < 5) {
       return;
     }
@@ -368,8 +431,8 @@ function Map(props: MapProps) {
         setParcelHoverId(parcelFeature.properties.parcelId);
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
-          event.lngLat[0],
-          event.lngLat[1],
+          event.lngLat.lng,
+          event.lngLat.lat,
           GW_MAX_LON,
           GW_MAX_LAT
         );
@@ -402,7 +465,7 @@ function Map(props: MapProps) {
     }
   }
 
-  function onClick(event: MapEvent) {
+  function _onClick(event: MapEvent) {
     if (viewport?.zoom < 5) {
       return;
     }
@@ -425,8 +488,8 @@ function Map(props: MapProps) {
         return true;
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
-          event.lngLat[0],
-          event.lngLat[1],
+          event.lngLat.lng,
+          event.lngLat.lat,
           GW_MAX_LON,
           GW_MAX_LAT
         );
@@ -440,21 +503,14 @@ function Map(props: MapProps) {
     }
 
     const gwCoord = GeoWebCoordinate.fromGPS(
-      event.lngLat[0],
-      event.lngLat[1],
+      event.lngLat.lng,
+      event.lngLat.lat,
       GW_MAX_LON,
       GW_MAX_LAT
     );
     const coord = {
       x: gwCoord.getX().toNumber(),
       y: gwCoord.getY().toNumber(),
-    };
-
-    const nextViewport = {
-      latitude: event.lngLat[1],
-      longitude: event.lngLat[0],
-      zoom: ZOOM_GRID_LEVEL + 1,
-      transitionDuration: 500,
     };
 
     switch (interactionState) {
@@ -467,8 +523,12 @@ function Map(props: MapProps) {
         setClaimBase2Coord(coord);
         setInteractionState(STATE.CLAIM_SELECTING);
 
-        setViewport(nextViewport);
-        _onViewportChange(nextViewport);
+        flyToLocation({
+          longitude: event.lngLat.lng,
+          latitude: event.lngLat.lat,
+          zoom: ZOOM_GRID_LEVEL + 1,
+          duration: 500,
+        });
         break;
       case STATE.CLAIM_SELECTING:
         if (!isValidClaim) {
@@ -503,11 +563,15 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+        setInteractiveLayerIds(["parcels-layer"]);
         break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
         setClaimBase2Coord(null);
         setParcelHoverId(selectedParcelId);
+        break;
+      case STATE.CLAIM_SELECTING:
+        setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
         break;
       default:
         break;
@@ -525,6 +589,7 @@ function Map(props: MapProps) {
     const listener = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setInteractionState(STATE.VIEWING);
+        setInteractiveLayerIds(["parcels-layer"]);
       }
     };
     window.addEventListener("keydown", listener);
@@ -547,32 +612,28 @@ function Map(props: MapProps) {
           setSelectedParcelId={setSelectedParcelId}
           setIsParcelAvailable={setIsParcelAvailable}
           parcelClaimSize={parcelClaimSize}
+          invalidLicenseId={invalidLicenseId}
+          setInvalidLicenseId={setInvalidLicenseId}
+          setNewParcel={setNewParcel}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
-        <div
-          id="geocoder"
-          ref={geocoderContainerRef}
-          style={{
-            position: "absolute",
-            top: "14vh",
-            right: "0vw",
-            zIndex: 1,
-          }}
-        />
         <ReactMapGL
+          style={{
+            width: interactionState != STATE.VIEWING ? "75vw" : "100vw",
+            height: interactionState != STATE.VIEWING ? "100vh" : "100vh",
+          }}
           ref={mapRef}
           {...viewport}
-          width={interactionState != STATE.VIEWING ? "75vw" : "100vw"}
-          height={interactionState != STATE.VIEWING ? "100vh" : "100vh"}
-          mapboxApiAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle={mapstyle}
-          mapOptions={{
-            renderWorldCopies: false,
-          }}
-          onViewportChange={_onViewportChange}
-          onHover={onHover}
-          onClick={onClick}
+          mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+          mapStyle={mapStyleUrlByName[mapStyleName]}
+          interactiveLayerIds={interactiveLayerIds}
+          projection="globe"
+          fog={{}}
+          onLoad={_onLoad}
+          onMove={(e) => _onMove(e.viewState)}
+          onMouseMove={_onMouseMove}
+          onClick={_onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
@@ -580,6 +641,7 @@ function Map(props: MapProps) {
             isAvailable={isParcelAvailable}
             parcelHoverId={parcelHoverId}
             selectedParcelId={selectedParcelId}
+            invalidLicenseId={invalidLicenseId}
           ></ParcelSource>
           <ClaimSource
             existingCoords={existingCoords}
@@ -591,15 +653,10 @@ function Map(props: MapProps) {
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
           <Geocoder
-            mapRef={mapRef}
-            containerRef={geocoderContainerRef}
-            onViewportChange={_onGeocoderViewportChange}
-            mapboxApiAccessToken={
-              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN
-            }
+            mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
             position="top-right"
           />
-          <NavigationControl style={{ right: "2vw", bottom: "90px" }} />
+          <NavigationControl position="bottom-right" />
         </ReactMapGL>
       </Col>
       <ButtonGroup
@@ -607,6 +664,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom: "4%",
           right: "2%",
+          width: "123px",
           borderRadius: 12,
         }}
         aria-label="Basic example"
@@ -616,7 +674,7 @@ function Map(props: MapProps) {
             backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("street")}
+          onClick={() => handleMapstyle(MapStyleName.street)}
         >
           <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
@@ -626,7 +684,7 @@ function Map(props: MapProps) {
               mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("satellite")}
+          onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
           <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>

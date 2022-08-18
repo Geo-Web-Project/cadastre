@@ -10,8 +10,8 @@ import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
-import Alert from "react-bootstrap/Alert";
 import { STATE } from "../Map";
+import TransactionError from "./TransactionError";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -48,6 +48,7 @@ function OutstandingBidView({
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -72,7 +73,7 @@ function OutstandingBidView({
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
@@ -163,6 +164,9 @@ function OutstandingBidView({
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -185,6 +189,9 @@ function OutstandingBidView({
       await txn.wait();
     } catch (err) {
       console.error(err);
+      setErrorMessage(
+        err.errorObject.reason.replace("execution reverted: ", "")
+      );
       setDidFail(true);
       setIsActing(false);
       return;
@@ -198,7 +205,7 @@ function OutstandingBidView({
   }
 
   return (
-    <Card className="bg-purple mt-5">
+    <Card className="bg-purple bg-opacity-25 mt-5">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
@@ -247,14 +254,10 @@ function OutstandingBidView({
           </Button>
         ) : null}
         {didFail && !isActing ? (
-          <Alert variant="danger" dismissible onClick={() => setDidFail(false)}>
-            <Alert.Heading style={{ fontSize: "1em" }}>
-              Transaction failed
-            </Alert.Heading>
-            <p style={{ fontSize: "0.8em" }}>
-              Oops! Something went wrong. Please try again.
-            </p>
-          </Alert>
+          <TransactionError
+            message={errorMessage}
+            onClick={() => setDidFail(false)}
+          />
         ) : null}
       </Card.Body>
     </Card>

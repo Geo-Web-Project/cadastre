@@ -6,7 +6,6 @@ import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -25,11 +24,13 @@ import { AssetId } from "caip";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
+import TransactionError from "./TransactionError";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseAddress: string;
+  licenseOwner?: string;
   loading: boolean;
   performAction: () => Promise<string | void>;
   actionData: ActionData;
@@ -47,11 +48,13 @@ export type ActionData = {
   displayCurrentForSalePrice?: string;
   didFail?: boolean;
   isActing?: boolean;
+  errorMessage?: string;
 };
 
 export function ActionForm(props: ActionFormProps) {
   const {
     account,
+    licenseOwner,
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -60,6 +63,7 @@ export function ActionForm(props: ActionFormProps) {
     actionData,
     setActionData,
     basicProfileStreamManager,
+    interactionState,
     setInteractionState,
     licenseAddress,
     ceramic,
@@ -77,6 +81,7 @@ export function ActionForm(props: ActionFormProps) {
     displayCurrentForSalePrice,
     didFail,
     isActing,
+    errorMessage,
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
 
@@ -85,7 +90,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 
@@ -118,11 +123,20 @@ export function ActionForm(props: ActionFormProps) {
         )
       : null;
 
-  const annualNetworkFeeRate = networkFeeRatePerSecond?.mul(SECONDS_IN_YEAR);
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
+
+  const annualNetworkFeeRate =
+    displayNewForSalePrice != null &&
+    displayNewForSalePrice.length > 0 &&
+    !isNaN(Number(displayNewForSalePrice))
+      ? ethers.utils
+          .parseEther(displayNewForSalePrice)
+          .mul(annualFeePercentage)
+          .div(100)
+      : null;
+
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -148,7 +162,14 @@ export function ActionForm(props: ActionFormProps) {
       parcelId = await performAction();
     } catch (err) {
       console.error(err);
-      updateActionData({ isActing: false, didFail: true });
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: err.errorObject.reason.replace(
+          "execution reverted: ",
+          ""
+        ),
+      });
       return;
     }
 
@@ -186,6 +207,7 @@ export function ActionForm(props: ActionFormProps) {
         _assetContentManager
       );
       await _basicProfileStreamManager.createOrUpdateStream(content);
+
       setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
     } else if (basicProfileStreamManager) {
       // Use existing BasicProfileStreamManager
@@ -212,50 +234,57 @@ export function ActionForm(props: ActionFormProps) {
         <Card.Body>
           <Form>
             <Form.Group>
-              <Form.Text className="text-primary mb-1">Parcel Name</Form.Text>
-              <Form.Control
-                isInvalid={isParcelNameInvalid}
-                className="bg-dark text-light"
-                type="text"
-                placeholder="Parcel Name"
-                aria-label="Parcel Name"
-                aria-describedby="parcel-name"
-                defaultValue={parcelName}
-                disabled={isActing || isLoading}
-                onChange={(e) =>
-                  updateActionData({ parcelName: e.target.value })
-                }
-              />
-              {isParcelNameInvalid ? (
-                <Form.Control.Feedback type="invalid">
-                  Parcel name cannot be longer than 150 characters
-                </Form.Control.Feedback>
-              ) : null}
-              <br />
-              <Form.Text className="text-primary mb-1">
-                Content Link (http://, https://, ipfs://, ipns://)
-              </Form.Text>
-              <Form.Control
-                isInvalid={isURIInvalid}
-                className="bg-dark text-light"
-                type="text"
-                placeholder="URI (http://, https://, ipfs://, ipns://)"
-                aria-label="Web Content URI"
-                aria-describedby="web-content-uri"
-                defaultValue={parcelWebContentURI}
-                disabled={isActing || isLoading}
-                onChange={(e) =>
-                  updateActionData({ parcelWebContentURI: e.target.value })
-                }
-              />
-              {isURIInvalid ? (
-                <Form.Control.Feedback type="invalid">
-                  Web content URI must be one of
-                  (http://,https://,ipfs://,ipns://) and less than 150
-                  characters
-                </Form.Control.Feedback>
-              ) : null}
-              <br />
+              {interactionState == STATE.PARCEL_RECLAIMING &&
+              account.toLowerCase() == licenseOwner?.toLowerCase() ? null : (
+                <>
+                  <Form.Text className="text-primary mb-1">
+                    Parcel Name
+                  </Form.Text>
+                  <Form.Control
+                    isInvalid={isParcelNameInvalid}
+                    className="bg-dark text-light mt-1"
+                    type="text"
+                    placeholder="Parcel Name"
+                    aria-label="Parcel Name"
+                    aria-describedby="parcel-name"
+                    defaultValue={parcelName}
+                    disabled={isActing || isLoading}
+                    onChange={(e) =>
+                      updateActionData({ parcelName: e.target.value })
+                    }
+                  />
+                  {isParcelNameInvalid ? (
+                    <Form.Control.Feedback type="invalid">
+                      Parcel name cannot be longer than 150 characters
+                    </Form.Control.Feedback>
+                  ) : null}
+                  <br />
+                  <Form.Text className="text-primary mb-1">
+                    Content Link (http://, https://, ipfs://, ipns://)
+                  </Form.Text>
+                  <Form.Control
+                    isInvalid={isURIInvalid}
+                    className="bg-dark text-light mt-1"
+                    type="text"
+                    placeholder="URI (http://, https://, ipfs://, ipns://)"
+                    aria-label="Web Content URI"
+                    aria-describedby="web-content-uri"
+                    defaultValue={parcelWebContentURI}
+                    disabled={isActing || isLoading}
+                    onChange={(e) =>
+                      updateActionData({ parcelWebContentURI: e.target.value })
+                    }
+                  />
+                  {isURIInvalid ? (
+                    <Form.Control.Feedback type="invalid">
+                      Web content URI must be one of
+                      (http://,https://,ipfs://,ipns://) and less than 150
+                      characters
+                    </Form.Control.Feedback>
+                  ) : null}
+                  <br />
+                </>
+              )}
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
@@ -286,7 +315,9 @@ export function ActionForm(props: ActionFormProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className={
-                  hasOutstandingBid ? "bg-dark text-info" : "bg-dark text-light"
+                  hasOutstandingBid
+                    ? "bg-dark text-info mt-1"
+                    : "bg-dark text-light mt-1"
                 }
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
@@ -302,7 +333,7 @@ export function ActionForm(props: ActionFormProps) {
                 <Form.Control.Feedback type="invalid">
                   For Sale Price must be a number greater than{" "}
                   {requiredBid
-                    ? truncateEth(ethers.utils.formatEther(requiredBid), 4)
+                    ? truncateEth(ethers.utils.formatEther(requiredBid), 8)
                     : "0"}
                 </Form.Control.Feedback>
               ) : null}
@@ -328,7 +359,7 @@ export function ActionForm(props: ActionFormProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
@@ -367,18 +398,10 @@ export function ActionForm(props: ActionFormProps) {
 
           <br />
           {didFail && !isActing ? (
-            <Alert
-              variant="danger"
-              dismissible
+            <TransactionError
+              message={errorMessage}
               onClick={() => updateActionData({ didFail: false })}
-            >
-              <Alert.Heading style={{ fontSize: "1em" }}>
-                Transaction failed
-              </Alert.Heading>
-              <p style={{ fontSize: "0.8em" }}>
-                Oops! Something went wrong. Please try again.
-              </p>
-            </Alert>
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
@@ -386,7 +409,7 @@ export function ActionForm(props: ActionFormProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>

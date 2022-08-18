@@ -1,46 +1,39 @@
-import * as React from "react";
-import { ActionData, ActionForm } from "./ActionForm";
+import { useState } from "react";
 import { BigNumber, ethers } from "ethers";
-import { GeoWebCoordinate } from "js-geo-web-coordinate";
-import BN from "bn.js";
+import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 
 enum Action {
   CLAIM,
   BID,
 }
 
-export type ClaimActionProps = SidebarProps & {
+export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  licenseAddress: string;
-  /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
   requiredBid: BigNumber;
+  licenseOwner: string;
 };
 
-function ClaimAction(props: ClaimActionProps) {
+function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
+    licenseOwner,
     paymentToken,
-    claimBase1Coord,
-    claimBase2Coord,
-    claimerContract,
+    requiredBid,
     auctionSuperApp,
     provider,
+    selectedParcelId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    isFairLaunch,
     sfFramework,
-    requiredBid,
-    setNewParcel,
   } = props;
-  const [actionData, setActionData] = React.useState<ActionData>({
+
+  const [actionData, setActionData] = useState<ActionData>({
     isActing: false,
     didFail: false,
     displayNewForSalePrice: "",
@@ -53,7 +46,7 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice.length > 0 &&
     isNaN(Number(displayNewForSalePrice));
 
-  const newFlowRate =
+  const newNetworkFee =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
@@ -62,7 +55,7 @@ function ClaimAction(props: ClaimActionProps) {
         )
       : null;
 
-  const networkFeeRatePerYear =
+  const newAnnualNetworkFee =
     !isForSalePriceInvalid && displayNewForSalePrice
       ? fromValueToRate(
           ethers.utils.parseEther(displayNewForSalePrice),
@@ -71,33 +64,16 @@ function ClaimAction(props: ClaimActionProps) {
         )
       : null;
 
-  async function _claim() {
-    const baseCoord = GeoWebCoordinate.fromXandY(
-      claimBase1Coord.x,
-      claimBase1Coord.y,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-    const destCoord = GeoWebCoordinate.fromXandY(
-      claimBase2Coord.x,
-      claimBase2Coord.y,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-    let path = GeoWebCoordinate.makeRectPath(baseCoord, destCoord);
-    if (path.length == 0) {
-      path = [BigNumber.from(0)];
-    }
-
-    if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
+  async function _reclaim() {
+    if (!displayNewForSalePrice || !newNetworkFee || isForSalePriceInvalid) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
     }
 
     const claimData = ethers.utils.defaultAbiCoder.encode(
-      ["uint64", "uint256[]"],
-      [BigNumber.from(baseCoord.toString()), path]
+      ["uint256"],
+      [selectedParcelId]
     );
 
     const actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
@@ -106,7 +82,6 @@ function ClaimAction(props: ClaimActionProps) {
     );
 
     let userData;
-
     let txn;
 
     const existingFlow = await sfFramework.cfaV1.getFlow({
@@ -124,16 +99,16 @@ function ClaimAction(props: ClaimActionProps) {
     const signer = provider.getSigner() as any;
 
     if (existingFlow.flowRate !== "0") {
-      // update an existing flow
+      //update an exisiting flow
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
-        [Action.CLAIM, actionDataToPassInUserData]
+        [Action.BID, actionDataToPassInUserData]
       );
 
       const updateFlowOperation = sfFramework.cfaV1.updateFlow({
         flowRate: BigNumber.from(existingFlow.flowRate)
-          .add(newFlowRate)
+          .add(newNetworkFee)
           .toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
@@ -148,13 +123,11 @@ function ClaimAction(props: ClaimActionProps) {
 
       userData = ethers.utils.defaultAbiCoder.encode(
         ["uint8", "bytes"],
-        [Action.CLAIM, actionDataToPassInUserData]
+        [Action.BID, actionDataToPassInUserData]
       );
 
-      const flowRate = newFlowRate.toString();
-
       const createFlowOperation = sfFramework.cfaV1.createFlow({
-        flowRate,
+        flowRate: newNetworkFee.toString(),
         receiver: auctionSuperApp.address,
         superToken: paymentToken.address,
         userData,
@@ -169,35 +142,27 @@ function ClaimAction(props: ClaimActionProps) {
       throw new Error(`transaction is undefined: ${txn}`);
     }
 
-    const receipt = await txn.wait();
+    await txn.wait();
 
-    const filter = claimerContract.filters.ParcelClaimed(null, null);
-
-    const res = await claimerContract.queryFilter(
-      filter,
-      receipt.blockNumber,
-      receipt.blockNumber
-    );
-    const licenseId = res[0].args[0].toString();
-    setNewParcel((prev) => {
-      return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
-    });
-
-    return licenseId;
+    return BigNumber.from(selectedParcelId).toNumber();
   }
 
   return (
     <>
       <ActionForm
         loading={false}
-        performAction={_claim}
+        performAction={_reclaim}
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
-          networkFeeRatePerYear ? (
+          newAnnualNetworkFee ? (
             <TransactionSummaryView
-              claimPayment={isFairLaunch ? requiredBid : BigNumber.from(0)}
-              newAnnualNetworkFee={networkFeeRatePerYear}
+              claimPayment={
+                account.toLowerCase() == licenseOwner?.toLowerCase()
+                  ? BigNumber.from("0")
+                  : requiredBid
+              }
+              newAnnualNetworkFee={newAnnualNetworkFee}
               {...props}
             />
           ) : (
@@ -211,4 +176,4 @@ function ClaimAction(props: ClaimActionProps) {
   );
 }
 
-export default ClaimAction;
+export default ReclaimAction;
