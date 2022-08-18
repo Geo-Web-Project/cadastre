@@ -160,9 +160,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
   private async checkWeb3Storage(): Promise<boolean> {
     const result = await this.web3Storage.status(this.bucketRoot!.toString());
-    const isPinned = result
-      ? result.pins.filter((pin) => pin.status === "Pinned").length > 0
-      : false;
+    const isPinned = result ? result.pins.length > 0 : false;
 
     if (isPinned) {
       localStorage.setItem(this.localPinsetKey(), this.bucketRoot!.toString());
