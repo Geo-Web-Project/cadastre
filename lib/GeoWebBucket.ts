@@ -14,6 +14,7 @@ import { Pinset } from "@geo-web/datamodels";
 import { AssetContentManager } from "./AssetContentManager";
 import { Web3Storage } from "web3.storage";
 import { CarReader } from "@ipld/car";
+import { default as axios } from "axios";
 
 export class GeoWebBucket extends TileStreamManager<Pinset> {
   assetContentManager: AssetContentManager;
@@ -88,7 +89,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
     // Check if pinset can be found
     const fetchLinksP = this._ipfs.object.links(this.bucketRoot!);
     const timeoutP = new Promise((resolve, reject) => {
-      setTimeout(resolve, 60000, null);
+      setTimeout(resolve, 3000, null);
     });
     console.debug(`Finding links for latest pinset: ${this.bucketRoot}`);
     const _latestQueuedLinks = (await Promise.race([
@@ -101,8 +102,27 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
       console.debug(`Found latestQueuedLinks: ${this.latestQueuedLinks}`);
     } else {
       // Not found after timeout
-      console.warn(`Could not find pinset: ${this.bucketRoot}`);
-      this.latestQueuedLinks = undefined;
+      console.warn(`Could not find pinset locally: ${this.bucketRoot}`);
+      console.debug(`Fetching CAR from Web3.storage: ${this.bucketRoot}`);
+      const carResponse = await axios.get(
+        `https://api.web3.storage/car/${this.bucketRoot!.toString()}`,
+        { responseType: "blob" }
+      );
+      console.debug(`Importing CAR from Web3.storage: ${this.bucketRoot}`);
+      const data = carResponse.data as Blob;
+      const buffer = await data.arrayBuffer();
+      const uintBuffer = new Uint8Array(buffer);
+      this._ipfs.dag.import(
+        (async function* () {
+          yield uintBuffer;
+        })()
+      );
+      console.debug(`Finding links for latest pinset: ${this.bucketRoot}`);
+      const _latestQueuedLinks = await this._ipfs.object.links(
+        this.bucketRoot!
+      );
+      this.latestQueuedLinks = _latestQueuedLinks.map((l) => l.Hash);
+      console.debug(`Found latestQueuedLinks: ${this.latestQueuedLinks}`);
       return;
     }
 
@@ -140,9 +160,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
 
   private async checkWeb3Storage(): Promise<boolean> {
     const result = await this.web3Storage.status(this.bucketRoot!.toString());
-    const isPinned = result
-      ? result.pins.filter((pin) => pin.status === "Pinned").length > 0
-      : false;
+    const isPinned = result ? result.pins.length > 0 : false;
 
     if (isPinned) {
       localStorage.setItem(this.localPinsetKey(), this.bucketRoot!.toString());
