@@ -4,9 +4,8 @@ import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps } from "./Map";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
-import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
@@ -128,6 +127,7 @@ function Sidebar(props: SidebarProps) {
         <>
           <ClaimAction
             {...props}
+            licenseAddress={registryContract.address}
             isFairLaunch={isFairLaunch ?? undefined}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}

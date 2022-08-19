@@ -5,15 +5,10 @@ import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -30,13 +25,10 @@ function ClaimAction(props: ClaimActionProps) {
     paymentToken,
     claimBase1Coord,
     claimBase2Coord,
-    claimerContract,
-    auctionSuperApp,
-    provider,
+    registryContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     isFairLaunch,
-    sfFramework,
     requiredBid,
     setNewParcel,
   } = props;
@@ -95,85 +87,17 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
-    const claimData = ethers.utils.defaultAbiCoder.encode(
-      ["uint64", "uint256[]"],
-      [BigNumber.from(baseCoord.toString()), path]
+    const txn = await registryContract.claim(
+      newFlowRate,
+      ethers.utils.parseEther(displayNewForSalePrice),
+      BigNumber.from(baseCoord.toString()),
+      path
     );
-
-    const actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [ethers.utils.parseEther(displayNewForSalePrice), claimData]
-    );
-
-    let userData;
-
-    let txn;
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    const approveOperation = paymentToken.approve({
-      receiver: auctionSuperApp.address,
-      amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
-    });
-
-    const signer = provider.getSigner() as any;
-
-    if (existingFlow.flowRate !== "0") {
-      // update an existing flow
-
-      userData = ethers.utils.defaultAbiCoder.encode(
-        ["uint8", "bytes"],
-        [Action.CLAIM, actionDataToPassInUserData]
-      );
-
-      const updateFlowOperation = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .add(newFlowRate)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-
-      txn = await sfFramework
-        .batchCall([approveOperation, updateFlowOperation])
-        .exec(signer);
-    } else {
-      // create a new flow
-
-      userData = ethers.utils.defaultAbiCoder.encode(
-        ["uint8", "bytes"],
-        [Action.CLAIM, actionDataToPassInUserData]
-      );
-
-      const flowRate = newFlowRate.toString();
-
-      const createFlowOperation = sfFramework.cfaV1.createFlow({
-        flowRate,
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-
-      txn = await sfFramework
-        .batchCall([approveOperation, createFlowOperation])
-        .exec(signer);
-    }
-
-    if (!txn) {
-      throw new Error(`transaction is undefined: ${txn}`);
-    }
-
     const receipt = await txn.wait();
 
-    const filter = claimerContract.filters.ParcelClaimed(null, null);
+    const filter = registryContract.filters.ParcelClaimed(null, null);
 
-    const res = await claimerContract.queryFilter(
+    const res = await registryContract.queryFilter(
       filter,
       receipt.blockNumber,
       receipt.blockNumber
