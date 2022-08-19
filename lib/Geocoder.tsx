@@ -7,7 +7,7 @@ type GeocoderProps = Omit<
   GeocoderOptions,
   "accessToken" | "mapboxgl" | "marker"
 > & {
-  mapboxAccessToken: string | undefined;
+  mapboxAccessToken: string;
   marker?: boolean | Omit<MarkerProps, "longitude" | "latitude">;
 
   position: ControlPosition;
