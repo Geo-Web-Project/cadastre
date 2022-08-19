@@ -12,7 +12,7 @@ import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
-import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -24,9 +24,7 @@ type OutstandingBidViewProps = SidebarProps & {
   licensorIsOwner: boolean;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  licenseDiamondContract: ReturnType<
-    typeof PCOLicenseDiamondFactory.connect
-  > | null;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
 
 function OutstandingBidView({

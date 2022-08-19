@@ -32,6 +32,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 const parcelQuery = gql`
   query GeoWebParcel($id: String) {
@@ -95,9 +96,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
-    React.useState<ReturnType<typeof PCOLicenseDiamondFactory.connect> | null>(
-      null
-    );
+    React.useState<PCOLicenseDiamond | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -449,6 +448,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data}
               hasOutstandingBid={hasOutstandingBid}
+              licenseDiamondContract={licenseDiamondContract}
               {...props}
             />
           ) : null}
