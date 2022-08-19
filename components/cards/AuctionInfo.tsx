@@ -9,7 +9,11 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateTimeString } from "../../lib/utils";
 
-function _calculateAuctionValue(forSalePrice, auctionStart, auctionLength) {
+function _calculateAuctionValue(
+  forSalePrice: BigNumber,
+  auctionStart: BigNumber,
+  auctionLength: number
+) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
   const length = BigNumber.from(auctionLength);
   if (blockTimestamp.gt(auctionStart.add(length))) {
@@ -28,8 +32,8 @@ export type AuctionInfoProps = {
   auctionStart: BigNumber;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  requiredBid: BigNumber;
-  setRequiredBid: React.Dispatch<React.SetStateAction<BigNumber>>;
+  requiredBid: BigNumber | null;
+  setRequiredBid: React.Dispatch<React.SetStateAction<BigNumber | null>>;
 };
 
 function AuctionInfo(props: AuctionInfoProps) {
@@ -45,7 +49,7 @@ function AuctionInfo(props: AuctionInfoProps) {
   } = props;
 
   const [auctionEnd, setAuctionEnd] = useState("");
-  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
   const formattedRequiredBid = useMemo(() => {
     if (requiredBid) {
@@ -55,7 +59,7 @@ function AuctionInfo(props: AuctionInfoProps) {
   }, [requiredBid]);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timer | null = null;
 
     if (forSalePrice && auctionStart) {
       const invalidationTime =
@@ -74,7 +78,11 @@ function AuctionInfo(props: AuctionInfoProps) {
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [forSalePrice, auctionStart]);
 
   const isLoading =

@@ -424,7 +424,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               auctionStart={currentOwnerBidTimestamp!}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              requiredBid={requiredBid!}
+              requiredBid={requiredBid}
               setRequiredBid={setRequiredBid}
             />
           ) : null}
@@ -438,6 +438,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 existingForSalePrice={currentOwnerBidForSalePrice}
                 bidTimestamp={outstandingBidTimestamp ?? null}
                 licensorIsOwner={licenseOwner === account}
+                licenseDiamondContract={licenseDiamondContract}
                 {...props}
               />
               <AuctionInstructions />
