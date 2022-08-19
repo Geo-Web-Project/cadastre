@@ -79,6 +79,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     invalidLicenseId,
     setInvalidLicenseId,
     sfFramework,
+    provider,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -157,9 +158,11 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
+      const signer = provider.getSigner() as any;
+
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
         licenseDiamondAddress,
-        sfFramework.settings.provider
+        signer
       );
 
       setLicenseDiamondContract(_licenseDiamond);

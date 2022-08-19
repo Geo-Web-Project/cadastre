@@ -1,4 +1,4 @@
-export const NETWORK_ID = 10;
+export const NETWORK_ID = 5;
 export const NETWORK_NAME = "Goerli";
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";

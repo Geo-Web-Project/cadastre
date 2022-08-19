@@ -19,6 +19,8 @@ const depositHoursMap: Record<number, number> = {
   1: 8,
   // rinkeby
   4: 2,
+  // goerli
+  5: 2,
   // optimism-kovan
   69: 2,
 };

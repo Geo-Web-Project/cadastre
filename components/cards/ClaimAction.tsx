@@ -31,6 +31,7 @@ function ClaimAction(props: ClaimActionProps) {
     isFairLaunch,
     requiredBid,
     setNewParcel,
+    provider,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -87,12 +88,16 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
-    const txn = await registryContract.claim(
-      newFlowRate,
-      ethers.utils.parseEther(displayNewForSalePrice),
-      BigNumber.from(baseCoord.toString()),
-      path
-    );
+    const signer = provider.getSigner() as any;
+
+    const txn = await registryContract
+      .connect(signer)
+      .claim(
+        newFlowRate,
+        ethers.utils.parseEther(displayNewForSalePrice),
+        BigNumber.from(baseCoord.toString()),
+        path
+      );
     const receipt = await txn.wait();
 
     const filter = registryContract.filters.ParcelClaimed(null, null);

@@ -2751,10 +2751,10 @@
     schema-org-ceramic "^1.3.0"
     uint8arrays "^3.0.0"
 
-"@geo-web/sdk@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-2.0.1.tgz#64fd8384ceac9ebf92a36a09383b619b2fe0d1a5"
-  integrity sha512-0M3BWyC9G9Jq3haJUzApBczBAQaVBc5/1hLWkTVO7GVX/Q/HntUJfebIW/ALlH4yW35kJnfNFVP49NC+RxxBYA==
+"@geo-web/sdk@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-2.0.2.tgz#0fa3c179dc733963e6d71d2782d2c85ccf781e8b"
+  integrity sha512-626JhrhPs4pc76Xm8sICvsWvomthjMuwxU7SjDeJkkiyNoALfZVlYMzXJi2iZ7ap6v1ZdLk4zY0FYHnTM3+J+g==
   dependencies:
     "@geo-web/contracts" "^2.2.0"
     ethers ">=5.0.0"
@@ -5170,16 +5170,15 @@
     auto-bind "^4.0.0"
     node-fetch "^2.6.7"
 
-"@superfluid-finance/sdk-core@^0.4.0":
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.4.4.tgz#157fcc830bfca80c9c79e0db4ab9d29f5d82c4aa"
-  integrity sha512-QFuhCdEW5W+aBYjkU8hSSXWW2+PUoweBmXXt7S8sANhf9WLtjEk/uIKqO+q+EXHYInaGpig7Q4PmJG2dDriz2Q==
+"@superfluid-finance/sdk-core@^0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.5.4.tgz#db3e6fde0786051b1eee91b6f6937cc01078eb6a"
+  integrity sha512-VoJsH/i37Y1b8Z/xWQQVkLcNjLkcoLjPeVav5Z3iblnv+L7CsaqNZ+55CD1+aUPypNfplD0CxOcddRQRGbh3BQ==
   dependencies:
-    ajv "^8.11.0"
     browserify "^17.0.0"
-    ethers "^5.6.2"
-    graphql-request "^3.7.0"
+    graphql-request "^4.3.0"
     lodash "^4.17.21"
+    serialize-error "8.1.0"
     tsify "^5.0.4"
 
 "@superfluid-finance/sdk-redux@^0.3.0":
@@ -7206,7 +7205,7 @@ ajv@^7.0.0, ajv@^7.1.1:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-ajv@^8.0.0, ajv@^8.0.1, ajv@^8.10.0, ajv@^8.11.0, ajv@^8.6.2, ajv@^8.8.2:
+ajv@^8.0.0, ajv@^8.0.1, ajv@^8.10.0, ajv@^8.6.2, ajv@^8.8.2:
   version "8.11.0"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.11.0.tgz#977e91dd96ca669f54a11e23e378e33b884a565f"
   integrity sha512-wGgprdCvMalC0BztXvitD2hC04YffAvtsUn93JbGXYLAtCUO4xd17mCCZQxUOItiBwZvJScWo8NIvQMQ71rdpg==
@@ -10444,7 +10443,7 @@ cross-fetch@^2.1.0, cross-fetch@^2.1.1:
     node-fetch "^2.6.7"
     whatwg-fetch "^2.0.4"
 
-cross-fetch@^3.0.6, cross-fetch@^3.1.4:
+cross-fetch@^3.0.6, cross-fetch@^3.1.4, cross-fetch@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.5.tgz#e1389f44d9e7ba767907f7af8454787952ab534f"
   integrity sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==
@@ -13115,7 +13114,7 @@ ethers@4.0.47:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.4.5, ethers@^5.5.2, ethers@^5.5.4, ethers@^5.6.2, ethers@^5.6.5:
+ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.4.5, ethers@^5.5.2, ethers@^5.5.4, ethers@^5.6.5:
   version "5.6.9"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.9.tgz#4e12f8dfcb67b88ae7a78a9519b384c23c576a4d"
   integrity sha512-lMGC2zv9HC5EC+8r429WaWu3uWJUCgUCt8xxKCFqkrFuBDZXDYIdzDUECxzjf2BMF8IVBByY1EBoGSL3RTm8RA==
@@ -14403,6 +14402,15 @@ graphql-request@^3.7.0:
   integrity sha512-dw5PxHCgBneN2DDNqpWu8QkbbJ07oOziy8z+bK/TAXufsOLaETuVO4GkXrbs0WjhdKhBMN3BkpN/RIvUHkmNUQ==
   dependencies:
     cross-fetch "^3.0.6"
+    extract-files "^9.0.0"
+    form-data "^3.0.0"
+
+graphql-request@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-4.3.0.tgz#b934e08fcae764aa2cdc697d3c821f046cb5dbf2"
+  integrity sha512-2v6hQViJvSsifK606AliqiNiijb1uwWp6Re7o0RTyH+uRTv/u7Uqm2g4Fjq/LgZIzARB38RZEvVBFOQOVdlBow==
+  dependencies:
+    cross-fetch "^3.1.5"
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
@@ -24955,6 +24963,13 @@ sentence-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
     upper-case-first "^2.0.2"
+
+serialize-error@8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/serialize-error/-/serialize-error-8.1.0.tgz#3a069970c712f78634942ddd50fbbc0eaebe2f67"
+  integrity sha512-3NnuWfM6vBYoy5gZFvHiYsVbafvI9vZv/+jlIigFn4oP4zjNPK3LhcY0xSCgeb1a5L8jO71Mit9LlNoi2UfDDQ==
+  dependencies:
+    type-fest "^0.20.2"
 
 serialize-javascript@6.0.0:
   version "6.0.0"
