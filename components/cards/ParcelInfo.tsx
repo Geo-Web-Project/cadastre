@@ -128,9 +128,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<PCOLicenseDiamond | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
-    React.useState<ReturnType<typeof PCOLicenseDiamondFactory.connect> | null>(
-      null
-    );
+    React.useState<PCOLicenseDiamond | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
