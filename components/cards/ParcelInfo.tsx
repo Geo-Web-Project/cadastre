@@ -466,17 +466,16 @@ function ParcelInfo(props: ParcelInfoProps) {
               parcelData={data}
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
+              licenseDiamondContract={licenseDiamondContract}
               {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_RECLAIMING ? (
             <ReclaimAction
               {...props}
-              licenseAddress={registryContract.address}
               licenseOwner={licenseOwner!}
-              forSalePrice={currentOwnerBidForSalePrice}
-              auctionStart={currentOwnerBidTimestamp}
-              requiredBid={requiredBid!}
+              licenseDiamondContract={licenseDiamondContract}
+              requiredBid={requiredBid ?? undefined}
             ></ReclaimAction>
           ) : null}
         </Col>

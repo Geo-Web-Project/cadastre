@@ -29,6 +29,7 @@ function EditAction(props: EditActionProps) {
     account,
     hasOutstandingBid,
     licenseDiamondContract,
+    registryContract,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.landParcel.license.currentOwnerBid.forSalePrice
@@ -142,6 +143,7 @@ function EditAction(props: EditActionProps) {
   return (
     <>
       <ActionForm
+        licenseAddress={registryContract.address}
         loading={false}
         performAction={_edit}
         actionData={actionData}

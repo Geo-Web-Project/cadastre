@@ -11,7 +11,7 @@ import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  requiredBid: BigNumber;
+  requiredBid?: BigNumber;
   licenseOwner: string;
   licenseDiamondContract: PCOLicenseDiamond | null;
 };
@@ -25,6 +25,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     licenseDiamondContract,
+    registryContract,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -152,7 +153,7 @@ function ReclaimAction(props: ReclaimActionProps) {
   return (
     <>
       <ActionForm
-        licenseAddress={licenseDiamondContract!.address}
+        licenseAddress={registryContract.address}
         loading={false}
         performAction={_reclaim}
         actionData={actionData}

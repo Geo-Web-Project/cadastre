@@ -18,7 +18,6 @@ import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
-import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { AssetId } from "caip";
 import { model as GeoWebModel } from "@geo-web/datamodels";
@@ -112,17 +111,6 @@ export function ActionForm(props: ActionFormProps) {
         .parseEther(displayNewForSalePrice)
         .lt(requiredBid ?? BigNumber.from(0)));
 
-  const networkFeeRatePerSecond =
-    displayNewForSalePrice != null &&
-    displayNewForSalePrice.length > 0 &&
-    !isNaN(Number(displayNewForSalePrice))
-      ? fromValueToRate(
-          ethers.utils.parseEther(displayNewForSalePrice),
-          perSecondFeeNumerator,
-          perSecondFeeDenominator
-        )
-      : null;
-
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
@@ -165,7 +153,7 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({
         isActing: false,
         didFail: true,
-        errorMessage: err.errorObject.reason.replace(
+        errorMessage: (err as any).errorObject.reason.replace(
           "execution reverted: ",
           ""
         ),
@@ -192,12 +180,12 @@ export function ActionForm(props: ActionFormProps) {
       });
 
       const model = new DataModel({
-        ceramic,
+        ceramic: ceramic as any,
         aliases: GeoWebModel,
       });
 
       const _assetContentManager = new AssetContentManager(
-        ceramic,
+        ceramic as any,
         model,
         ceramic.did!.capability.p.iss,
         assetId

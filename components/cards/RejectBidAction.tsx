@@ -21,6 +21,7 @@ import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -31,12 +32,8 @@ export type RejectBidActionProps = SidebarProps & {
   parcelData: any;
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 const infoIcon = (
   <Image
@@ -54,11 +51,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    selectedParcelId,
     paymentToken,
     account,
-    auctionSuperApp,
-    sfFramework,
+    licenseDiamondContract,
+    registryContract,
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
@@ -152,21 +148,21 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   React.useEffect(() => {
     async function checkBidPeriod() {
-      if (!auctionSuperApp) return;
+      if (!registryContract) return;
 
-      setBidPeriodLength(await auctionSuperApp.bidPeriodLengthInSeconds());
+      setBidPeriodLength(await registryContract.getBidPeriodLengthInSeconds());
     }
 
     async function checkPenaltyRate() {
-      if (!auctionSuperApp) return;
+      if (!registryContract) return;
 
-      setPenaltyRateNumerator(await auctionSuperApp.penaltyNumerator());
-      setPenaltyRateDenominator(await auctionSuperApp.penaltyDenominator());
+      setPenaltyRateNumerator(await registryContract.getPenaltyNumerator());
+      setPenaltyRateDenominator(await registryContract.getPenaltyDenominator());
     }
 
     checkBidPeriod();
     checkPenaltyRate();
-  }, [auctionSuperApp]);
+  }, [registryContract]);
 
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
@@ -180,6 +176,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     setIsActing(true);
     setDidFail(false);
 
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");
     }
@@ -192,65 +192,14 @@ function RejectBidAction(props: RejectBidActionProps) {
       throw new Error("Could not find penaltyPayment");
     }
 
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
-    );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [newForSalePrice, bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    // Approve amount above purchase price
-    const approveOp = paymentToken.approve({
-      receiver: auctionSuperApp.address,
-      amount: newForSalePrice.add(penaltyPayment).toString(),
-    });
-
-    const signer = provider.getSigner() as any;
-
-    let op;
-    if (BigNumber.from(existingFlow.flowRate).gt(0)) {
-      op = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .sub(existingNetworkFee)
-          .add(newNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-    } else {
-      op = sfFramework.cfaV1.createFlow({
-        receiver: auctionSuperApp.address,
-        flowRate: newNetworkFee.toString(),
-        superToken: paymentToken.address,
-        userData,
-      });
-    }
-
     try {
-      // Perform these in a single batch call
-      const batchCall = sfFramework.batchCall([approveOp, op]);
-      const txn = await batchCall.exec(signer);
+      // TODO: Approve penalty payment
+      const txn = await licenseDiamondContract.rejectBid();
       await txn.wait();
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        err.errorObject.reason.replace("execution reverted: ", "")
+        (err as any).errorObject.reason.replace("execution reverted: ", "")
       );
       setDidFail(true);
       setIsActing(false);
@@ -365,7 +314,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
-                newAnnualNetworkFee={annualNetworkFeeRate}
+                newAnnualNetworkFee={annualNetworkFeeRate ?? null}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}
