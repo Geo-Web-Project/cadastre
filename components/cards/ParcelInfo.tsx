@@ -453,7 +453,11 @@ function ParcelInfo(props: ParcelInfoProps) {
             />
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID ? (
-            <PlaceBidAction parcelData={data} {...props} />
+            <PlaceBidAction
+              parcelData={data}
+              licenseDiamondContract={licenseDiamondContract}
+              {...props}
+            />
           ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
           hasOutstandingBid &&
