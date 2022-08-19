@@ -6,17 +6,14 @@ import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
-
-enum Action {
-  CLAIM,
-  BID,
-}
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   requiredBid: BigNumber;
   licenseOwner: string;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -25,12 +22,9 @@ function ReclaimAction(props: ReclaimActionProps) {
     licenseOwner,
     paymentToken,
     requiredBid,
-    auctionSuperApp,
-    provider,
-    selectedParcelId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    sfFramework,
+    licenseDiamondContract,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -65,13 +59,20 @@ function ReclaimAction(props: ReclaimActionProps) {
       : null;
 
   async function _reclaim() {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
     if (!displayNewForSalePrice || !newNetworkFee || isForSalePriceInvalid) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
     }
 
-    const claimData = ethers.utils.defaultAbiCoder.encode(
+    // TODO: Add new reclaimer
+
+    {
+      /* const claimData = ethers.utils.defaultAbiCoder.encode(
       ["uint256"],
       [selectedParcelId]
     );
@@ -144,12 +145,14 @@ function ReclaimAction(props: ReclaimActionProps) {
 
     await txn.wait();
 
-    return BigNumber.from(selectedParcelId).toNumber();
+    return BigNumber.from(selectedParcelId).toNumber(); */
+    }
   }
 
   return (
     <>
       <ActionForm
+        licenseAddress={licenseDiamondContract!.address}
         loading={false}
         performAction={_reclaim}
         actionData={actionData}
