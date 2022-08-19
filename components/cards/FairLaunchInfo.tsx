@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -51,14 +51,14 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
     setInteractionState,
   } = props;
 
-  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
   const formattedAuctionEnd = dayjs(auctionEnd.toNumber() * 1000)
     .utc()
     .format("YYYY-MM-DD HH:mm");
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timer | null = null;
 
     if (auctionStart && auctionEnd && startingBid && endingBid) {
       interval = setInterval(() => {
@@ -71,7 +71,11 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [auctionStart, auctionEnd, startingBid, endingBid]);
 
   return (
