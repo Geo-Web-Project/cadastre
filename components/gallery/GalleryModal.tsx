@@ -43,7 +43,7 @@ function GalleryModal(props: GalleryModalProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
@@ -141,7 +141,7 @@ function GalleryModal(props: GalleryModalProps) {
                 Edit Media Gallery
               </Modal.Title>
             </Col>
-            <Col sm="1" className="text-right">
+            <Col sm="1" className="text-end">
               <Button variant="link" size="sm" onClick={handleClose}>
                 <Image src="close.svg" />
               </Button>

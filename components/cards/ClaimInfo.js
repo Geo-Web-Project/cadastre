@@ -7,7 +7,7 @@ import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 
 function ClaimInfo({ parcelClaimSize, setInteractionState }) {
   return (
-    <Card className="bg-purple text-light">
+    <Card className="bg-purple bg-opacity-25 text-light">
       <Card.Body>
         <Card.Text className="d-flex align-items-center">
           <Image

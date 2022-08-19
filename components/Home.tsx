@@ -90,7 +90,7 @@ function Home({
       <div className="d-flex flex-column align-items-center">
         <Button
           variant="primary"
-          className="text-light font-weight-bold border-dark mx-auto fit-content"
+          className="text-light fw-bold border-dark mx-auto fit-content"
           style={{ padding: "16px 18px" }}
           disabled={status === "connecting"}
           onClick={connectWallet}

@@ -1,6 +1,10 @@
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
-import { NETWORK_ID, PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import {
+  NETWORK_ID,
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+} from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
@@ -69,7 +73,9 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const streamBuffer = stream.mul(depositHoursMap[currentChainID]).div(365 * 24);
+  const streamBuffer = stream
+    .mul(depositHoursMap[currentChainID])
+    .div(365 * 24);
 
   const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
 
@@ -87,12 +93,12 @@ function TransactionSummaryView({
         <InfoTooltip
           content={
             <div style={{ textAlign: "left" }}>
-              {interactionState == STATE.PARCEL_RECLAIMING && account.toLowerCase() === licenseOwner?.toLowerCase() 
-                ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream." 
+              {interactionState == STATE.PARCEL_RECLAIMING &&
+              account.toLowerCase() === licenseOwner?.toLowerCase()
+                ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream."
                 : isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
-                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation." 
+                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
                 : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
-
             </div>
           }
           target={
@@ -198,14 +204,7 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? (
-              <>
-                {isDeltaPayment ? "+" + streamDisplay : streamDisplay}
-                {` ${PAYMENT_TOKEN}/year`}
-              </>
-            ) : (
-              `N/A`
-            )}
+            {txnReady ? `${streamDisplay} ${PAYMENT_TOKEN}/year` : `N/A`}
           </span>
         }
       />
@@ -240,16 +239,7 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? (
-              <>
-                {isDeltaPayment
-                  ? "+" + streamBufferDisplay
-                  : streamBufferDisplay}
-                {` ${PAYMENT_TOKEN}`}
-              </>
-            ) : (
-              `N/A`
-            )}
+            {txnReady ? `${streamBufferDisplay} ${PAYMENT_TOKEN}` : `N/A`}
           </span>
         }
       />

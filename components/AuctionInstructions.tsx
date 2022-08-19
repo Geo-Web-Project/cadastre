@@ -15,7 +15,7 @@ function AuctionInstructions() {
       <div className="d-grid gap-2">
         <Button
           variant="link"
-          className="font-italic mt-3"
+          className="fst-italic mt-3"
           size="lg"
           onClick={handleShow}
         >

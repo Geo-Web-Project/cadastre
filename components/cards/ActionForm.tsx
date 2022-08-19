@@ -90,7 +90,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Sending Transaction...</span>
+      <span className="visually-hidden">Sending Transaction...</span>
     </span>
   );
 
@@ -126,14 +126,17 @@ export function ActionForm(props: ActionFormProps) {
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
     perSecondFeeDenominator.toNumber();
-  
-  const annualNetworkFeeRate = 
+
+  const annualNetworkFeeRate =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
-    !isNaN(Number(displayNewForSalePrice)) 
-      ? ethers.utils.parseEther(displayNewForSalePrice).mul(annualFeePercentage).div(100)
-    : null;
-  
+    !isNaN(Number(displayNewForSalePrice))
+      ? ethers.utils
+          .parseEther(displayNewForSalePrice)
+          .mul(annualFeePercentage)
+          .div(100)
+      : null;
+
   const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
   const isURIInvalid = parcelWebContentURI
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
@@ -239,7 +242,7 @@ export function ActionForm(props: ActionFormProps) {
                   </Form.Text>
                   <Form.Control
                     isInvalid={isParcelNameInvalid}
-                    className="bg-dark text-light"
+                    className="bg-dark text-light mt-1"
                     type="text"
                     placeholder="Parcel Name"
                     aria-label="Parcel Name"
@@ -261,7 +264,7 @@ export function ActionForm(props: ActionFormProps) {
                   </Form.Text>
                   <Form.Control
                     isInvalid={isURIInvalid}
-                    className="bg-dark text-light"
+                    className="bg-dark text-light mt-1"
                     type="text"
                     placeholder="URI (http://, https://, ipfs://, ipns://)"
                     aria-label="Web Content URI"
@@ -312,7 +315,9 @@ export function ActionForm(props: ActionFormProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className={
-                  hasOutstandingBid ? "bg-dark text-info" : "bg-dark text-light"
+                  hasOutstandingBid
+                    ? "bg-dark text-info mt-1"
+                    : "bg-dark text-light mt-1"
                 }
                 type="text"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
@@ -354,7 +359,7 @@ export function ActionForm(props: ActionFormProps) {
                 />
               </Form.Text>
               <Form.Control
-                className="bg-dark text-info"
+                className="bg-dark text-info mt-1"
                 type="text"
                 readOnly
                 disabled
@@ -393,7 +398,10 @@ export function ActionForm(props: ActionFormProps) {
 
           <br />
           {didFail && !isActing ? (
-            <TransactionError message={errorMessage} />
+            <TransactionError
+              message={errorMessage}
+              onClick={() => updateActionData({ didFail: false })}
+            />
           ) : null}
         </Card.Body>
         <Card.Footer className="border-top border-secondary">
@@ -401,7 +409,7 @@ export function ActionForm(props: ActionFormProps) {
             <Col sm="1">
               <Image src="notice.svg" />
             </Col>
-            <Col className="font-italic">
+            <Col className="fst-italic">
               Claims, transfers, changes to For Sale Prices, and network fee
               payments require confirmation in your Web3 wallet.
             </Col>

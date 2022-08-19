@@ -1,29 +1,29 @@
+import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Col from "react-bootstrap/Col";
 // eslint-disable-next-line import/named
 import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
 import Geocoder from "../lib/Geocoder";
+import Sidebar from "./Sidebar";
+import ClaimSource from "./sources/ClaimSource";
 import GridSource from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
-import ClaimSource from "./sources/ClaimSource";
-import { gql, useQuery } from "@apollo/client";
-import Sidebar from "./Sidebar";
-import Col from "react-bootstrap/Col";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 
-import "mapbox-gl/dist/mapbox-gl.css";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { ethers } from "ethers";
+import "mapbox-gl/dist/mapbox-gl.css";
 
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
@@ -189,6 +189,18 @@ export type MapProps = {
   sfFramework: Framework;
 };
 
+const MAP_STYLE_KEY = "storedMapStyleName";
+
+enum MapStyleName {
+  satellite = "satellite",
+  street = "street",
+}
+
+const mapStyleUrlByName: Record<MapStyleName, string> = {
+  [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v11",
+  [MapStyleName.street]: "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln",
+};
+
 function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -202,16 +214,12 @@ function Map(props: MapProps) {
 
   const mapRef = useRef();
 
-  const [mapstyle, setMapstyle] = React.useState(
-    "mapbox://styles/mapbox/satellite-streets-v11"
+  const [mapStyleName, setMapStyleName] = React.useState(
+    localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite
   );
-  const [mapStyleName, setMapStyleName] = React.useState("satellite");
 
-  const handleMapstyle = (newStyle: string) => {
-    if (newStyle === "satellite")
-      setMapstyle("mapbox://styles/mapbox/satellite-streets-v11");
-    else setMapstyle("mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln");
-
+  const handleMapstyle = (newStyle: MapStyleName) => {
+    localStorage.setItem(MAP_STYLE_KEY, newStyle);
     setMapStyleName(newStyle);
   };
 
@@ -618,7 +626,7 @@ function Map(props: MapProps) {
           ref={mapRef}
           {...viewport}
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
-          mapStyle={mapstyle}
+          mapStyle={mapStyleUrlByName[mapStyleName]}
           interactiveLayerIds={interactiveLayerIds}
           projection="globe"
           fog={{}}
@@ -656,6 +664,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom: "4%",
           right: "2%",
+          width: "123px",
           borderRadius: 12,
         }}
         aria-label="Basic example"
@@ -665,7 +674,7 @@ function Map(props: MapProps) {
             backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("street")}
+          onClick={() => handleMapstyle(MapStyleName.street)}
         >
           <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>
@@ -675,7 +684,7 @@ function Map(props: MapProps) {
               mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
-          onClick={() => handleMapstyle("satellite")}
+          onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
           <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
         </Button>

@@ -81,7 +81,7 @@ function AuctionInfo(props: AuctionInfoProps) {
     forSalePrice == null || auctionStart == null || timeRemaining == null;
   const spinner = (
     <span className="spinner-border" role="status">
-      <span className="sr-only">Loading...</span>
+      <span className="visually-hidden">Loading...</span>
     </span>
   );
 
@@ -101,7 +101,7 @@ function AuctionInfo(props: AuctionInfoProps) {
 
   return (
     <>
-      <Card className="bg-purple">
+      <Card className="bg-purple bg-opacity-25">
         <Card.Header>
           <h4>
             {interactionState == STATE.PARCEL_RECLAIMING
