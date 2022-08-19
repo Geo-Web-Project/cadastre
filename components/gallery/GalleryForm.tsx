@@ -5,7 +5,6 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
-import ProgressBar from "react-bootstrap/ProgressBar";
 import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { useFirebase } from "../../lib/Firebase";
 import { CID } from "multiformats/cid";
@@ -26,11 +25,6 @@ export type GalleryFormProps = GalleryModalProps & {
   setSelectedMediaGalleryItemId: React.Dispatch<
     React.SetStateAction<string | null>
   >;
-};
-
-type UploadState = {
-  loaded: number;
-  total: number;
 };
 
 function GalleryForm(props: GalleryFormProps) {
@@ -120,7 +114,7 @@ function GalleryForm(props: GalleryFormProps) {
 
     const format = getFormat(file.name);
     const { encoding, type } = format;
-    setFileFormat(encoding);
+    setFileFormat(encoding ?? null);
 
     // Add to IPFS
     const added = await ipfs.add(file);

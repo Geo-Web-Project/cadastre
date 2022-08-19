@@ -201,12 +201,12 @@ function ParcelInfo(props: ParcelInfoProps) {
         });
 
         const model = new DataModel({
-          ceramic,
+          ceramic: ceramic as any,
           aliases: GeoWebModel,
         });
 
         const _assetContentManager = new AssetContentManager(
-          ceramic,
+          ceramic as any,
           model,
           `did:pkh:${accountId.toString()}`,
           assetId
