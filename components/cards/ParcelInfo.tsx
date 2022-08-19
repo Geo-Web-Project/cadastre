@@ -228,9 +228,11 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
+      const signer = provider.getSigner() as any;
+
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
         licenseDiamondAddress,
-        sfFramework.settings.provider
+        signer
       );
 
       setLicenseDiamondContract(_licenseDiamond);
