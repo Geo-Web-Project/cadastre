@@ -18,7 +18,7 @@ export function fromValueToRate(
   return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
 }
 
-export function calculateTimeString(remaining) {
+export function calculateTimeString(remaining: number) {
   if (remaining <= 0) {
     return "0d 0h 0m 0s";
   }

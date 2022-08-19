@@ -10,7 +10,7 @@
     "@ceramicnetwork/stream-tile": "^2.1.3",
     "@ceramicstudio/multiauth": "^0.2.3",
     "@geo-web/datamodels": "2.3.5",
-    "@geo-web/sdk": "^1.1.2",
+    "@geo-web/sdk": "^2.0.1",
     "@glazed/did-session": "^0.1.1",
     "@ipld/car": "^4.1.3",
     "@popperjs/core": "^2.11.5",

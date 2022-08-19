@@ -19,7 +19,8 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
 
   const addToMetaMask = useCallback(() => {
     if (authState.status !== "connected") return;
-    authState.connected.provider.state.provider.request({
+    const provider: any = authState.connected.provider.state.provider;
+    provider.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20",

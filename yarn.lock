@@ -2721,17 +2721,16 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.5.1.tgz#a64d1af3c62e3bb89576ec58af880980a562bf4e"
   integrity sha512-dZMzN0uAjwJXWYYAcnxIwXqRTZw3o14hGe7O6uhwjD1ZQWPVYA5lASgnNskEBra0knVBsOXB4KXg+HnlKewN/A==
 
-"@geo-web/contracts@^1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-1.1.3.tgz#1931cab1fceb3536efb4e6060e8bd195a924e1dc"
-  integrity sha512-bYJjvAbGwluQUhNBR5aady2U/O5X6eoiWpoLTpJTCwPLitCBlmKc7KCdpNGC4CQWXtx1bJ/KRYg0uAkgu0uIeQ==
+"@geo-web/contracts@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-2.2.0.tgz#c48f2a41a00f189145a5e9630eeb760335432dc9"
+  integrity sha512-pyIlmrZ3ityXyBEsX0BZqfAj+rKzeXBxgsArnE2nFx/HB57TJYAtbjsVXtgkDN1cyFhXmCvKYLQQuMx1uZ0XTQ==
   dependencies:
-    "@openzeppelin/contracts" "^4.6.0"
-    "@openzeppelin/contracts-upgradeable" "^4.6.0"
-    "@superfluid-finance/ethereum-contracts" "^1.1.1"
+    "@superfluid-finance/ethereum-contracts" "^1.3.0"
     "@truffle/hdwallet-provider" "^1.1.1"
     bn.js "^5.1.3"
     date-fns "^2.28.0"
+    hardhat-diamond-abi "^3.0.1"
     remixd "^0.2.4-alpha.0"
 
 "@geo-web/datamodels@2.3.5":
@@ -2752,12 +2751,12 @@
     schema-org-ceramic "^1.3.0"
     uint8arrays "^3.0.0"
 
-"@geo-web/sdk@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-1.1.2.tgz#6b450aac7bcdcea2b11d87fd06328a6b2ee1c570"
-  integrity sha512-wHhc3CI6o7OvQf3XVtyC6dPGFjbx6V7Gbd0h43NuGBRXsCMfNnzv5SOmhajgh2X4etIocv8/W7u9bAfPMIkKlw==
+"@geo-web/sdk@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-2.0.1.tgz#64fd8384ceac9ebf92a36a09383b619b2fe0d1a5"
+  integrity sha512-0M3BWyC9G9Jq3haJUzApBczBAQaVBc5/1hLWkTVO7GVX/Q/HntUJfebIW/ALlH4yW35kJnfNFVP49NC+RxxBYA==
   dependencies:
-    "@geo-web/contracts" "^1.1.3"
+    "@geo-web/contracts" "^2.2.0"
     ethers ">=5.0.0"
     typescript "^4.6.3"
 
@@ -4467,20 +4466,10 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.5.0.tgz#cea9792bfcf556c87ded17c6ac729348697bb632"
   integrity sha512-wlYG/U6ddW1ilXslnDLLQYJ8nd97W8JJTTfwkGhubx6dzW6SUkd+N4/MzTjjyZlrHQunxHtkHFvVpUKiROvFDw==
 
-"@openzeppelin/contracts-upgradeable@^4.6.0":
-  version "4.7.3"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.3.tgz#f1d606e2827d409053f3e908ba4eb8adb1dd6995"
-  integrity sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==
-
 "@openzeppelin/contracts@4.5.0":
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.5.0.tgz#3fd75d57de172b3743cdfc1206883f56430409cc"
   integrity sha512-fdkzKPYMjrRiPK6K4y64e6GzULR7R7RwxSigHS8DDp7aWDeoReqsQI+cxHV1UuhAqX69L1lAaWDxenfP+xiqzA==
-
-"@openzeppelin/contracts@^4.6.0":
-  version "4.7.3"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.3.tgz#939534757a81f8d69cc854c7692805684ff3111e"
-  integrity sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==
 
 "@overnightjs/logger@1.2.1", "@overnightjs/logger@^1.2.0":
   version "1.2.1"
@@ -5156,7 +5145,7 @@
     "@stablelib/wipe" "^1.0.1"
     "@stablelib/xchacha20" "^1.0.1"
 
-"@superfluid-finance/ethereum-contracts@^1.1.1":
+"@superfluid-finance/ethereum-contracts@^1.3.0":
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.3.1.tgz#a6e13cdf2ae843f6cc331c137e118e823cb1583d"
   integrity sha512-4aeeLXuyirK9BqUtidB8ME+/u/UKwULBsEKMshZfMs6h7WO/ALI86O6X02SJi8O5OxM1mneCemDe5dws+Y3qHg==
@@ -13111,7 +13100,7 @@ ethers@4.0.47:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.4.5, ethers@^5.5.4, ethers@^5.6.2, ethers@^5.6.5:
+ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.4.5, ethers@^5.5.2, ethers@^5.5.4, ethers@^5.6.2, ethers@^5.6.5:
   version "5.6.9"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.9.tgz#4e12f8dfcb67b88ae7a78a9519b384c23c576a4d"
   integrity sha512-lMGC2zv9HC5EC+8r429WaWu3uWJUCgUCt8xxKCFqkrFuBDZXDYIdzDUECxzjf2BMF8IVBByY1EBoGSL3RTm8RA==
@@ -14491,6 +14480,14 @@ hard-rejection@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/hard-rejection/-/hard-rejection-2.1.0.tgz#1c6eda5c1685c63942766d79bb40ae773cecd883"
   integrity sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==
+
+hardhat-diamond-abi@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/hardhat-diamond-abi/-/hardhat-diamond-abi-3.0.1.tgz#bb38f3247752953f5aefaef2bc3aa77d8385cd67"
+  integrity sha512-t+skBGX8lK3qH/YQB8L/QJVIINyuji/2r4q9JcZQ0rX9oEZzgfJMka2ttZ4gyuNcYRT95KyfDSuCCwSQX1cVDA==
+  dependencies:
+    debug "^4.3.3"
+    ethers "^5.5.2"
 
 hardhat@^2.9.3:
   version "2.10.1"

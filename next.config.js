@@ -1,5 +1,5 @@
 module.exports = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };

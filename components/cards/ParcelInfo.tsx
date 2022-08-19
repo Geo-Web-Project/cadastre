@@ -31,28 +31,28 @@ import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
+import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 
 const parcelQuery = gql`
-  query LandParcel($id: String) {
-    landParcel(id: $id) {
+  query GeoWebParcel($id: String) {
+    geoWebParcel(id: $id) {
       id
-      license {
-        owner
-        currentOwnerBid {
-          contributionRate
-          perSecondFeeNumerator
-          perSecondFeeDenominator
-          forSalePrice
-          timestamp
-        }
-        outstandingBid {
-          timestamp
-          bidder
-          contributionRate
-          perSecondFeeNumerator
-          perSecondFeeDenominator
-          forSalePrice
-        }
+      licenseOwner
+      licenseDiamond
+      currentBid {
+        contributionRate
+        perSecondFeeNumerator
+        perSecondFeeDenominator
+        forSalePrice
+        timestamp
+      }
+      pendingBid {
+        timestamp
+        bidder
+        contributionRate
+        perSecondFeeNumerator
+        perSecondFeeDenominator
+        forSalePrice
       }
     }
   }
@@ -61,7 +61,6 @@ const parcelQuery = gql`
 export type ParcelInfoProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  licenseAddress: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
 };
 
@@ -73,12 +72,12 @@ function ParcelInfo(props: ParcelInfoProps) {
     selectedParcelId,
     setIsParcelAvailable,
     ceramic,
-    licenseContract,
+    registryContract,
     ipfs,
     firebasePerf,
     invalidLicenseId,
     setInvalidLicenseId,
-    auctionSuperApp,
+    sfFramework,
   } = props;
   const { loading, data } = useQuery(parcelQuery, {
     variables: {
@@ -87,14 +86,18 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
-    string | null
-  >(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] =
+    React.useState<string | null>(null);
 
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
+
+  const [licenseDiamondContract, setLicenseDiamondContract] =
+    React.useState<ReturnType<typeof PCOLicenseDiamondFactory.connect> | null>(
+      null
+    );
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -122,39 +125,56 @@ function ParcelInfo(props: ParcelInfoProps) {
   let currentOwnerBidTimestamp: BigNumber | null = null;
   let outstandingBidForSalePrice: BigNumber | null = null;
   let outstandingBidTimestamp;
-  if (data && data.landParcel && data.landParcel.license) {
+  let licenseDiamondAddress: string | null = null;
+  if (data && data.geoWebParcel) {
     forSalePrice = (
       <>
-        {formatBalance(data.landParcel.license.currentOwnerBid.forSalePrice)}{" "}
+        {formatBalance(data.geoWebParcel.currentBid.forSalePrice)}{" "}
         {PAYMENT_TOKEN}{" "}
       </>
     );
-    licenseOwner = data.landParcel.license.owner;
-    hasOutstandingBid =
-      data.landParcel.license.outstandingBid.contributionRate > 0;
+    licenseOwner = data.geoWebParcel.licenseOwner;
+    hasOutstandingBid = data.geoWebParcel.pendingBid.contributionRate > 0;
     outstandingBidForSalePrice = BigNumber.from(
-      data.landParcel.license.outstandingBid.forSalePrice
+      data.geoWebParcel.pendingBid.forSalePrice
     );
     currentOwnerBidForSalePrice = BigNumber.from(
-      data.landParcel.license.currentOwnerBid.forSalePrice
+      data.geoWebParcel.currentBid.forSalePrice
     );
     currentOwnerBidTimestamp = BigNumber.from(
-      data.landParcel.license.currentOwnerBid.timestamp
+      data.geoWebParcel.currentBid.timestamp
     );
-    outstandingBidder = data.landParcel.license.outstandingBid.bidder;
+    outstandingBidder = data.geoWebParcel.pendingBid.bidder;
     outstandingBidTimestamp = BigNumber.from(
-      data.landParcel.license.outstandingBid.timestamp
+      data.geoWebParcel.pendingBid.timestamp
     );
-    auctionSuperApp
-      .ownerBidContributionRate(selectedParcelId)
-      .then((ownerBidContributionRate) => {
-        if (ownerBidContributionRate.eq(0)) {
-          setInvalidLicenseId(selectedParcelId);
-        } else {
-          setInvalidLicenseId("");
-        }
-      });
+    licenseDiamondAddress = data.geoWebParcel.licenseDiamond;
   }
+
+  React.useEffect(() => {
+    const loadLicenseDiamond = async () => {
+      if (!licenseDiamondAddress) {
+        setLicenseDiamondContract(null);
+        return;
+      }
+
+      const _licenseDiamond = PCOLicenseDiamondFactory.connect(
+        licenseDiamondAddress,
+        sfFramework.settings.provider
+      );
+
+      setLicenseDiamondContract(_licenseDiamond);
+
+      const isPayerBidActive = await _licenseDiamond.isPayerBidActive();
+      if (isPayerBidActive) {
+        setInvalidLicenseId(selectedParcelId);
+      } else {
+        setInvalidLicenseId("");
+      }
+    };
+
+    loadLicenseDiamond();
+  }, [licenseDiamondAddress]);
 
   React.useEffect(() => {
     (async () => {
@@ -170,7 +190,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           chainId: `eip155:${NETWORK_ID}`,
           assetName: {
             namespace: "erc721",
-            reference: licenseContract.address.toLowerCase(),
+            reference: registryContract.address.toLowerCase(),
           },
           tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
         });
@@ -200,7 +220,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         setParcelIndexStreamId(null);
       }
     })();
-  }, [ceramic, selectedParcelId, licenseOwner]);
+  }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
 
   useEffect(() => {
     if (!outstandingBidder) {
@@ -394,15 +414,17 @@ function ParcelInfo(props: ParcelInfoProps) {
           )}
           {interactionState == STATE.PARCEL_RECLAIMING ||
           (interactionState == STATE.PARCEL_SELECTED &&
-            invalidLicenseId == selectedParcelId) ? (
+            invalidLicenseId == selectedParcelId &&
+            data &&
+            data.geoWebParcel) ? (
             <AuctionInfo
               account={account}
-              licenseOwner={licenseOwner}
-              forSalePrice={currentOwnerBidForSalePrice}
-              auctionStart={currentOwnerBidTimestamp}
+              licenseOwner={licenseOwner!}
+              forSalePrice={currentOwnerBidForSalePrice!}
+              auctionStart={currentOwnerBidTimestamp!}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              requiredBid={requiredBid}
+              requiredBid={requiredBid!}
               setRequiredBid={setRequiredBid}
             />
           ) : null}
@@ -445,11 +467,11 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_RECLAIMING ? (
             <ReclaimAction
               {...props}
-              licenseAddress={licenseContract.address}
-              licenseOwner={licenseOwner}
+              licenseAddress={registryContract.address}
+              licenseOwner={licenseOwner!}
               forSalePrice={currentOwnerBidForSalePrice}
               auctionStart={currentOwnerBidTimestamp}
-              requiredBid={requiredBid}
+              requiredBid={requiredBid!}
             ></ReclaimAction>
           ) : null}
         </Col>

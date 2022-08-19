@@ -26,7 +26,7 @@ function ClaimSource(props: Props) {
     setParcelClaimSize,
   } = props;
 
-  let gwCoord = {};
+  let gwCoord: GeoWebCoordinate | null = null;
 
   const geoJsonFeatures = useMemo(() => {
     const _features = [];
@@ -52,7 +52,7 @@ function ClaimSource(props: Props) {
   useEffect(() => {
     let _isValid = true;
     if (
-      existingCoords.has(gwCoord.toString()) ||
+      existingCoords.has(gwCoord?.toString()) ||
       parcelClaimSize > MAX_PARCEL_CLAIM
     ) {
       _isValid = false;

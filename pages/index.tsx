@@ -40,26 +40,17 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [licenseContract, setLicenseContract] = React.useState<
-    Contracts["geoWebERC721LicenseContract"] | null
-  >(null);
-  const [auctionSuperApp, setAuctionSuperApp] = React.useState<
-    Contracts["geoWebAuctionSuperAppContract"] | null
-  >(null);
-  const [fairLaunchClaimer, setFairLaunchClaimer] = React.useState<
-    Contracts["geoWebFairLaunchClaimerContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -82,7 +73,6 @@ function IndexPage() {
 
   const disconnectWallet = async () => {
     deactivate();
-    clearCacaoSession();
   };
 
   React.useEffect(() => {
@@ -100,7 +90,6 @@ function IndexPage() {
         authState.connected.provider.state.provider,
         authState.connected.accountID.address
       );
-      const accountId = await ethereumAuthProvider.accountId();
       const session = new DIDSession({ authProvider: ethereumAuthProvider });
       const did = await session.authorize();
 
@@ -146,17 +135,11 @@ function IndexPage() {
         return;
       }
 
-      const {
-        geoWebERC721LicenseContract,
-        geoWebAuctionSuperAppContract,
-        geoWebFairLaunchClaimerContract,
-      } = getContractsForChainOrThrow(
+      const { registryDiamondContract } = getContractsForChainOrThrow(
         NETWORK_ID,
         sfFramework.settings.provider
       );
-      setLicenseContract(geoWebERC721LicenseContract);
-      setAuctionSuperApp(geoWebAuctionSuperAppContract);
-      setFairLaunchClaimer(geoWebFairLaunchClaimerContract);
+      setRegistryContract(registryDiamondContract);
     }
     contractsSetup();
   }, [sfFramework]);
@@ -220,9 +203,7 @@ function IndexPage() {
       </Container>
       <Container fluid>
         {authState.status === "connected" &&
-        licenseContract &&
-        auctionSuperApp &&
-        fairLaunchClaimer &&
+        registryContract &&
         library &&
         paymentToken &&
         ceramic &&
@@ -231,9 +212,7 @@ function IndexPage() {
         sfFramework ? (
           <Row>
             <Map
-              licenseContract={licenseContract}
-              auctionSuperApp={auctionSuperApp}
-              claimerContract={fairLaunchClaimer}
+              registryContract={registryContract}
               account={authState.connected.accountID.address}
               provider={library}
               ceramic={ceramic}

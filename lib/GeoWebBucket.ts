@@ -24,6 +24,7 @@ export class GeoWebBucket extends TileStreamManager<Pinset> {
   private _ipfs: IPFS;
   private web3Storage = new Web3Storage({
     token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+    endpoint: new URL("https://api.web3.storage"),
   });
 
   constructor(_assetContentManager: AssetContentManager, ipfs: IPFS) {
