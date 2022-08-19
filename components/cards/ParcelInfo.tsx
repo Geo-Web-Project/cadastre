@@ -114,8 +114,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] =
-    React.useState<string | null>(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
+    string | null
+  >(null);
 
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
@@ -125,6 +126,11 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
+
+  const [licenseDiamondContract, setLicenseDiamondContract] =
+    React.useState<ReturnType<typeof PCOLicenseDiamondFactory.connect> | null>(
+      null
+    );
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -216,6 +222,31 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     loadLicenseDiamond();
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
+
+  React.useEffect(() => {
+    const loadLicenseDiamond = async () => {
+      if (!licenseDiamondAddress) {
+        setLicenseDiamondContract(null);
+        return;
+      }
+
+      const _licenseDiamond = PCOLicenseDiamondFactory.connect(
+        licenseDiamondAddress,
+        sfFramework.settings.provider
+      );
+
+      setLicenseDiamondContract(_licenseDiamond);
+
+      const isPayerBidActive = await _licenseDiamond.isPayerBidActive();
+      if (isPayerBidActive) {
+        setInvalidLicenseId(selectedParcelId);
+      } else {
+        setInvalidLicenseId("");
+      }
+    };
+
+    loadLicenseDiamond();
+  }, [licenseDiamondAddress]);
 
   React.useEffect(() => {
     (async () => {

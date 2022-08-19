@@ -53,8 +53,9 @@ function Sidebar(props: SidebarProps) {
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] =
-    React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
+    null
+  );
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
   const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
     BigNumber.from(0)
