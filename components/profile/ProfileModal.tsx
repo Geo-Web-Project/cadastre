@@ -38,6 +38,7 @@ function ProfileModal(props: ProfileModalProps) {
       keyboard={false}
       centered
       onHide={handleCloseProfile}
+      contentClassName="bg-dark"
     >
       <Modal.Header className="bg-dark border-0">
         <Container>
