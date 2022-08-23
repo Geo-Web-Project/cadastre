@@ -113,7 +113,7 @@ function WrapModal({
   );
 
   return (
-    <Modal show={show} onHide={handleClose} centered className="wrap-modal">
+    <Modal show={show} onHide={handleClose} centered contentClassName="bg-dark" className="wrap-modal">
       <Modal.Header className="bg-dark border-0">
         <Modal.Title className="text-primary">
           Wrap ETH for Streaming
