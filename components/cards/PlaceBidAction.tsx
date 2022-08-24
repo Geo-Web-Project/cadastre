@@ -138,7 +138,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        (err as any).errorObject.reason.replace("execution reverted: ", "")
+        (err as any).reason
+          ? (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message
       );
       setDidFail(true);
       setIsActing(false);

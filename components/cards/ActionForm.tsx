@@ -153,10 +153,9 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({
         isActing: false,
         didFail: true,
-        errorMessage: (err as Error).message.replace(
-          "execution reverted: ",
-          ""
-        ),
+        errorMessage: (err as any).reason
+          ? (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message,
       });
       return;
     }
