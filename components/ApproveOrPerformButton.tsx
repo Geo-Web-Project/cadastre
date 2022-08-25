@@ -12,6 +12,7 @@ export type ApproveOrPerformButtonProps = SidebarProps & {
   buttonText: string;
   requiredPayment?: BigNumber;
   requiredFlowAmount?: BigNumber;
+  requiredFlowPermissions?: number;
   spender: string;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
 };
@@ -34,6 +35,10 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     provider,
     requiredPayment,
     setActionData,
+    sfFramework,
+    requiredFlowPermissions,
+    requiredFlowAmount,
+    registryContract,
   } = props;
 
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
@@ -84,6 +89,33 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     return true;
   };
 
+  const approveFlowAllowance = async () => {
+    const signer = provider.getSigner() as any;
+
+    try {
+      const flowOperator = await registryContract.getNextProxyAddress(account);
+      const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
+        superToken: paymentToken.address,
+        flowOperator: flowOperator,
+      });
+
+      const txn = await op.exec(signer);
+      await txn.wait();
+    } catch (err) {
+      console.error(err);
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: (err as any).reason
+          ? (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message,
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   React.useEffect(() => {
     const checkRequirements = async () => {
       const _approvals = [];
@@ -101,31 +133,60 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
         _approvalStr = `Allow ${PAYMENT_TOKEN} Transfer`;
       }
 
+      // Check flow allowance
+      const flowOperator = await registryContract.getNextProxyAddress(account);
+      const flowOperatorData = await sfFramework.cfaV1.getFlowOperatorData({
+        superToken: paymentToken.address,
+        flowOperator: flowOperator,
+        sender: account,
+        providerOrSigner: provider,
+      });
+
+      if (
+        requiredFlowAmount &&
+        requiredFlowPermissions &&
+        (BigNumber.from(flowOperatorData.flowRateAllowance).lt(
+          requiredFlowAmount
+        ) ||
+          Number(flowOperatorData.permissions) < requiredFlowPermissions)
+      ) {
+        _approvals.push(approveFlowAllowance);
+        _approvalStr =
+          _approvals.length > 1
+            ? `Allow ${PAYMENT_TOKEN} Transfer + Stream`
+            : `Allow ${PAYMENT_TOKEN} Stream`;
+      }
+
       setApprovals(_approvals);
       setApprovalStr(_approvalStr);
     };
 
     checkRequirements();
-  }, [paymentToken, account, spender, provider, requiredPayment]);
+  }, [
+    paymentToken,
+    account,
+    spender,
+    provider,
+    requiredPayment,
+    completedActions,
+  ]);
 
   const submit = async () => {
     if (approvals.length > 0) {
       setTotalActions(approvals.length);
+      setCompletedActions(0);
+      setApprovalStr(buttonText);
       await asyncEvery(approvals, async (f: () => Promise<boolean>) => {
         const success = await f();
         setCompletedActions(completedActions + 1);
         return success;
       });
-    }
-
-    {
-      /* if (success) {
+    } else {
       setTotalActions(1);
       setCompletedActions(0);
 
       await performAction();
       setTotalActions(0);
-    } */
     }
   };
 

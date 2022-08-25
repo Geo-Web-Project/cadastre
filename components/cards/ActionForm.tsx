@@ -40,6 +40,7 @@ export type ActionFormProps = SidebarProps & {
   requiredBid?: BigNumber;
   hasOutstandingBid?: boolean;
   requiredPayment: BigNumber;
+  requiredFlowPermissions: number;
   spender: string;
 };
 

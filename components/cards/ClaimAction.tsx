@@ -142,6 +142,7 @@ function ClaimAction(props: ClaimActionProps) {
             ? requiredBid.add(requiredBuffer)
             : requiredBuffer ?? undefined
         }
+        requiredFlowPermissions={1}
         spender={registryContract.address}
         {...props}
       />
