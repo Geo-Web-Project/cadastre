@@ -1,29 +1,12 @@
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
-import {
-  NETWORK_ID,
-  PAYMENT_TOKEN,
-  SECONDS_IN_YEAR,
-} from "../../lib/constants";
+import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
+import { calculateBufferNeeded } from "../../lib/utils";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
-
-/**
- * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
- */
-const depositHoursMap: Record<number, number> = {
-  // mainnet
-  1: 8,
-  // rinkeby
-  4: 2,
-  // goerli
-  5: 2,
-  // optimism-kovan
-  69: 2,
-};
 
 type TransactionSummaryViewProps = SidebarProps & {
   existingAnnualNetworkFee?: BigNumber;
@@ -75,9 +58,7 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const streamBuffer = stream
-    .mul(depositHoursMap[currentChainID])
-    .div(365 * 24);
+  const streamBuffer = calculateBufferNeeded(stream, currentChainID);
 
   const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
 

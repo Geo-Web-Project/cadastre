@@ -5,8 +5,8 @@ import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
-import { fromValueToRate } from "../../lib/utils";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
 
@@ -63,6 +63,10 @@ function ClaimAction(props: ClaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
+
+  const requiredBuffer = newFlowRate
+    ? calculateBufferNeeded(newFlowRate, NETWORK_ID)
+    : null;
 
   async function _claim() {
     const baseCoord = GeoWebCoordinate.fromXandY(
@@ -133,6 +137,12 @@ function ClaimAction(props: ClaimActionProps) {
             <></>
           )
         }
+        requiredPayment={
+          isFairLaunch && requiredBuffer
+            ? requiredBid.add(requiredBuffer)
+            : requiredBuffer ?? undefined
+        }
+        spender={registryContract.address}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />

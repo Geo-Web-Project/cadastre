@@ -39,6 +39,8 @@ export type ActionFormProps = SidebarProps & {
   basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   hasOutstandingBid?: boolean;
+  requiredPayment: BigNumber;
+  spender: string;
 };
 
 export type ActionData = {
@@ -71,6 +73,8 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
+    requiredPayment,
+    spender,
     hasOutstandingBid = false,
   } = props;
 
@@ -131,6 +135,8 @@ export function ActionForm(props: ActionFormProps) {
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
+
+  const requiredFlowAmount = annualNetworkFeeRate;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -373,11 +379,13 @@ export function ActionForm(props: ActionFormProps) {
               {`Wrap to ${PAYMENT_TOKEN}`}
             </Button>
             <ApproveOrPerformButton
+              {...props}
               isDisabled={isActing || isLoading || isInvalid}
-              actionsDone={isActing || isLoading ? 0 : 1}
-              actionsTotal={1}
-              performAction={submit}
               buttonText={"Confirm"}
+              requiredFlowAmount={requiredFlowAmount ?? undefined}
+              requiredPayment={requiredPayment ?? undefined}
+              performAction={submit}
+              spender={spender}
             />
           </Form>
 
