@@ -46,6 +46,8 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     setDidFail,
   } = props;
 
+  const { displayNewForSalePrice, displayCurrentForSalePrice } = actionData;
+
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
     []
   );
@@ -133,7 +135,6 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     const signer = provider.getSigner() as any;
 
     try {
-      const flowOperator = await registryContract.getNextProxyAddress(account);
       const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
         superToken: paymentToken.address,
         flowOperator: flowOperator,

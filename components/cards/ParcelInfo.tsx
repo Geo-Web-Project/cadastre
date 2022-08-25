@@ -239,9 +239,9 @@ function ParcelInfo(props: ParcelInfoProps) {
 
       const isPayerBidActive = await _licenseDiamond.isPayerBidActive();
       if (isPayerBidActive) {
-        setInvalidLicenseId(selectedParcelId);
-      } else {
         setInvalidLicenseId("");
+      } else {
+        setInvalidLicenseId(selectedParcelId);
       }
     };
 
