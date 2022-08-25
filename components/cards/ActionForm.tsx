@@ -42,6 +42,7 @@ export type ActionFormProps = SidebarProps & {
   requiredPayment: BigNumber;
   requiredFlowPermissions: number;
   spender: string;
+  flowOperator: string;
 };
 
 export type ActionData = {

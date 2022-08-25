@@ -4,9 +4,9 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
@@ -32,7 +32,7 @@ function EditAction(props: EditActionProps) {
     registryContract,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.geoWebParcel.currentBid.forSalePrice
   );
 
   const parcelContent = basicProfileStreamManager
@@ -112,6 +112,14 @@ function EditAction(props: EditActionProps) {
         )
       : null;
 
+  const requiredExistingBuffer = existingNetworkFee
+    ? calculateBufferNeeded(existingNetworkFee, NETWORK_ID)
+    : null;
+
+  const requiredNewBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   async function _edit() {
     updateActionData({ isActing: true });
 
@@ -161,6 +169,14 @@ function EditAction(props: EditActionProps) {
             <></>
           )
         }
+        requiredPayment={
+          requiredNewBuffer && requiredExistingBuffer
+            ? requiredNewBuffer.sub(requiredExistingBuffer)
+            : BigNumber.from(0)
+        }
+        requiredFlowPermissions={2}
+        spender={licenseDiamondContract?.address ?? ""}
+        flowOperator={licenseDiamondContract?.address ?? ""}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />

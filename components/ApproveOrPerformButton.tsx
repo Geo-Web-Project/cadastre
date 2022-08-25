@@ -14,6 +14,8 @@ export type ApproveOrPerformButtonProps = SidebarProps & {
   requiredFlowAmount?: BigNumber;
   requiredFlowPermissions?: number;
   spender: string;
+  flowOperator: string;
+  actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
 };
 
@@ -38,8 +40,11 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     sfFramework,
     requiredFlowPermissions,
     requiredFlowAmount,
-    registryContract,
+    flowOperator,
+    actionData,
   } = props;
+
+  const { displayNewForSalePrice, displayCurrentForSalePrice } = actionData;
 
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
     []
@@ -93,7 +98,6 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     const signer = provider.getSigner() as any;
 
     try {
-      const flowOperator = await registryContract.getNextProxyAddress(account);
       const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
         superToken: paymentToken.address,
         flowOperator: flowOperator,
@@ -121,6 +125,12 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       const _approvals = [];
       let _approvalStr = buttonText;
 
+      if (displayNewForSalePrice === displayCurrentForSalePrice) {
+        setApprovals(_approvals);
+        setApprovalStr(_approvalStr);
+        return;
+      }
+
       // Check required payment
       const allowance = await paymentToken.allowance({
         owner: account,
@@ -134,7 +144,6 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       }
 
       // Check flow allowance
-      const flowOperator = await registryContract.getNextProxyAddress(account);
       const flowOperatorData = await sfFramework.cfaV1.getFlowOperatorData({
         superToken: paymentToken.address,
         flowOperator: flowOperator,
@@ -195,7 +204,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       variant="primary"
       className="w-100"
       onClick={() => submit()}
-      disabled={isDisabled}
+      disabled={isDisabled || totalActions > completedActions}
     >
       {totalActions > completedActions ? (
         <>

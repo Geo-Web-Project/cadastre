@@ -38,6 +38,7 @@ function ClaimAction(props: ClaimActionProps) {
     didFail: false,
     displayNewForSalePrice: "",
   });
+  const [flowOperator, setFlowOperator] = React.useState<string>("");
 
   const { displayNewForSalePrice } = actionData;
 
@@ -119,6 +120,15 @@ function ClaimAction(props: ClaimActionProps) {
     return licenseId;
   }
 
+  React.useEffect(() => {
+    const _fetchFlowOperator = async () => {
+      const _flowOperator = await registryContract.getNextProxyAddress(account);
+      setFlowOperator(_flowOperator);
+    };
+
+    _fetchFlowOperator();
+  }, [registryContract, account]);
+
   return (
     <>
       <ActionForm
@@ -140,10 +150,11 @@ function ClaimAction(props: ClaimActionProps) {
         requiredPayment={
           isFairLaunch && requiredBuffer
             ? requiredBid.add(requiredBuffer)
-            : requiredBuffer ?? undefined
+            : requiredBuffer ?? BigNumber.from(0)
         }
         requiredFlowPermissions={1}
         spender={registryContract.address}
+        flowOperator={flowOperator}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />
