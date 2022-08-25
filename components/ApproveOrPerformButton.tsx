@@ -129,6 +129,33 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     return true;
   }, [flowOperator]);
 
+  const approveFlowAllowance = async () => {
+    const signer = provider.getSigner() as any;
+
+    try {
+      const flowOperator = await registryContract.getNextProxyAddress(account);
+      const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
+        superToken: paymentToken.address,
+        flowOperator: flowOperator,
+      });
+
+      const txn = await op.exec(signer);
+      await txn.wait();
+    } catch (err) {
+      console.error(err);
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: (err as any).reason
+          ? (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message,
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   React.useEffect(() => {
     const checkRequirements = async () => {
       const _approvals: (() => Promise<boolean>)[] = [];
