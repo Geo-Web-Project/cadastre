@@ -1,7 +1,7 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
@@ -183,7 +183,7 @@ function WrapModal({
             style={{ width: "128px" }}
             disabled={isWrapping}
           >
-            {isWrapping ? "Wrapping..." : "Wrap to ETHx"}
+            {isWrapping ? "Wrapping..." : `Wrap to ${PAYMENT_TOKEN}`}
           </button>
         </form>
       </Modal.Footer>

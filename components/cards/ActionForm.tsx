@@ -24,6 +24,7 @@ import { model as GeoWebModel } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -364,23 +365,20 @@ export function ActionForm(props: ActionFormProps) {
             <br />
             {summaryView}
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {"Wrap to ETHx"}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => submit()}
-                disabled={isActing || isLoading || isInvalid}
-              >
-                {isActing || isLoading ? spinner : "Confirm"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              isDisabled={isActing || isLoading || isInvalid}
+              actionsDone={isActing || isLoading ? 0 : 1}
+              actionsTotal={1}
+              performAction={submit}
+              buttonText={"Confirm"}
+            />
           </Form>
 
           <br />

@@ -330,7 +330,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 className="w-100"
                 onClick={handleWrapModalOpen}
               >
-                {"Wrap to ETHx"}
+                {`Wrap to ${PAYMENT_TOKEN}`}
               </Button>
               <Button
                 variant="primary"
