@@ -3,9 +3,9 @@ import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 export type ReclaimActionProps = SidebarProps & {
@@ -59,6 +59,10 @@ function ReclaimAction(props: ReclaimActionProps) {
         )
       : null;
 
+  const requiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   async function _reclaim() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
@@ -71,6 +75,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     }
 
     // TODO: Add new reclaimer
+    throw new Error("TODO: Implement Reclaimer");
 
     {
       /* const claimData = ethers.utils.defaultAbiCoder.encode(
@@ -173,6 +178,14 @@ function ReclaimAction(props: ReclaimActionProps) {
             <></>
           )
         }
+        requiredPayment={
+          requiredBid && requiredBuffer
+            ? requiredBid.add(requiredBuffer)
+            : requiredBuffer
+        }
+        requiredFlowPermissions={1}
+        spender={licenseDiamondContract?.address || null}
+        flowOperator={licenseDiamondContract?.address || null}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />
