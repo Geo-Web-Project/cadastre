@@ -57,7 +57,7 @@ function GalleryModal(props: GalleryModalProps) {
   }, [selectedMediaGalleryItemId]);
 
   const [storageLink, setStorageLink] = React.useState<string | null>(null);
-  const [storageUsed, setStorageUsed] = React.useState(null);
+  const [storageUsed, setStorageUsed] = React.useState<number | null>(null);
   const storageCapacity = pinningManager
     ? pinningManager.getStorageLimit()
     : null;
@@ -81,7 +81,7 @@ function GalleryModal(props: GalleryModalProps) {
       const _storageLink = await pinningManager.getLink();
       setStorageLink(_storageLink);
 
-      const _storageUsed = await pinningManager.getStorageUsed();
+      const _storageUsed = (await pinningManager.getStorageUsed()) ?? null;
       setStorageUsed(_storageUsed);
     }
 

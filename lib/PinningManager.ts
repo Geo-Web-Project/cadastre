@@ -188,9 +188,7 @@ export function usePinningManager(
         firebasePerformance
       );
 
-      await bucket.fetchOrProvisionBucket(() => {
-        _pinningManager.queueDidFail();
-      });
+      await bucket.fetchOrProvisionBucket();
 
       setPinningManager(_pinningManager);
 

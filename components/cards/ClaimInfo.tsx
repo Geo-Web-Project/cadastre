@@ -5,7 +5,13 @@ import Image from "react-bootstrap/Image";
 import { STATE } from "../Map";
 import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 
-function ClaimInfo({ parcelClaimSize, setInteractionState }) {
+function ClaimInfo({
+  parcelClaimSize,
+  setInteractionState,
+}: {
+  parcelClaimSize: number;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+}) {
   return (
     <Card className="bg-purple bg-opacity-25 text-light">
       <Card.Body>
