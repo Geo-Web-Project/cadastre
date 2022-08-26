@@ -46,8 +46,6 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     setDidFail,
   } = props;
 
-  const { displayNewForSalePrice, displayCurrentForSalePrice } = actionData;
-
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
     []
   );
@@ -131,7 +129,10 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     return true;
   }, [flowOperator]);
 
-  const approveFlowAllowance = async () => {
+  const approveFlowAllowance = React.useCallback(async () => {
+    if (!flowOperator) {
+      return true;
+    }
     const signer = provider.getSigner() as any;
 
     try {
@@ -144,18 +145,18 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        errorMessage: (err as any).reason
+      setErrorMessage(
+        (err as any).reason
           ? (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message,
-      });
+          : (err as Error).message
+      );
+      setIsActing(false);
+      setDidFail(true);
       return false;
     }
 
     return true;
-  };
+  }, [flowOperator]);
 
   React.useEffect(() => {
     const checkRequirements = async () => {
