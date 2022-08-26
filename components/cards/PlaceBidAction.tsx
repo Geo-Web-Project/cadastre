@@ -23,12 +23,12 @@ import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
-import { ParcelQuery } from "./ParcelInfo";
+import { GeoWebParcel } from "./ParcelInfo";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  parcelData: ParcelQuery;
+  parcelData: GeoWebParcel;
   licenseDiamondContract: PCOLicenseDiamond | null;
 };
 
@@ -65,7 +65,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const handleWrapModalClose = () => setShowWrapModal(false);
 
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.geoWebParcel.currentBid.forSalePrice
+    parcelData.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice

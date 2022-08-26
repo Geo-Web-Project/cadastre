@@ -43,7 +43,7 @@ interface Bid {
   bidder?: string;
 }
 
-interface GeoWebParcel {
+export interface GeoWebParcel {
   id: string;
   licenseOwner: string;
   licenseDiamond: string;
@@ -52,7 +52,7 @@ interface GeoWebParcel {
 }
 
 export interface ParcelQuery {
-  geoWebParcel: GeoWebParcel;
+  geoWebParcel?: GeoWebParcel;
 }
 
 const parcelQuery = gql`
@@ -137,34 +137,39 @@ function ParcelInfo(props: ParcelInfoProps) {
     </span>
   );
 
-  const forSalePrice = data ? (
-    <>
-      {formatBalance(data.geoWebParcel.currentBid.forSalePrice)} {PAYMENT_TOKEN}{" "}
-    </>
-  ) : null;
-  const licenseOwner = data?.geoWebParcel.licenseOwner;
-  const hasOutstandingBid = data
-    ? BigNumber.from(data.geoWebParcel.pendingBid.contributionRate).gt(
-        BigNumber.from(0)
-      ) ?? false
-    : false;
+  const forSalePrice =
+    data && data.geoWebParcel ? (
+      <>
+        {formatBalance(data.geoWebParcel.currentBid.forSalePrice)}{" "}
+        {PAYMENT_TOKEN}{" "}
+      </>
+    ) : null;
+  const licenseOwner = data?.geoWebParcel?.licenseOwner;
+  const hasOutstandingBid =
+    data && data.geoWebParcel
+      ? BigNumber.from(data.geoWebParcel.pendingBid.contributionRate).gt(
+          BigNumber.from(0)
+        ) ?? false
+      : false;
   const outstandingBidder = hasOutstandingBid
-    ? data?.geoWebParcel.pendingBid?.bidder ?? null
+    ? data?.geoWebParcel?.pendingBid?.bidder ?? null
     : null;
-  const currentOwnerBidForSalePrice = data
-    ? BigNumber.from(data.geoWebParcel.currentBid.forSalePrice)
-    : null;
-  const currentOwnerBidTimestamp = data
-    ? BigNumber.from(data.geoWebParcel.currentBid.timestamp)
-    : null;
+  const currentOwnerBidForSalePrice =
+    data && data.geoWebParcel
+      ? BigNumber.from(data.geoWebParcel.currentBid.forSalePrice)
+      : null;
+  const currentOwnerBidTimestamp =
+    data && data.geoWebParcel
+      ? BigNumber.from(data.geoWebParcel.currentBid.timestamp)
+      : null;
   const outstandingBidForSalePrice = BigNumber.from(
-    hasOutstandingBid ? data?.geoWebParcel.pendingBid.forSalePrice : 0
+    hasOutstandingBid ? data?.geoWebParcel?.pendingBid.forSalePrice : 0
   );
   const outstandingBidTimestamp =
-    hasOutstandingBid && data
+    hasOutstandingBid && data && data.geoWebParcel
       ? BigNumber.from(data.geoWebParcel.pendingBid.timestamp)
       : null;
-  const licenseDiamondAddress = data?.geoWebParcel.licenseDiamond;
+  const licenseDiamondAddress = data?.geoWebParcel?.licenseDiamond;
 
   React.useEffect(() => {
     const loadLicenseDiamond = async () => {
@@ -466,18 +471,19 @@ function ParcelInfo(props: ParcelInfoProps) {
               <AuctionInstructions />
             </>
           ) : null}
-          {interactionState == STATE.PARCEL_EDITING && data ? (
+          {interactionState == STATE.PARCEL_EDITING && data?.geoWebParcel ? (
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
-              parcelData={data}
+              parcelData={data.geoWebParcel}
               hasOutstandingBid={hasOutstandingBid}
               licenseDiamondContract={licenseDiamondContract}
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_PLACING_BID && data ? (
+          {interactionState == STATE.PARCEL_PLACING_BID &&
+          data?.geoWebParcel ? (
             <PlaceBidAction
-              parcelData={data}
+              parcelData={data.geoWebParcel}
               licenseDiamondContract={licenseDiamondContract}
               {...props}
             />
@@ -485,9 +491,9 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_REJECTING_BID &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          data ? (
+          data?.geoWebParcel ? (
             <RejectBidAction
-              parcelData={data}
+              parcelData={data.geoWebParcel}
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}

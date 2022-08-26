@@ -27,7 +27,7 @@ import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
-import { ParcelQuery } from "./ParcelInfo";
+import { GeoWebParcel } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -35,7 +35,7 @@ dayjs.extend(advancedFormat);
 export type RejectBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  parcelData: ParcelQuery;
+  parcelData: GeoWebParcel;
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
   licenseDiamondContract: PCOLicenseDiamond | null;
@@ -88,7 +88,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   );
 
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.geoWebParcel.currentBid.forSalePrice
+    parcelData.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
