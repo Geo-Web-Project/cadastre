@@ -134,7 +134,9 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
     licenseOwner = data.geoWebParcel.licenseOwner;
-    hasOutstandingBid = data.geoWebParcel.pendingBid != null;
+    hasOutstandingBid =
+      data.geoWebParcel.pendingBid &&
+      data.geoWebParcel.pendingBid.contributionRate > 0;
     outstandingBidForSalePrice = BigNumber.from(
       hasOutstandingBid ? data.geoWebParcel.pendingBid.forSalePrice : 0
     );

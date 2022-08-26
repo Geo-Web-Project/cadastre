@@ -3,8 +3,12 @@ import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -22,6 +26,7 @@ import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -82,7 +87,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   );
 
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.geoWebParcel.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
@@ -145,6 +150,14 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const isInvalid =
     isForSalePriceInvalid || !displayNewForSalePrice || !penaltyPayment;
+
+  const oldRequiredBuffer = calculateBufferNeeded(
+    existingNetworkFee,
+    NETWORK_ID
+  );
+  const newRequiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
 
   React.useEffect(() => {
     async function checkBidPeriod() {
@@ -324,23 +337,31 @@ function RejectBidAction(props: RejectBidActionProps) {
             ) : null}
 
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {`Wrap to ${PAYMENT_TOKEN}`}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => rejectBid()}
-                disabled={isActing || isInvalid}
-              >
-                {isActing ? spinner : "Submit"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              {...props}
+              isDisabled={isActing || isInvalid}
+              buttonText={"Bid"}
+              requiredFlowAmount={annualNetworkFeeRate ?? null}
+              requiredPayment={
+                penaltyPayment && newRequiredBuffer
+                  ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
+                  : null
+              }
+              performAction={rejectBid}
+              spender={licenseDiamondContract?.address ?? null}
+              requiredFlowPermissions={2}
+              flowOperator={licenseDiamondContract?.address ?? null}
+              setErrorMessage={setErrorMessage}
+              setIsActing={setIsActing}
+              setDidFail={setDidFail}
+            />
           </Form>
 
           <br />
