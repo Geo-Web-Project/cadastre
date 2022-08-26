@@ -228,6 +228,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const signer = provider.getSigner() as any;
 
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
