@@ -124,7 +124,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   let currentOwnerBidForSalePrice: BigNumber | null = null;
   let currentOwnerBidTimestamp: BigNumber | null = null;
   let outstandingBidForSalePrice: BigNumber | null = null;
-  let outstandingBidTimestamp;
+  let outstandingBidTimestamp: BigNumber | null = null;
   let licenseDiamondAddress: string | null = null;
   if (data && data.geoWebParcel) {
     forSalePrice = (
@@ -134,9 +134,9 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
     licenseOwner = data.geoWebParcel.licenseOwner;
-    hasOutstandingBid = data.geoWebParcel.pendingBid.contributionRate > 0;
+    hasOutstandingBid = data.geoWebParcel.pendingBid != null;
     outstandingBidForSalePrice = BigNumber.from(
-      data.geoWebParcel.pendingBid.forSalePrice
+      hasOutstandingBid ? data.geoWebParcel.pendingBid.forSalePrice : 0
     );
     currentOwnerBidForSalePrice = BigNumber.from(
       data.geoWebParcel.currentBid.forSalePrice
@@ -144,10 +144,12 @@ function ParcelInfo(props: ParcelInfoProps) {
     currentOwnerBidTimestamp = BigNumber.from(
       data.geoWebParcel.currentBid.timestamp
     );
-    outstandingBidder = data.geoWebParcel.pendingBid.bidder;
-    outstandingBidTimestamp = BigNumber.from(
-      data.geoWebParcel.pendingBid.timestamp
-    );
+    outstandingBidder = hasOutstandingBid
+      ? data.geoWebParcel.pendingBid.bidder
+      : null;
+    outstandingBidTimestamp = hasOutstandingBid
+      ? BigNumber.from(data.geoWebParcel.pendingBid.timestamp)
+      : null;
     licenseDiamondAddress = data.geoWebParcel.licenseDiamond;
   }
 
