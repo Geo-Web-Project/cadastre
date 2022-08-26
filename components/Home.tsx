@@ -1,3 +1,4 @@
+import Image from "react-bootstrap/Image";
 import Button from "react-bootstrap/Button";
 import React from "react";
 
@@ -79,7 +80,7 @@ function Home({
       >
         <HomeContent />
         <div className="px-3 mb-5 d-flex align-items-center flex-column">
-          <Image className="mb-2" src="/arMedia.gif" alt="arMedia" />
+          <img className="mb-2" src="/arMedia.gif" alt="arMedia" />
           <span style={{ fontSize: "12px", color: "white" }}>
             Browsing an AR Media Gallery on the Geo Web
           </span>
@@ -96,7 +97,7 @@ function Home({
           <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           <span>Get Started</span>
         </Button>
-        <Image
+        <img
           src="/claming.gif"
           className="mt-5"
           style={{ maxWidth: "80%" }}
