@@ -7,8 +7,8 @@ import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { useMemo } from "react";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
+import Button from "react-bootstrap/Button";
 
 type WrapModalProps = {
   account: string;
@@ -97,7 +97,7 @@ function WrapModal({
     }
   };
 
-  const tokenOptions: TokenOptions = useMemo(
+  const tokenOptions: TokenOptions = React.useMemo(
     () => ({
       address: paymentToken.address,
       symbol: "ETHx",
@@ -113,7 +113,7 @@ function WrapModal({
         <Modal.Title className="text-primary">
           Wrap ETH for Streaming
         </Modal.Title>
-        <button
+        <Button
           type="button"
           className="btn-close btn-close-white"
           data-dismiss="modal"
@@ -172,14 +172,14 @@ function WrapModal({
             id="amount"
             placeholder="0.00"
           />
-          <button
+          <Button
             type="submit"
             className="btn btn-primary mb-2"
             style={{ width: "128px" }}
             disabled={isWrapping}
           >
             {isWrapping ? "Wrapping..." : `Wrap to ${PAYMENT_TOKEN}`}
-          </button>
+          </Button>
         </form>
       </Modal.Footer>
     </Modal>

@@ -1,4 +1,4 @@
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { OverlayTrigger, Tooltip, Button } from "react-bootstrap";
 import { truncateStr } from "../lib/truncate";
 import { useCallback } from "react";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
@@ -40,18 +40,18 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
         delay={{ show: 250, hide: 4000 }}
         overlay={<Tooltip>Copied</Tooltip>}
       >
-        <button
+        <Button
           onClick={copyAddress}
           className="d-flex bg-transparent border-0 align-items-center"
         >
           <Image style={{ width: "16px" }} src="/eth.png" alt="eth" />
           <span className="px-2">{truncateStr(options.address, 16)}</span>
           <Image style={{ width: "16px" }} src="/copy.svg" alt="copy" />
-        </button>
+        </Button>
       </OverlayTrigger>
-      <button className="bg-transparent border-0 px-2" onClick={addToMetaMask}>
+      <Button className="bg-transparent border-0 px-2" onClick={addToMetaMask}>
         <Image style={{ width: "16px" }} src="/MetaMask.png" alt="metamask" />
-      </button>
+      </Button>
     </div>
   );
 };
