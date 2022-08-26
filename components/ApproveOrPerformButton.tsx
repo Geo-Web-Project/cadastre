@@ -4,19 +4,19 @@ import Spinner from "react-bootstrap/Spinner";
 import { BigNumber, constants } from "ethers";
 import { SidebarProps } from "./Sidebar";
 import { PAYMENT_TOKEN } from "../lib/constants";
-import { ActionData } from "./cards/ActionForm";
 
 export type ApproveOrPerformButtonProps = SidebarProps & {
   isDisabled: boolean;
   performAction: () => Promise<string | void>;
   buttonText: string;
-  requiredPayment?: BigNumber;
-  requiredFlowAmount?: BigNumber;
-  requiredFlowPermissions?: number;
-  spender: string;
-  flowOperator: string;
-  actionData: ActionData;
-  setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
+  requiredPayment: BigNumber | null;
+  requiredFlowAmount: BigNumber | null;
+  requiredFlowPermissions: number | null;
+  spender: string | null;
+  flowOperator: string | null;
+  setErrorMessage: (v: string) => void;
+  setIsActing: (v: boolean) => void;
+  setDidFail: (v: boolean) => void;
 };
 
 const asyncEvery = async (arr: any, predicate: any) => {
@@ -36,15 +36,14 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     spender,
     provider,
     requiredPayment,
-    setActionData,
     sfFramework,
     requiredFlowPermissions,
     requiredFlowAmount,
     flowOperator,
-    actionData,
+    setErrorMessage,
+    setIsActing,
+    setDidFail,
   } = props;
-
-  const { displayNewForSalePrice, displayCurrentForSalePrice } = actionData;
 
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
     []
@@ -53,23 +52,23 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
   const [completedActions, setCompletedActions] = React.useState<number>(0);
   const [totalActions, setTotalActions] = React.useState<number>(0);
 
+  const isReady =
+    requiredPayment &&
+    requiredFlowAmount &&
+    requiredFlowPermissions &&
+    spender &&
+    flowOperator;
+
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Sending Transaction...</span>
     </Spinner>
   );
 
-  function updateActionData(updatedValues: ActionData) {
-    function _updateData(updatedValues: ActionData) {
-      return (prevState: ActionData) => {
-        return { ...prevState, ...updatedValues };
-      };
+  const approvePayment = React.useCallback(async () => {
+    if (!spender) {
+      return true;
     }
-
-    setActionData(_updateData(updatedValues));
-  }
-
-  const approvePayment = async () => {
     const signer = provider.getSigner() as any;
 
     try {
@@ -81,20 +80,23 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        errorMessage: (err as any).reason
+      setErrorMessage(
+        (err as any).reason
           ? (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message,
-      });
+          : (err as Error).message
+      );
+      setIsActing(false);
+      setDidFail(true);
       return false;
     }
 
     return true;
-  };
+  }, [spender]);
 
-  const approveFlowAllowance = async () => {
+  const approveFlowAllowance = React.useCallback(async () => {
+    if (!flowOperator) {
+      return true;
+    }
     const signer = provider.getSigner() as any;
 
     try {
@@ -107,25 +109,25 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       await txn.wait();
     } catch (err) {
       console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        errorMessage: (err as any).reason
+      setErrorMessage(
+        (err as any).reason
           ? (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message,
-      });
+          : (err as Error).message
+      );
+      setIsActing(false);
+      setDidFail(true);
       return false;
     }
 
     return true;
-  };
+  }, [flowOperator]);
 
   React.useEffect(() => {
     const checkRequirements = async () => {
-      const _approvals = [];
+      const _approvals: (() => Promise<boolean>)[] = [];
       let _approvalStr = buttonText;
 
-      if (displayNewForSalePrice === displayCurrentForSalePrice) {
+      if (!isReady) {
         setApprovals(_approvals);
         setApprovalStr(_approvalStr);
         return;
@@ -175,6 +177,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     paymentToken,
     account,
     spender,
+    flowOperator,
     provider,
     requiredPayment,
     completedActions,
@@ -204,7 +207,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       variant="primary"
       className="w-100"
       onClick={() => submit()}
-      disabled={isDisabled || totalActions > completedActions}
+      disabled={isDisabled || totalActions > completedActions || !isReady}
     >
       {totalActions > completedActions ? (
         <>

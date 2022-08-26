@@ -3,8 +3,12 @@ import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -18,6 +22,7 @@ import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -58,14 +63,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
 
-  const spinner = (
-    <span className="spinner-border" role="status">
-      <span className="visually-hidden">Sending Transaction...</span>
-    </span>
-  );
-
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.geoWebParcel.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
@@ -112,6 +111,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
+  const requiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   async function placeBid() {
     setIsActing(true);
     setDidFail(false);
@@ -129,7 +132,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     try {
-      // TODO: Approve flow permissions
       const txn = await licenseDiamondContract.placeBid(
         newNetworkFee,
         newForSalePrice
@@ -250,23 +252,31 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             ) : null}
 
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {`Wrap to ${PAYMENT_TOKEN}`}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => placeBid()}
-                disabled={isActing || isInvalid}
-              >
-                {isActing ? spinner : "Bid"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              {...props}
+              isDisabled={isActing || isInvalid}
+              buttonText={"Bid"}
+              requiredFlowAmount={annualNetworkFeeRate ?? null}
+              requiredPayment={
+                newForSalePrice && requiredBuffer
+                  ? newForSalePrice.add(requiredBuffer)
+                  : null
+              }
+              performAction={placeBid}
+              spender={licenseDiamondContract?.address ?? null}
+              requiredFlowPermissions={1}
+              flowOperator={licenseDiamondContract?.address ?? null}
+              setErrorMessage={setErrorMessage}
+              setIsActing={setIsActing}
+              setDidFail={setDidFail}
+            />
           </Form>
 
           <br />

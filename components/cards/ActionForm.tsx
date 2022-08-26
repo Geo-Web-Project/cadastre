@@ -39,10 +39,10 @@ export type ActionFormProps = SidebarProps & {
   basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   hasOutstandingBid?: boolean;
-  requiredPayment: BigNumber;
-  requiredFlowPermissions: number;
-  spender: string;
-  flowOperator: string;
+  requiredPayment: BigNumber | null;
+  requiredFlowPermissions: number | null;
+  spender: string | null;
+  flowOperator: string | null;
 };
 
 export type ActionData = {
@@ -384,10 +384,19 @@ export function ActionForm(props: ActionFormProps) {
               {...props}
               isDisabled={isActing || isLoading || isInvalid}
               buttonText={"Confirm"}
-              requiredFlowAmount={requiredFlowAmount ?? undefined}
-              requiredPayment={requiredPayment ?? undefined}
+              requiredFlowAmount={requiredFlowAmount}
+              requiredPayment={requiredPayment ?? null}
               performAction={submit}
-              spender={spender}
+              spender={spender ?? null}
+              setErrorMessage={(v) => {
+                updateActionData({ errorMessage: v });
+              }}
+              setIsActing={(v) => {
+                updateActionData({ isActing: v });
+              }}
+              setDidFail={(v) => {
+                updateActionData({ didFail: v });
+              }}
             />
           </Form>
 

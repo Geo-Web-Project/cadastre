@@ -150,7 +150,7 @@ function ClaimAction(props: ClaimActionProps) {
         requiredPayment={
           isFairLaunch && requiredBuffer
             ? requiredBid.add(requiredBuffer)
-            : requiredBuffer ?? BigNumber.from(0)
+            : requiredBuffer ?? undefined
         }
         requiredFlowPermissions={1}
         spender={registryContract.address}
