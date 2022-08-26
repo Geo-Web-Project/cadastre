@@ -70,6 +70,9 @@ function ClaimAction(props: ClaimActionProps) {
     : null;
 
   async function _claim() {
+    if (!claimBase1Coord || !claimBase2Coord) {
+      throw new Error(`Unknown coordinates`);
+    }
     const baseCoord = GeoWebCoordinate.fromXandY(
       claimBase1Coord.x,
       claimBase1Coord.y,
@@ -93,6 +96,7 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const signer = provider.getSigner() as any;
 
     const txn = await registryContract

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import Home from "../components/Home";
 import Map from "../components/Map";
 import FAQ from "../components/FAQ";
@@ -68,6 +67,7 @@ function IndexPage() {
     setSfFramework(framework);
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
     setPaymentToken(superToken);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
   };
 

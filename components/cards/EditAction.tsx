@@ -9,13 +9,14 @@ import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfil
 import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { ParcelQuery } from "./ParcelInfo";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: BasicProfileStreamManager | null;
   hasOutstandingBid: boolean;
-  parcelData: any;
+  parcelData: ParcelQuery;
   licenseDiamondContract: PCOLicenseDiamond | null;
 };
 

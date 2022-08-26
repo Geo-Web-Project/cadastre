@@ -121,8 +121,10 @@ function OutstandingBidView({
     } catch (err) {
       console.error(err);
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err as any).reason
-          ? (err as any).reason.replace("execution reverted: ", "")
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
           : (err as Error).message
       );
       setDidFail(true);
@@ -149,6 +151,7 @@ function OutstandingBidView({
     } catch (err) {
       console.error(err);
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err as any).errorObject.reason.replace("execution reverted: ", "")
       );
       setDidFail(true);

@@ -641,6 +641,7 @@ function Map(props: MapProps) {
             width: interactionState != STATE.VIEWING ? "75vw" : "100vw",
             height: interactionState != STATE.VIEWING ? "100vh" : "100vh",
           }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ref={mapRef as any}
           {...viewport}
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
@@ -671,7 +672,9 @@ function Map(props: MapProps) {
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
           <Geocoder
-            mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN!}
+            mapboxAccessToken={
+              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
+            }
             position="top-right"
           />
           <NavigationControl position="bottom-right" />

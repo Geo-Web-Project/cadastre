@@ -19,6 +19,7 @@ export type ApproveOrPerformButtonProps = SidebarProps & {
   setDidFail: (v: boolean) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const asyncEvery = async (arr: any, predicate: any) => {
   for (const e of arr) {
     if (!(await predicate(e))) return false;
@@ -69,6 +70,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     if (!spender) {
       return true;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const signer = provider.getSigner() as any;
 
     try {
@@ -81,8 +83,10 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     } catch (err) {
       console.error(err);
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err as any).reason
-          ? (err as any).reason.replace("execution reverted: ", "")
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
           : (err as Error).message
       );
       setIsActing(false);
@@ -97,6 +101,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     if (!flowOperator) {
       return true;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const signer = provider.getSigner() as any;
 
     try {
@@ -110,8 +115,10 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     } catch (err) {
       console.error(err);
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err as any).reason
-          ? (err as any).reason.replace("execution reverted: ", "")
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
           : (err as Error).message
       );
       setIsActing(false);

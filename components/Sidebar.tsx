@@ -3,15 +3,15 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import { STATE, MapProps } from "./Map";
+import { STATE, MapProps, Coord } from "./Map";
 import { BigNumber } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  claimBase1Coord: any;
-  claimBase2Coord: any;
+  claimBase1Coord: Coord | null;
+  claimBase2Coord: Coord | null;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;

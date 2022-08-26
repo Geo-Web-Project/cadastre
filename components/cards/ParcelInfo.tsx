@@ -34,6 +34,27 @@ import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
+interface Bid {
+  contributionRate: string;
+  perSecondFeeNumerator: string;
+  perSecondFeeDenominator: string;
+  forSalePrice: string;
+  timestamp: string;
+  bidder?: string;
+}
+
+interface GeoWebParcel {
+  id: string;
+  licenseOwner: string;
+  licenseDiamond: string;
+  currentBid: Bid;
+  pendingBid: Bid;
+}
+
+export interface ParcelQuery {
+  geoWebParcel: GeoWebParcel;
+}
+
 const parcelQuery = gql`
   query GeoWebParcel($id: String) {
     geoWebParcel(id: $id) {
@@ -78,10 +99,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     firebasePerf,
     invalidLicenseId,
     setInvalidLicenseId,
-    sfFramework,
     provider,
   } = props;
-  const { loading, data } = useQuery(parcelQuery, {
+  const { loading, data } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
@@ -117,43 +137,34 @@ function ParcelInfo(props: ParcelInfoProps) {
     </span>
   );
 
-  let forSalePrice;
-  let licenseOwner: string | null = null;
-  let hasOutstandingBid = false;
-  let outstandingBidder: string | null = null;
-  let currentOwnerBidForSalePrice: BigNumber | null = null;
-  let currentOwnerBidTimestamp: BigNumber | null = null;
-  let outstandingBidForSalePrice: BigNumber | null = null;
-  let outstandingBidTimestamp: BigNumber | null = null;
-  let licenseDiamondAddress: string | null = null;
-  if (data && data.geoWebParcel) {
-    forSalePrice = (
-      <>
-        {formatBalance(data.geoWebParcel.currentBid.forSalePrice)}{" "}
-        {PAYMENT_TOKEN}{" "}
-      </>
-    );
-    licenseOwner = data.geoWebParcel.licenseOwner;
-    hasOutstandingBid =
-      data.geoWebParcel.pendingBid &&
-      data.geoWebParcel.pendingBid.contributionRate > 0;
-    outstandingBidForSalePrice = BigNumber.from(
-      hasOutstandingBid ? data.geoWebParcel.pendingBid.forSalePrice : 0
-    );
-    currentOwnerBidForSalePrice = BigNumber.from(
-      data.geoWebParcel.currentBid.forSalePrice
-    );
-    currentOwnerBidTimestamp = BigNumber.from(
-      data.geoWebParcel.currentBid.timestamp
-    );
-    outstandingBidder = hasOutstandingBid
-      ? data.geoWebParcel.pendingBid.bidder
-      : null;
-    outstandingBidTimestamp = hasOutstandingBid
+  const forSalePrice = data ? (
+    <>
+      {formatBalance(data.geoWebParcel.currentBid.forSalePrice)} {PAYMENT_TOKEN}{" "}
+    </>
+  ) : null;
+  const licenseOwner = data?.geoWebParcel.licenseOwner;
+  const hasOutstandingBid = data
+    ? BigNumber.from(data.geoWebParcel.pendingBid.contributionRate).gt(
+        BigNumber.from(0)
+      ) ?? false
+    : false;
+  const outstandingBidder = hasOutstandingBid
+    ? data?.geoWebParcel.pendingBid?.bidder ?? null
+    : null;
+  const currentOwnerBidForSalePrice = data
+    ? BigNumber.from(data.geoWebParcel.currentBid.forSalePrice)
+    : null;
+  const currentOwnerBidTimestamp = data
+    ? BigNumber.from(data.geoWebParcel.currentBid.timestamp)
+    : null;
+  const outstandingBidForSalePrice = BigNumber.from(
+    hasOutstandingBid ? data?.geoWebParcel.pendingBid.forSalePrice : 0
+  );
+  const outstandingBidTimestamp =
+    hasOutstandingBid && data
       ? BigNumber.from(data.geoWebParcel.pendingBid.timestamp)
       : null;
-    licenseDiamondAddress = data.geoWebParcel.licenseDiamond;
-  }
+  const licenseDiamondAddress = data?.geoWebParcel.licenseDiamond;
 
   React.useEffect(() => {
     const loadLicenseDiamond = async () => {
@@ -162,6 +173,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const signer = provider.getSigner() as any;
 
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
@@ -207,11 +219,13 @@ function ParcelInfo(props: ParcelInfoProps) {
         });
 
         const model = new DataModel({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ceramic: ceramic as any,
           aliases: GeoWebModel,
         });
 
         const _assetContentManager = new AssetContentManager(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ceramic as any,
           model,
           `did:pkh:${accountId.toString()}`,
@@ -418,16 +432,18 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : interactionState == STATE.PARCEL_RECLAIMING ? null : (
             <p>Unclaimed Coordinates</p>
           )}
-          {interactionState == STATE.PARCEL_RECLAIMING ||
-          (interactionState == STATE.PARCEL_SELECTED &&
-            invalidLicenseId == selectedParcelId &&
-            data &&
-            data.geoWebParcel) ? (
+          {(interactionState == STATE.PARCEL_RECLAIMING ||
+            (interactionState == STATE.PARCEL_SELECTED &&
+              invalidLicenseId == selectedParcelId &&
+              data)) &&
+          licenseOwner &&
+          currentOwnerBidForSalePrice &&
+          currentOwnerBidTimestamp ? (
             <AuctionInfo
               account={account}
-              licenseOwner={licenseOwner!}
-              forSalePrice={currentOwnerBidForSalePrice!}
-              auctionStart={currentOwnerBidTimestamp!}
+              licenseOwner={licenseOwner}
+              forSalePrice={currentOwnerBidForSalePrice}
+              auctionStart={currentOwnerBidTimestamp}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
               requiredBid={requiredBid}
@@ -450,7 +466,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               <AuctionInstructions />
             </>
           ) : null}
-          {interactionState == STATE.PARCEL_EDITING ? (
+          {interactionState == STATE.PARCEL_EDITING && data ? (
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data}
@@ -459,7 +475,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_PLACING_BID ? (
+          {interactionState == STATE.PARCEL_PLACING_BID && data ? (
             <PlaceBidAction
               parcelData={data}
               licenseDiamondContract={licenseDiamondContract}
@@ -468,7 +484,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
           hasOutstandingBid &&
-          outstandingBidForSalePrice ? (
+          outstandingBidForSalePrice &&
+          data ? (
             <RejectBidAction
               parcelData={data}
               bidForSalePrice={outstandingBidForSalePrice}
@@ -477,10 +494,10 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING ? (
+          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
-              licenseOwner={licenseOwner!}
+              licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
             ></ReclaimAction>

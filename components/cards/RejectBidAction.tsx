@@ -27,6 +27,7 @@ import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import { ParcelQuery } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -34,7 +35,7 @@ dayjs.extend(advancedFormat);
 export type RejectBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  parcelData: any;
+  parcelData: ParcelQuery;
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
   licenseDiamondContract: PCOLicenseDiamond | null;
@@ -212,8 +213,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     } catch (err) {
       console.error(err);
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err as any).reason
-          ? (err as any).reason.replace("execution reverted: ", "")
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
           : (err as Error).message
       );
       setDidFail(true);

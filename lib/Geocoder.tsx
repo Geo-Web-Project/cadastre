@@ -12,13 +12,18 @@ type GeocoderProps = Omit<
 
   position: ControlPosition;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onLoading: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onResults: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onResult: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onError: (...args: any[]) => void;
 };
 
 function Geocoder(props: GeocoderProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [marker, setMarker] = useState<ReactElement<any, any> | null>(null);
 
   const geocoder = useControl<MapboxGeocoder>(
@@ -41,6 +46,7 @@ function Geocoder(props: GeocoderProps) {
         if (location && props.marker) {
           setMarker(
             <Marker
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               {...(props.marker as any)}
               longitude={location[0]}
               latitude={location[1]}
@@ -59,6 +65,7 @@ function Geocoder(props: GeocoderProps) {
     }
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((geocoder as any)._map) {
     if (
       geocoder.getProximity() !== props.proximity &&

@@ -78,6 +78,7 @@ function GalleryForm(props: GalleryFormProps) {
     setMediaGalleryItem(_updateData(updatedValues));
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function updateContentUrl(event: React.ChangeEvent<any>) {
     const cid = event.target.value;
 
@@ -99,6 +100,7 @@ function GalleryForm(props: GalleryFormProps) {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function captureFile(event: React.ChangeEvent<any>) {
     event.persist();
     event.stopPropagation();
@@ -213,6 +215,7 @@ function GalleryForm(props: GalleryFormProps) {
     setIsSaving(false);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function onSelectFileFormat(event: React.ChangeEvent<any>) {
     setFileFormat(event.target.value);
 
@@ -222,7 +225,7 @@ function GalleryForm(props: GalleryFormProps) {
     });
   }
 
-  function onSelectPinningService(event: React.ChangeEvent<any>) {
+  function onSelectPinningService() {
     // setPinningService(event.target.value);
     // if (event.target.value != "pinata") {
     //   setPinningServiceEndpoint("");

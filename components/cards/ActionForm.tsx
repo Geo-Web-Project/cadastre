@@ -20,7 +20,7 @@ import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { AssetId } from "caip";
-import { model as GeoWebModel } from "@geo-web/datamodels";
+import { model as GeoWebModel, BasicProfile } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
@@ -94,12 +94,6 @@ export function ActionForm(props: ActionFormProps) {
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
 
-  const spinner = (
-    <span className="spinner-border" role="status">
-      <span className="visually-hidden">Sending Transaction...</span>
-    </span>
-  );
-
   const infoIcon = (
     <Image
       style={{
@@ -162,14 +156,16 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({
         isActing: false,
         didFail: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         errorMessage: (err as any).reason
-          ? (err as any).reason.replace("execution reverted: ", "")
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
           : (err as Error).message,
       });
       return;
     }
 
-    const content: any = {};
+    const content: BasicProfile = {};
     if (parcelName) {
       content["name"] = parcelName;
     }
@@ -188,14 +184,16 @@ export function ActionForm(props: ActionFormProps) {
       });
 
       const model = new DataModel({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ceramic: ceramic as any,
         aliases: GeoWebModel,
       });
 
       const _assetContentManager = new AssetContentManager(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ceramic as any,
         model,
-        ceramic.did!.capability.p.iss,
+        ceramic.did?.capability.p.iss ?? "",
         assetId
       );
 
