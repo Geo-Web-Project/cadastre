@@ -80,7 +80,7 @@ function Home({
       >
         <HomeContent />
         <div className="px-3 mb-5 d-flex align-items-center flex-column">
-          <img className="mb-2" src="/arMedia.gif" alt="arMedia" />
+          <Image className="mb-2" src="/arMedia.gif" alt="arMedia" />
           <span style={{ fontSize: "12px", color: "white" }}>
             Browsing an AR Media Gallery on the Geo Web
           </span>
@@ -97,7 +97,7 @@ function Home({
           <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           <span>Get Started</span>
         </Button>
-        <img
+        <Image
           src="/claming.gif"
           className="mt-5"
           style={{ maxWidth: "80%" }}
