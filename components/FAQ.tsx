@@ -32,7 +32,7 @@ function ContextAwareToggle({
       className="fw-bold border-dark text-light bg-transparent"
       as={Card.Header}
       onClick={decoratedOnClick}
-      style={{ fontSize: "1.25em" }}
+      style={{ fontSize: "1.25em", cursor: "pointer" }}
       eventKey={eventKey}
     >
       {isCurrentEventKey ? "-" : "+"} {children}
@@ -56,7 +56,12 @@ function FAQ() {
       >
         <Image src="help.svg" /> Help
       </Button>
-      <Modal show={show} size="lg" onHide={handleClose}>
+      <Modal
+        show={show}
+        size="lg"
+        onHide={handleClose}
+        contentClassName="bg-dark"
+      >
         <Modal.Header
           style={{
             background: "#111320",

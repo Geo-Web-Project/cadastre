@@ -19,7 +19,7 @@ $theme-colors: (
   "gray": $gray,
   "danger": $danger,
   "light": $light,
-  "success": $success
+  "success": $success,
 );
 
 $font-family-base: "Open Sans";
@@ -90,6 +90,10 @@ $tooltip-arrow-height: 0.2rem;
       margin: 1.75rem auto;
     }
   }
+}
+
+.modal-content {
+  overflow: hidden;
 }
 
 .action-form_divider {

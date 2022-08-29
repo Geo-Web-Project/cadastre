@@ -132,6 +132,7 @@ function GalleryModal(props: GalleryModalProps) {
       centered
       size="xl"
       onHide={handleClose}
+      contentClassName="bg-dark"
     >
       <Modal.Header className="bg-dark border-0">
         <Container>

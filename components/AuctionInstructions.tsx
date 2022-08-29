@@ -22,7 +22,7 @@ function AuctionInstructions() {
           How do Geo Web auctions work?
         </Button>
       </div>
-      <Modal show={show} onHide={handleClose}>
+      <Modal show={show} onHide={handleClose} contentClassName="bg-dark">
         <Modal.Header
           style={{
             background: "#111320",

@@ -155,19 +155,10 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
         </Col>
       </Row>
       <Row>
-        <Col>
+        <Col style={{height: "100px"}}>
           <Image style={statusView ? { opacity: "0.3" } : {}} src="file.png" />
           <div
-            className="text-center position-absolute align-middle"
-            style={{
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "100%",
-              height: "100%",
-              textAlign: "center",
-              verticalAlign: "middle",
-            }}
+            className="position-relative bottom-100"
           >
             {statusView}
           </div>
