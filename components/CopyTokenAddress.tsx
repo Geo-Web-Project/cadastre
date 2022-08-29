@@ -2,7 +2,7 @@ import { OverlayTrigger, Tooltip, Button } from "react-bootstrap";
 import { truncateStr } from "../lib/truncate";
 import { useCallback } from "react";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
-import Image from "next/image";
+import Image from "react-bootstrap/Image";
 
 export type TokenOptions = {
   address: string;
