@@ -334,7 +334,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             <Col className="mx-3" sm="10">
               <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
                 {!basicProfileStreamManager
-                  ? "Madison Square Garden"
+                  ? spinner
                   : parcelContent
                   ? parcelContent.name
                   : data?.landParcel?.id
