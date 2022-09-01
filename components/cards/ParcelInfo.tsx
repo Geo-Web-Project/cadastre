@@ -294,7 +294,6 @@ function ParcelInfo(props: ParcelInfoProps) {
       <>
         <Row className="mb-3">
           <Col sm="10">
-            ) : (
             <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
               Claim a Parcel
             </h1>
