@@ -399,7 +399,11 @@ function RejectBidAction(props: RejectBidActionProps) {
           paymentToken={paymentToken}
         />
       )}
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        account={account}
+        paymentToken={paymentToken}
+        provider={provider}
+      />
     </>
   );
 }

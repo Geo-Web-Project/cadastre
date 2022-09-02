@@ -180,7 +180,11 @@ function EditAction(props: EditActionProps) {
         flowOperator={licenseDiamondContract?.address ?? ""}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        account={account}
+        paymentToken={paymentToken}
+        provider={provider}
+      />
     </>
   );
 }

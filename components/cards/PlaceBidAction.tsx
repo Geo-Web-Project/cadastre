@@ -313,7 +313,11 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           paymentToken={paymentToken}
         />
       )}
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        account={account}
+        paymentToken={paymentToken}
+        provider={provider}
+      />
     </>
   );
 }

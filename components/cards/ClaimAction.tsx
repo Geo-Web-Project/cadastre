@@ -161,7 +161,11 @@ function ClaimAction(props: ClaimActionProps) {
         flowOperator={flowOperator}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        account={account}
+        paymentToken={paymentToken}
+        provider={provider}
+      />
     </>
   );
 }

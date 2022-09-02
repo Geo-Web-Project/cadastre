@@ -109,3 +109,53 @@ $tooltip-arrow-height: 0.2rem;
 .btn {
   color: $light !important;
 }
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.scrollable-table table {
+  width: 100%;
+}
+
+.scrollable-table thead,
+.scrollable-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+.scrollable-table td {
+  overflow: hidden;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scrollable-table thead tr {
+  cursor: pointer;
+}
+
+.scrollable-table tbody {
+  display: block;
+  overflow-y: overlay;
+  scrollbar-gutter: stable;
+  table-layout: fixed;
+  max-height: 256px;
+  scrollbar-width: thin;
+  scrollbar-color: $secondary $dark;
+}
+
+.scrollable-table tbody::-webkit-scrollbar-track {
+  border-radius: 4px;
+  background-color: $dark;
+}
+
+.scrollable-table tbody::-webkit-scrollbar {
+  width: 6px;
+  background-color: $dark;
+}
+
+.scrollable-table tbody::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: $secondary;
+}

@@ -130,7 +130,11 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        account={account}
+        paymentToken={paymentToken}
+        provider={provider}
+      />
     </>
   );
 }

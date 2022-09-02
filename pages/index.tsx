@@ -166,6 +166,7 @@ function IndexPage() {
           account={authState.connected.accountID.address}
           disconnectWallet={disconnectWallet}
           paymentToken={paymentToken}
+          provider={library}
         />
       );
     }

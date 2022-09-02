@@ -15,9 +15,10 @@ type ProfileProps = {
   account: string;
   disconnectWallet: () => Promise<void>;
   paymentToken?: NativeAssetSuperToken;
+  provider: ethers.providers.Web3Provider;
 };
 
-function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
+function Profile({ account, disconnectWallet, paymentToken, provider }: ProfileProps) {
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -62,6 +63,8 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
               <ProfileModal
                 accountTokenSnapshot={data.items[0]}
                 account={account}
+                provider={provider}
+                paymentToken={paymentToken}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
                 disconnectWallet={disconnectWallet}

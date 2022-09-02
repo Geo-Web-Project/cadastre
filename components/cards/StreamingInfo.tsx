@@ -4,19 +4,29 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
+import ProfileModal from "../profile/ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 type StreamingInfoProps = {
   account: string;
   paymentToken: NativeAssetSuperToken;
+  provider: ethers.providers.Web3Provider;
 };
 
-function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
+function StreamingInfo({
+  account,
+  paymentToken,
+  provider,
+}: StreamingInfoProps) {
+  const [authState, activate, deactivate] = useMultiAuth();
+  const [showProfile, setShowProfile] = React.useState(false);
+
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
@@ -24,6 +34,10 @@ function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
       token: paymentToken.address,
     },
   });
+
+  const handleCloseProfile = () => setShowProfile(false);
+  const handleShowProfile = () => setShowProfile(true);
+  const disconnectWallet = () => deactivate();
 
   if (isLoading) {
     return <Spinner animation="border" role="status"></Spinner>;
@@ -61,12 +75,23 @@ function StreamingInfo({ account, paymentToken }: StreamingInfoProps) {
           </Row>
           <Row>
             <Col>
-              <p>
-                {/* FIXME: add href link for paymnent dashboard if it is finished. */}
-                <a href={"/TODO"} target="_blank" rel="noreferrer">
-                  Review your streaming payment dashboard
-                </a>
+              <p
+                className="text-primary cursor-pointer"
+                onClick={(e) => {
+                  handleShowProfile();
+                }}
+              >
+                Review your streaming payment dashboard
               </p>
+              <ProfileModal
+                accountTokenSnapshot={data.items[0]}
+                account={account}
+                paymentToken={paymentToken}
+                provider={provider}
+                showProfile={showProfile}
+                handleCloseProfile={handleCloseProfile}
+                disconnectWallet={disconnectWallet}
+              />
             </Col>
           </Row>
         </Container>
