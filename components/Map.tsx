@@ -241,6 +241,8 @@ function Map(props: MapProps) {
   const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
   const [selectedParcelId, setSelectedParcelId] = useState("");
+  const [selectedParcelCoords, setSelectedParcelCoords] =
+    useState<Coord | null>(null);
 
   const [existingCoords, setExistingCoords] = useState<Set<string>>(new Set());
 
@@ -478,6 +480,10 @@ function Map(props: MapProps) {
       const parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
+      setSelectedParcelCoords({
+        x: event.lngLat.lng,
+        y: event.lngLat.lat,
+      });
       if (parcelFeature) {
         setSelectedParcelId(parcelFeature.properties.parcelId);
         setInteractionState(STATE.PARCEL_SELECTED);
@@ -615,6 +621,7 @@ function Map(props: MapProps) {
           invalidLicenseId={invalidLicenseId}
           setInvalidLicenseId={setInvalidLicenseId}
           setNewParcel={setNewParcel}
+          selectedParcelCoords={selectedParcelCoords}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">

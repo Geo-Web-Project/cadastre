@@ -3,7 +3,7 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
-import { STATE, MapProps } from "./Map";
+import { STATE, MapProps, Coord } from "./Map";
 import { BigNumber, ethers } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 import { truncateEth } from "../lib/truncate";
@@ -16,6 +16,7 @@ export type SidebarProps = MapProps & {
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedParcelCoords: Coord;
   parcelClaimSize: number;
   invalidLicenseId: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
@@ -32,6 +33,7 @@ function Sidebar(props: SidebarProps) {
     interactionState,
     setInteractionState,
     parcelClaimSize,
+    selectedParcelCoords,
     invalidLicenseId,
     setInvalidLicenseId,
   } = props;
@@ -118,6 +120,7 @@ function Sidebar(props: SidebarProps) {
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
           licenseAddress={licenseContract.address}
+          selectedParcelCoords={selectedParcelCoords}
         ></ParcelInfo>
       ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? (

@@ -4,7 +4,7 @@
 
 Please include the type of fix and description of your change according to the (Conventional Commits specification)[https://www.conventionalcommits.org/en/v1.0.0/]. 
 
-Fixes # (issue)
+fixes # (issue)
 
 ## Checklist:
 
