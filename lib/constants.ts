@@ -20,3 +20,5 @@ export const STORAGE_WORKER_ENDPOINT =
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
 export const MAX_PARCEL_CLAIM = 900;
+
+export const SPATIAL_DOMAIN = "https://geoweb.app/";

@@ -8,6 +8,7 @@ import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   CERAMIC_EXPLORER,
+  SPATIAL_DOMAIN,
 } from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
@@ -279,11 +280,6 @@ function ParcelInfo(props: ParcelInfoProps) {
       <AuctionInstructions />
     </>
   );
-  // <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-  //   {account.toLowerCase() == licenseOwner?.toLowerCase()
-  //     ? "Reclaim"
-  //     : "Foreclosure Claim"}
-  // </h1>
 
   let header;
   if (
@@ -313,7 +309,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
   } else {
-    const spatialURL = `https://geoweb.app?longitude=${selectedParcelCoords.x}&latitude=${selectedParcelCoords.y}`;
+    const spatialURL = `${SPATIAL_DOMAIN}?longitude=${selectedParcelCoords.x}&latitude=${selectedParcelCoords.y}`;
     header = (
       <>
         <div
