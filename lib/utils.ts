@@ -5,13 +5,13 @@ import { BigNumber } from "ethers";
  */
 const depositHoursMap: Record<number, number> = {
   // mainnet
-  1: 8,
+  1: 4,
   // rinkeby
-  4: 2,
+  4: 1,
   // goerli
-  5: 2,
+  5: 1,
   // optimism-kovan
-  69: 2,
+  69: 1,
 };
 
 export function fromRateToValue(
