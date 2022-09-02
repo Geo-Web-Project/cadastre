@@ -190,14 +190,15 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     completedActions,
   ]);
 
-  const submit = async () => {
+  const submit = React.useCallback(async () => {
     if (approvals.length > 0) {
       setTotalActions(approvals.length);
       setCompletedActions(0);
       setApprovalStr(buttonText);
+      let _completedActions = 0;
       await asyncEvery(approvals, async (f: () => Promise<boolean>) => {
         const success = await f();
-        setCompletedActions(completedActions + 1);
+        setCompletedActions(++_completedActions);
         return success;
       });
     } else {
@@ -207,7 +208,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       await performAction();
       setTotalActions(0);
     }
-  };
+  }, [approvals, completedActions, buttonText]);
 
   return (
     <Button
