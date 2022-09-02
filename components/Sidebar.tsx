@@ -15,6 +15,7 @@ export type SidebarProps = MapProps & {
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedParcelCoords: Coord | null;
   parcelClaimSize: number;
   invalidLicenseId: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
@@ -29,6 +30,7 @@ function Sidebar(props: SidebarProps) {
     interactionState,
     setInteractionState,
     parcelClaimSize,
+    selectedParcelCoords,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -113,6 +115,7 @@ function Sidebar(props: SidebarProps) {
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
+          selectedParcelCoords={selectedParcelCoords}
         ></ParcelInfo>
       ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? (

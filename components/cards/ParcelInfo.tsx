@@ -8,10 +8,13 @@ import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   CERAMIC_EXPLORER,
+  SPATIAL_DOMAIN,
 } from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
+import Tooltip from "react-bootstrap/Tooltip";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CID from "cids";
 import { SidebarProps } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
@@ -100,6 +103,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     invalidLicenseId,
     setInvalidLicenseId,
     provider,
+    selectedParcelCoords,
   } = props;
   const { loading, data } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
@@ -325,36 +329,106 @@ function ParcelInfo(props: ParcelInfoProps) {
     </>
   );
 
-  let title;
+  let header;
   if (
     interactionState == STATE.CLAIM_SELECTING ||
     interactionState == STATE.CLAIM_SELECTED
   ) {
-    title = (
+    header = (
       <>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Claim a Parcel</h1>
-      </>
-    );
-  } else if (interactionState == STATE.PARCEL_RECLAIMING) {
-    title = (
-      <>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {account.toLowerCase() == licenseOwner?.toLowerCase()
-            ? "Reclaim"
-            : "Foreclosure Claim"}
-        </h1>
+        <Row className="mb-3">
+          <Col sm="10">
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+              Claim a Parcel
+            </h1>
+          </Col>
+          <Col sm="2">
+            <div className="text-end">
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setInteractionState(STATE.VIEWING)}
+              >
+                <Image src="close.svg" />
+              </Button>
+            </div>
+          </Col>
+        </Row>
       </>
     );
   } else {
-    title = (
+    const spatialURL = `${SPATIAL_DOMAIN}?longitude=${selectedParcelCoords?.x}&latitude=${selectedParcelCoords?.y}`;
+    header = (
       <>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-          {!basicProfileStreamManager
-            ? spinner
-            : parcelContent
-            ? parcelContent.name
-            : "[No Name Found]"}
-        </h1>
+        <div
+          className="bg-image mb-4"
+          style={{ backgroundImage: `url(Contour_Lines.png)` }}
+        >
+          <div className="text-end">
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => setInteractionState(STATE.VIEWING)}
+            >
+              <Image src="close.svg" />
+            </Button>
+          </div>
+          <Row>
+            <Col className="mx-3" sm="10">
+              <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+                {!basicProfileStreamManager
+                  ? spinner
+                  : parcelContent
+                  ? parcelContent.name
+                  : data?.geoWebParcel?.id
+                  ? `Parcel ${data?.geoWebParcel?.id}`
+                  : spinner}
+              </h1>
+            </Col>
+          </Row>
+          <Row>
+            <Col className="mx-3">
+              <p className="fw-bold text-truncate">
+                {!parcelContent ? null : hrefWebContent ? (
+                  <a
+                    href={hrefWebContent}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-light"
+                  >{`${hrefWebContent}`}</a>
+                ) : null}
+              </p>
+            </Col>
+            <Col className="text-end pt-2 mx-2">
+              <OverlayTrigger
+                key="top"
+                placement="top"
+                overlay={
+                  <Tooltip id={`tooltip-key`}>Open in Spatial Browser</Tooltip>
+                }
+              >
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-right"
+                  href={spatialURL}
+                  target="_blank"
+                >
+                  <Image src="open-in-browser.svg" />
+                </Button>
+              </OverlayTrigger>
+            </Col>
+          </Row>
+        </div>
+        {interactionState == STATE.PARCEL_RECLAIMING ? (
+          <Row className="mb-3">
+            <h1 style={{ fontSize: "1.rem", fontWeight: 600 }}>
+              {account.toLowerCase() == licenseOwner?.toLowerCase()
+                ? "Reclaim"
+                : "Foreclosure Claim"}
+            </h1>
+          </Row>
+        ) : null}
       </>
     );
   }
@@ -377,18 +451,7 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   return (
     <>
-      <Row className="mb-3">
-        <Col sm="10">{title}</Col>
-        <Col sm="2" className="text-end">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => setInteractionState(STATE.VIEWING)}
-          >
-            <Image src="close.svg" />
-          </Button>
-        </Col>
-      </Row>
+      {header}
       <Row className="pb-5">
         <Col>
           {interactionState == STATE.PARCEL_SELECTED ||
@@ -397,16 +460,6 @@ function ParcelInfo(props: ParcelInfoProps) {
           interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY ? (
             <>
-              <p className="fw-bold text-truncate">
-                {!parcelContent ? null : hrefWebContent ? (
-                  <a
-                    href={hrefWebContent}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-light"
-                  >{`[${hrefWebContent}]`}</a>
-                ) : null}
-              </p>
               <p>
                 <span className="fw-bold">For Sale Price:</span>{" "}
                 {isLoading ? spinner : forSalePrice}
