@@ -48,7 +48,7 @@ export interface GeoWebParcel {
   licenseOwner: string;
   licenseDiamond: string;
   currentBid: Bid;
-  pendingBid: Bid;
+  pendingBid?: Bid;
 }
 
 export interface ParcelQuery {
@@ -146,7 +146,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     ) : null;
   const licenseOwner = data?.geoWebParcel?.licenseOwner;
   const hasOutstandingBid =
-    data && data.geoWebParcel
+    data && data.geoWebParcel && data.geoWebParcel.pendingBid
       ? BigNumber.from(data.geoWebParcel.pendingBid.contributionRate).gt(
           BigNumber.from(0)
         ) ?? false
@@ -163,10 +163,13 @@ function ParcelInfo(props: ParcelInfoProps) {
       ? BigNumber.from(data.geoWebParcel.currentBid.timestamp)
       : null;
   const outstandingBidForSalePrice = BigNumber.from(
-    hasOutstandingBid ? data?.geoWebParcel?.pendingBid.forSalePrice : 0
+    hasOutstandingBid ? data?.geoWebParcel?.pendingBid?.forSalePrice : 0
   );
   const outstandingBidTimestamp =
-    hasOutstandingBid && data && data.geoWebParcel
+    hasOutstandingBid &&
+    data &&
+    data.geoWebParcel &&
+    data.geoWebParcel.pendingBid
       ? BigNumber.from(data.geoWebParcel.pendingBid.timestamp)
       : null;
   const licenseDiamondAddress = data?.geoWebParcel?.licenseDiamond;
