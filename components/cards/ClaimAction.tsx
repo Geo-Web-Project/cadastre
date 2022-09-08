@@ -32,6 +32,7 @@ function ClaimAction(props: ClaimActionProps) {
     requiredBid,
     setNewParcel,
     provider,
+    setPortfolioNeedActionCount,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -165,6 +166,7 @@ function ClaimAction(props: ClaimActionProps) {
         account={account}
         paymentToken={paymentToken}
         provider={provider}
+        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
       />
     </>
   );

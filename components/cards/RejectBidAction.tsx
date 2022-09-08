@@ -64,6 +64,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
+    setPortfolioNeedActionCount,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -403,6 +404,7 @@ function RejectBidAction(props: RejectBidActionProps) {
         account={account}
         paymentToken={paymentToken}
         provider={provider}
+        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
       />
     </>
   );

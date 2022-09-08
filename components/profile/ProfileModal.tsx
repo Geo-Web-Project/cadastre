@@ -67,6 +67,7 @@ function ProfileModal(props: ProfileModalProps) {
     showProfile,
     disconnectWallet,
     handleCloseProfile,
+    setPortfolioNeedActionCount
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string | undefined>();
@@ -124,8 +125,23 @@ function ProfileModal(props: ProfileModalProps) {
       action: PortfolioAction.TRIGGER,
     },
   ]);
-  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("parcelId");
+
+  useEffect(() => {
+    let needActionCount = 0;
+    for (let i in portfolio) {
+      if (
+        portfolio[i].action === PortfolioAction.RESPOND ||
+        portfolio[i].action === PortfolioAction.RECLAIM ||
+        portfolio[i].action === PortfolioAction.TRIGGER
+      ) {
+        needActionCount++;
+      }
+      console.log(needActionCount);
+      setPortfolioNeedActionCount(needActionCount);
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -220,7 +236,7 @@ function ProfileModal(props: ProfileModalProps) {
   const calcTotal = (arr: Portfolio[], field: string): void =>
     arr.map((parcel) => parcel[field]).reduce((prev, curr) => prev + curr, 0);
 
-  const sortPortfolio = (field: string): Portfolio[] => {
+  const sortPortfolio = (field: string): void => {
     const sorted = [...portfolio].sort((a, b) => {
       let result = 0;
 

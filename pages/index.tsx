@@ -50,6 +50,8 @@ function IndexPage() {
     React.useState<NativeAssetSuperToken | undefined>(undefined);
   const [sfFramework, setSfFramework] =
     React.useState<Framework | undefined>(undefined);
+  const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
+    React.useState(0);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -167,6 +169,8 @@ function IndexPage() {
           disconnectWallet={disconnectWallet}
           paymentToken={paymentToken}
           provider={library}
+          portfolioNeedActionCount={portfolioNeedActionCount}
+          setPortfolioNeedActionCount={setPortfolioNeedActionCount}
         />
       );
     }
@@ -221,6 +225,7 @@ function IndexPage() {
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
+              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
             ></Map>
           </Row>
         ) : (

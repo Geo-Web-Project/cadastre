@@ -17,12 +17,14 @@ type StreamingInfoProps = {
   account: string;
   paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
 };
 
 function StreamingInfo({
   account,
   paymentToken,
   provider,
+  setPortfolioNeedActionCount,
 }: StreamingInfoProps) {
   const [authState, activate, deactivate] = useMultiAuth();
   const [showProfile, setShowProfile] = React.useState(false);
@@ -91,6 +93,7 @@ function StreamingInfo({
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
                 disconnectWallet={disconnectWallet}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
               />
             </Col>
           </Row>

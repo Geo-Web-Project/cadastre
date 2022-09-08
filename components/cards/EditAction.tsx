@@ -31,6 +31,7 @@ function EditAction(props: EditActionProps) {
     hasOutstandingBid,
     licenseDiamondContract,
     registryContract,
+    setPortfolioNeedActionCount,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
@@ -184,6 +185,7 @@ function EditAction(props: EditActionProps) {
         account={account}
         paymentToken={paymentToken}
         provider={provider}
+        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
       />
     </>
   );

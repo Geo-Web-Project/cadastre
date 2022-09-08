@@ -52,6 +52,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     setInteractionState,
     licenseDiamondContract,
+    setPortfolioNeedActionCount,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -317,6 +318,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         account={account}
         paymentToken={paymentToken}
         provider={provider}
+        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
       />
     </>
   );

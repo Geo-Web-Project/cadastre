@@ -191,6 +191,7 @@ export type MapProps = {
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";

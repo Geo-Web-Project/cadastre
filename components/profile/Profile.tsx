@@ -9,16 +9,27 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
+import Badge from "react-bootstrap/Badge";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import InfoTooltip from "../InfoTooltip";
 
 type ProfileProps = {
   account: string;
   disconnectWallet: () => Promise<void>;
   paymentToken?: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
+  portfolioNeedActionCount: number;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
 };
 
-function Profile({ account, disconnectWallet, paymentToken, provider }: ProfileProps) {
+function Profile({
+  account,
+  disconnectWallet,
+  paymentToken,
+  provider,
+  portfolioNeedActionCount,
+  setPortfolioNeedActionCount,
+}: ProfileProps) {
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -68,6 +79,7 @@ function Profile({ account, disconnectWallet, paymentToken, provider }: ProfileP
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
                 disconnectWallet={disconnectWallet}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
               />
             </>
           )}
@@ -78,7 +90,20 @@ function Profile({ account, disconnectWallet, paymentToken, provider }: ProfileP
           onClick={handleShowProfile}
           className="text-light bg-dark"
         >
-          {truncateStr(account, 14)} <Image src="./ProfileIcon.png" />
+          {truncateStr(account, 14)}{" "}
+          {portfolioNeedActionCount ? (
+            <InfoTooltip
+              content={<span>You have parcels that require attention.</span>}
+              target={
+                <Badge bg="danger" pill={true} text="light">
+                  {portfolioNeedActionCount}
+                </Badge>
+              }
+              placement="bottom"
+            />
+          ) : (
+            <Image src="./ProfileIcon.png" />
+          )}
         </Button>
       </ButtonGroup>
       <a

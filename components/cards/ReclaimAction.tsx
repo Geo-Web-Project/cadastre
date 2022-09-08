@@ -28,6 +28,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     licenseDiamondContract,
     registryContract,
     selectedParcelId,
+    setPortfolioNeedActionCount,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -134,6 +135,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         account={account}
         paymentToken={paymentToken}
         provider={provider}
+        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
       />
     </>
   );
