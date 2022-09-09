@@ -45,7 +45,7 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
           className="d-flex bg-transparent border-0 align-items-center"
         >
           <Image style={{ width: "16px" }} src="/eth.png" alt="eth" />
-          <span className="px-2">{truncateStr(options.address, 16)}</span>
+          <span className="px-2 text-black">{truncateStr(options.address, 16)}</span>
           <Image style={{ width: "16px" }} src="/copy.svg" alt="copy" />
         </Button>
       </OverlayTrigger>

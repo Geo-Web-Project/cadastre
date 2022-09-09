@@ -23,6 +23,7 @@ export type EditActionProps = SidebarProps & {
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
+    ceramic,
     basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -183,6 +184,8 @@ function EditAction(props: EditActionProps) {
       />
       <StreamingInfo
         account={account}
+        ceramic={ceramic}
+        registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}

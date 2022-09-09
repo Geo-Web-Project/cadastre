@@ -54,6 +54,7 @@ const infoIcon = (
 function RejectBidAction(props: RejectBidActionProps) {
   const {
     parcelData,
+    ceramic,
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -402,6 +403,8 @@ function RejectBidAction(props: RejectBidActionProps) {
       )}
       <StreamingInfo
         account={account}
+        ceramic={ceramic}
+        registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}

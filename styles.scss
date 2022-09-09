@@ -137,12 +137,16 @@ $tooltip-arrow-height: 0.2rem;
 
 .scrollable-table tbody {
   display: block;
-  overflow-y: overlay;
-  scrollbar-gutter: stable;
+  overflow-y: auto;
   table-layout: fixed;
   max-height: 256px;
-  scrollbar-width: thin;
-  scrollbar-color: $secondary $dark;
+  scrollbar-width: none;
+}
+
+@supports (overflow: overlay) {
+  .scrollable-table tbody {
+    overflow-y: overlay;
+  }
 }
 
 .scrollable-table tbody::-webkit-scrollbar-track {
@@ -151,7 +155,7 @@ $tooltip-arrow-height: 0.2rem;
 }
 
 .scrollable-table tbody::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
   background-color: $dark;
 }
 

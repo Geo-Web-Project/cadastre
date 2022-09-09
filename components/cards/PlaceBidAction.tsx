@@ -45,6 +45,7 @@ const infoIcon = (
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     parcelData,
+    ceramic,
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -316,6 +317,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       )}
       <StreamingInfo
         account={account}
+        ceramic={ceramic}
+        registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}

@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
-import { ethers } from "ethers";
+import BN from "bn.js";
+import { ethers, BigNumber } from "ethers";
+import { gql, useQuery } from "@apollo/client";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 import {
   Modal,
   Container,
@@ -14,15 +17,28 @@ import {
 import AccountTokenSnapshot, {
   NativeAssetSuperToken,
 } from "@superfluid-finance/sdk-core";
+import { DataModel } from "@glazed/datamodel";
+import { model as GeoWebModel } from "@geo-web/datamodels";
+import { AssetId, AccountId } from "caip";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { AssetContentManager } from "../../lib/AssetContentManager";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
-import { PAYMENT_TOKEN } from "../../lib/constants";
+import {
+  PAYMENT_TOKEN,
+  NETWORK_ID,
+  SECONDS_IN_YEAR,
+} from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr } from "../../lib/truncate";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 
 type ProfileModalProps = {
   accountTokenSnapshot: AccountTokenSnapshot | undefined;
   account: string;
+  ceramic: CeramicClient;
+  registryContract: Contracts["registryDiamondContract"];
   provider: ethers.providers.Web3Provider;
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
@@ -58,16 +74,36 @@ enum PortfolioAction {
   TRIGGER = "Trigger",
 }
 
+const portfolioQuery = gql`
+  query Bidders($id: String) {
+    bidders(where: { id: $id }) {
+      bids {
+        parcel {
+          id
+          licenseOwner
+          currentBid {
+            forSalePrice
+            perSecondFeeNumerator
+            perSecondFeeDenominator
+          }
+        }
+      }
+    }
+  }
+`;
+
 function ProfileModal(props: ProfileModalProps) {
   const {
     accountTokenSnapshot,
     account,
+    ceramic,
+    registryContract,
     provider,
     paymentToken,
     showProfile,
     disconnectWallet,
     handleCloseProfile,
-    setPortfolioNeedActionCount
+    setPortfolioNeedActionCount,
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string | undefined>();
@@ -127,10 +163,80 @@ function ProfileModal(props: ProfileModalProps) {
   ]);
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("parcelId");
+  const { loading, data } = useQuery<ParcelQuery>(portfolioQuery, {
+    variables: {
+      id: account,
+    },
+  });
+
+  useEffect(() => {
+    if (data) {
+      const bids = data.bidders[0].bids;
+      console.log(bids);
+      const _portfolio = [];
+
+      let promises = [];
+      for (const i in bids) {
+        const parcelId = bids[i].parcel.id;
+        const licenseOwner = bids[i].parcel.licenseOwner;
+        const assetContentManager = getAssetContentManager(
+          parcelId,
+          licenseOwner
+        );
+        const basicProfileStreamManager = new BasicProfileStreamManager(
+          assetContentManager
+        );
+        promises.push(
+          assetContentManager
+            .getRecordID("basicProfile")
+            .then((basicProfileStreamId) =>
+              basicProfileStreamManager.setExistingStreamId(
+                basicProfileStreamId
+              )
+            )
+            .then(() => {
+              const name = basicProfileStreamManager.getStreamContent().name;
+              const forSalePrice = BigNumber.from(
+                bids[i].parcel.currentBid.forSalePrice
+              );
+              console.log(parcelId);
+              const perSecondFeeNumerator =
+                bids[i].parcel.currentBid.perSecondFeeNumerator;
+              const perSecondFeeDenominator =
+                bids[i].parcel.currentBid.perSecondFeeDenominator;
+              const perSecondFee = fromValueToRate(
+                forSalePrice,
+                perSecondFeeNumerator,
+                perSecondFeeDenominator
+              );
+              const annualFeeBigNumber = perSecondFee.mul(SECONDS_IN_YEAR);
+              const annualFee = ethers.utils.formatEther(annualFeeBigNumber);
+              const buffer = ethers.utils.formatEther(
+                calculateBufferNeeded(annualFeeBigNumber, NETWORK_ID)
+              );
+              console.log(name);
+
+              _portfolio.push({
+                parcelId: bids[i].parcel.id,
+                status: "Valid",
+                actionDate: "",
+                name: name,
+                price: forSalePrice,
+                fee: annualFee,
+                buffer: buffer,
+                action: PortfolioAction.VIEW,
+              });
+            })
+        );
+      }
+
+      Promise.all(promises).then(() => console.log(_portfolio));
+    }
+  }, [data]);
 
   useEffect(() => {
     let needActionCount = 0;
-    for (let i in portfolio) {
+    for (const i in portfolio) {
       if (
         portfolio[i].action === PortfolioAction.RESPOND ||
         portfolio[i].action === PortfolioAction.RECLAIM ||
@@ -138,10 +244,9 @@ function ProfileModal(props: ProfileModalProps) {
       ) {
         needActionCount++;
       }
-      console.log(needActionCount);
       setPortfolioNeedActionCount(needActionCount);
     }
-  }, []);
+  }, [portfolio]);
 
   useEffect(() => {
     let isMounted = true;
@@ -174,6 +279,46 @@ function ProfileModal(props: ProfileModalProps) {
     }),
     [paymentToken.address]
   );
+
+  const getAssetContentManager = (
+    parcelId: string,
+    licenseOwner: string
+  ): AssetContentManager => {
+    if (ceramic == null || !ceramic.did) {
+      console.error("Ceramic instance not found");
+      return;
+    }
+
+    const assetId = new AssetId({
+      chainId: `eip155:${NETWORK_ID}`,
+      assetName: {
+        namespace: "erc721",
+        reference: registryContract.address.toLowerCase(),
+      },
+      tokenId: new BN(parcelId.slice(2), "hex").toString(10),
+    });
+
+    const accountId = new AccountId({
+      chainId: `eip155:${NETWORK_ID}`,
+      address: licenseOwner,
+    });
+
+    const model = new DataModel({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceramic: ceramic as any,
+      aliases: GeoWebModel,
+    });
+
+    const _assetContentManager = new AssetContentManager(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceramic as any,
+      model,
+      `did:pkh:${accountId.toString()}`,
+      assetId
+    );
+
+    return _assetContentManager;
+  };
 
   const deactivateProfile = (): void => {
     disconnectWallet();
@@ -359,11 +504,9 @@ function ProfileModal(props: ProfileModalProps) {
             </div>
             <div
               style={{
-                width: "220px",
-                height: "40px",
-                marginTop: "5px",
-                marginLeft: "15px",
-                fontSize: "1rem",
+                maxWidth: "100%",
+                height: "auto",
+                margin: "5px 0px 8px 15px",
               }}
             >
               <CopyTokenAddress options={tokenOptions} />

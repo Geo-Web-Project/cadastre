@@ -1,5 +1,7 @@
 import React from "react";
 import { ethers } from "ethers";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
@@ -15,6 +17,8 @@ import InfoTooltip from "../InfoTooltip";
 
 type ProfileProps = {
   account: string;
+  ceramic: CeramicClient;
+  registryContract: Contracts["registryDiamondContract"];
   disconnectWallet: () => Promise<void>;
   paymentToken?: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
@@ -24,6 +28,8 @@ type ProfileProps = {
 
 function Profile({
   account,
+  ceramic,
+  registryContract,
   disconnectWallet,
   paymentToken,
   provider,
@@ -74,6 +80,8 @@ function Profile({
               <ProfileModal
                 accountTokenSnapshot={data.items[0]}
                 account={account}
+                ceramic={ceramic}
+                registryContract={registryContract}
                 provider={provider}
                 paymentToken={paymentToken}
                 showProfile={showProfile}

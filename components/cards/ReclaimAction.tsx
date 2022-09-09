@@ -20,6 +20,7 @@ export type ReclaimActionProps = SidebarProps & {
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
+    ceramic,
     licenseOwner,
     paymentToken,
     requiredBid,
@@ -133,6 +134,8 @@ function ReclaimAction(props: ReclaimActionProps) {
       />
       <StreamingInfo
         account={account}
+        ceramic={ceramic}
+        registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}

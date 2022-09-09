@@ -39,17 +39,20 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [registryContract, setRegistryContract] =
-    React.useState<Contracts["registryDiamondContract"] | null>(null);
+  const [registryContract, setRegistryContract] = React.useState<
+    Contracts["registryDiamondContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
 
@@ -166,6 +169,8 @@ function IndexPage() {
       return (
         <Profile
           account={authState.connected.accountID.address}
+          ceramic={ceramic}
+          registryContract={registryContract}
           disconnectWallet={disconnectWallet}
           paymentToken={paymentToken}
           provider={library}
