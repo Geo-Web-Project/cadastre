@@ -7,7 +7,7 @@ export type InfoTooltipProps = {
 };
 
 function InfoTooltip(props: InfoTooltipProps) {
-  const { content, target, placement } = props;
+  const { content, target } = props;
   const [showTooltip, setShowTooltip] = useState(false);
 
   const handleOnMouseEnter = () => setShowTooltip(true);
@@ -17,7 +17,7 @@ function InfoTooltip(props: InfoTooltipProps) {
     <OverlayTrigger
       trigger={["hover", "focus"]}
       show={showTooltip}
-      placement={placement ? placement : "right-end"}
+      placement="right-end"
       overlay={
         <Tooltip
           onMouseEnter={handleOnMouseEnter}

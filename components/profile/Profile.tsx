@@ -12,29 +12,44 @@ import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import InfoTooltip from "../InfoTooltip";
+import { STATE, GeoPoint } from "../Map";
 
 type ProfileProps = {
   account: string;
   ceramic: CeramicClient;
   registryContract: Contracts["registryDiamondContract"];
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  interactionState: STATE;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   disconnectWallet: () => Promise<void>;
-  paymentToken?: NativeAssetSuperToken;
+  paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  setPortfolioParcelCoords: React.Dispatch<
+    React.SetStateAction<GeoPoint | null>
+  >;
+  isPortfolioToUpdate: boolean;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Profile({
   account,
   ceramic,
   registryContract,
+  setSelectedParcelId,
+  setInteractionState,
   disconnectWallet,
   paymentToken,
   provider,
   portfolioNeedActionCount,
   setPortfolioNeedActionCount,
+  setPortfolioParcelCoords,
+  isPortfolioToUpdate,
+  setIsPortfolioToUpdate,
 }: ProfileProps) {
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
@@ -88,6 +103,11 @@ function Profile({
                 handleCloseProfile={handleCloseProfile}
                 disconnectWallet={disconnectWallet}
                 setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                setSelectedParcelId={setSelectedParcelId}
+                setInteractionState={setInteractionState}
+                setPortfolioParcelCoords={setPortfolioParcelCoords}
+                isPortfolioToUpdate={isPortfolioToUpdate}
+                setIsPortfolioToUpdate={setIsPortfolioToUpdate}
               />
             </>
           )}
@@ -100,15 +120,18 @@ function Profile({
         >
           {truncateStr(account, 14)}{" "}
           {portfolioNeedActionCount ? (
-            <InfoTooltip
-              content={<span>You have parcels that require attention.</span>}
-              target={
-                <Badge bg="danger" pill={true} text="light">
-                  {portfolioNeedActionCount}
-                </Badge>
-              }
+            <OverlayTrigger
+              trigger={["hover", "focus"]}
               placement="bottom"
-            />
+              delay={{ show: 250, hide: 400 }}
+              overlay={
+                <Tooltip>You have parcels that require attention.</Tooltip>
+              }
+            >
+              <Badge bg="danger" pill={true} text="light">
+                {portfolioNeedActionCount}
+              </Badge>
+            </OverlayTrigger>
           ) : (
             <Image src="./ProfileIcon.png" />
           )}

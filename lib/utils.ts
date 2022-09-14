@@ -53,3 +53,34 @@ export function calculateBufferNeeded(
 ) {
   return stream.mul(depositHoursMap[currentChainID]).div(365 * 24);
 }
+
+export function calculateAuctionValue(
+  forSalePrice: BigNumber,
+  auctionStart: BigNumber,
+  auctionLength: number
+) {
+  const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
+  const length = BigNumber.from(auctionLength);
+  if (blockTimestamp.gt(auctionStart.add(length))) {
+    return BigNumber.from(0);
+  }
+
+  const timeElapsed = blockTimestamp.sub(auctionStart);
+  const priceDecrease = forSalePrice.mul(timeElapsed).div(length);
+  return forSalePrice.sub(priceDecrease);
+}
+
+function calculateAuctionValue(
+  forSalePrice: BigNumber,
+  auctionStart: BigNumber,
+  auctionLength: BigNumber
+) {
+  const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
+  if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
+    return BigNumber.from(0);
+  }
+
+  const timeElapsed = blockTimestamp.sub(auctionStart);
+  const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
+  return forSalePrice.sub(priceDecrease);
+}

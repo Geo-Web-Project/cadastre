@@ -20,16 +20,23 @@ export type ReclaimActionProps = SidebarProps & {
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
+    provider,
     ceramic,
     licenseOwner,
     paymentToken,
+    disconnectWallet,
     requiredBid,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     licenseDiamondContract,
     registryContract,
     selectedParcelId,
+    setSelectedParcelId,
+    setInteractionState,
     setPortfolioNeedActionCount,
+    setPortfolioParcelCoords,
+    isPortfolioToUpdate,
+    setIsPortfolioToUpdate,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -138,7 +145,13 @@ function ReclaimAction(props: ReclaimActionProps) {
         registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
+        disconnectWallet={disconnectWallet}
+        setSelectedParcelId={setSelectedParcelId}
+        setInteractionState={setInteractionState}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+        setPortfolioParcelCoords={setPortfolioParcelCoords}
+        isPortfolioToUpdate={isPortfolioToUpdate}
+        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
       />
     </>
   );

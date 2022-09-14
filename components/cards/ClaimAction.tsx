@@ -33,7 +33,13 @@ function ClaimAction(props: ClaimActionProps) {
     requiredBid,
     setNewParcel,
     provider,
+    disconnectWallet,
+    setInteractionState,
+    setSelectedParcelId,
     setPortfolioNeedActionCount,
+    setPortfolioParcelCoords,
+    isPortfolioToUpdate,
+    setIsPortfolioToUpdate,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -169,7 +175,13 @@ function ClaimAction(props: ClaimActionProps) {
         registryContract={registryContract}
         paymentToken={paymentToken}
         provider={provider}
+        disconnectWallet={disconnectWallet}
+        setSelectedParcelId={setSelectedParcelId}
+        setInteractionState={setInteractionState}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+        setPortfolioParcelCoords={setPortfolioParcelCoords}
+        isPortfolioToUpdate={isPortfolioToUpdate}
+        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
       />
     </>
   );

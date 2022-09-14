@@ -39,6 +39,7 @@ function OutstandingBidView({
   perSecondFeeDenominator,
   setInteractionState,
   setSelectedParcelId,
+  setIsPortfolioToUpdate,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -133,6 +134,7 @@ function OutstandingBidView({
     }
 
     setIsActing(false);
+    setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -163,6 +165,7 @@ function OutstandingBidView({
     setInteractionState(STATE.PARCEL_SELECTED);
 
     setSelectedParcelId("");
+    setIsPortfolioToUpdate(true);
     setSelectedParcelId(selectedParcelId);
   }
 

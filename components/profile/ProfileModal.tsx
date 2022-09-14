@@ -14,36 +14,54 @@ import {
   Image,
   Button,
 } from "react-bootstrap";
-import AccountTokenSnapshot, {
+import {
+  // eslint-disable-next-line import/named
+  AccountTokenSnapshot,
   NativeAssetSuperToken,
 } from "@superfluid-finance/sdk-core";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
 import { AssetId, AccountId } from "caip";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { AssetContentManager } from "../../lib/AssetContentManager";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
+import { AssetContentManager } from "../../lib/AssetContentManager";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import {
+  AUCTION_LENGTH,
   PAYMENT_TOKEN,
   NETWORK_ID,
+  SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
-import { truncateStr } from "../../lib/truncate";
-import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import { truncateStr, truncateEth } from "../../lib/truncate";
+import {
+  fromValueToRate,
+  calculateBufferNeeded,
+  calculateAuctionValue,
+} from "../../lib/utils";
+import { STATE, GeoPoint } from "../Map";
 
 type ProfileModalProps = {
-  accountTokenSnapshot: AccountTokenSnapshot | undefined;
+  accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
   ceramic: CeramicClient;
   registryContract: Contracts["registryDiamondContract"];
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   provider: ethers.providers.Web3Provider;
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
   disconnectWallet: () => Promise<void>;
   handleCloseProfile: () => void;
+  setPortfolioParcelCoords: React.Dispatch<
+    React.SetStateAction<GeoPoint | null>
+  >;
+  isPortfolioToUpdate: boolean;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 interface Portfolio {
@@ -51,10 +69,17 @@ interface Portfolio {
   status: string;
   actionDate: string;
   name: string;
-  price: number;
-  fee: number;
-  buffer: number;
+  price: BigNumber;
+  fee: BigNumber;
+  buffer: BigNumber;
   action: string;
+  coords: GeoPoint;
+}
+
+interface PortfolioTotal {
+  price: BigNumber;
+  fee: BigNumber;
+  buffer: BigNumber;
 }
 
 enum SuperTokenAction {
@@ -76,15 +101,29 @@ enum PortfolioAction {
 
 const portfolioQuery = gql`
   query Bidders($id: String) {
-    bidders(where: { id: $id }) {
+    bidder(id: $id) {
       bids {
         parcel {
           id
           licenseOwner
+          licenseDiamond
           currentBid {
             forSalePrice
             perSecondFeeNumerator
             perSecondFeeDenominator
+            timestamp
+          }
+          pendingBid {
+            forSalePrice
+            perSecondFeeDenominator
+            perSecondFeeNumerator
+            timestamp
+          }
+          coordinates {
+            pointTL {
+              lon
+              lat
+            }
           }
         }
       }
@@ -98,160 +137,37 @@ function ProfileModal(props: ProfileModalProps) {
     account,
     ceramic,
     registryContract,
+    setSelectedParcelId,
+    setInteractionState,
     provider,
     paymentToken,
     showProfile,
     disconnectWallet,
     handleCloseProfile,
     setPortfolioNeedActionCount,
+    setPortfolioParcelCoords,
+    isPortfolioToUpdate,
+    setIsPortfolioToUpdate,
   } = props;
 
-  const [ETHBalance, setETHBalance] = useState<string | undefined>();
+  const [ETHBalance, setETHBalance] = useState<string>("");
   const [isWrapping, setIsWrapping] = useState<boolean>(false);
-  const [isUnWrapping, setIsUnWrapping] = useState<boolean>(false);
-  const [portfolio, setPortfolio] = useState<Portfolio[] | undefined>([
-    {
-      parcelId: "0x01",
-      status: "Valid",
-      actionDate: "",
-      name: "Central Park",
-      price: 1.0,
-      fee: 0.1,
-      buffer: 0.00020005,
-      action: PortfolioAction.VIEW,
-    },
-    {
-      parcelId: "0x02",
-      status: "Incoming Bid",
-      actionDate: "2022/07/31",
-      name: "Disney Land",
-      price: 1.01,
-      fee: 0.101,
-      buffer: 0.0002005,
-      action: PortfolioAction.RESPOND,
-    },
-    {
-      parcelId: "0x03",
-      status: "Outgoing Bid",
-      actionDate: "2022/07/30",
-      name: "Hollywood",
-      price: 1.1,
-      fee: 0.11,
-      buffer: 0.00022006,
-      action: PortfolioAction.VIEW,
-    },
-    {
-      parcelId: "0x04",
-      status: "In Foreclosure",
-      actionDate: "2022/07/26",
-      name: "Disney World",
-      price: 1.2,
-      fee: 0.12,
-      buffer: 0.00024005,
-      action: PortfolioAction.RECLAIM,
-    },
-    {
-      parcelId: "0x05",
-      status: "Needs Transfer",
-      actionDate: "2022/07/14",
-      name: "Mt Rushmore",
-      price: 1.3,
-      fee: 0.13,
-      buffer: 0.00026005,
-      action: PortfolioAction.TRIGGER,
-    },
-  ]);
+  const [isUnWrapping, setIsUnwrapping] = useState<boolean>(false);
+  const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
+  const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
-  const [lastSorted, setLastSorted] = useState("parcelId");
-  const { loading, data } = useQuery<ParcelQuery>(portfolioQuery, {
+  const [lastSorted, setLastSorted] = useState("");
+
+  const { data, refetch } = useQuery(portfolioQuery, {
     variables: {
       id: account,
     },
   });
 
   useEffect(() => {
-    if (data) {
-      const bids = data.bidders[0].bids;
-      console.log(bids);
-      const _portfolio = [];
-
-      let promises = [];
-      for (const i in bids) {
-        const parcelId = bids[i].parcel.id;
-        const licenseOwner = bids[i].parcel.licenseOwner;
-        const assetContentManager = getAssetContentManager(
-          parcelId,
-          licenseOwner
-        );
-        const basicProfileStreamManager = new BasicProfileStreamManager(
-          assetContentManager
-        );
-        promises.push(
-          assetContentManager
-            .getRecordID("basicProfile")
-            .then((basicProfileStreamId) =>
-              basicProfileStreamManager.setExistingStreamId(
-                basicProfileStreamId
-              )
-            )
-            .then(() => {
-              const name = basicProfileStreamManager.getStreamContent().name;
-              const forSalePrice = BigNumber.from(
-                bids[i].parcel.currentBid.forSalePrice
-              );
-              console.log(parcelId);
-              const perSecondFeeNumerator =
-                bids[i].parcel.currentBid.perSecondFeeNumerator;
-              const perSecondFeeDenominator =
-                bids[i].parcel.currentBid.perSecondFeeDenominator;
-              const perSecondFee = fromValueToRate(
-                forSalePrice,
-                perSecondFeeNumerator,
-                perSecondFeeDenominator
-              );
-              const annualFeeBigNumber = perSecondFee.mul(SECONDS_IN_YEAR);
-              const annualFee = ethers.utils.formatEther(annualFeeBigNumber);
-              const buffer = ethers.utils.formatEther(
-                calculateBufferNeeded(annualFeeBigNumber, NETWORK_ID)
-              );
-              console.log(name);
-
-              _portfolio.push({
-                parcelId: bids[i].parcel.id,
-                status: "Valid",
-                actionDate: "",
-                name: name,
-                price: forSalePrice,
-                fee: annualFee,
-                buffer: buffer,
-                action: PortfolioAction.VIEW,
-              });
-            })
-        );
-      }
-
-      Promise.all(promises).then(() => console.log(_portfolio));
-    }
-  }, [data]);
-
-  useEffect(() => {
-    let needActionCount = 0;
-    for (const i in portfolio) {
-      if (
-        portfolio[i].action === PortfolioAction.RESPOND ||
-        portfolio[i].action === PortfolioAction.RECLAIM ||
-        portfolio[i].action === PortfolioAction.TRIGGER
-      ) {
-        needActionCount++;
-      }
-      setPortfolioNeedActionCount(needActionCount);
-    }
-  }, [portfolio]);
-
-  useEffect(() => {
     let isMounted = true;
 
-    (async () => {
+    const initBalance = async () => {
       if (provider && account) {
         try {
           const ethBalance = await getETHBalance(provider, account);
@@ -263,12 +179,219 @@ function ProfileModal(props: ProfileModalProps) {
           console.error(error);
         }
       }
-    })();
+    };
+
+    initBalance();
 
     return () => {
       isMounted = false;
     };
   }, [provider, account]);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const bids = data.bidder.bids;
+    const _portfolio: Portfolio[] = [];
+    const promises = [];
+
+    for (const bid of bids) {
+      let status: string;
+      let actionDate: string;
+      let forSalePrice: BigNumber;
+      let perSecondFeeNumerator: BigNumber;
+      let perSecondFeeDenominator: BigNumber;
+      let annualFee: BigNumber;
+      let buffer: BigNumber;
+      let action: string;
+
+      const parcelId = bid.parcel.id;
+      const licenseOwner = bid.parcel.licenseOwner;
+      const currentBid = bid.parcel.currentBid;
+      const pendingBid = bid.parcel.pendingBid;
+      const coords = bid.parcel.coordinates;
+      const signer = provider.getSigner();
+      const licenseDiamondContract = PCOLicenseDiamondFactory.connect(
+        bid.parcel.licenseDiamond,
+        signer
+      );
+
+      if (licenseOwner === account) {
+        if (!pendingBid || BigNumber.from(pendingBid.forSalePrice).eq(0)) {
+          status = "Valid";
+          actionDate = "";
+          forSalePrice = BigNumber.from(currentBid.forSalePrice);
+          perSecondFeeNumerator = BigNumber.from(
+            currentBid.perSecondFeeNumerator
+          );
+          perSecondFeeDenominator = BigNumber.from(
+            currentBid.perSecondFeeDenominator
+          );
+          action = PortfolioAction.VIEW;
+        } else {
+          status = "Incoming Bid";
+          actionDate = dayjs
+            .unix(pendingBid.timestamp)
+            .add(7, "day")
+            .format("YYYY/MM/D");
+          forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+          perSecondFeeNumerator = BigNumber.from(
+            pendingBid.perSecondFeeNumerator
+          );
+          perSecondFeeDenominator = BigNumber.from(
+            pendingBid.perSecondFeeDenominator
+          );
+          action = PortfolioAction.RESPOND;
+        }
+      } else if (pendingBid) {
+        status = "Outgoing Bid";
+        actionDate = dayjs
+          .unix(pendingBid.timestamp)
+          .add(7, "day")
+          .format("YYYY/MM/D");
+        forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+        perSecondFeeNumerator = BigNumber.from(
+          pendingBid.perSecondFeeNumerator
+        );
+        perSecondFeeDenominator = BigNumber.from(
+          pendingBid.perSecondFeeDenominator
+        );
+        action = PortfolioAction.VIEW;
+      } else {
+        continue;
+      }
+
+      const perSecondFee = fromValueToRate(
+        forSalePrice,
+        perSecondFeeNumerator,
+        perSecondFeeDenominator
+      );
+      annualFee = perSecondFee.mul(SECONDS_IN_YEAR);
+      buffer = calculateBufferNeeded(annualFee, NETWORK_ID);
+
+      const assetContentManager = getAssetContentManager(
+        parcelId,
+        licenseOwner
+      ) as AssetContentManager;
+      const basicProfileStreamManager = new BasicProfileStreamManager(
+        assetContentManager
+      );
+
+      const promiseChain = licenseDiamondContract
+        .contributionRate()
+        .then((ownerBidContributionRate) => {
+          if (pendingBid && BigNumber.from(pendingBid.forSalePrice).gt(0)) {
+            const deadline = pendingBid.timestamp + SECONDS_IN_WEEK;
+            const isPastDeadline = deadline * 1000 <= Date.now();
+            if (isPastDeadline || ownerBidContributionRate.eq(0)) {
+              status = "Needs Tranfer";
+              actionDate = dayjs
+                .unix(
+                  deadline < Number(pendingBid.timestamp)
+                    ? deadline
+                    : pendingBid.timestamp
+                )
+                .format("YYYY/MM/D");
+              forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+              perSecondFeeNumerator = BigNumber.from(
+                pendingBid.perSecondFeeNumerator
+              );
+              perSecondFeeDenominator = BigNumber.from(
+                pendingBid.perSecondFeeDenominator
+              );
+              action = PortfolioAction.TRIGGER;
+            }
+          }
+        })
+        .then(() => licenseDiamondContract.isPayerBidActive())
+        .then((isPayerBidActive) => {
+          if (licenseOwner === account && !isPayerBidActive) {
+            status = "In Foreclosure";
+            actionDate = dayjs.unix(currentBid.timestamp).format("YYYY/MM/D");
+            forSalePrice = calculateAuctionValue(
+              forSalePrice,
+              BigNumber.from(currentBid.timestamp),
+              AUCTION_LENGTH
+            );
+            annualFee = BigNumber.from(0);
+            buffer = BigNumber.from(0);
+            action = PortfolioAction.RECLAIM;
+          }
+        })
+        .then(() => assetContentManager.getRecordID("basicProfile"))
+        .then((basicProfileStreamId) =>
+          basicProfileStreamManager.setExistingStreamId(basicProfileStreamId)
+        )
+        .then(() => {
+          const parcelContent = basicProfileStreamManager.getStreamContent();
+          const name =
+            parcelContent && parcelContent.name
+              ? parcelContent.name
+              : `Parcel ${parcelId}`;
+
+          _portfolio.push({
+            parcelId: parcelId,
+            status: status,
+            actionDate: actionDate,
+            name: name,
+            price: forSalePrice,
+            fee: annualFee,
+            buffer: buffer,
+            action: action,
+            coords: {
+              lon: coords[0].pointTL.lon,
+              lat: coords[0].pointTL.lat,
+            },
+          });
+        });
+
+      promises.push(promiseChain);
+    }
+
+    Promise.all(promises).then(() => {
+      if (_portfolio.length > 0) {
+        let needActionCount = 0;
+
+        for (const parcel of portfolio) {
+          if (
+            parcel.action === PortfolioAction.RESPOND ||
+            parcel.action === PortfolioAction.RECLAIM ||
+            parcel.action === PortfolioAction.TRIGGER
+          ) {
+            needActionCount++;
+          }
+        }
+
+        const total = {
+          price: calcTotal(_portfolio, "price"),
+          fee: calcTotal(_portfolio, "fee"),
+          buffer: calcTotal(_portfolio, "buffer"),
+        };
+        const sorted = sortPortfolio(_portfolio, "parcelId");
+
+        if (isMounted) {
+          setPortfolioNeedActionCount(needActionCount);
+          setPortfolioTotal(total);
+          setPortfolio(sorted);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [data]);
+
+  useEffect(() => {
+    if (isPortfolioToUpdate) {
+      setTimeout(() => refetch({ id: account }), 5000);
+      setIsPortfolioToUpdate(false);
+    }
+  }, [isPortfolioToUpdate]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({
@@ -276,14 +399,20 @@ function ProfileModal(props: ProfileModalProps) {
       symbol: PAYMENT_TOKEN,
       decimals: 18,
       image: "",
+      size: "small",
     }),
     [paymentToken.address]
   );
 
+  const deactivateProfile = (): void => {
+    disconnectWallet();
+    handleCloseProfile();
+  };
+
   const getAssetContentManager = (
     parcelId: string,
     licenseOwner: string
-  ): AssetContentManager => {
+  ): AssetContentManager | void => {
     if (ceramic == null || !ceramic.did) {
       console.error("Ceramic instance not found");
       return;
@@ -309,7 +438,7 @@ function ProfileModal(props: ProfileModalProps) {
       aliases: GeoWebModel,
     });
 
-    const _assetContentManager = new AssetContentManager(
+    const assetContentManager = new AssetContentManager(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic as any,
       model,
@@ -317,19 +446,14 @@ function ProfileModal(props: ProfileModalProps) {
       assetId
     );
 
-    return _assetContentManager;
-  };
-
-  const deactivateProfile = (): void => {
-    disconnectWallet();
-    handleCloseProfile();
+    return assetContentManager;
   };
 
   const executeSuperTokenTransaction = async (
     amount: string,
-    action: superTokenAction
-  ): void => {
-    let txn;
+    action: SuperTokenAction
+  ): Promise<void> => {
+    let txn: ethers.providers.TransactionResponse | null = null;
 
     if (action === SuperTokenAction.WRAP) {
       txn = await paymentToken
@@ -346,14 +470,18 @@ function ProfileModal(props: ProfileModalProps) {
         })
         .exec(provider.getSigner());
 
-      setIsUnWrapping(true);
+      setIsUnwrapping(true);
     }
 
     try {
+      if (txn === null) {
+        return;
+      }
+
       await txn.wait();
-      // Wrap ETHx successfully!
+
       const ethBalance = await getETHBalance(provider, account);
-      // Update balances
+
       setETHBalance(ethBalance);
     } catch (error) {
       console.error(error);
@@ -366,22 +494,32 @@ function ProfileModal(props: ProfileModalProps) {
     }
   };
 
-  const handleOnSubmit = (e: HTMLElement, action: string): void => {
+  const handleOnSubmit = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    e: any,
+    action: SuperTokenAction
+  ): Promise<void> => {
     e.preventDefault();
-    const amount = Number(e.target[0].value);
+    const amount = e.target[0].value;
 
     if (!Number.isNaN(amount) && amount > 0) {
-      (async () => {
-        await executeSuperTokenTransaction(amount.toString(), action);
-        e.target.reset();
-      })();
+      await executeSuperTokenTransaction(amount, action);
+      e.target.reset();
     }
   };
 
-  const calcTotal = (arr: Portfolio[], field: string): void =>
-    arr.map((parcel) => parcel[field]).reduce((prev, curr) => prev + curr, 0);
+  const calcTotal = (
+    portfolio: Portfolio[],
+    field: keyof Portfolio
+  ): BigNumber =>
+    portfolio
+      .map((parcel) => parcel[field] as BigNumber)
+      .reduce((prev, curr) => prev.add(curr));
 
-  const sortPortfolio = (field: string): void => {
+  const sortPortfolio = (
+    portfolio: Portfolio[],
+    field: keyof Portfolio
+  ): Portfolio[] => {
     const sorted = [...portfolio].sort((a, b) => {
       let result = 0;
 
@@ -405,11 +543,26 @@ function ProfileModal(props: ProfileModalProps) {
         : SortOrder.ASC
     );
     setLastSorted(field);
-    setPortfolio(sorted);
+
+    return sorted;
   };
 
-  const handlePortfolioAction = (action: PortfolioAction): void => {
-    console.log(action);
+  const handlePortfolioAction = (parcel: Portfolio): void => {
+    switch (parcel.action) {
+      case PortfolioAction.VIEW:
+      case PortfolioAction.RESPOND:
+      case PortfolioAction.TRIGGER:
+        setInteractionState(STATE.PARCEL_SELECTED);
+        break;
+      case PortfolioAction.RECLAIM:
+        setInteractionState(STATE.PARCEL_RECLAIMING);
+        break;
+      default:
+        break;
+    }
+
+    setSelectedParcelId(parcel.parcelId);
+    setPortfolioParcelCoords(parcel.coords);
   };
 
   return (
@@ -440,7 +593,7 @@ function ProfileModal(props: ProfileModalProps) {
                 size="sm"
                 onClick={() => handleCloseProfile()}
               >
-                <Image src="close.svg" />
+                <Image style={{ width: "36px" }} src="close.svg" />
               </Button>
             </Col>
           </Row>
@@ -451,10 +604,12 @@ function ProfileModal(props: ProfileModalProps) {
           <Col className="mx-2 fs-6">
             <Image src="notice.svg" className="me-2" />
             {accountTokenSnapshot &&
-            accountTokenSnapshot.maybeCriticalAtTimestamp > Date.now() / 1000
+            accountTokenSnapshot.maybeCriticalAtTimestamp &&
+            Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
+              Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY h:mA.")}`
+                  .format("MMM D, YYYY h:mmA.")}`
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
@@ -504,7 +659,7 @@ function ProfileModal(props: ProfileModalProps) {
             </div>
             <div
               style={{
-                maxWidth: "100%",
+                maxWidth: "220px",
                 height: "auto",
                 margin: "5px 0px 8px 15px",
               }}
@@ -523,7 +678,6 @@ function ProfileModal(props: ProfileModalProps) {
                 className="mb-2"
                 placeholder="0.00"
                 size="sm"
-                //style={{ width: "220px" }}
               />
               <Button
                 variant="primary"
@@ -531,7 +685,6 @@ function ProfileModal(props: ProfileModalProps) {
                 disabled={isUnWrapping}
                 size="sm"
                 className="w-100"
-                //style={{ width: "220px" }}
               >
                 {isWrapping ? "Unwrapping..." : "Unwrap"}
               </Button>
@@ -540,25 +693,69 @@ function ProfileModal(props: ProfileModalProps) {
         </Row>
         <Row className="mt-3 ps-3 fs-1">Portfolio</Row>
         <Row className="scrollable-table">
-          {portfolio.length > 0 ? (
+          {portfolioTotal && portfolio.length > 0 ? (
             <Table
               bordered
               className="m-3 text-light border border-purple flex-shrink-1"
             >
               <thead>
                 <tr>
-                  <th onClick={() => sortPortfolio("parcelId")}>Parcel ID</th>
-                  <th onClick={() => sortPortfolio("status")}>Status</th>
-                  <th onClick={() => sortPortfolio("actionDate")}>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "parcelId"))
+                    }
+                  >
+                    Parcel ID
+                  </th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "status"))
+                    }
+                  >
+                    Status
+                  </th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "actionDate"))
+                    }
+                  >
                     Action Date
                   </th>
-                  <th onClick={() => sortPortfolio("name")}>Name</th>
-                  <th onClick={() => sortPortfolio("price")}>Price|Bid</th>
-                  <th onClick={() => sortPortfolio("fee")}>Fee/Yr</th>
-                  <th onClick={() => sortPortfolio("buffer")}>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "name"))
+                    }
+                  >
+                    Name
+                  </th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "price"))
+                    }
+                  >
+                    Price|Bid
+                  </th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "fee"))
+                    }
+                  >
+                    Fee/Yr
+                  </th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "buffer"))
+                    }
+                  >
                     Buffer Deposit
                   </th>
-                  <th onClick={() => sortPortfolio("action")}>Action</th>
+                  <th
+                    onClick={() =>
+                      setPortfolio(sortPortfolio(portfolio, "action"))
+                    }
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -587,9 +784,25 @@ function ProfileModal(props: ProfileModalProps) {
                         {parcel.actionDate}
                       </td>
                       <td>{parcel.name}</td>
-                      <td>{parcel.price}</td>
-                      <td>{parcel.fee}</td>
-                      <td>{parcel.buffer}</td>
+                      <td>
+                        {truncateEth(ethers.utils.formatEther(parcel.price), 8)}
+                      </td>
+                      <td>
+                        {parcel.action === PortfolioAction.RECLAIM
+                          ? ""
+                          : truncateEth(
+                              ethers.utils.formatEther(parcel.fee),
+                              8
+                            )}
+                      </td>
+                      <td>
+                        {parcel.action === PortfolioAction.RECLAIM
+                          ? ""
+                          : truncateEth(
+                              ethers.utils.formatEther(parcel.buffer),
+                              8
+                            )}
+                      </td>
                       <td>
                         <Button
                           variant={
@@ -598,7 +811,7 @@ function ProfileModal(props: ProfileModalProps) {
                               : "danger"
                           }
                           className="w-100"
-                          onClick={() => handlePortfolioAction(parcel.action)}
+                          onClick={() => handlePortfolioAction(parcel)}
                         >
                           {parcel.action}
                         </Button>
@@ -610,9 +823,24 @@ function ProfileModal(props: ProfileModalProps) {
                   <td className="text-center" colSpan={4}>
                     Total
                   </td>
-                  <td>{calcTotal(portfolio, "price").toFixed(1)}</td>
-                  <td>{calcTotal(portfolio, "fee").toFixed(1)}</td>
-                  <td>{calcTotal(portfolio, "buffer").toFixed(8)}</td>
+                  <td>
+                    {truncateEth(
+                      ethers.utils.formatEther(portfolioTotal.price),
+                      8
+                    )}
+                  </td>
+                  <td>
+                    {truncateEth(
+                      ethers.utils.formatEther(portfolioTotal.fee),
+                      8
+                    )}
+                  </td>
+                  <td>
+                    {truncateEth(
+                      ethers.utils.formatEther(portfolioTotal.buffer),
+                      8
+                    )}
+                  </td>
                   <td></td>
                 </tr>
               </tbody>
@@ -620,7 +848,7 @@ function ProfileModal(props: ProfileModalProps) {
           ) : (
             <span
               style={{
-                height: "256px",
+                height: "128px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

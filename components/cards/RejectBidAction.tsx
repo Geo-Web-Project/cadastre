@@ -59,13 +59,18 @@ function RejectBidAction(props: RejectBidActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     paymentToken,
+    disconnectWallet,
     account,
     licenseDiamondContract,
     registryContract,
     bidTimestamp,
     bidForSalePrice,
+    setSelectedParcelId,
     setInteractionState,
     setPortfolioNeedActionCount,
+    setPortfolioParcelCoords,
+    isPortfolioToUpdate,
+    setIsPortfolioToUpdate,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -229,6 +234,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     setIsActing(false);
+    setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -406,8 +412,14 @@ function RejectBidAction(props: RejectBidActionProps) {
         ceramic={ceramic}
         registryContract={registryContract}
         paymentToken={paymentToken}
+        disconnectWallet={disconnectWallet}
         provider={provider}
+        setSelectedParcelId={setSelectedParcelId}
+        setInteractionState={setInteractionState}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+        setPortfolioParcelCoords={setPortfolioParcelCoords}
+        isPortfolioToUpdate={isPortfolioToUpdate}
+        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
       />
     </>
   );

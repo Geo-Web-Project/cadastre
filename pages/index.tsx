@@ -1,5 +1,5 @@
 import Home from "../components/Home";
-import Map from "../components/Map";
+import Map, { STATE, GeoPoint } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 
@@ -55,6 +55,14 @@ function IndexPage() {
   );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
+  const [selectedParcelId, setSelectedParcelId] = React.useState("");
+  const [interactionState, setInteractionState] = React.useState<STATE>(
+    STATE.VIEWING
+  );
+  const [portfolioParcelCoords, setPortfolioParcelCoords] = React.useState<
+    GeoPoint
+  | null>(null);
+  const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -167,16 +175,26 @@ function IndexPage() {
       );
     } else {
       return (
-        <Profile
-          account={authState.connected.accountID.address}
-          ceramic={ceramic}
-          registryContract={registryContract}
-          disconnectWallet={disconnectWallet}
-          paymentToken={paymentToken}
-          provider={library}
-          portfolioNeedActionCount={portfolioNeedActionCount}
-          setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-        />
+        <>
+          {ceramic && registryContract && paymentToken && library && (
+            <Profile
+              account={authState.connected.accountID.address}
+              ceramic={ceramic}
+              registryContract={registryContract}
+              disconnectWallet={disconnectWallet}
+              paymentToken={paymentToken}
+              provider={library}
+              portfolioNeedActionCount={portfolioNeedActionCount}
+              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+              setSelectedParcelId={setSelectedParcelId}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              setPortfolioParcelCoords={setPortfolioParcelCoords}
+              isPortfolioToUpdate={isPortfolioToUpdate}
+              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+            />
+          )}
+        </>
       );
     }
   };
@@ -230,7 +248,16 @@ function IndexPage() {
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
+              disconnectWallet={disconnectWallet}
               setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+              selectedParcelId={selectedParcelId}
+              setSelectedParcelId={setSelectedParcelId}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              portfolioParcelCoords={portfolioParcelCoords}
+              isPortfolioToUpdate={isPortfolioToUpdate}
+              setPortfolioParcelCoords={setPortfolioParcelCoords}
+              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
             ></Map>
           </Row>
         ) : (

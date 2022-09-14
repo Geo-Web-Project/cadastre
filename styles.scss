@@ -135,12 +135,21 @@ $tooltip-arrow-height: 0.2rem;
   cursor: pointer;
 }
 
+/* 
+ * NOTE: To have a scrolling table with a sticky header the scrollbar needs
+ * to overlay the body, otherwise it would shift the content.
+ * Webkit does the thing we want by default and Chromium support an overlay
+ * property, but Firefox does not (it is an experimental feature and
+ * may be fully supported in the future), so for now we hide the scrollbar
+ * on Firefox.
+ */
+
 .scrollable-table tbody {
   display: block;
   overflow-y: auto;
   table-layout: fixed;
   max-height: 256px;
-  scrollbar-width: none;
+  scrollbar-width: none; // Firefox
 }
 
 @supports (overflow: overlay) {

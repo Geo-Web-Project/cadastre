@@ -46,14 +46,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     parcelData,
     ceramic,
+    registryContract,
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     paymentToken,
+    disconnectWallet,
     account,
-    setInteractionState,
     licenseDiamondContract,
+    setSelectedParcelId,
+    setInteractionState,
     setPortfolioNeedActionCount,
+    setPortfolioParcelCoords,
+    isPortfolioToUpdate,
+    setIsPortfolioToUpdate,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -156,6 +162,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     setIsActing(false);
+    setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -320,8 +327,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         ceramic={ceramic}
         registryContract={registryContract}
         paymentToken={paymentToken}
+        disconnectWallet={disconnectWallet}
         provider={provider}
+        setSelectedParcelId={setSelectedParcelId}
+        setInteractionState={setInteractionState}
         setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+        setPortfolioParcelCoords={setPortfolioParcelCoords}
+        isPortfolioToUpdate={isPortfolioToUpdate}
+        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
       />
     </>
   );

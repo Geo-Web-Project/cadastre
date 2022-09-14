@@ -8,8 +8,6 @@ import { BigNumber } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 
 export type SidebarProps = MapProps & {
-  interactionState: STATE;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   claimBase1Coord: Coord | null;
   claimBase2Coord: Coord | null;
   selectedParcelId: string;

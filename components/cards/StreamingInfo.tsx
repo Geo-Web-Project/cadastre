@@ -13,7 +13,7 @@ import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { useMultiAuth } from "@ceramicstudio/multiauth";
+import { STATE, GeoPoint } from "../Map";
 
 type StreamingInfoProps = {
   account: string;
@@ -21,7 +21,15 @@ type StreamingInfoProps = {
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
+  disconnectWallet: () => Promise<void>;
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  setPortfolioParcelCoords: React.Dispatch<
+    React.SetStateAction<GeoPoint | null>
+  >;
+  isPortfolioToUpdate: boolean;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function StreamingInfo({
@@ -30,9 +38,14 @@ function StreamingInfo({
   registryContract,
   paymentToken,
   provider,
+  disconnectWallet,
+  setSelectedParcelId,
+  setInteractionState,
   setPortfolioNeedActionCount,
+  setPortfolioParcelCoords,
+  isPortfolioToUpdate,
+  setIsPortfolioToUpdate,
 }: StreamingInfoProps) {
-  const [authState, activate, deactivate] = useMultiAuth();
   const [showProfile, setShowProfile] = React.useState(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
@@ -45,7 +58,6 @@ function StreamingInfo({
 
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
-  const disconnectWallet = () => deactivate();
 
   if (isLoading) {
     return <Spinner animation="border" role="status"></Spinner>;
@@ -85,24 +97,31 @@ function StreamingInfo({
             <Col>
               <p
                 className="text-primary cursor-pointer"
-                onClick={(e) => {
+                onClick={() => {
                   handleShowProfile();
                 }}
               >
                 Review your streaming payment dashboard
               </p>
-              <ProfileModal
-                accountTokenSnapshot={data.items[0]}
-                account={account}
-                ceramic={ceramic}
-                registryContract={registryContract}
-                paymentToken={paymentToken}
-                provider={provider}
-                showProfile={showProfile}
-                handleCloseProfile={handleCloseProfile}
-                disconnectWallet={disconnectWallet}
-                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-              />
+              {data && (
+                <ProfileModal
+                  accountTokenSnapshot={data.items[0]}
+                  account={account}
+                  ceramic={ceramic}
+                  registryContract={registryContract}
+                  paymentToken={paymentToken}
+                  provider={provider}
+                  disconnectWallet={disconnectWallet}
+                  showProfile={showProfile}
+                  handleCloseProfile={handleCloseProfile}
+                  setSelectedParcelId={setSelectedParcelId}
+                  setInteractionState={setInteractionState}
+                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                  setPortfolioParcelCoords={setPortfolioParcelCoords}
+                  isPortfolioToUpdate={isPortfolioToUpdate}
+                  setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                />
+              )}
             </Col>
           </Row>
         </Container>

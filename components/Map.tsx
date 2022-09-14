@@ -56,8 +56,8 @@ export interface PolygonQuery {
   geoWebCoordinates: GWCoordinateGQL[];
 }
 
-interface GeoPoint {
-  id: string;
+export interface GeoPoint {
+  id?: string;
   lon: number;
   lat: number;
 }
@@ -184,14 +184,23 @@ function normalizeQueryVariables(x: number, y: number) {
 
 export type MapProps = {
   registryContract: Contracts["registryDiamondContract"];
+  selectedParcelId: string;
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  interactionState: STATE;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
   provider: ethers.providers.Web3Provider;
+  disconnectWallet: () => Promise<void>;
   ceramic: CeramicClient;
   ipfs: IPFS;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  portfolioParcelCoords: GeoPoint | null;
+  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<GeoPoint | null>>;
+  isPortfolioToUpdate: boolean;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
@@ -207,6 +216,13 @@ const mapStyleUrlByName: Record<MapStyleName, string> = {
 };
 
 function Map(props: MapProps) {
+  const {
+    selectedParcelId,
+    setSelectedParcelId,
+    interactionState,
+    setInteractionState,
+    portfolioParcelCoords,
+  } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
       lastBlock: 0,
@@ -246,15 +262,11 @@ function Map(props: MapProps) {
   const [oldCoordX, setOldCoordX] = useState(0);
   const [oldCoordY, setOldCoordY] = useState(0);
   const [grid, setGrid] = useState<Grid | null>(null);
-  const [interactionState, setInteractionState] = useState<STATE>(
-    STATE.VIEWING
-  );
   const [parcelHoverId, setParcelHoverId] = useState("");
 
   const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
-  const [selectedParcelId, setSelectedParcelId] = useState("");
   const [selectedParcelCoords, setSelectedParcelCoords] =
     useState<Coord | null>(null);
 
@@ -623,6 +635,17 @@ function Map(props: MapProps) {
       window.removeEventListener("keydown", listener);
     };
   }, [data]);
+
+  useEffect(() => {
+    if (portfolioParcelCoords) {
+      flyToLocation({
+        longitude: portfolioParcelCoords.lon,
+        latitude: portfolioParcelCoords.lat,
+        zoom: ZOOM_GRID_LEVEL + 1,
+        duration: 500,
+      });
+    }
+  }, [portfolioParcelCoords]);
 
   return (
     <>
