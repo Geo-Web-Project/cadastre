@@ -44,6 +44,9 @@ import {
 } from "../../lib/utils";
 import { STATE, GeoPoint } from "../Map";
 
+const LON_OFFSET = 0.00085;
+const LAT_OFFSET = 0.0002;
+
 type ProfileModalProps = {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
@@ -118,6 +121,7 @@ const portfolioQuery = gql`
             perSecondFeeDenominator
             perSecondFeeNumerator
             timestamp
+            contributionRate
           }
           coordinates {
             pointTL {
@@ -189,7 +193,7 @@ function ProfileModal(props: ProfileModalProps) {
   }, [provider, account]);
 
   useEffect(() => {
-    if (!data) {
+    if (!data || !data.bidder) {
       return;
     }
 
@@ -232,7 +236,7 @@ function ProfileModal(props: ProfileModalProps) {
             currentBid.perSecondFeeDenominator
           );
           action = PortfolioAction.VIEW;
-        } else {
+        } else if (BigNumber.from(pendingBid.contributionRate).gt(0)) {
           status = "Incoming Bid";
           actionDate = dayjs
             .unix(pendingBid.timestamp)
@@ -246,6 +250,8 @@ function ProfileModal(props: ProfileModalProps) {
             pendingBid.perSecondFeeDenominator
           );
           action = PortfolioAction.RESPOND;
+        } else {
+          continue;
         }
       } else if (pendingBid) {
         status = "Outgoing Bid";
@@ -343,8 +349,8 @@ function ProfileModal(props: ProfileModalProps) {
             buffer: buffer,
             action: action,
             coords: {
-              lon: coords[0].pointTL.lon,
-              lat: coords[0].pointTL.lat,
+              lon: Number(coords[0].pointTL.lon) + LON_OFFSET,
+              lat: Number(coords[0].pointTL.lat) + LAT_OFFSET,
             },
           });
         });
@@ -356,7 +362,7 @@ function ProfileModal(props: ProfileModalProps) {
       if (_portfolio.length > 0) {
         let needActionCount = 0;
 
-        for (const parcel of portfolio) {
+        for (const parcel of _portfolio) {
           if (
             parcel.action === PortfolioAction.RESPOND ||
             parcel.action === PortfolioAction.RECLAIM ||
