@@ -103,7 +103,7 @@ enum PortfolioAction {
 }
 
 const portfolioQuery = gql`
-  query Bidders($id: String) {
+  query Bidder($id: String) {
     bidder(id: $id) {
       bids {
         parcel {
