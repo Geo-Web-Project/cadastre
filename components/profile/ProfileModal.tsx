@@ -67,7 +67,7 @@ type ProfileModalProps = {
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-interface Portfolio {
+interface Parcel {
   parcelId: string;
   status: string;
   actionDate: string;
@@ -157,10 +157,11 @@ function ProfileModal(props: ProfileModalProps) {
   const [ETHBalance, setETHBalance] = useState<string>("");
   const [isWrapping, setIsWrapping] = useState<boolean>(false);
   const [isUnWrapping, setIsUnwrapping] = useState<boolean>(false);
-  const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
+  const [portfolio, setPortfolio] = useState<Parcel[]>([]);
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
+  const [timerId, setTimerId] = useState<NodeJS.Timer>();
 
   const { data, refetch } = useQuery(portfolioQuery, {
     variables: {
@@ -200,7 +201,7 @@ function ProfileModal(props: ProfileModalProps) {
     let isMounted = true;
 
     const bids = data.bidder.bids;
-    const _portfolio: Portfolio[] = [];
+    const _portfolio: Parcel[] = [];
     const promises = [];
 
     for (const bid of bids) {
@@ -253,7 +254,10 @@ function ProfileModal(props: ProfileModalProps) {
         } else {
           continue;
         }
-      } else if (pendingBid) {
+      } else if (
+        pendingBid &&
+        BigNumber.from(pendingBid.contributionRate).gt(0)
+      ) {
         status = "Outgoing Bid";
         actionDate = dayjs
           .unix(pendingBid.timestamp)
@@ -359,31 +363,29 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     Promise.all(promises).then(() => {
-      if (_portfolio.length > 0) {
-        let needActionCount = 0;
+      let needActionCount = 0;
 
-        for (const parcel of _portfolio) {
-          if (
-            parcel.action === PortfolioAction.RESPOND ||
-            parcel.action === PortfolioAction.RECLAIM ||
-            parcel.action === PortfolioAction.TRIGGER
-          ) {
-            needActionCount++;
-          }
+      for (const parcel of _portfolio) {
+        if (
+          parcel.action === PortfolioAction.RESPOND ||
+          parcel.action === PortfolioAction.RECLAIM ||
+          parcel.action === PortfolioAction.TRIGGER
+        ) {
+          needActionCount++;
         }
+      }
 
-        const total = {
-          price: calcTotal(_portfolio, "price"),
-          fee: calcTotal(_portfolio, "fee"),
-          buffer: calcTotal(_portfolio, "buffer"),
-        };
-        const sorted = sortPortfolio(_portfolio, "parcelId");
+      const total = {
+        price: calcTotal(_portfolio, "price"),
+        fee: calcTotal(_portfolio, "fee"),
+        buffer: calcTotal(_portfolio, "buffer"),
+      };
+      const sorted = sortPortfolio(_portfolio, "parcelId");
 
-        if (isMounted) {
-          setPortfolioNeedActionCount(needActionCount);
-          setPortfolioTotal(total);
-          setPortfolio(sorted);
-        }
+      if (isMounted) {
+        setPortfolioNeedActionCount(needActionCount);
+        setPortfolioTotal(total);
+        setPortfolio(sorted);
       }
     });
 
@@ -393,11 +395,29 @@ function ProfileModal(props: ProfileModalProps) {
   }, [data]);
 
   useEffect(() => {
-    if (isPortfolioToUpdate) {
-      setTimeout(() => refetch({ id: account }), 5000);
-      setIsPortfolioToUpdate(false);
+    if (!isPortfolioToUpdate) {
+      return;
     }
-  }, [isPortfolioToUpdate]);
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(undefined);
+      setIsPortfolioToUpdate(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({ id: account });
+    }, 4000);
+
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [isPortfolioToUpdate, data]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({
@@ -514,18 +534,15 @@ function ProfileModal(props: ProfileModalProps) {
     }
   };
 
-  const calcTotal = (
-    portfolio: Portfolio[],
-    field: keyof Portfolio
-  ): BigNumber =>
+  const calcTotal = (portfolio: Parcel[], field: keyof Parcel): BigNumber =>
     portfolio
       .map((parcel) => parcel[field] as BigNumber)
-      .reduce((prev, curr) => prev.add(curr));
+      .reduce((prev, curr) => prev.add(curr), BigNumber.from(0));
 
   const sortPortfolio = (
-    portfolio: Portfolio[],
-    field: keyof Portfolio
-  ): Portfolio[] => {
+    portfolio: Parcel[],
+    field: keyof Parcel
+  ): Parcel[] => {
     const sorted = [...portfolio].sort((a, b) => {
       let result = 0;
 
@@ -553,7 +570,7 @@ function ProfileModal(props: ProfileModalProps) {
     return sorted;
   };
 
-  const handlePortfolioAction = (parcel: Portfolio): void => {
+  const handlePortfolioAction = (parcel: Parcel): void => {
     switch (parcel.action) {
       case PortfolioAction.VIEW:
       case PortfolioAction.RESPOND:
@@ -608,7 +625,9 @@ function ProfileModal(props: ProfileModalProps) {
       <Modal.Body className="bg-dark text-light text-start">
         <Row>
           <Col className="mx-2 fs-6">
-            <Image src="notice.svg" className="me-2" />
+            {portfolio.length > 0 && (
+              <Image src="notice.svg" className="me-2" />
+            )}
             {accountTokenSnapshot &&
             accountTokenSnapshot.maybeCriticalAtTimestamp &&
             Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
@@ -616,6 +635,8 @@ function ProfileModal(props: ProfileModalProps) {
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
                   .format("MMM D, YYYY h:mmA.")}`
+              : portfolio.length === 0
+              ? null
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
@@ -861,7 +882,7 @@ function ProfileModal(props: ProfileModalProps) {
                 fontSize: "1.5rem",
               }}
             >
-              No parcel yet...
+              No parcel or bids yet...
             </span>
           )}
         </Row>
