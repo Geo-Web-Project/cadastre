@@ -247,7 +247,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     };
 
     loadLicenseDiamond();
-  }, [licenseDiamondAddress]);
+  }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
     (async () => {
