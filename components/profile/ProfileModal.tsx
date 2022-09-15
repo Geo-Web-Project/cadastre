@@ -33,12 +33,10 @@ import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   SECONDS_IN_WEEK,
-  SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import {
-  fromValueToRate,
   calculateBufferNeeded,
   calculateAuctionValue,
 } from "../../lib/utils";
@@ -113,12 +111,10 @@ const portfolioQuery = gql`
           currentBid {
             forSalePrice
             perSecondFeeNumerator
-            perSecondFeeDenominator
             timestamp
           }
           pendingBid {
             forSalePrice
-            perSecondFeeDenominator
             perSecondFeeNumerator
             timestamp
             contributionRate
@@ -209,7 +205,6 @@ function ProfileModal(props: ProfileModalProps) {
       let actionDate: string;
       let forSalePrice: BigNumber;
       let perSecondFeeNumerator: BigNumber;
-      let perSecondFeeDenominator: BigNumber;
       let annualFee: BigNumber;
       let buffer: BigNumber;
       let action: string;
@@ -233,9 +228,6 @@ function ProfileModal(props: ProfileModalProps) {
           perSecondFeeNumerator = BigNumber.from(
             currentBid.perSecondFeeNumerator
           );
-          perSecondFeeDenominator = BigNumber.from(
-            currentBid.perSecondFeeDenominator
-          );
           action = PortfolioAction.VIEW;
         } else if (BigNumber.from(pendingBid.contributionRate).gt(0)) {
           status = "Incoming Bid";
@@ -246,9 +238,6 @@ function ProfileModal(props: ProfileModalProps) {
           forSalePrice = BigNumber.from(pendingBid.forSalePrice);
           perSecondFeeNumerator = BigNumber.from(
             pendingBid.perSecondFeeNumerator
-          );
-          perSecondFeeDenominator = BigNumber.from(
-            pendingBid.perSecondFeeDenominator
           );
           action = PortfolioAction.RESPOND;
         } else {
@@ -267,20 +256,12 @@ function ProfileModal(props: ProfileModalProps) {
         perSecondFeeNumerator = BigNumber.from(
           pendingBid.perSecondFeeNumerator
         );
-        perSecondFeeDenominator = BigNumber.from(
-          pendingBid.perSecondFeeDenominator
-        );
         action = PortfolioAction.VIEW;
       } else {
         continue;
       }
 
-      const perSecondFee = fromValueToRate(
-        forSalePrice,
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      );
-      annualFee = perSecondFee.mul(SECONDS_IN_YEAR);
+      annualFee = forSalePrice.div(perSecondFeeNumerator);
       buffer = calculateBufferNeeded(annualFee, NETWORK_ID);
 
       const assetContentManager = getAssetContentManager(
@@ -307,12 +288,6 @@ function ProfileModal(props: ProfileModalProps) {
                 )
                 .format("YYYY/MM/D");
               forSalePrice = BigNumber.from(pendingBid.forSalePrice);
-              perSecondFeeNumerator = BigNumber.from(
-                pendingBid.perSecondFeeNumerator
-              );
-              perSecondFeeDenominator = BigNumber.from(
-                pendingBid.perSecondFeeDenominator
-              );
               action = PortfolioAction.TRIGGER;
             }
           }
@@ -625,18 +600,19 @@ function ProfileModal(props: ProfileModalProps) {
       <Modal.Body className="bg-dark text-light text-start">
         <Row>
           <Col className="mx-2 fs-6">
-            {portfolio.length > 0 && (
-              <Image src="notice.svg" className="me-2" />
-            )}
             {accountTokenSnapshot &&
-            accountTokenSnapshot.maybeCriticalAtTimestamp &&
-            Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
-              Date.now() / 1000
+              accountTokenSnapshot.totalNumberOfActiveStreams > 0 && (
+                <Image src="notice.svg" className="me-2" />
+              )}
+            {!accountTokenSnapshot ||
+            accountTokenSnapshot.totalNumberOfActiveStreams === 0
+              ? null
+              : accountTokenSnapshot.maybeCriticalAtTimestamp &&
+                Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
+                  Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
                   .format("MMM D, YYYY h:mmA.")}`
-              : portfolio.length === 0
-              ? null
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
