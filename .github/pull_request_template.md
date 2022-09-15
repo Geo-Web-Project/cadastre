@@ -1,22 +1,25 @@
-# Pull Request Template
+# Description
 
-## Description
+Please provide a detailed description of what was done in this PR
 
-Please include the type of fix and description of your change according to the (Conventional Commits specification)[https://www.conventionalcommits.org/en/v1.0.0/]. 
+# Issue
 
-fixes # (issue)
+fixes #ISSUE
 
-## Checklist:
+# Checklist:
 
-- [ ] My commit message follows the Conventional Commits specificaiton
+- [ ] My commit message follows the Conventional Commits specification
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have tested my code
 - [ ] My changes generate no new warnings
 - [ ] My PR is rebased off the most recent `develop` branch
 - [ ] My PR is opened against the `develop` branch
 
-## Alert Reviewers
+# Additional comments
 
-@codynhat @gravenp 
+Please post additional comments in this section if you have them, otherwise delete it
 
+# Alert Reviewers
 
+@codynhat @gravenp
