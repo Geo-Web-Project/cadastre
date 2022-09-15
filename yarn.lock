@@ -2721,10 +2721,10 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.5.1.tgz#a64d1af3c62e3bb89576ec58af880980a562bf4e"
   integrity sha512-dZMzN0uAjwJXWYYAcnxIwXqRTZw3o14hGe7O6uhwjD1ZQWPVYA5lASgnNskEBra0knVBsOXB4KXg+HnlKewN/A==
 
-"@geo-web/contracts@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-2.2.0.tgz#c48f2a41a00f189145a5e9630eeb760335432dc9"
-  integrity sha512-pyIlmrZ3ityXyBEsX0BZqfAj+rKzeXBxgsArnE2nFx/HB57TJYAtbjsVXtgkDN1cyFhXmCvKYLQQuMx1uZ0XTQ==
+"@geo-web/contracts@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-2.3.0.tgz#36be6478691cdd8b2c6cd6450638b02ed13a533c"
+  integrity sha512-MCn4HKfbljnApkWTj1JQq3l7lOWDmH0Jup5IRuI5RX3WsVSYZHAe70Wo1iLJ+zKguvWu65ejqgDBAnZDVTTuOg==
   dependencies:
     "@superfluid-finance/ethereum-contracts" "^1.3.0"
     "@truffle/hdwallet-provider" "^1.1.1"
@@ -2751,12 +2751,12 @@
     schema-org-ceramic "^1.3.0"
     uint8arrays "^3.0.0"
 
-"@geo-web/sdk@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-2.0.2.tgz#0fa3c179dc733963e6d71d2782d2c85ccf781e8b"
-  integrity sha512-626JhrhPs4pc76Xm8sICvsWvomthjMuwxU7SjDeJkkiyNoALfZVlYMzXJi2iZ7ap6v1ZdLk4zY0FYHnTM3+J+g==
+"@geo-web/sdk@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-2.3.0.tgz#b6613120855701f3008b7376ad4a145fe8e9d5c4"
+  integrity sha512-n/0tQC9pw0qUoi/ETdrJB7kO3U57929CDBZOgNEMo99la0pFe9SnD4wdSeXkuMw8BAVrJb0+vdTD/0spYoYJvA==
   dependencies:
-    "@geo-web/contracts" "^2.2.0"
+    "@geo-web/contracts" "^2.3.0"
     ethers ">=5.0.0"
     typescript "^4.6.3"
 

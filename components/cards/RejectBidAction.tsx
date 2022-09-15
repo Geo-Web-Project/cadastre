@@ -207,8 +207,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     try {
-      // TODO: Approve penalty payment
-      const txn = await licenseDiamondContract.rejectBid();
+      const txn = await licenseDiamondContract.rejectBid(
+        newNetworkFee,
+        newForSalePrice
+      );
       await txn.wait();
     } catch (err) {
       console.error(err);
