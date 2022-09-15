@@ -882,7 +882,7 @@ function ProfileModal(props: ProfileModalProps) {
                 fontSize: "1.5rem",
               }}
             >
-              No parcel or bids yet...
+              No parcels or bids yet...
             </span>
           )}
         </Row>
