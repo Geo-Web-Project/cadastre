@@ -4,32 +4,32 @@ import dayjs from "dayjs";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { STATE } from "../Map";
-import { PAYMENT_TOKEN, AUCTION_LENGTH } from "../../lib/constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateTimeString } from "../../lib/utils";
+import { ParcelInfoProps } from "./ParcelInfo";
 
 function _calculateAuctionValue(
   forSalePrice: BigNumber,
   auctionStart: BigNumber,
-  auctionLength: number
+  auctionLength: BigNumber
 ) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
-  const length = BigNumber.from(auctionLength);
-  if (blockTimestamp.gt(auctionStart.add(length))) {
+  if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
     return BigNumber.from(0);
   }
 
   const timeElapsed = blockTimestamp.sub(auctionStart);
-  const priceDecrease = forSalePrice.mul(timeElapsed).div(length);
+  const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
   return forSalePrice.sub(priceDecrease);
 }
 
-export type AuctionInfoProps = {
+export type AuctionInfoProps = ParcelInfoProps & {
   account: string;
   licenseOwner: string;
   forSalePrice: BigNumber;
-  auctionStart: BigNumber;
+  auctionStart: Date;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   requiredBid: BigNumber | null;
@@ -46,9 +46,11 @@ function AuctionInfo(props: AuctionInfoProps) {
     setInteractionState,
     requiredBid,
     setRequiredBid,
+    registryContract,
   } = props;
 
   const [auctionEnd, setAuctionEnd] = useState("");
+  const [auctionLength, setAuctionLength] = useState<BigNumber | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
   const formattedRequiredBid = useMemo(() => {
@@ -59,31 +61,56 @@ function AuctionInfo(props: AuctionInfoProps) {
   }, [requiredBid]);
 
   useEffect(() => {
+    async function run() {
+      if (!registryContract) {
+        setAuctionLength(null);
+        return;
+      }
+
+      const _auctionLength = await registryContract.getReclaimAuctionLength();
+      setAuctionLength(_auctionLength);
+    }
+
+    run();
+  }, [registryContract]);
+
+  useEffect(() => {
     let interval: NodeJS.Timer | null = null;
 
-    if (forSalePrice && auctionStart) {
-      const invalidationTime =
-        (auctionStart.toNumber() + AUCTION_LENGTH) * 1000;
-      setAuctionEnd(
-        `${dayjs(invalidationTime).utc().format("MM/DD/YYYY HH:mm")} UTC`
-      );
-
-      interval = setInterval(() => {
-        const remaining = invalidationTime - Date.now();
-        setTimeRemaining(calculateTimeString(remaining));
-
-        setRequiredBid(
-          _calculateAuctionValue(forSalePrice, auctionStart, AUCTION_LENGTH)
+    async function run() {
+      if (forSalePrice && auctionStart && auctionLength) {
+        const invalidationTime = BigNumber.from(auctionStart.getTime())
+          .div(1000)
+          .add(auctionLength)
+          .mul(1000)
+          .toNumber();
+        setAuctionEnd(
+          `${dayjs(invalidationTime).utc().format("MM/DD/YYYY HH:mm")} UTC`
         );
-      }, 1000);
+
+        interval = setInterval(() => {
+          const remaining = invalidationTime - Date.now();
+          setTimeRemaining(calculateTimeString(remaining));
+
+          setRequiredBid(
+            _calculateAuctionValue(
+              forSalePrice,
+              BigNumber.from(auctionStart.getTime()).div(1000),
+              auctionLength
+            )
+          );
+        }, 1000);
+      }
     }
+
+    run();
 
     return () => {
       if (interval) {
         clearInterval(interval);
       }
     };
-  }, [forSalePrice, auctionStart]);
+  }, [forSalePrice, auctionStart, auctionLength]);
 
   const isLoading =
     forSalePrice == null || auctionStart == null || timeRemaining == null;

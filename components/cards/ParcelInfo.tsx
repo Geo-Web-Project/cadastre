@@ -104,6 +104,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     setInvalidLicenseId,
     provider,
     selectedParcelCoords,
+    sfFramework,
+    paymentToken,
   } = props;
   const { loading, data } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
@@ -119,6 +121,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<AssetContentManager | null>(null);
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
+  const [auctionStart, setAuctionStart] = React.useState<Date | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
@@ -162,10 +165,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     data && data.geoWebParcel
       ? BigNumber.from(data.geoWebParcel.currentBid.forSalePrice)
       : null;
-  const currentOwnerBidTimestamp =
-    data && data.geoWebParcel
-      ? BigNumber.from(data.geoWebParcel.currentBid.timestamp)
-      : null;
   const outstandingBidForSalePrice = BigNumber.from(
     hasOutstandingBid ? data?.geoWebParcel?.pendingBid?.forSalePrice : 0
   );
@@ -201,10 +200,22 @@ function ParcelInfo(props: ParcelInfoProps) {
       } else {
         setInvalidLicenseId(selectedParcelId);
       }
+
+      if (!sfFramework || !paymentToken) {
+        setAuctionStart(null);
+        return;
+      }
+
+      const { timestamp } = await sfFramework.cfaV1.getAccountFlowInfo({
+        superToken: paymentToken.address,
+        account: licenseDiamondAddress,
+        providerOrSigner: signer,
+      });
+      setAuctionStart(timestamp);
     };
 
     loadLicenseDiamond();
-  }, [licenseDiamondAddress]);
+  }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
     (async () => {
@@ -499,16 +510,14 @@ function ParcelInfo(props: ParcelInfoProps) {
               data)) &&
           licenseOwner &&
           currentOwnerBidForSalePrice &&
-          currentOwnerBidTimestamp ? (
+          auctionStart ? (
             <AuctionInfo
-              account={account}
               licenseOwner={licenseOwner}
               forSalePrice={currentOwnerBidForSalePrice}
-              auctionStart={currentOwnerBidTimestamp}
-              interactionState={interactionState}
-              setInteractionState={setInteractionState}
+              auctionStart={auctionStart}
               requiredBid={requiredBid}
               setRequiredBid={setRequiredBid}
+              {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_SELECTED &&
