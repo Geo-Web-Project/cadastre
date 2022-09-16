@@ -7,6 +7,7 @@ import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import BN from "bn.js";
 
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -64,7 +65,19 @@ function ReclaimAction(props: ReclaimActionProps) {
     ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
     : null;
 
+  function updateActionData(updatedValues: ActionData) {
+    function _updateData(updatedValues: ActionData) {
+      return (prevState: ActionData) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
+
   async function _reclaim() {
+    updateActionData({ isActing: true });
+
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -81,7 +94,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     );
     await txn.wait();
 
-    return selectedParcelId;
+    return new BN(selectedParcelId.split("x")[1], 16).toString(10);
   }
 
   return (
