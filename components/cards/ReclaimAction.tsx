@@ -26,6 +26,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     perSecondFeeDenominator,
     licenseDiamondContract,
     registryContract,
+    selectedParcelId,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -79,6 +80,8 @@ function ReclaimAction(props: ReclaimActionProps) {
       ethers.utils.parseEther(displayNewForSalePrice)
     );
     await txn.wait();
+
+    return selectedParcelId;
   }
 
   return (
