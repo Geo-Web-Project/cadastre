@@ -36,10 +36,7 @@ import {
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
-import {
-  calculateBufferNeeded,
-  calculateAuctionValue,
-} from "../../lib/utils";
+import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import { STATE, GeoPoint } from "../Map";
 
 const LON_OFFSET = 0.00085;
@@ -234,7 +231,7 @@ function ProfileModal(props: ProfileModalProps) {
           actionDate = dayjs
             .unix(pendingBid.timestamp)
             .add(7, "day")
-            .format("YYYY/MM/D");
+            .format("YYYY/MM/DD");
           forSalePrice = BigNumber.from(pendingBid.forSalePrice);
           perSecondFeeNumerator = BigNumber.from(
             pendingBid.perSecondFeeNumerator
@@ -251,7 +248,7 @@ function ProfileModal(props: ProfileModalProps) {
         actionDate = dayjs
           .unix(pendingBid.timestamp)
           .add(7, "day")
-          .format("YYYY/MM/D");
+          .format("YYYY/MM/DD");
         forSalePrice = BigNumber.from(pendingBid.forSalePrice);
         perSecondFeeNumerator = BigNumber.from(
           pendingBid.perSecondFeeNumerator
@@ -286,7 +283,7 @@ function ProfileModal(props: ProfileModalProps) {
                     ? deadline
                     : currentBid.timestamp
                 )
-                .format("YYYY/MM/D");
+                .format("YYYY/MM/DD");
               forSalePrice = BigNumber.from(pendingBid.forSalePrice);
               action = PortfolioAction.TRIGGER;
             }
@@ -296,7 +293,7 @@ function ProfileModal(props: ProfileModalProps) {
         .then((isPayerBidActive) => {
           if (licenseOwner === account && !isPayerBidActive) {
             status = "In Foreclosure";
-            actionDate = dayjs.unix(currentBid.timestamp).format("YYYY/MM/D");
+            actionDate = dayjs.unix(currentBid.timestamp).format("YYYY/MM/DD");
             forSalePrice = calculateAuctionValue(
               forSalePrice,
               BigNumber.from(currentBid.timestamp),
@@ -612,7 +609,7 @@ function ProfileModal(props: ProfileModalProps) {
                   Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY h:mmA.")}`
+                  .format("MMM D, YYYY h:mmA")} UTC`
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
