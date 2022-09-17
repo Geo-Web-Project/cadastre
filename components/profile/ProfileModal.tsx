@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 import BN from "bn.js";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -38,6 +40,9 @@ import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import { STATE, GeoPoint } from "../Map";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const LON_OFFSET = 0.00085;
 const LAT_OFFSET = 0.0002;
@@ -609,7 +614,7 @@ function ProfileModal(props: ProfileModalProps) {
                   Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY h:mmA")} UTC`
+                  .format("MMM D, YYYY h:mmA")} ${dayjs.tz.guess()}`
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
