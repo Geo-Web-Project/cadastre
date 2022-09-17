@@ -23,23 +23,12 @@ export type EditActionProps = SidebarProps & {
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
-    provider,
-    ceramic,
     basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    disconnectWallet,
-    account,
     hasOutstandingBid,
     licenseDiamondContract,
     registryContract,
-    setSelectedParcelId,
-    setInteractionState,
-    setPortfolioNeedActionCount,
-    setPortfolioParcelCoords,
-    isPortfolioToUpdate,
-    setIsPortfolioToUpdate,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
@@ -190,18 +179,7 @@ function EditAction(props: EditActionProps) {
         {...props}
       />
       <StreamingInfo
-        account={account}
-        ceramic={ceramic}
-        registryContract={registryContract}
-        paymentToken={paymentToken}
-        provider={provider}
-        disconnectWallet={disconnectWallet}
-        setSelectedParcelId={setSelectedParcelId}
-        setInteractionState={setInteractionState}
-        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-        setPortfolioParcelCoords={setPortfolioParcelCoords}
-        isPortfolioToUpdate={isPortfolioToUpdate}
-        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+        {...props}
       />
     </>
   );

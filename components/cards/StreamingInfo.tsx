@@ -32,20 +32,8 @@ type StreamingInfoProps = {
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function StreamingInfo({
-  account,
-  ceramic,
-  registryContract,
-  paymentToken,
-  provider,
-  disconnectWallet,
-  setSelectedParcelId,
-  setInteractionState,
-  setPortfolioNeedActionCount,
-  setPortfolioParcelCoords,
-  isPortfolioToUpdate,
-  setIsPortfolioToUpdate,
-}: StreamingInfoProps) {
+function StreamingInfo(props: StreamingInfoProps) {
+  const { account, paymentToken } = props;
   const [showProfile, setShowProfile] = React.useState(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
@@ -106,20 +94,9 @@ function StreamingInfo({
               {data && (
                 <ProfileModal
                   accountTokenSnapshot={data.items[0]}
-                  account={account}
-                  ceramic={ceramic}
-                  registryContract={registryContract}
-                  paymentToken={paymentToken}
-                  provider={provider}
-                  disconnectWallet={disconnectWallet}
                   showProfile={showProfile}
                   handleCloseProfile={handleCloseProfile}
-                  setSelectedParcelId={setSelectedParcelId}
-                  setInteractionState={setInteractionState}
-                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                  setPortfolioParcelCoords={setPortfolioParcelCoords}
-                  isPortfolioToUpdate={isPortfolioToUpdate}
-                  setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                  {...props}
                 />
               )}
             </Col>

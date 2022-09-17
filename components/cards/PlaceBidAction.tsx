@@ -45,20 +45,10 @@ const infoIcon = (
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     parcelData,
-    ceramic,
-    registryContract,
-    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    disconnectWallet,
-    account,
     licenseDiamondContract,
-    setSelectedParcelId,
     setInteractionState,
-    setPortfolioNeedActionCount,
-    setPortfolioParcelCoords,
-    isPortfolioToUpdate,
     setIsPortfolioToUpdate,
   } = props;
 
@@ -315,26 +305,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
       {showWrapModal && (
         <WrapModal
-          account={account}
-          provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentToken={paymentToken}
+          {...props}
         />
       )}
       <StreamingInfo
-        account={account}
-        ceramic={ceramic}
-        registryContract={registryContract}
-        paymentToken={paymentToken}
-        disconnectWallet={disconnectWallet}
-        provider={provider}
-        setSelectedParcelId={setSelectedParcelId}
-        setInteractionState={setInteractionState}
-        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-        setPortfolioParcelCoords={setPortfolioParcelCoords}
-        isPortfolioToUpdate={isPortfolioToUpdate}
-        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+        {...props}
       />
     </>
   );

@@ -22,8 +22,6 @@ export type ClaimActionProps = SidebarProps & {
 function ClaimAction(props: ClaimActionProps) {
   const {
     account,
-    ceramic,
-    paymentToken,
     claimBase1Coord,
     claimBase2Coord,
     registryContract,
@@ -33,13 +31,6 @@ function ClaimAction(props: ClaimActionProps) {
     requiredBid,
     setNewParcel,
     provider,
-    disconnectWallet,
-    setInteractionState,
-    setSelectedParcelId,
-    setPortfolioNeedActionCount,
-    setPortfolioParcelCoords,
-    isPortfolioToUpdate,
-    setIsPortfolioToUpdate,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -170,18 +161,7 @@ function ClaimAction(props: ClaimActionProps) {
         {...props}
       />
       <StreamingInfo
-        account={account}
-        ceramic={ceramic}
-        registryContract={registryContract}
-        paymentToken={paymentToken}
-        provider={provider}
-        disconnectWallet={disconnectWallet}
-        setSelectedParcelId={setSelectedParcelId}
-        setInteractionState={setInteractionState}
-        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-        setPortfolioParcelCoords={setPortfolioParcelCoords}
-        isPortfolioToUpdate={isPortfolioToUpdate}
-        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+        {...props}
       />
     </>
   );

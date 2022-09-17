@@ -36,21 +36,8 @@ type ProfileProps = {
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function Profile({
-  account,
-  ceramic,
-  registryContract,
-  setSelectedParcelId,
-  setInteractionState,
-  disconnectWallet,
-  paymentToken,
-  provider,
-  portfolioNeedActionCount,
-  setPortfolioNeedActionCount,
-  setPortfolioParcelCoords,
-  isPortfolioToUpdate,
-  setIsPortfolioToUpdate,
-}: ProfileProps) {
+function Profile(props: ProfileProps) {
+  const { account, paymentToken, portfolioNeedActionCount } = props;
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -94,20 +81,9 @@ function Profile({
               />
               <ProfileModal
                 accountTokenSnapshot={data.items[0]}
-                account={account}
-                ceramic={ceramic}
-                registryContract={registryContract}
-                provider={provider}
-                paymentToken={paymentToken}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
-                disconnectWallet={disconnectWallet}
-                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                setSelectedParcelId={setSelectedParcelId}
-                setInteractionState={setInteractionState}
-                setPortfolioParcelCoords={setPortfolioParcelCoords}
-                isPortfolioToUpdate={isPortfolioToUpdate}
-                setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                {...props}
               />
             </>
           )}

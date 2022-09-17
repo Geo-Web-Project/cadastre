@@ -54,22 +54,13 @@ const infoIcon = (
 function RejectBidAction(props: RejectBidActionProps) {
   const {
     parcelData,
-    ceramic,
-    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    disconnectWallet,
-    account,
     licenseDiamondContract,
     registryContract,
     bidTimestamp,
     bidForSalePrice,
-    setSelectedParcelId,
     setInteractionState,
-    setPortfolioNeedActionCount,
-    setPortfolioParcelCoords,
-    isPortfolioToUpdate,
     setIsPortfolioToUpdate,
   } = props;
 
@@ -400,26 +391,13 @@ function RejectBidAction(props: RejectBidActionProps) {
 
       {showWrapModal && (
         <WrapModal
-          account={account}
-          provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentToken={paymentToken}
+          {...props}
         />
       )}
       <StreamingInfo
-        account={account}
-        ceramic={ceramic}
-        registryContract={registryContract}
-        paymentToken={paymentToken}
-        disconnectWallet={disconnectWallet}
-        provider={provider}
-        setSelectedParcelId={setSelectedParcelId}
-        setInteractionState={setInteractionState}
-        setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-        setPortfolioParcelCoords={setPortfolioParcelCoords}
-        isPortfolioToUpdate={isPortfolioToUpdate}
-        setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+        {...props}
       />
     </>
   );

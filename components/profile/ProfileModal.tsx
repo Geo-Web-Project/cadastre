@@ -279,7 +279,7 @@ function ProfileModal(props: ProfileModalProps) {
             const deadline = Number(pendingBid.timestamp) + SECONDS_IN_WEEK;
             const isPastDeadline = deadline * 1000 <= Date.now();
             if (isPastDeadline || ownerBidContributionRate.eq(0)) {
-              status = "Needs Tranfer";
+              status = "Needs Transfer";
               actionDate = dayjs
                 .unix(
                   deadline < Number(currentBid.timestamp)
