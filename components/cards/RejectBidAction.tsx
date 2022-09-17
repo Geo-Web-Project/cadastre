@@ -3,8 +3,12 @@ import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -21,6 +25,9 @@ import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import { GeoWebParcel } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -28,15 +35,11 @@ dayjs.extend(advancedFormat);
 export type RejectBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  parcelData: any;
+  parcelData: GeoWebParcel;
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 const infoIcon = (
   <Image
@@ -54,11 +57,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    selectedParcelId,
     paymentToken,
     account,
-    auctionSuperApp,
-    sfFramework,
+    licenseDiamondContract,
+    registryContract,
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
@@ -86,7 +88,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   );
 
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
@@ -150,23 +152,31 @@ function RejectBidAction(props: RejectBidActionProps) {
   const isInvalid =
     isForSalePriceInvalid || !displayNewForSalePrice || !penaltyPayment;
 
+  const oldRequiredBuffer = calculateBufferNeeded(
+    existingNetworkFee,
+    NETWORK_ID
+  );
+  const newRequiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   React.useEffect(() => {
     async function checkBidPeriod() {
-      if (!auctionSuperApp) return;
+      if (!registryContract) return;
 
-      setBidPeriodLength(await auctionSuperApp.bidPeriodLengthInSeconds());
+      setBidPeriodLength(await registryContract.getBidPeriodLengthInSeconds());
     }
 
     async function checkPenaltyRate() {
-      if (!auctionSuperApp) return;
+      if (!registryContract) return;
 
-      setPenaltyRateNumerator(await auctionSuperApp.penaltyNumerator());
-      setPenaltyRateDenominator(await auctionSuperApp.penaltyDenominator());
+      setPenaltyRateNumerator(await registryContract.getPenaltyNumerator());
+      setPenaltyRateDenominator(await registryContract.getPenaltyDenominator());
     }
 
     checkBidPeriod();
     checkPenaltyRate();
-  }, [auctionSuperApp]);
+  }, [registryContract]);
 
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
@@ -180,6 +190,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     setIsActing(true);
     setDidFail(false);
 
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");
     }
@@ -192,65 +206,20 @@ function RejectBidAction(props: RejectBidActionProps) {
       throw new Error("Could not find penaltyPayment");
     }
 
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
-    );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [newForSalePrice, bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    // Approve amount above purchase price
-    const approveOp = paymentToken.approve({
-      receiver: auctionSuperApp.address,
-      amount: newForSalePrice.add(penaltyPayment).toString(),
-    });
-
-    const signer = provider.getSigner() as any;
-
-    let op;
-    if (BigNumber.from(existingFlow.flowRate).gt(0)) {
-      op = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .sub(existingNetworkFee)
-          .add(newNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-    } else {
-      op = sfFramework.cfaV1.createFlow({
-        receiver: auctionSuperApp.address,
-        flowRate: newNetworkFee.toString(),
-        superToken: paymentToken.address,
-        userData,
-      });
-    }
-
     try {
-      // Perform these in a single batch call
-      const batchCall = sfFramework.batchCall([approveOp, op]);
-      const txn = await batchCall.exec(signer);
+      const txn = await licenseDiamondContract.rejectBid(
+        newNetworkFee,
+        newForSalePrice
+      );
       await txn.wait();
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        err.errorObject.reason.replace("execution reverted: ", "")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err as any).reason
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message
       );
       setDidFail(true);
       setIsActing(false);
@@ -365,7 +334,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
-                newAnnualNetworkFee={annualNetworkFeeRate}
+                newAnnualNetworkFee={annualNetworkFeeRate ?? null}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}
@@ -373,23 +342,31 @@ function RejectBidAction(props: RejectBidActionProps) {
             ) : null}
 
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {"Wrap to ETHx"}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => rejectBid()}
-                disabled={isActing || isInvalid}
-              >
-                {isActing ? spinner : "Submit"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              {...props}
+              isDisabled={isActing || isInvalid}
+              buttonText={"Bid"}
+              requiredFlowAmount={annualNetworkFeeRate ?? null}
+              requiredPayment={
+                penaltyPayment && newRequiredBuffer
+                  ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
+                  : null
+              }
+              performAction={rejectBid}
+              spender={licenseDiamondContract?.address ?? null}
+              requiredFlowPermissions={2}
+              flowOperator={licenseDiamondContract?.address ?? null}
+              setErrorMessage={setErrorMessage}
+              setIsActing={setIsActing}
+              setDidFail={setDidFail}
+            />
           </Form>
 
           <br />

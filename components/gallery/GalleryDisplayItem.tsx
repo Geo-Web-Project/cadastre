@@ -34,7 +34,6 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
 function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const {
     pinningManager,
-    ipfs,
     mediaGalleryItemStreamManager,
     index,
     selectedMediaGalleryItemId,

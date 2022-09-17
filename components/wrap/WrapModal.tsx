@@ -1,14 +1,14 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { NETWORK_ID } from "../../lib/constants";
+import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { useMemo } from "react";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
+import Button from "react-bootstrap/Button";
 
 type WrapModalProps = {
   account: string;
@@ -27,8 +27,6 @@ function WrapModal({
 }: WrapModalProps) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] =
-    React.useState<boolean>(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
@@ -82,15 +80,12 @@ function WrapModal({
     setIsWrapping(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSubmit = (e: any) => {
     e.preventDefault();
     const amount = Number(e.target[0].value);
 
-    if (amount > Number(ETHBalance)) {
-      setIsBalanceInsufficient(true);
-    } else {
-      setIsBalanceInsufficient(false);
-
+    if (amount <= Number(ETHBalance)) {
       if (!Number.isNaN(amount) && amount > 0) {
         console.log("amount is valid", amount);
         (async () => {
@@ -102,7 +97,7 @@ function WrapModal({
     }
   };
 
-  const tokenOptions: TokenOptions = useMemo(
+  const tokenOptions: TokenOptions = React.useMemo(
     () => ({
       address: paymentToken.address,
       symbol: "ETHx",
@@ -118,7 +113,7 @@ function WrapModal({
         <Modal.Title className="text-primary">
           Wrap ETH for Streaming
         </Modal.Title>
-        <button
+        <Button
           type="button"
           className="btn-close btn-close-white"
           data-dismiss="modal"
@@ -177,14 +172,14 @@ function WrapModal({
             id="amount"
             placeholder="0.00"
           />
-          <button
+          <Button
             type="submit"
             className="btn btn-primary mb-2"
             style={{ width: "128px" }}
             disabled={isWrapping}
           >
-            {isWrapping ? "Wrapping..." : "Wrap to ETHx"}
-          </button>
+            {isWrapping ? "Wrapping..." : `Wrap to ${PAYMENT_TOKEN}`}
+          </Button>
         </form>
       </Modal.Footer>
     </Modal>

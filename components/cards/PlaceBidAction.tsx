@@ -3,8 +3,12 @@ import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -17,17 +21,16 @@ import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import { GeoWebParcel } from "./ParcelInfo";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  parcelData: any;
+  parcelData: GeoWebParcel;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 const infoIcon = (
   <Image
@@ -45,33 +48,24 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    selectedParcelId,
     paymentToken,
     account,
-    auctionSuperApp,
-    sfFramework,
     setInteractionState,
+    licenseDiamondContract,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
-    string | null
-  >(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
+    React.useState<string | null>(null);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
 
-  const spinner = (
-    <span className="spinner-border" role="status">
-      <span className="visually-hidden">Sending Transaction...</span>
-    </span>
-  );
-
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.currentBid.forSalePrice
   );
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
@@ -118,9 +112,17 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
+  const requiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   async function placeBid() {
     setIsActing(true);
     setDidFail(false);
+
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
 
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");
@@ -130,64 +132,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       throw new Error("Could not find newNetworkFee");
     }
 
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
-    );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [newForSalePrice, bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    // Approve amount above purchase price
-    const approveOp = paymentToken.approve({
-      receiver: auctionSuperApp.address,
-      amount: newForSalePrice.toString(),
-    });
-
-    const signer = provider.getSigner() as any;
-
-    let op;
-    if (BigNumber.from(existingFlow.flowRate).gt(0)) {
-      op = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .add(newNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-    } else {
-      op = sfFramework.cfaV1.createFlow({
-        receiver: auctionSuperApp.address,
-        flowRate: newNetworkFee.toString(),
-        superToken: paymentToken.address,
-        userData,
-      });
-    }
-
     try {
-      // Perform these in a single batch call
-      const batchCall = sfFramework.batchCall([approveOp, op]);
-      const txn = await batchCall.exec(signer);
+      const txn = await licenseDiamondContract.placeBid(
+        newNetworkFee,
+        newForSalePrice
+      );
       await txn.wait();
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        err.errorObject.reason.replace("execution reverted: ", "")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err as any).reason
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message
       );
       setDidFail(true);
       setIsActing(false);
@@ -289,7 +247,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
-                newAnnualNetworkFee={annualNetworkFeeRate}
+                newAnnualNetworkFee={annualNetworkFeeRate ?? null}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 {...props}
@@ -297,23 +255,31 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             ) : null}
 
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {"Wrap to ETHx"}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => placeBid()}
-                disabled={isActing || isInvalid}
-              >
-                {isActing ? spinner : "Bid"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              {...props}
+              isDisabled={isActing || isInvalid}
+              buttonText={"Bid"}
+              requiredFlowAmount={annualNetworkFeeRate ?? null}
+              requiredPayment={
+                newForSalePrice && requiredBuffer
+                  ? newForSalePrice.add(requiredBuffer)
+                  : null
+              }
+              performAction={placeBid}
+              spender={licenseDiamondContract?.address ?? null}
+              requiredFlowPermissions={1}
+              flowOperator={licenseDiamondContract?.address ?? null}
+              setErrorMessage={setErrorMessage}
+              setIsActing={setIsActing}
+              setDidFail={setDidFail}
+            />
           </Form>
 
           <br />

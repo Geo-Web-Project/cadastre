@@ -39,19 +39,32 @@ export const parcelLayer: LayerProps = {
     "fill-opacity": 0.5,
   },
 };
-export const parcelHighlightLayer: LayerProps = {
-  id: "parcels-highlight-layer",
-  type: "fill",
-  paint: {
-    "fill-color": "#2FC1C1",
-    "fill-opacity": 0.75,
-  },
-};
-export const parcelInvalidLayer: LayerProps = {
-  id: "parcels-invalid-layer",
-  type: "fill",
-  paint: {
-    "fill-color": "#E11515",
-    "fill-opacity": 0.75,
-  },
-};
+export function parcelHighlightLayer(
+  parcelHoverId: string,
+  selectedParcelId: string
+): LayerProps {
+  return {
+    id: "parcels-highlight-layer",
+    type: "fill",
+    paint: {
+      "fill-color": "#2FC1C1",
+      "fill-opacity": 0.75,
+    },
+    filter: [
+      "any",
+      ["==", "parcelId", parcelHoverId],
+      ["==", "parcelId", selectedParcelId],
+    ],
+  };
+}
+export function parcelInvalidLayer(selectedParcelId: string): LayerProps {
+  return {
+    id: "parcels-invalid-layer",
+    type: "fill",
+    paint: {
+      "fill-color": "#E11515",
+      "fill-opacity": 0.75,
+    },
+    filter: ["==", "parcelId", selectedParcelId],
+  };
+}

@@ -18,13 +18,13 @@ import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
-import { fromValueToRate } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { AssetId } from "caip";
-import { model as GeoWebModel } from "@geo-web/datamodels";
+import { model as GeoWebModel, BasicProfile } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
+import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -39,6 +39,10 @@ export type ActionFormProps = SidebarProps & {
   basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   hasOutstandingBid?: boolean;
+  requiredPayment: BigNumber | null;
+  requiredFlowPermissions: number | null;
+  spender: string | null;
+  flowOperator: string | null;
 };
 
 export type ActionData = {
@@ -71,6 +75,8 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     summaryView,
     requiredBid,
+    requiredPayment,
+    spender,
     hasOutstandingBid = false,
   } = props;
 
@@ -87,12 +93,6 @@ export function ActionForm(props: ActionFormProps) {
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
-
-  const spinner = (
-    <span className="spinner-border" role="status">
-      <span className="visually-hidden">Sending Transaction...</span>
-    </span>
-  );
 
   const infoIcon = (
     <Image
@@ -111,17 +111,6 @@ export function ActionForm(props: ActionFormProps) {
       ethers.utils
         .parseEther(displayNewForSalePrice)
         .lt(requiredBid ?? BigNumber.from(0)));
-
-  const networkFeeRatePerSecond =
-    displayNewForSalePrice != null &&
-    displayNewForSalePrice.length > 0 &&
-    !isNaN(Number(displayNewForSalePrice))
-      ? fromValueToRate(
-          ethers.utils.parseEther(displayNewForSalePrice),
-          perSecondFeeNumerator,
-          perSecondFeeDenominator
-        )
-      : null;
 
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
@@ -142,6 +131,8 @@ export function ActionForm(props: ActionFormProps) {
     ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
         false || parcelWebContentURI.length > 150
     : false;
+
+  const requiredFlowAmount = annualNetworkFeeRate;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -165,15 +156,16 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({
         isActing: false,
         didFail: true,
-        errorMessage: err.errorObject.reason.replace(
-          "execution reverted: ",
-          ""
-        ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorMessage: (err as any).reason
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message,
       });
       return;
     }
 
-    const content: any = {};
+    const content: BasicProfile = {};
     if (parcelName) {
       content["name"] = parcelName;
     }
@@ -192,14 +184,16 @@ export function ActionForm(props: ActionFormProps) {
       });
 
       const model = new DataModel({
-        ceramic,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ceramic: ceramic as any,
         aliases: GeoWebModel,
       });
 
       const _assetContentManager = new AssetContentManager(
-        ceramic,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ceramic as any,
         model,
-        ceramic.did!.capability.p.iss,
+        ceramic.did?.capability.p.iss ?? "",
         assetId
       );
 
@@ -377,23 +371,31 @@ export function ActionForm(props: ActionFormProps) {
             <br />
             {summaryView}
             <br />
-            <span style={{ display: "flex", gap: "16px" }}>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleWrapModalOpen}
-              >
-                {"Wrap to ETHx"}
-              </Button>
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={() => submit()}
-                disabled={isActing || isLoading || isInvalid}
-              >
-                {isActing || isLoading ? spinner : "Confirm"}
-              </Button>
-            </span>
+            <Button
+              variant="secondary"
+              className="w-100 mb-3"
+              onClick={handleWrapModalOpen}
+            >
+              {`Wrap to ${PAYMENT_TOKEN}`}
+            </Button>
+            <ApproveOrPerformButton
+              {...props}
+              isDisabled={isActing || isLoading || isInvalid}
+              buttonText={"Confirm"}
+              requiredFlowAmount={requiredFlowAmount}
+              requiredPayment={requiredPayment ?? null}
+              performAction={submit}
+              spender={spender ?? null}
+              setErrorMessage={(v) => {
+                updateActionData({ errorMessage: v });
+              }}
+              setIsActing={(v) => {
+                updateActionData({ isActing: v });
+              }}
+              setDidFail={(v) => {
+                updateActionData({ didFail: v });
+              }}
+            />
           </Form>
 
           <br />

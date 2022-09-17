@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, ReactElement } from "react";
 import { useControl, Marker } from "react-map-gl";
+import type { MarkerProps, ControlPosition } from "react-map-gl";
 import MapboxGeocoder, { GeocoderOptions } from "@mapbox/mapbox-gl-geocoder";
 
 type GeocoderProps = Omit<
@@ -11,15 +12,19 @@ type GeocoderProps = Omit<
 
   position: ControlPosition;
 
-  onLoading?: (e: object) => void;
-  onResults?: (e: object) => void;
-  onResult?: (e: object) => void;
-  onError?: (e: object) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLoading: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onResults: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onResult: (...args: any[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onError: (...args: any[]) => void;
 };
 
-/* eslint-disable complexity,max-statements */
 function Geocoder(props: GeocoderProps) {
-  const [marker, setMarker] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [marker, setMarker] = useState<ReactElement<any, any> | null>(null);
 
   const geocoder = useControl<MapboxGeocoder>(
     () => {
@@ -41,7 +46,8 @@ function Geocoder(props: GeocoderProps) {
         if (location && props.marker) {
           setMarker(
             <Marker
-              {...props.marker}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...(props.marker as any)}
               longitude={location[0]}
               latitude={location[1]}
               color="#2fc1c1"
@@ -59,7 +65,8 @@ function Geocoder(props: GeocoderProps) {
     }
   );
 
-  if (geocoder._map) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((geocoder as any)._map) {
     if (
       geocoder.getProximity() !== props.proximity &&
       props.proximity !== undefined

@@ -1,7 +1,8 @@
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { OverlayTrigger, Tooltip, Button } from "react-bootstrap";
 import { truncateStr } from "../lib/truncate";
 import { useCallback } from "react";
 import { useMultiAuth } from "@ceramicstudio/multiauth";
+import Image from "react-bootstrap/Image";
 
 export type TokenOptions = {
   address: string;
@@ -19,7 +20,10 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
 
   const addToMetaMask = useCallback(() => {
     if (authState.status !== "connected") return;
-    authState.connected.provider.state.provider.request({
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const provider: any = authState.connected.provider.state.provider;
+    provider.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20",
@@ -36,18 +40,18 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
         delay={{ show: 250, hide: 4000 }}
         overlay={<Tooltip>Copied</Tooltip>}
       >
-        <button
+        <Button
           onClick={copyAddress}
           className="d-flex bg-transparent border-0 align-items-center"
         >
-          <img style={{ width: "16px" }} src="/eth.png" alt="eth" />
+          <Image style={{ width: "16px" }} src="/eth.png" alt="eth" />
           <span className="px-2">{truncateStr(options.address, 16)}</span>
-          <img style={{ width: "16px" }} src="/copy.svg" alt="copy" />
-        </button>
+          <Image style={{ width: "16px" }} src="/copy.svg" alt="copy" />
+        </Button>
       </OverlayTrigger>
-      <button className="bg-transparent border-0 px-2" onClick={addToMetaMask}>
-        <img style={{ width: "16px" }} src="/MetaMask.png" alt="metamask" />
-      </button>
+      <Button className="bg-transparent border-0 px-2" onClick={addToMetaMask}>
+        <Image style={{ width: "16px" }} src="/MetaMask.png" alt="metamask" />
+      </Button>
     </div>
   );
 };

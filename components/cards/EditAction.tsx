@@ -4,41 +4,36 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { NETWORK_ID, SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { GeoWebParcel } from "./ParcelInfo";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   basicProfileStreamManager: BasicProfileStreamManager | null;
-  licenseAddress: string;
   hasOutstandingBid: boolean;
-  parcelData: any;
+  parcelData: GeoWebParcel;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
-    provider,
     basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    selectedParcelId,
     paymentToken,
     account,
-    auctionSuperApp,
     hasOutstandingBid,
-    sfFramework,
+    licenseDiamondContract,
+    registryContract,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
-    parcelData.landParcel.license.currentOwnerBid.forSalePrice
+    parcelData.currentBid.forSalePrice
   );
 
   const parcelContent = basicProfileStreamManager
@@ -118,8 +113,20 @@ function EditAction(props: EditActionProps) {
         )
       : null;
 
+  const requiredExistingBuffer = existingNetworkFee
+    ? calculateBufferNeeded(existingNetworkFee, NETWORK_ID)
+    : null;
+
+  const requiredNewBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
   async function _edit() {
     updateActionData({ isActing: true });
+
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
 
     if (!existingNetworkFee) {
       throw new Error("Could not find existingNetworkFee");
@@ -135,49 +142,17 @@ function EditAction(props: EditActionProps) {
       return;
     }
 
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
+    const txn = await licenseDiamondContract.editBid(
+      newNetworkFee,
+      ethers.utils.parseEther(displayNewForSalePrice)
     );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [ethers.utils.parseEther(displayNewForSalePrice), bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    const signer = provider.getSigner() as any;
-
-    const networkFeeDelta = newNetworkFee.sub(existingNetworkFee);
-
-    const updateFlowOperation = sfFramework.cfaV1.updateFlow({
-      flowRate: BigNumber.from(existingFlow.flowRate)
-        .add(networkFeeDelta)
-        .toString(),
-      receiver: auctionSuperApp.address,
-      superToken: paymentToken.address,
-      userData,
-    });
-
-    const txn = await updateFlowOperation.exec(signer);
-
     await txn.wait();
   }
 
   return (
     <>
       <ActionForm
+        licenseAddress={registryContract.address}
         loading={false}
         performAction={_edit}
         actionData={actionData}
@@ -195,6 +170,14 @@ function EditAction(props: EditActionProps) {
             <></>
           )
         }
+        requiredPayment={
+          requiredNewBuffer && requiredExistingBuffer
+            ? requiredNewBuffer.sub(requiredExistingBuffer)
+            : BigNumber.from(0)
+        }
+        requiredFlowPermissions={2}
+        spender={licenseDiamondContract?.address ?? ""}
+        flowOperator={licenseDiamondContract?.address ?? ""}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />

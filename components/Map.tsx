@@ -2,12 +2,13 @@ import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
-// eslint-disable-next-line import/named
-import ReactMapGL, { MapEvent, NavigationControl } from "react-map-gl";
+import ReactMapGL, { NavigationControl } from "react-map-gl";
+import type { ViewState, MapRef } from "react-map-gl";
+import { MapLayerMouseEvent } from "mapbox-gl";
 import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
-import GridSource from "./sources/GridSource";
+import GridSource, { Grid } from "./sources/GridSource";
 import ParcelSource from "./sources/ParcelSource";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -61,14 +62,14 @@ interface GeoPoint {
   lat: number;
 }
 
-interface LandParcel {
+interface GeoWebParcel {
   id: string;
 }
 
 interface GWCoordinateGQL {
   id: string;
   createdAtBlock: bigint;
-  landParcel: LandParcel;
+  parcel: GeoWebParcel;
   pointBL: GeoPoint;
   pointBR: GeoPoint;
   pointTR: GeoPoint;
@@ -96,7 +97,7 @@ const query = gql`
     ) {
       id
       createdAtBlock
-      landParcel {
+      parcel {
         id
       }
       pointBR {
@@ -119,7 +120,12 @@ const query = gql`
   }
 `;
 
-function updateGrid(lat: number, lon: number, oldGrid: any, setGrid: any) {
+function updateGrid(
+  lat: number,
+  lon: number,
+  oldGrid: Grid | null,
+  setGrid: React.Dispatch<React.SetStateAction<Grid | null>>
+) {
   const gwCoord = GeoWebCoordinate.fromGPS(lon, lat, GW_MAX_LON, GW_MAX_LAT);
   const x = gwCoord.getX().toNumber();
   const y = gwCoord.getY().toNumber();
@@ -177,9 +183,7 @@ function normalizeQueryVariables(x: number, y: number) {
 }
 
 export type MapProps = {
-  auctionSuperApp: Contracts["geoWebAuctionSuperAppContract"];
-  licenseContract: Contracts["geoWebERC721LicenseContract"];
-  claimerContract: Contracts["geoWebFairLaunchClaimerContract"];
+  registryContract: Contracts["registryDiamondContract"];
   account: string;
   provider: ethers.providers.Web3Provider;
   ceramic: CeramicClient;
@@ -212,10 +216,11 @@ function Map(props: MapProps) {
     },
   });
 
-  const mapRef = useRef();
+  const mapRef = useRef<MapRef>();
 
   const [mapStyleName, setMapStyleName] = React.useState(
-    localStorage.getItem(MAP_STYLE_KEY) || MapStyleName.satellite
+    (localStorage.getItem(MAP_STYLE_KEY) as MapStyleName) ||
+      MapStyleName.satellite
   );
 
   const handleMapstyle = (newStyle: MapStyleName) => {
@@ -223,15 +228,23 @@ function Map(props: MapProps) {
     setMapStyleName(newStyle);
   };
 
-  const [viewport, setViewport] = useState<Record<string, any> | null>({
+  const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
     zoom: 13,
+    bearing: 0,
+    pitch: 0,
+    padding: {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
   });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoordX, setOldCoordX] = useState(0);
   const [oldCoordY, setOldCoordY] = useState(0);
-  const [grid, setGrid] = useState(null);
+  const [grid, setGrid] = useState<Grid | null>(null);
   const [interactionState, setInteractionState] = useState<STATE>(
     STATE.VIEWING
   );
@@ -259,7 +272,7 @@ function Map(props: MapProps) {
   }>({ id: "", timerId: null });
 
   const isGridVisible =
-    viewport?.zoom >= ZOOM_GRID_LEVEL &&
+    viewport.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
       interactionState == STATE.CLAIM_SELECTED);
 
@@ -267,10 +280,10 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (newParcel.id) {
       const lastParcel =
-        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.landParcel;
+        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.parcel;
 
       if (lastParcel?.id === newParcel.id) {
-        clearInterval(newParcel.timerId);
+        clearInterval(newParcel.timerId ?? undefined);
         setNewParcel({ id: "", timerId: null });
         return;
       }
@@ -278,18 +291,32 @@ function Map(props: MapProps) {
       if (!newParcel.timerId) {
         setNewParcel({
           ...newParcel,
-          timerId: setInterval(_fetchMoreParcels, 2000),
+          timerId: Number(setInterval(_fetchMoreParcels, 2000)),
         });
       }
     }
 
     _fetchMoreParcels();
 
-    return () => clearInterval(newParcel.timerId);
+    return () => {
+      if (newParcel.timerId) {
+        clearInterval(newParcel.timerId);
+      }
+    };
   }, [data, newParcel.id, fetchMore]);
 
   const flyToLocation = useCallback(
-    ({ longitude, latitude, duration, zoom }) => {
+    ({
+      longitude,
+      latitude,
+      duration,
+      zoom,
+    }: {
+      longitude: number;
+      latitude: number;
+      duration: number;
+      zoom: number;
+    }) => {
       mapRef.current?.flyTo({
         center: [longitude, latitude],
         duration,
@@ -328,9 +355,6 @@ function Map(props: MapProps) {
 
     const params = normalizeQueryVariables(x, y);
 
-    console.debug("Fetching more");
-    console.debug(params);
-
     fetchMore({
       variables: {
         lastBlock: newLastBlock,
@@ -354,15 +378,13 @@ function Map(props: MapProps) {
       lastBlock: 0,
       ...params,
     };
-    console.debug("Refetch on load");
-    console.debug(opts);
     refetch(opts);
 
     setOldCoordX(x);
     setOldCoordY(y);
   }
 
-  function _onMove(nextViewport: any) {
+  function _onMove(nextViewport: ViewState) {
     if (interactionState == STATE.EDITING_GALLERY) {
       return;
     }
@@ -373,7 +395,7 @@ function Map(props: MapProps) {
         interactionState == STATE.CLAIM_SELECTED) &&
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
-      updateGrid(viewport?.latitude, viewport?.longitude, grid, setGrid);
+      updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
 
     const gwCoord = GeoWebCoordinate.fromGPS(
@@ -391,8 +413,6 @@ function Map(props: MapProps) {
         lastBlock: 0,
         ...params,
       };
-      console.debug("Refetch on zoom");
-      console.debug(opts);
       refetch(opts);
 
       setShouldUpdateOnNextZoom(false);
@@ -411,8 +431,6 @@ function Map(props: MapProps) {
         lastBlock: 0,
         ...params,
       };
-      console.debug("Refetch on move");
-      console.debug(opts);
       refetch(opts);
 
       setOldCoordX(x);
@@ -420,8 +438,8 @@ function Map(props: MapProps) {
     }
   }
 
-  function _onMouseMove(event: MapEvent) {
-    if (event.features == null || viewport?.zoom < 5) {
+  function _onMouseMove(event: MapLayerMouseEvent) {
+    if (event.features == null || viewport.zoom < 5) {
       return;
     }
 
@@ -430,7 +448,7 @@ function Map(props: MapProps) {
         (f) => f.layer.id === "parcels-layer"
       );
       if (parcelFeature) {
-        setParcelHoverId(parcelFeature.properties.parcelId);
+        setParcelHoverId(parcelFeature.properties?.parcelId);
       } else {
         const gwCoord = GeoWebCoordinate.fromGPS(
           event.lngLat.lng,
@@ -454,8 +472,8 @@ function Map(props: MapProps) {
       case STATE.CLAIM_SELECTING:
         if (gridFeature) {
           setClaimBase2Coord({
-            x: gridFeature.properties.gwCoordX,
-            y: gridFeature.properties.gwCoordY,
+            x: gridFeature.properties?.gwCoordX,
+            y: gridFeature.properties?.gwCoordY,
           });
         }
         break;
@@ -467,8 +485,8 @@ function Map(props: MapProps) {
     }
   }
 
-  function _onClick(event: MapEvent) {
-    if (viewport?.zoom < 5) {
+  function _onClick(event: MapLayerMouseEvent) {
+    if (viewport.zoom < 5) {
       return;
     }
 
@@ -485,7 +503,7 @@ function Map(props: MapProps) {
         y: event.lngLat.lat,
       });
       if (parcelFeature) {
-        setSelectedParcelId(parcelFeature.properties.parcelId);
+        setSelectedParcelId(parcelFeature.properties?.parcelId);
         setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else if (parcelHoverId) {
@@ -542,8 +560,8 @@ function Map(props: MapProps) {
         }
         if (gridFeature) {
           setClaimBase2Coord({
-            x: gridFeature.properties.gwCoordX,
-            y: gridFeature.properties.gwCoordY,
+            x: gridFeature.properties?.gwCoordX,
+            y: gridFeature.properties?.gwCoordY,
           });
         }
         setInteractionState(STATE.CLAIM_SELECTED);
@@ -587,7 +605,7 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data != null) {
       const _existingCoords = new Set<string>(
-        data.geoWebCoordinates.flatMap((p: any) => p.id)
+        data.geoWebCoordinates.flatMap((p) => p.id)
       );
       setExistingCoords(_existingCoords);
     }
@@ -630,7 +648,8 @@ function Map(props: MapProps) {
             width: interactionState != STATE.VIEWING ? "75vw" : "100vw",
             height: interactionState != STATE.VIEWING ? "100vh" : "100vh",
           }}
-          ref={mapRef}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ref={mapRef as any}
           {...viewport}
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle={mapStyleUrlByName[mapStyleName]}
@@ -660,7 +679,9 @@ function Map(props: MapProps) {
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
           <Geocoder
-            mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
+            mapboxAccessToken={
+              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
+            }
             position="top-right"
           />
           <NavigationControl position="bottom-right" />

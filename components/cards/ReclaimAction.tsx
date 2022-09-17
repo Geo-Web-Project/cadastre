@@ -3,20 +3,18 @@ import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
-
-enum Action {
-  CLAIM,
-  BID,
-}
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import BN from "bn.js";
 
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  requiredBid: BigNumber;
+  requiredBid?: BigNumber;
   licenseOwner: string;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -25,12 +23,11 @@ function ReclaimAction(props: ReclaimActionProps) {
     licenseOwner,
     paymentToken,
     requiredBid,
-    auctionSuperApp,
-    provider,
-    selectedParcelId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    sfFramework,
+    licenseDiamondContract,
+    registryContract,
+    selectedParcelId,
   } = props;
 
   const [actionData, setActionData] = useState<ActionData>({
@@ -64,92 +61,46 @@ function ReclaimAction(props: ReclaimActionProps) {
         )
       : null;
 
+  const requiredBuffer = newNetworkFee
+    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
+    : null;
+
+  function updateActionData(updatedValues: ActionData) {
+    function _updateData(updatedValues: ActionData) {
+      return (prevState: ActionData) => {
+        return { ...prevState, ...updatedValues };
+      };
+    }
+
+    setActionData(_updateData(updatedValues));
+  }
+
   async function _reclaim() {
+    updateActionData({ isActing: true });
+
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
     if (!displayNewForSalePrice || !newNetworkFee || isForSalePriceInvalid) {
       throw new Error(
         `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
       );
     }
 
-    const claimData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
+    const txn = await licenseDiamondContract.reclaim(
+      newNetworkFee,
+      ethers.utils.parseEther(displayNewForSalePrice)
     );
-
-    const actionDataToPassInUserData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [ethers.utils.parseEther(displayNewForSalePrice), claimData]
-    );
-
-    let userData;
-    let txn;
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    const approveOperation = paymentToken.approve({
-      receiver: auctionSuperApp.address,
-      amount: ethers.utils.parseEther(displayNewForSalePrice).toString(),
-    });
-
-    const signer = provider.getSigner() as any;
-
-    if (existingFlow.flowRate !== "0") {
-      //update an exisiting flow
-
-      userData = ethers.utils.defaultAbiCoder.encode(
-        ["uint8", "bytes"],
-        [Action.BID, actionDataToPassInUserData]
-      );
-
-      const updateFlowOperation = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .add(newNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-
-      txn = await sfFramework
-        .batchCall([approveOperation, updateFlowOperation])
-        .exec(signer);
-    } else {
-      // create a new flow
-
-      userData = ethers.utils.defaultAbiCoder.encode(
-        ["uint8", "bytes"],
-        [Action.BID, actionDataToPassInUserData]
-      );
-
-      const createFlowOperation = sfFramework.cfaV1.createFlow({
-        flowRate: newNetworkFee.toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-
-      txn = await sfFramework
-        .batchCall([approveOperation, createFlowOperation])
-        .exec(signer);
-    }
-
-    if (!txn) {
-      throw new Error(`transaction is undefined: ${txn}`);
-    }
-
     await txn.wait();
 
-    return BigNumber.from(selectedParcelId).toNumber();
+    return new BN(selectedParcelId.split("x")[1], 16).toString(10);
   }
 
   return (
     <>
       <ActionForm
+        licenseAddress={registryContract.address}
         loading={false}
         performAction={_reclaim}
         actionData={actionData}
@@ -169,6 +120,14 @@ function ReclaimAction(props: ReclaimActionProps) {
             <></>
           )
         }
+        requiredPayment={
+          requiredBid && requiredBuffer
+            ? requiredBid.add(requiredBuffer)
+            : requiredBuffer
+        }
+        requiredFlowPermissions={1}
+        spender={licenseDiamondContract?.address || null}
+        flowOperator={licenseDiamondContract?.address || null}
         {...props}
       />
       <StreamingInfo account={account} paymentToken={paymentToken} />

@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import * as React from "react";
 import { Card } from "react-bootstrap";
 import { PAYMENT_TOKEN } from "../../lib/constants";
@@ -12,14 +12,10 @@ import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
+import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
-
-enum Action {
-  CLAIM,
-  BID,
-}
 
 type OutstandingBidViewProps = SidebarProps & {
   newForSalePrice: BigNumber;
@@ -28,21 +24,19 @@ type OutstandingBidViewProps = SidebarProps & {
   licensorIsOwner: boolean;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
+  licenseDiamondContract: PCOLicenseDiamond | null;
 };
 
 function OutstandingBidView({
   newForSalePrice,
   existingForSalePrice,
   bidTimestamp,
-  auctionSuperApp,
   licensorIsOwner,
-  provider,
+  registryContract,
+  licenseDiamondContract,
   selectedParcelId,
-  paymentToken,
-  account,
   perSecondFeeNumerator,
   perSecondFeeDenominator,
-  sfFramework,
   setInteractionState,
   setSelectedParcelId,
 }: OutstandingBidViewProps) {
@@ -79,16 +73,16 @@ function OutstandingBidView({
 
   React.useEffect(() => {
     async function checkBidPeriod() {
-      if (!auctionSuperApp) return;
+      if (!registryContract || !licenseDiamondContract) return;
 
-      setBidPeriodLength(await auctionSuperApp.bidPeriodLengthInSeconds());
+      setBidPeriodLength(await registryContract.getBidPeriodLengthInSeconds());
       setOwnerBidContributionRate(
-        await auctionSuperApp.ownerBidContributionRate(selectedParcelId)
+        await licenseDiamondContract.contributionRate()
       );
     }
 
     checkBidPeriod();
-  }, [auctionSuperApp]);
+  }, [registryContract, licenseDiamondContract]);
 
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
@@ -109,6 +103,10 @@ function OutstandingBidView({
     setIsActing(true);
     setDidFail(false);
 
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
     if (!newForSalePrice) {
       throw new Error("Could not find newForSalePrice");
     }
@@ -117,55 +115,17 @@ function OutstandingBidView({
       throw new Error("Could not find existingNetworkFee");
     }
 
-    const bidData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256"],
-      [selectedParcelId]
-    );
-
-    const actionData = ethers.utils.defaultAbiCoder.encode(
-      ["uint256", "bytes"],
-      [BigNumber.from(0), bidData]
-    );
-
-    const userData = ethers.utils.defaultAbiCoder.encode(
-      ["uint8", "bytes"],
-      [Action.BID, actionData]
-    );
-
-    const existingFlow = await sfFramework.cfaV1.getFlow({
-      superToken: paymentToken.address,
-      sender: account,
-      receiver: auctionSuperApp.address,
-      providerOrSigner: provider as any,
-    });
-
-    const signer = provider.getSigner() as any;
-
-    let op;
-    if (BigNumber.from(existingFlow.flowRate).eq(existingNetworkFee)) {
-      op = sfFramework.cfaV1.deleteFlow({
-        sender: account,
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-      });
-    } else {
-      op = sfFramework.cfaV1.updateFlow({
-        flowRate: BigNumber.from(existingFlow.flowRate)
-          .sub(existingNetworkFee)
-          .toString(),
-        receiver: auctionSuperApp.address,
-        superToken: paymentToken.address,
-        userData,
-      });
-    }
-
     try {
-      const txn = await op.exec(signer);
+      const txn = await licenseDiamondContract.acceptBid();
       await txn.wait();
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        err.errorObject.reason.replace("execution reverted: ", "")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err as any).reason
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message
       );
       setDidFail(true);
       setIsActing(false);
@@ -180,17 +140,19 @@ function OutstandingBidView({
     setIsActing(true);
     setDidFail(false);
 
-    const signer = provider.getSigner() as any;
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
 
     try {
-      const txn = await auctionSuperApp
-        .connect(signer)
-        .claimOutstandingBid(selectedParcelId);
+      const txn = await licenseDiamondContract.triggerTransfer();
+
       await txn.wait();
     } catch (err) {
       console.error(err);
       setErrorMessage(
-        err.errorObject.reason.replace("execution reverted: ", "")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err as any).errorObject.reason.replace("execution reverted: ", "")
       );
       setDidFail(true);
       setIsActing(false);

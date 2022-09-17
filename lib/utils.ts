@@ -1,5 +1,19 @@
 import { BigNumber } from "ethers";
 
+/**
+ * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
+ */
+const depositHoursMap: Record<number, number> = {
+  // mainnet
+  1: 4,
+  // rinkeby
+  4: 1,
+  // goerli
+  5: 1,
+  // optimism-kovan
+  69: 1,
+};
+
 export function fromRateToValue(
   contributionRate: BigNumber,
   perSecondFeeNumerator: BigNumber,
@@ -18,7 +32,7 @@ export function fromValueToRate(
   return value.mul(perSecondFeeNumerator).div(perSecondFeeDenominator);
 }
 
-export function calculateTimeString(remaining) {
+export function calculateTimeString(remaining: number) {
   if (remaining <= 0) {
     return "0d 0h 0m 0s";
   }
@@ -31,4 +45,11 @@ export function calculateTimeString(remaining) {
   const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
   return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+export function calculateBufferNeeded(
+  stream: BigNumber,
+  currentChainID: number
+) {
+  return stream.mul(depositHoursMap[currentChainID]).div(365 * 24);
 }

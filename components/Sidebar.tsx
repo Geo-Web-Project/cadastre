@@ -4,19 +4,18 @@ import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps, Coord } from "./Map";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
-import { truncateEth } from "../lib/truncate";
 
 export type SidebarProps = MapProps & {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  claimBase1Coord: any;
-  claimBase2Coord: any;
+  claimBase1Coord: Coord | null;
+  claimBase2Coord: Coord | null;
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedParcelCoords: Coord;
+  selectedParcelCoords: Coord | null;
   parcelClaimSize: number;
   invalidLicenseId: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
@@ -27,15 +26,11 @@ export type SidebarProps = MapProps & {
 
 function Sidebar(props: SidebarProps) {
   const {
-    auctionSuperApp,
-    licenseContract,
-    claimerContract,
+    registryContract,
     interactionState,
     setInteractionState,
     parcelClaimSize,
     selectedParcelCoords,
-    invalidLicenseId,
-    setInvalidLicenseId,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -44,21 +39,22 @@ function Sidebar(props: SidebarProps) {
     React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
-    auctionSuperApp.perSecondFeeNumerator().then((_perSecondFeeNumerator) => {
-      setPerSecondFeeNumerator(_perSecondFeeNumerator);
-    });
-    auctionSuperApp
-      .perSecondFeeDenominator()
+    registryContract
+      .getPerSecondFeeNumerator()
+      .then((_perSecondFeeNumerator) => {
+        setPerSecondFeeNumerator(_perSecondFeeNumerator);
+      });
+    registryContract
+      .getPerSecondFeeDenominator()
       .then((_perSecondFeeDenominator) => {
         setPerSecondFeeDenominator(_perSecondFeeDenominator);
       });
-  }, [auctionSuperApp]);
+  }, [registryContract]);
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
-    null
-  );
+  const [auctionStart, setAuctionStart] =
+    React.useState<BigNumber | null>(null);
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
   const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -70,10 +66,10 @@ function Sidebar(props: SidebarProps) {
     (async () => {
       const [_startingBid, _endingBid, _auctionStart, _auctionEnd] =
         await Promise.all([
-          claimerContract.startingBid(),
-          claimerContract.endingBid(),
-          claimerContract.auctionStart(),
-          claimerContract.auctionEnd(),
+          registryContract.getStartingBid(),
+          registryContract.getEndingBid(),
+          registryContract.getAuctionStart(),
+          registryContract.getAuctionEnd(),
         ]);
       if (_auctionStart.isZero() || _auctionEnd.isZero()) {
         return;
@@ -89,7 +85,7 @@ function Sidebar(props: SidebarProps) {
     return () => {
       isMounted = false;
     };
-  }, [claimerContract]);
+  }, [registryContract]);
 
   const isFairLaunch =
     auctionStart &&
@@ -119,7 +115,6 @@ function Sidebar(props: SidebarProps) {
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
-          licenseAddress={licenseContract.address}
           selectedParcelCoords={selectedParcelCoords}
         ></ParcelInfo>
       ) : null}
@@ -135,10 +130,10 @@ function Sidebar(props: SidebarProps) {
         <>
           <ClaimAction
             {...props}
+            licenseAddress={registryContract.address}
             isFairLaunch={isFairLaunch ?? undefined}
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
-            licenseAddress={licenseContract.address}
             requiredBid={requiredBid}
           ></ClaimAction>
         </>

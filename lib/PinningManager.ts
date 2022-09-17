@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import * as React from "react";
 import { GeoWebBucket } from "./GeoWebBucket";
 import Queue from "queue-promise";
@@ -133,15 +132,22 @@ export class PinningManager {
   }
 
   async getStorageUsed() {
+    if (!this._geoWebBucket.bucketRoot) {
+      return;
+    }
     const objectStat = await this._ipfs.object.stat(
-      this._geoWebBucket.bucketRoot!
+      this._geoWebBucket.bucketRoot
     );
-    const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot!);
+    const links = await this._ipfs.object.links(this._geoWebBucket.bucketRoot);
     const linkSizes = links.reduce((sizes, link) => {
       const newSizes = sizes;
-      newSizes[link.Hash.toString()] = link.Tsize;
+      if (link.Tsize) {
+        newSizes[link.Hash.toString()] = link.Tsize;
+      } else {
+        delete newSizes[link.Hash.toString()];
+      }
       return newSizes;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, number>);
     const uniqueLinkSize = Object.values(linkSizes).reduce((total, size) => {
       return total + size;
     }, 0);
@@ -182,9 +188,7 @@ export function usePinningManager(
         firebasePerformance
       );
 
-      await bucket.fetchOrProvisionBucket((err) => {
-        _pinningManager.queueDidFail();
-      });
+      await bucket.fetchOrProvisionBucket();
 
       setPinningManager(_pinningManager);
 

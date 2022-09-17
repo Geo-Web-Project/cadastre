@@ -1,5 +1,4 @@
-/* eslint-disable import/no-unresolved */
-import GeoJSON from "geojson";
+import type GeoJSON from "geojson";
 import { useMemo } from "react";
 import { Source, Layer } from "react-map-gl";
 import { PolygonQuery } from "../Map";
@@ -26,7 +25,7 @@ function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
         coordinates: coordinates,
       },
       properties: {
-        parcelId: c.landParcel.id,
+        parcelId: c.parcel.id,
       },
     };
   });
@@ -42,16 +41,10 @@ type Props = {
 };
 
 function ParcelSource(props: Props) {
-  const {
-    data,
-    parcelHoverId,
-    selectedParcelId,
-    isAvailable,
-    invalidLicenseId,
-  } = props;
+  const { data, parcelHoverId, selectedParcelId, invalidLicenseId } = props;
 
   const geoJsonFeatures = useMemo(() => {
-    let features = [];
+    let features: GeoJSON.Feature[] = [];
     if (data !== null) {
       features = convertToGeoJson(data);
     }
@@ -68,19 +61,9 @@ function ParcelSource(props: Props) {
       }}
     >
       <Layer {...parcelLayer} />
-      <Layer
-        {...parcelHighlightLayer}
-        filter={[
-          "any",
-          ["==", "parcelId", parcelHoverId],
-          ["==", "parcelId", selectedParcelId],
-        ]}
-      />
+      <Layer {...parcelHighlightLayer(parcelHoverId, selectedParcelId)} />
       {invalidLicenseId == selectedParcelId && (
-        <Layer
-          {...parcelInvalidLayer}
-          filter={["==", "parcelId", selectedParcelId]}
-        />
+        <Layer {...parcelInvalidLayer(selectedParcelId)} />
       )}
     </Source>
   );
