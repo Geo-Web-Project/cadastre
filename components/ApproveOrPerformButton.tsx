@@ -129,37 +129,6 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     return true;
   }, [flowOperator]);
 
-  const approveFlowAllowance = React.useCallback(async () => {
-    if (!flowOperator) {
-      return true;
-    }
-    const signer = provider.getSigner() as any;
-
-    try {
-      const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
-        superToken: paymentToken.address,
-        flowOperator: flowOperator,
-      });
-
-      const txn = await op.exec(signer);
-      await txn.wait();
-    } catch (err) {
-      console.error(err);
-      setErrorMessage(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (err as any).reason
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message
-      );
-      setIsActing(false);
-      setDidFail(true);
-      return false;
-    }
-
-    return true;
-  }, [flowOperator]);
-
   React.useEffect(() => {
     const checkRequirements = async () => {
       const _approvals: (() => Promise<boolean>)[] = [];

@@ -221,7 +221,7 @@ function ProfileModal(props: ProfileModalProps) {
       );
 
       if (licenseOwner === account) {
-        if (!pendingBid || BigNumber.from(pendingBid.forSalePrice).eq(0)) {
+        if (!pendingBid || BigNumber.from(pendingBid.contributionRate).eq(0)) {
           status = "Valid";
           actionDate = "";
           forSalePrice = BigNumber.from(currentBid.forSalePrice);

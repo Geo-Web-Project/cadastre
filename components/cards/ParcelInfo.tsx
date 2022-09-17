@@ -127,9 +127,6 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
 
-  const [licenseDiamondContract, setLicenseDiamondContract] =
-    React.useState<PCOLicenseDiamond | null>(null);
-
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
   const pinningManager = usePinningManager(
