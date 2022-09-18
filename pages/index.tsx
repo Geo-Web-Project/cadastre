@@ -176,9 +176,10 @@ function IndexPage() {
     } else {
       return (
         <>
-          {ceramic && registryContract && paymentToken && library && (
+          {sfFramework && ceramic && registryContract && paymentToken && library && (
             <Profile
               account={authState.connected.accountID.address}
+              sfFramework={sfFramework}
               ceramic={ceramic}
               registryContract={registryContract}
               disconnectWallet={disconnectWallet}

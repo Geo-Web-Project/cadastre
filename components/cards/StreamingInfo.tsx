@@ -12,10 +12,11 @@ import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
-import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { STATE, GeoPoint } from "../Map";
 
 type StreamingInfoProps = {
+  sfFramework: Framework;
   account: string;
   ceramic: CeramicClient;
   registryContract: Contracts["registryDiamondContract"];

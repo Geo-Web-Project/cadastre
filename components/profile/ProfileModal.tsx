@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
-import BN from "bn.js";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import BN from "bn.js";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -20,6 +21,7 @@ import {
   // eslint-disable-next-line import/named
   AccountTokenSnapshot,
   NativeAssetSuperToken,
+  Framework,
 } from "@superfluid-finance/sdk-core";
 import { DataModel } from "@glazed/datamodel";
 import { model as GeoWebModel } from "@geo-web/datamodels";
@@ -31,7 +33,6 @@ import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import {
-  AUCTION_LENGTH,
   PAYMENT_TOKEN,
   NETWORK_ID,
   SECONDS_IN_WEEK,
@@ -43,6 +44,7 @@ import { STATE, GeoPoint } from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(advancedFormat);
 
 const LON_OFFSET = 0.00085;
 const LAT_OFFSET = 0.0002;
@@ -50,6 +52,7 @@ const LAT_OFFSET = 0.0002;
 type ProfileModalProps = {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
+  sfFramework: Framework;
   ceramic: CeramicClient;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
@@ -136,6 +139,7 @@ const portfolioQuery = gql`
 function ProfileModal(props: ProfileModalProps) {
   const {
     accountTokenSnapshot,
+    sfFramework,
     account,
     ceramic,
     registryContract,
@@ -210,6 +214,8 @@ function ProfileModal(props: ProfileModalProps) {
       let annualFee: BigNumber;
       let buffer: BigNumber;
       let action: string;
+      let auctionStart: number;
+      let foreclosureInfoPromise: Promise<void>;
 
       const parcelId = bid.parcel.id;
       const licenseOwner = bid.parcel.licenseOwner;
@@ -217,8 +223,9 @@ function ProfileModal(props: ProfileModalProps) {
       const pendingBid = bid.parcel.pendingBid;
       const coords = bid.parcel.coordinates;
       const signer = provider.getSigner();
+      const licenseDiamondAddress = bid.parcel.licenseDiamond;
       const licenseDiamondContract = PCOLicenseDiamondFactory.connect(
-        bid.parcel.licenseDiamond,
+        licenseDiamondAddress,
         signer
       );
 
@@ -297,18 +304,31 @@ function ProfileModal(props: ProfileModalProps) {
         .then(() => licenseDiamondContract.isPayerBidActive())
         .then((isPayerBidActive) => {
           if (licenseOwner === account && !isPayerBidActive) {
-            status = "In Foreclosure";
-            actionDate = dayjs.unix(currentBid.timestamp).format("YYYY/MM/DD");
-            forSalePrice = calculateAuctionValue(
-              forSalePrice,
-              BigNumber.from(currentBid.timestamp),
-              BigNumber.from(AUCTION_LENGTH)
-            );
-            annualFee = BigNumber.from(0);
-            buffer = BigNumber.from(0);
-            action = PortfolioAction.RECLAIM;
+            foreclosureInfoPromise = sfFramework.cfaV1
+              .getAccountFlowInfo({
+                superToken: paymentToken.address,
+                account: licenseDiamondAddress,
+                providerOrSigner: signer,
+              })
+              .then(({ timestamp }) => {
+                auctionStart = timestamp.getTime() / 1000;
+              })
+              .then(() => registryContract.getReclaimAuctionLength())
+              .then((auctionLength) => {
+                status = "In Foreclosure";
+                actionDate = dayjs.unix(auctionStart).format("YYYY/MM/DD");
+                forSalePrice = calculateAuctionValue(
+                  forSalePrice,
+                  BigNumber.from(auctionStart),
+                  BigNumber.from(auctionLength)
+                );
+                annualFee = BigNumber.from(0);
+                buffer = BigNumber.from(0);
+                action = PortfolioAction.RECLAIM;
+              });
           }
         })
+        .then(() => Promise.resolve(foreclosureInfoPromise))
         .then(() => assetContentManager.getRecordID("basicProfile"))
         .then((basicProfileStreamId) =>
           basicProfileStreamManager.setExistingStreamId(basicProfileStreamId)
@@ -340,26 +360,26 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     Promise.all(promises).then(() => {
-      let needActionCount = 0;
-
-      for (const parcel of _portfolio) {
-        if (
-          parcel.action === PortfolioAction.RESPOND ||
-          parcel.action === PortfolioAction.RECLAIM ||
-          parcel.action === PortfolioAction.TRIGGER
-        ) {
-          needActionCount++;
-        }
-      }
-
-      const total = {
-        price: calcTotal(_portfolio, "price"),
-        fee: calcTotal(_portfolio, "fee"),
-        buffer: calcTotal(_portfolio, "buffer"),
-      };
-      const sorted = sortPortfolio(_portfolio, "parcelId");
-
       if (isMounted) {
+        let needActionCount = 0;
+
+        for (const parcel of _portfolio) {
+          if (
+            parcel.action === PortfolioAction.RESPOND ||
+            parcel.action === PortfolioAction.RECLAIM ||
+            parcel.action === PortfolioAction.TRIGGER
+          ) {
+            needActionCount++;
+          }
+        }
+
+        const total = {
+          price: calcTotal(_portfolio, "price"),
+          fee: calcTotal(_portfolio, "fee"),
+          buffer: calcTotal(_portfolio, "buffer"),
+        };
+        const sorted = sortPortfolio(_portfolio, "parcelId");
+
         setPortfolioNeedActionCount(needActionCount);
         setPortfolioTotal(total);
         setPortfolio(sorted);
@@ -614,7 +634,7 @@ function ProfileModal(props: ProfileModalProps) {
                   Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY h:mmA")} ${dayjs.tz.guess()}`
+                  .format("MMM D, YYYY h:mmA z")}`
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>

@@ -14,10 +14,11 @@ import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { STATE, GeoPoint } from "../Map";
 
 type ProfileProps = {
+  sfFramework: Framework;
   account: string;
   ceramic: CeramicClient;
   registryContract: Contracts["registryDiamondContract"];
