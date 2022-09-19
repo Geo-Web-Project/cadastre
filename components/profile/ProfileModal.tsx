@@ -243,7 +243,7 @@ function ProfileModal(props: ProfileModalProps) {
           actionDate = dayjs
             .unix(pendingBid.timestamp)
             .add(7, "day")
-            .format("YYYY/MM/DD");
+            .format("YYYY-MM-DD");
           forSalePrice = BigNumber.from(pendingBid.forSalePrice);
           perSecondFeeNumerator = BigNumber.from(
             pendingBid.perSecondFeeNumerator
@@ -260,7 +260,7 @@ function ProfileModal(props: ProfileModalProps) {
         actionDate = dayjs
           .unix(pendingBid.timestamp)
           .add(7, "day")
-          .format("YYYY/MM/DD");
+          .format("YYYY-MM-DD");
         forSalePrice = BigNumber.from(pendingBid.forSalePrice);
         perSecondFeeNumerator = BigNumber.from(
           pendingBid.perSecondFeeNumerator
@@ -295,7 +295,7 @@ function ProfileModal(props: ProfileModalProps) {
                     ? deadline
                     : currentBid.timestamp
                 )
-                .format("YYYY/MM/DD");
+                .format("YYYY-MM-DD");
               forSalePrice = BigNumber.from(pendingBid.forSalePrice);
               action = PortfolioAction.TRIGGER;
             }
@@ -316,7 +316,7 @@ function ProfileModal(props: ProfileModalProps) {
               .then(() => registryContract.getReclaimAuctionLength())
               .then((auctionLength) => {
                 status = "In Foreclosure";
-                actionDate = dayjs.unix(auctionStart).format("YYYY/MM/DD");
+                actionDate = dayjs.unix(auctionStart).format("YYYY-MM-DD");
                 forSalePrice = calculateAuctionValue(
                   forSalePrice,
                   BigNumber.from(auctionStart),

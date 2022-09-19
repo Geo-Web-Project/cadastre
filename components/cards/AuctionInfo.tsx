@@ -70,7 +70,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           .mul(1000)
           .toNumber();
         setAuctionEnd(
-          `${dayjs(invalidationTime).utc().format("MM/DD/YYYY HH:mm")} UTC`
+          `${dayjs(invalidationTime).utc().format("MM-DD-YYYY HH:mm")} UTC`
         );
 
         interval = setInterval(() => {
