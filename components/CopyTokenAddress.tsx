@@ -9,6 +9,7 @@ export type TokenOptions = {
   symbol: string;
   decimals: number;
   image: string;
+  size?: string;
 };
 
 export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
@@ -45,11 +46,22 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
           className="d-flex bg-transparent border-0 align-items-center"
         >
           <Image style={{ width: "16px" }} src="/eth.png" alt="eth" />
-          <span className="px-2">{truncateStr(options.address, 16)}</span>
+          <span
+            className={`text-black ${
+              options.size === "small" ? "px-1 small" : "px-2"
+            }`}
+          >
+            {truncateStr(options.address, 16)}
+          </span>
           <Image style={{ width: "16px" }} src="/copy.svg" alt="copy" />
         </Button>
       </OverlayTrigger>
-      <Button className="bg-transparent border-0 px-2" onClick={addToMetaMask}>
+      <Button
+        className={`bg-transparent border-0 ${
+          options.size === "small" ? "px-1" : "px-2"
+        }`}
+        onClick={addToMetaMask}
+      >
         <Image style={{ width: "16px" }} src="/MetaMask.png" alt="metamask" />
       </Button>
     </div>

@@ -114,8 +114,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] =
-    React.useState<string | null>(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
+    string | null
+  >(null);
 
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
@@ -212,6 +213,34 @@ function ParcelInfo(props: ParcelInfoProps) {
         providerOrSigner: signer,
       });
       setAuctionStart(timestamp);
+    };
+
+    loadLicenseDiamond();
+  }, [licenseDiamondAddress, sfFramework, paymentToken]);
+
+  React.useEffect(() => {
+    const loadLicenseDiamond = async () => {
+      if (!licenseDiamondAddress) {
+        setLicenseDiamondContract(null);
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const signer = provider.getSigner() as any;
+
+      const _licenseDiamond = PCOLicenseDiamondFactory.connect(
+        licenseDiamondAddress,
+        signer
+      );
+
+      setLicenseDiamondContract(_licenseDiamond);
+
+      const isPayerBidActive = await _licenseDiamond.isPayerBidActive();
+      if (isPayerBidActive) {
+        setInvalidLicenseId("");
+      } else {
+        setInvalidLicenseId(selectedParcelId);
+      }
     };
 
     loadLicenseDiamond();

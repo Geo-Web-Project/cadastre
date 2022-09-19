@@ -43,6 +43,7 @@ export type ActionFormProps = SidebarProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export type ActionData = {
@@ -78,6 +79,7 @@ export function ActionForm(props: ActionFormProps) {
     requiredPayment,
     spender,
     hasOutstandingBid = false,
+    setIsPortfolioToUpdate,
   } = props;
 
   const {
@@ -210,6 +212,7 @@ export function ActionForm(props: ActionFormProps) {
 
     updateActionData({ isActing: false });
     setInteractionState(STATE.PARCEL_SELECTED);
+    setIsPortfolioToUpdate(true);
   }
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;

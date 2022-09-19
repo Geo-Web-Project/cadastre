@@ -1,5 +1,5 @@
 import Home from "../components/Home";
-import Map from "../components/Map";
+import Map, { STATE, GeoPoint } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 
@@ -39,17 +39,30 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [registryContract, setRegistryContract] =
-    React.useState<Contracts["registryDiamondContract"] | null>(null);
+  const [registryContract, setRegistryContract] = React.useState<
+    Contracts["registryDiamondContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
+  const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
+    React.useState(0);
+  const [selectedParcelId, setSelectedParcelId] = React.useState("");
+  const [interactionState, setInteractionState] = React.useState<STATE>(
+    STATE.VIEWING
+  );
+  const [portfolioParcelCoords, setPortfolioParcelCoords] = React.useState<
+    GeoPoint
+  | null>(null);
+  const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
 
   const connectWallet = async () => {
     const _authState = await activate();
@@ -162,11 +175,27 @@ function IndexPage() {
       );
     } else {
       return (
-        <Profile
-          account={authState.connected.accountID.address}
-          disconnectWallet={disconnectWallet}
-          paymentToken={paymentToken}
-        />
+        <>
+          {sfFramework && ceramic && registryContract && paymentToken && library && (
+            <Profile
+              account={authState.connected.accountID.address}
+              sfFramework={sfFramework}
+              ceramic={ceramic}
+              registryContract={registryContract}
+              disconnectWallet={disconnectWallet}
+              paymentToken={paymentToken}
+              provider={library}
+              portfolioNeedActionCount={portfolioNeedActionCount}
+              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+              setSelectedParcelId={setSelectedParcelId}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              setPortfolioParcelCoords={setPortfolioParcelCoords}
+              isPortfolioToUpdate={isPortfolioToUpdate}
+              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+            />
+          )}
+        </>
       );
     }
   };
@@ -220,6 +249,16 @@ function IndexPage() {
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
+              disconnectWallet={disconnectWallet}
+              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+              selectedParcelId={selectedParcelId}
+              setSelectedParcelId={setSelectedParcelId}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              portfolioParcelCoords={portfolioParcelCoords}
+              isPortfolioToUpdate={isPortfolioToUpdate}
+              setPortfolioParcelCoords={setPortfolioParcelCoords}
+              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
             ></Map>
           </Row>
         ) : (

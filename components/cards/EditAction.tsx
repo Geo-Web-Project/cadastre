@@ -26,8 +26,6 @@ function EditAction(props: EditActionProps) {
     basicProfileStreamManager,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    account,
     hasOutstandingBid,
     licenseDiamondContract,
     registryContract,
@@ -180,7 +178,9 @@ function EditAction(props: EditActionProps) {
         flowOperator={licenseDiamondContract?.address ?? ""}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        {...props}
+      />
     </>
   );
 }

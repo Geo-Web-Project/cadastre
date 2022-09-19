@@ -7,23 +7,8 @@ import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
-import { calculateTimeString } from "../../lib/utils";
+import { calculateTimeString, calculateAuctionValue } from "../../lib/utils";
 import { ParcelInfoProps } from "./ParcelInfo";
-
-function _calculateAuctionValue(
-  forSalePrice: BigNumber,
-  auctionStart: BigNumber,
-  auctionLength: BigNumber
-) {
-  const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
-  if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
-    return BigNumber.from(0);
-  }
-
-  const timeElapsed = blockTimestamp.sub(auctionStart);
-  const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
-  return forSalePrice.sub(priceDecrease);
-}
 
 export type AuctionInfoProps = ParcelInfoProps & {
   account: string;
@@ -85,7 +70,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           .mul(1000)
           .toNumber();
         setAuctionEnd(
-          `${dayjs(invalidationTime).utc().format("MM/DD/YYYY HH:mm")} UTC`
+          `${dayjs(invalidationTime).utc().format("MM-DD-YYYY HH:mm")} UTC`
         );
 
         interval = setInterval(() => {
@@ -93,7 +78,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           setTimeRemaining(calculateTimeString(remaining));
 
           setRequiredBid(
-            _calculateAuctionValue(
+            calculateAuctionValue(
               forSalePrice,
               BigNumber.from(auctionStart.getTime()).div(1000),
               auctionLength

@@ -54,16 +54,14 @@ const infoIcon = (
 function RejectBidAction(props: RejectBidActionProps) {
   const {
     parcelData,
-    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    account,
     licenseDiamondContract,
     registryContract,
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
+    setIsPortfolioToUpdate,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -227,6 +225,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     setIsActing(false);
+    setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -392,14 +391,14 @@ function RejectBidAction(props: RejectBidActionProps) {
 
       {showWrapModal && (
         <WrapModal
-          account={account}
-          provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentToken={paymentToken}
+          {...props}
         />
       )}
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        {...props}
+      />
     </>
   );
 }

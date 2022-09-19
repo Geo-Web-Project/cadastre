@@ -45,21 +45,20 @@ const infoIcon = (
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     parcelData,
-    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    paymentToken,
-    account,
-    setInteractionState,
     licenseDiamondContract,
+    setInteractionState,
+    setIsPortfolioToUpdate,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
-    React.useState<string | null>(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
+    string | null
+  >(null);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -153,6 +152,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     setIsActing(false);
+    setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -305,14 +305,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
       {showWrapModal && (
         <WrapModal
-          account={account}
-          provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentToken={paymentToken}
+          {...props}
         />
       )}
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        {...props}
+      />
     </>
   );
 }

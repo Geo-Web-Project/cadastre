@@ -21,7 +21,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
     licenseOwner,
-    paymentToken,
     requiredBid,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -130,7 +129,9 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        {...props}
+      />
     </>
   );
 }

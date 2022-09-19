@@ -22,7 +22,6 @@ export type ClaimActionProps = SidebarProps & {
 function ClaimAction(props: ClaimActionProps) {
   const {
     account,
-    paymentToken,
     claimBase1Coord,
     claimBase2Coord,
     registryContract,
@@ -161,7 +160,9 @@ function ClaimAction(props: ClaimActionProps) {
         flowOperator={flowOperator}
         {...props}
       />
-      <StreamingInfo account={account} paymentToken={paymentToken} />
+      <StreamingInfo
+        {...props}
+      />
     </>
   );
 }

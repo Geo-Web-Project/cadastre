@@ -1,5 +1,7 @@
 import React from "react";
 import { ethers } from "ethers";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
@@ -9,15 +11,34 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
-import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import Badge from "react-bootstrap/Badge";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { STATE, GeoPoint } from "../Map";
 
 type ProfileProps = {
+  sfFramework: Framework;
   account: string;
+  ceramic: CeramicClient;
+  registryContract: Contracts["registryDiamondContract"];
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  interactionState: STATE;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   disconnectWallet: () => Promise<void>;
-  paymentToken?: NativeAssetSuperToken;
+  paymentToken: NativeAssetSuperToken;
+  provider: ethers.providers.Web3Provider;
+  portfolioNeedActionCount: number;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  setPortfolioParcelCoords: React.Dispatch<
+    React.SetStateAction<GeoPoint | null>
+  >;
+  isPortfolioToUpdate: boolean;
+  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
+function Profile(props: ProfileProps) {
+  const { account, paymentToken, portfolioNeedActionCount } = props;
   const [showProfile, setShowProfile] = React.useState(false);
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -61,10 +82,9 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
               />
               <ProfileModal
                 accountTokenSnapshot={data.items[0]}
-                account={account}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
-                disconnectWallet={disconnectWallet}
+                {...props}
               />
             </>
           )}
@@ -75,7 +95,23 @@ function Profile({ account, disconnectWallet, paymentToken }: ProfileProps) {
           onClick={handleShowProfile}
           className="text-light bg-dark"
         >
-          {truncateStr(account, 14)} <Image src="./ProfileIcon.png" />
+          {truncateStr(account, 14)}{" "}
+          {portfolioNeedActionCount ? (
+            <OverlayTrigger
+              trigger={["hover", "focus"]}
+              placement="bottom"
+              delay={{ show: 250, hide: 400 }}
+              overlay={
+                <Tooltip>You have parcels that require attention.</Tooltip>
+              }
+            >
+              <Badge bg="danger" pill={true} text="light">
+                {portfolioNeedActionCount}
+              </Badge>
+            </OverlayTrigger>
+          ) : (
+            <Image src="./ProfileIcon.png" />
+          )}
         </Button>
       </ButtonGroup>
       <a
