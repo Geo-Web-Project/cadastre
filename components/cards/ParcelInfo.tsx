@@ -530,9 +530,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               <br />
               {invalidLicenseId == selectedParcelId ? null : buttons}
             </>
-          ) : interactionState == STATE.PARCEL_RECLAIMING ? null : (
-            <p>Unclaimed Coordinates</p>
-          )}
+          ) : null}
           {(interactionState == STATE.PARCEL_RECLAIMING ||
             (interactionState == STATE.PARCEL_SELECTED &&
               invalidLicenseId == selectedParcelId &&
