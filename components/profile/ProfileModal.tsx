@@ -634,7 +634,7 @@ function ProfileModal(props: ProfileModalProps) {
                   Date.now() / 1000
               ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY h:mmA z")}`
+                  .format("MMM D, YYYY HH:mm z")}`
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>

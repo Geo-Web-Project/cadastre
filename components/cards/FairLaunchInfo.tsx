@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { BigNumber, ethers } from "ethers";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import duration from "dayjs/plugin/duration";
 import Row from "react-bootstrap/Row";
@@ -16,6 +17,7 @@ import { calculateTimeString } from "../../lib/utils";
 import { truncateEth } from "../../lib/truncate";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 dayjs.extend(duration);
 
@@ -53,9 +55,9 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
 
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
-  const formattedAuctionEnd = dayjs(auctionEnd.toNumber() * 1000)
-    .utc()
-    .format("YYYY-MM-DD HH:mm");
+  const formattedAuctionEnd = dayjs
+    .unix(auctionEnd.toNumber())
+    .format("YYYY-MM-DD HH:mm z");
 
   useEffect(() => {
     let interval: NodeJS.Timer | null = null;
@@ -122,7 +124,7 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
             Current Required Bid:{" "}
             {truncateEth(ethers.utils.formatEther(requiredBid), 8)} ETHx
           </Card.Text>
-          <Card.Text>Auction End: {formattedAuctionEnd} UTC</Card.Text>
+          <Card.Text>Auction End: {formattedAuctionEnd}</Card.Text>
           <Card.Text>
             Time Remaining: <span>{timeRemaining}</span>
           </Card.Text>
