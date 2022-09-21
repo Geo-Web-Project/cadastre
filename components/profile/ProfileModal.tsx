@@ -282,12 +282,12 @@ function ProfileModal(props: ProfileModalProps) {
       );
 
       const promiseChain = licenseDiamondContract
-        .contributionRate()
-        .then((ownerBidContributionRate) => {
+        .shouldBidPeriodEndEarly()
+        .then((shouldBidPeriodEndEarly) => {
           if (pendingBid && BigNumber.from(pendingBid.contributionRate).gt(0)) {
             const deadline = Number(pendingBid.timestamp) + SECONDS_IN_WEEK;
             const isPastDeadline = deadline * 1000 <= Date.now();
-            if (isPastDeadline || ownerBidContributionRate.eq(0)) {
+            if (isPastDeadline || shouldBidPeriodEndEarly) {
               status = "Needs Transfer";
               actionDate = dayjs
                 .unix(
