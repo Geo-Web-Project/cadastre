@@ -253,7 +253,7 @@ function OutstandingBidView({
               For Sale Price (Bid): {newForSalePriceDisplay} {PAYMENT_TOKEN}
             </p>
             <p>
-              Bidder Collateral{" "}
+              Bidder Collateral:{" "}
               {data && !isLoading ? (
                 <FlowingBalance
                   format={(availableBalance) =>
