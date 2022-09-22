@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { BigNumber } from "ethers";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { STATE } from "../Map";
@@ -9,6 +12,10 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateTimeString, calculateAuctionValue } from "../../lib/utils";
 import { ParcelInfoProps } from "./ParcelInfo";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(advancedFormat);
 
 export type AuctionInfoProps = ParcelInfoProps & {
   account: string;
@@ -70,7 +77,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           .mul(1000)
           .toNumber();
         setAuctionEnd(
-          `${dayjs(invalidationTime).utc().format("MM-DD-YYYY HH:mm")} UTC`
+          `${dayjs.unix(invalidationTime / 1000).format("MM-DD-YYYY HH:mm z")}`
         );
 
         interval = setInterval(() => {

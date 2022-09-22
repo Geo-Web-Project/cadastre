@@ -7,6 +7,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate } from "../../lib/utils";
@@ -15,6 +16,7 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
 type OutstandingBidViewProps = SidebarProps & {
@@ -88,9 +90,7 @@ function OutstandingBidView({
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
   const formattedBidDeadline = bidDeadline
-    ? dayjs(bidDeadline.toNumber() * 1000)
-        .utc()
-        .format("YYYY-MM-DD HH:mm")
+    ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
   const isPastDeadline =
@@ -186,7 +186,7 @@ function OutstandingBidView({
         </p>
         <p>
           Response Deadline:{" "}
-          {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
+          {formattedBidDeadline ? formattedBidDeadline : spinner}
         </p>
         {licensorIsOwner && !shouldAllowTrigger ? (
           <>

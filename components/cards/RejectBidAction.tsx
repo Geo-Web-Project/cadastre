@@ -20,6 +20,7 @@ import Row from "react-bootstrap/Row";
 import WrapModal from "../wrap/WrapModal";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
@@ -30,6 +31,7 @@ import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
 export type RejectBidActionProps = SidebarProps & {
@@ -179,9 +181,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
   const formattedBidDeadline = bidDeadline
-    ? dayjs(bidDeadline.toNumber() * 1000)
-        .utc()
-        .format("YYYY-MM-DD HH:mm")
+    ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
   async function rejectBid() {
@@ -241,7 +241,7 @@ function RejectBidAction(props: RejectBidActionProps) {
           </p>
           <p>
             Response Deadline:{" "}
-            {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
+            {formattedBidDeadline ? formattedBidDeadline : spinner}
           </p>
           <Form>
             <Form.Group>
@@ -396,9 +396,7 @@ function RejectBidAction(props: RejectBidActionProps) {
           {...props}
         />
       )}
-      <StreamingInfo
-        {...props}
-      />
+      <StreamingInfo {...props} />
     </>
   );
 }
