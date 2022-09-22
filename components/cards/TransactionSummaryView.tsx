@@ -54,7 +54,7 @@ function TransactionSummaryView({
     React.useState<BigNumber | null>(null);
   React.useEffect(() => {
     const run = async () => {
-      if (!stream) {
+      if (!stream || stream.div(365 * 24 * 60 * 60).lte(0)) {
         setStreamBuffer(null);
         return;
       }
@@ -69,7 +69,13 @@ function TransactionSummaryView({
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, stream]);
+  }, [
+    sfFramework,
+    paymentToken,
+    provider,
+    newAnnualNetworkFee,
+    existingAnnualNetworkFee,
+  ]);
 
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 18)
