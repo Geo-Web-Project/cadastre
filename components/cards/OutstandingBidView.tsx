@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import * as React from "react";
 import { Card } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
@@ -7,6 +7,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
@@ -15,9 +16,9 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
-import { ethers } from "ethers";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
 type OutstandingBidViewProps = SidebarProps & {
@@ -115,16 +116,14 @@ function OutstandingBidView({
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
   const formattedBidDeadline = bidDeadline
-    ? dayjs(bidDeadline.toNumber() * 1000)
-        .utc()
-        .format("YYYY-MM-DD HH:mm")
+    ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
   const isPastDeadline =
     bidDeadline && new Date(Number(bidDeadline) * 1000) <= new Date();
 
   const formattedActionDate = actionDate
-    ? dayjs(actionDate).utc().format("YYYY-MM-DD HH:mm")
+    ? dayjs(actionDate).utc().format("YYYY-MM-DD HH:mm z")
     : null;
 
   const shouldAllowTrigger = shouldBidPeriodEndEarly || isPastDeadline;
@@ -297,8 +296,7 @@ function OutstandingBidView({
               )}
             </p>
             <p>
-              Action Date: {formattedActionDate ? formattedActionDate : spinner}{" "}
-              UTC
+              Action Date: {formattedActionDate ? formattedActionDate : spinner}
             </p>
           </>
         ) : (
@@ -314,11 +312,10 @@ function OutstandingBidView({
             </p>
             <p>
               Response Deadline:{" "}
-              {formattedBidDeadline ? formattedBidDeadline : spinner} UTC
+              {formattedBidDeadline ? formattedBidDeadline : spinner}
             </p>
           </>
         )}
-
         {licensorIsOwner && !shouldAllowTrigger ? (
           <>
             <Button
