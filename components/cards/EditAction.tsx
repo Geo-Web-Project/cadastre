@@ -6,7 +6,7 @@ import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { GeoWebParcel } from "./ParcelInfo";
@@ -29,6 +29,9 @@ function EditAction(props: EditActionProps) {
     hasOutstandingBid,
     licenseDiamondContract,
     registryContract,
+    sfFramework,
+    paymentToken,
+    provider,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
@@ -111,13 +114,47 @@ function EditAction(props: EditActionProps) {
         )
       : null;
 
-  const requiredExistingBuffer = existingNetworkFee
-    ? calculateBufferNeeded(existingNetworkFee, NETWORK_ID)
-    : null;
+  const [requiredExistingBuffer, setRequiredExistingBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!existingNetworkFee) {
+        setRequiredExistingBuffer(null);
+        return;
+      }
 
-  const requiredNewBuffer = newNetworkFee
-    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
-    : null;
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        existingNetworkFee
+      );
+      setRequiredExistingBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayCurrentForSalePrice]);
+
+  const [requiredNewBuffer, setRequiredNewBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setRequiredNewBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setRequiredNewBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
 
   async function _edit() {
     updateActionData({ isActing: true });
@@ -178,9 +215,7 @@ function EditAction(props: EditActionProps) {
         flowOperator={licenseDiamondContract?.address ?? ""}
         {...props}
       />
-      <StreamingInfo
-        {...props}
-      />
+      <StreamingInfo {...props} />
     </>
   );
 }

@@ -204,21 +204,56 @@ function OutstandingBidView({
     perSecondFeeDenominator
   );
 
-  const existingBuffer = existingNetworkFee
-    ? calculateBufferNeeded(existingNetworkFee, NETWORK_ID)
-    : null;
+  const [existingBuffer, setExistingBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!existingNetworkFee) {
+        setExistingBuffer(null);
+        return;
+      }
 
-  const newBuffer = newNetworkFee
-    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
-    : null;
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        existingNetworkFee
+      );
+      setExistingBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, existingForSalePrice]);
+
+  const [newBuffer, setNewBuffer] = React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setNewBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setNewBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, newForSalePrice]);
 
   const calculatePayerPayout = (availableBalance: BigNumber) => {
-    return newBuffer
-      ? existingForSalePrice
-          .add(availableBalance)
-          .sub(newForSalePrice)
-          .sub(newBuffer)
-      : null;
+    if (!newBuffer || !existingBuffer) {
+      return BigNumber.from(0);
+    }
+
+    const payout = availableBalance
+      .sub(newForSalePrice.sub(existingForSalePrice))
+      .sub(newBuffer.sub(existingBuffer));
+    return payout.gt(0) ? payout : BigNumber.from(0);
   };
 
   const calculateBidderPayout = (availableBalance: BigNumber) => {
