@@ -8,6 +8,7 @@ import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   CERAMIC_EXPLORER,
+  BLOCK_EXPLORER,
   SPATIAL_DOMAIN,
 } from "../../lib/constants";
 import { truncateStr } from "../../lib/truncate";
@@ -506,7 +507,22 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Parcel ID:</span>{" "}
-                {isLoading ? spinner : selectedParcelId}
+                {isLoading ? (
+                  spinner
+                ) : (
+                  <a
+                    href={`${BLOCK_EXPLORER}/token/${
+                      registryContract.address
+                    }?a=${new BN(selectedParcelId.slice(2), "hex").toString(
+                      10
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-light"
+                  >
+                    {selectedParcelId}
+                  </a>
+                )}
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Licensee:</span>{" "}
