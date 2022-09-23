@@ -4,11 +4,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import {
-  PAYMENT_TOKEN,
-  SECONDS_IN_YEAR,
-  NETWORK_ID,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -64,6 +60,9 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidForSalePrice,
     setInteractionState,
     setIsPortfolioToUpdate,
+    sfFramework,
+    paymentToken,
+    provider,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -152,13 +151,47 @@ function RejectBidAction(props: RejectBidActionProps) {
   const isInvalid =
     isForSalePriceInvalid || !displayNewForSalePrice || !penaltyPayment;
 
-  const oldRequiredBuffer = calculateBufferNeeded(
-    existingNetworkFee,
-    NETWORK_ID
-  );
-  const newRequiredBuffer = newNetworkFee
-    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
-    : null;
+  const [oldRequiredBuffer, setOldRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!existingNetworkFee) {
+        setOldRequiredBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        existingNetworkFee
+      );
+      setOldRequiredBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayCurrentForSalePrice]);
+
+  const [newRequiredBuffer, setNewRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setNewRequiredBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setNewRequiredBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
 
   React.useEffect(() => {
     async function checkBidPeriod() {
@@ -354,7 +387,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               buttonText={"Bid"}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
-                penaltyPayment && newRequiredBuffer
+                penaltyPayment && newRequiredBuffer && oldRequiredBuffer
                   ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
                   : null
               }

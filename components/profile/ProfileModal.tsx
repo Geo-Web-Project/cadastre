@@ -36,6 +36,7 @@ import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   SECONDS_IN_WEEK,
+  SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
@@ -115,12 +116,15 @@ const portfolioQuery = gql`
           licenseDiamond
           currentBid {
             forSalePrice
+            contributionRate
             perSecondFeeNumerator
+            perSecondFeeDenominator
             timestamp
           }
           pendingBid {
             forSalePrice
             perSecondFeeNumerator
+            perSecondFeeDenominator
             timestamp
             contributionRate
           }
@@ -210,7 +214,9 @@ function ProfileModal(props: ProfileModalProps) {
       let status: string;
       let actionDate: string;
       let forSalePrice: BigNumber;
+      let contributionRate: BigNumber;
       let perSecondFeeNumerator: BigNumber;
+      let perSecondFeeDenominator: BigNumber;
       let annualFee: BigNumber;
       let buffer: BigNumber;
       let action: string;
@@ -234,8 +240,12 @@ function ProfileModal(props: ProfileModalProps) {
           status = "Valid";
           actionDate = "";
           forSalePrice = BigNumber.from(currentBid.forSalePrice);
+          contributionRate = BigNumber.from(currentBid.contributionRate);
           perSecondFeeNumerator = BigNumber.from(
             currentBid.perSecondFeeNumerator
+          );
+          perSecondFeeDenominator = BigNumber.from(
+            currentBid.perSecondFeeDenominator
           );
           action = PortfolioAction.VIEW;
         } else if (BigNumber.from(pendingBid.contributionRate).gt(0)) {
@@ -245,8 +255,12 @@ function ProfileModal(props: ProfileModalProps) {
             .add(7, "day")
             .format("YYYY-MM-DD");
           forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+          contributionRate = BigNumber.from(pendingBid.contributionRate);
           perSecondFeeNumerator = BigNumber.from(
             pendingBid.perSecondFeeNumerator
+          );
+          perSecondFeeDenominator = BigNumber.from(
+            pendingBid.perSecondFeeDenominator
           );
           action = PortfolioAction.RESPOND;
         } else {
@@ -262,16 +276,23 @@ function ProfileModal(props: ProfileModalProps) {
           .add(7, "day")
           .format("YYYY-MM-DD");
         forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+        contributionRate = BigNumber.from(pendingBid.contributionRate);
         perSecondFeeNumerator = BigNumber.from(
           pendingBid.perSecondFeeNumerator
+        );
+        perSecondFeeDenominator = BigNumber.from(
+          pendingBid.perSecondFeeDenominator
         );
         action = PortfolioAction.VIEW;
       } else {
         continue;
       }
 
-      annualFee = forSalePrice.div(perSecondFeeNumerator);
-      buffer = calculateBufferNeeded(annualFee, NETWORK_ID);
+      const annualFeePercentage =
+        (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
+        perSecondFeeDenominator.toNumber();
+
+      annualFee = forSalePrice.mul(annualFeePercentage).div(100);
 
       const assetContentManager = getAssetContentManager(
         parcelId,
@@ -282,12 +303,12 @@ function ProfileModal(props: ProfileModalProps) {
       );
 
       const promiseChain = licenseDiamondContract
-        .contributionRate()
-        .then((ownerBidContributionRate) => {
+        .shouldBidPeriodEndEarly()
+        .then((shouldBidPeriodEndEarly) => {
           if (pendingBid && BigNumber.from(pendingBid.contributionRate).gt(0)) {
             const deadline = Number(pendingBid.timestamp) + SECONDS_IN_WEEK;
             const isPastDeadline = deadline * 1000 <= Date.now();
-            if (isPastDeadline || ownerBidContributionRate.eq(0)) {
+            if (isPastDeadline || shouldBidPeriodEndEarly) {
               status = "Needs Transfer";
               actionDate = dayjs
                 .unix(
@@ -297,9 +318,21 @@ function ProfileModal(props: ProfileModalProps) {
                 )
                 .format("YYYY-MM-DD");
               forSalePrice = BigNumber.from(pendingBid.forSalePrice);
+              contributionRate = BigNumber.from(pendingBid.contributionRate);
               action = PortfolioAction.TRIGGER;
             }
           }
+        })
+        .then(() =>
+          calculateBufferNeeded(
+            sfFramework,
+            provider,
+            paymentToken,
+            contributionRate
+          )
+        )
+        .then((bufferNeeded) => {
+          buffer = bufferNeeded;
         })
         .then(() => licenseDiamondContract.isPayerBidActive())
         .then((isPayerBidActive) => {

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import BN from "bn.js";
 
@@ -27,9 +27,12 @@ function ReclaimAction(props: ReclaimActionProps) {
     licenseDiamondContract,
     registryContract,
     selectedParcelId,
+    sfFramework,
+    paymentToken,
+    provider,
   } = props;
 
-  const [actionData, setActionData] = useState<ActionData>({
+  const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
     didFail: false,
     displayNewForSalePrice: "",
@@ -60,9 +63,26 @@ function ReclaimAction(props: ReclaimActionProps) {
         )
       : null;
 
-  const requiredBuffer = newNetworkFee
-    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
-    : null;
+  const [requiredBuffer, setRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setRequiredBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setRequiredBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -129,9 +149,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         {...props}
       />
-      <StreamingInfo
-        {...props}
-      />
+      <StreamingInfo {...props} />
     </>
   );
 }

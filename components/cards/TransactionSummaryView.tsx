@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import * as React from "react";
-import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
+import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded } from "../../lib/utils";
@@ -26,23 +26,15 @@ function TransactionSummaryView({
   account,
   interactionState,
   licenseOwner,
-  provider,
   isFairLaunch,
   claimPayment,
   collateralDeposit,
   currentForSalePrice,
   penaltyPayment,
+  sfFramework,
+  paymentToken,
+  provider,
 }: TransactionSummaryViewProps) {
-  const [currentChainID, setCurrentChainID] =
-    React.useState<number>(NETWORK_ID);
-
-  React.useEffect(() => {
-    (async () => {
-      const { chainId } = await provider.getNetwork();
-      setCurrentChainID(chainId);
-    })();
-  }, [provider]);
-
   const txnReady = newAnnualNetworkFee != null;
 
   const isDeltaPayment = !collateralDeposit && !claimPayment;
@@ -58,9 +50,36 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const streamBuffer = calculateBufferNeeded(stream, currentChainID);
+  const [streamBuffer, setStreamBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!stream || stream.div(365 * 24 * 60 * 60).lte(0)) {
+        setStreamBuffer(null);
+        return;
+      }
 
-  const streamBufferDisplay = truncateEth(formatBalance(streamBuffer), 18);
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        stream.div(365 * 24 * 60 * 60)
+      );
+      setStreamBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [
+    sfFramework,
+    paymentToken,
+    provider,
+    newAnnualNetworkFee,
+    existingAnnualNetworkFee,
+  ]);
+
+  const streamBufferDisplay = streamBuffer
+    ? truncateEth(formatBalance(streamBuffer), 18)
+    : "";
 
   let paymentView;
 

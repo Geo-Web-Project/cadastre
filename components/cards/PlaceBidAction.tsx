@@ -4,11 +4,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import {
-  PAYMENT_TOKEN,
-  SECONDS_IN_YEAR,
-  NETWORK_ID,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -50,15 +46,17 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     licenseDiamondContract,
     setInteractionState,
     setIsPortfolioToUpdate,
+    sfFramework,
+    paymentToken,
+    provider,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
-    string | null
-  >(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
+    React.useState<string | null>(null);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -111,9 +109,26 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  const requiredBuffer = newNetworkFee
-    ? calculateBufferNeeded(newNetworkFee, NETWORK_ID)
-    : null;
+  const [requiredBuffer, setRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setRequiredBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setRequiredBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
 
   async function placeBid() {
     setIsActing(true);
@@ -310,9 +325,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           {...props}
         />
       )}
-      <StreamingInfo
-        {...props}
-      />
+      <StreamingInfo {...props} />
     </>
   );
 }

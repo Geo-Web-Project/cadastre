@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import * as React from "react";
 import { Card } from "react-bootstrap";
-import { PAYMENT_TOKEN } from "../../lib/constants";
+import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { SidebarProps } from "../Sidebar";
@@ -10,10 +10,12 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import { FlowingBalance } from "../profile/FlowingBalance";
+import { sfSubgraph } from "../../redux/store";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -42,10 +44,24 @@ function OutstandingBidView({
   setInteractionState,
   setSelectedParcelId,
   setIsPortfolioToUpdate,
+  sfFramework,
+  paymentToken,
+  provider,
 }: OutstandingBidViewProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
+  const [shouldBidPeriodEndEarly, setShouldBidPeriodEndEarly] =
+    React.useState<boolean | null>(null);
+  const [actionDate, setActionDate] = React.useState<Date | null>(null);
+
+  const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
+    chainId: NETWORK_ID,
+    filter: {
+      account: licenseDiamondContract ? licenseDiamondContract.address : "",
+      token: paymentToken.address,
+    },
+  });
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -65,8 +81,6 @@ function OutstandingBidView({
 
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
-  const [ownerBidContributionRate, setOwnerBidContributionRate] =
-    React.useState<BigNumber | null>(null);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -79,9 +93,21 @@ function OutstandingBidView({
       if (!registryContract || !licenseDiamondContract) return;
 
       setBidPeriodLength(await registryContract.getBidPeriodLengthInSeconds());
-      setOwnerBidContributionRate(
-        await licenseDiamondContract.contributionRate()
-      );
+
+      const _shouldBidPeriodEndEarly =
+        await licenseDiamondContract.shouldBidPeriodEndEarly();
+      setShouldBidPeriodEndEarly(_shouldBidPeriodEndEarly);
+
+      if (_shouldBidPeriodEndEarly) {
+        const accountInfo = await sfFramework.cfaV1.getAccountFlowInfo({
+          superToken: paymentToken.address,
+          account: licenseDiamondContract.address,
+          providerOrSigner: provider,
+        });
+        setActionDate(accountInfo.timestamp);
+      } else {
+        setActionDate(null);
+      }
     }
 
     checkBidPeriod();
@@ -96,9 +122,11 @@ function OutstandingBidView({
   const isPastDeadline =
     bidDeadline && new Date(Number(bidDeadline) * 1000) <= new Date();
 
-  const shouldAllowTrigger =
-    ownerBidContributionRate &&
-    (ownerBidContributionRate.eq(0) || isPastDeadline);
+  const formattedActionDate = actionDate
+    ? dayjs(actionDate).format("YYYY-MM-DD HH:mm z")
+    : null;
+
+  const shouldAllowTrigger = shouldBidPeriodEndEarly || isPastDeadline;
 
   async function acceptBid() {
     setIsActing(true);
@@ -169,25 +197,160 @@ function OutstandingBidView({
     setSelectedParcelId(selectedParcelId);
   }
 
+  // Calculate payout if surplus or depleted balance
+  const newNetworkFee = fromValueToRate(
+    newForSalePrice,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator
+  );
+
+  const [existingBuffer, setExistingBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!existingNetworkFee) {
+        setExistingBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        existingNetworkFee
+      );
+      setExistingBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, existingForSalePrice]);
+
+  const [newBuffer, setNewBuffer] = React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newNetworkFee) {
+        setNewBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newNetworkFee
+      );
+      setNewBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, newForSalePrice]);
+
+  const calculatePayerPayout = (availableBalance: BigNumber) => {
+    if (!newBuffer || !existingBuffer) {
+      return BigNumber.from(0);
+    }
+
+    const payout = availableBalance
+      .sub(newForSalePrice.sub(existingForSalePrice))
+      .sub(newBuffer.sub(existingBuffer));
+    return payout.gt(0) ? payout : BigNumber.from(0);
+  };
+
+  const calculateBidderPayout = (availableBalance: BigNumber) => {
+    if (
+      existingBuffer &&
+      availableBalance.lt(existingForSalePrice.add(existingBuffer))
+    ) {
+      return newForSalePrice
+        .sub(existingForSalePrice)
+        .sub(existingForSalePrice.add(existingBuffer));
+    } else {
+      return newForSalePrice.sub(existingForSalePrice);
+    }
+  };
+
   return (
     <Card className="bg-purple bg-opacity-25 mt-5">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
       <Card.Body>
-        <p>
-          For Sale Price (Bid): {newForSalePriceDisplay} {PAYMENT_TOKEN}
-        </p>
-        <p>
-          {licensorIsOwner
-            ? "Payment You'd Receive: "
-            : "Payment to Licensor: "}{" "}
-          {existingForSalePriceDisplay} {PAYMENT_TOKEN}
-        </p>
-        <p>
-          Response Deadline:{" "}
-          {formattedBidDeadline ? formattedBidDeadline : spinner}
-        </p>
+        {shouldBidPeriodEndEarly ? (
+          <>
+            <p className="text-danger">
+              The network fee stream for this parcel was modified while there
+              was an outstanding bid, so the bid response window is closed. The
+              previous licensor will receive their original For Sale Price net
+              their network fee payment shortfall or surplus upon transfer.
+            </p>
+            <p>
+              For Sale Price (Bid): {newForSalePriceDisplay} {PAYMENT_TOKEN}
+            </p>
+            <p>
+              Bidder Collateral:{" "}
+              {data && !isLoading ? (
+                <FlowingBalance
+                  format={(availableBalance) =>
+                    truncateEth(
+                      ethers.utils.formatUnits(
+                        calculateBidderPayout(BigNumber.from(availableBalance))
+                      ),
+                      8
+                    ) +
+                    " " +
+                    PAYMENT_TOKEN
+                  }
+                  accountTokenSnapshot={data.items[0]}
+                />
+              ) : (
+                spinner
+              )}
+            </p>
+            <p>
+              {licensorIsOwner
+                ? "Payment You'd Receive: "
+                : "Payment to Licensor: "}{" "}
+              {data && !isLoading ? (
+                <FlowingBalance
+                  format={(availableBalance) =>
+                    truncateEth(
+                      ethers.utils.formatUnits(
+                        calculatePayerPayout(
+                          BigNumber.from(availableBalance)
+                        ) ?? BigNumber.from(0)
+                      ),
+                      8
+                    ) +
+                    " " +
+                    PAYMENT_TOKEN
+                  }
+                  accountTokenSnapshot={data.items[0]}
+                />
+              ) : (
+                spinner
+              )}
+            </p>
+            <p>
+              Action Date: {formattedActionDate ? formattedActionDate : spinner}
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              For Sale Price (Bid): {newForSalePriceDisplay} {PAYMENT_TOKEN}
+            </p>
+            <p>
+              {licensorIsOwner
+                ? "Payment You'd Receive: "
+                : "Payment to Licensor: "}{" "}
+              {existingForSalePriceDisplay} {PAYMENT_TOKEN}
+            </p>
+            <p>
+              Response Deadline:{" "}
+              {formattedBidDeadline ? formattedBidDeadline : spinner}
+            </p>
+          </>
+        )}
         {licensorIsOwner && !shouldAllowTrigger ? (
           <>
             <Button

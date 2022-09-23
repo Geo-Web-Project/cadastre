@@ -1,18 +1,5 @@
-import { BigNumber } from "ethers";
-
-/**
- * @see https://docs.superfluid.finance/superfluid/protocol-overview/super-apps/super-app#super-app-deposits
- */
-const depositHoursMap: Record<number, number> = {
-  // mainnet
-  1: 4,
-  // rinkeby
-  4: 1,
-  // goerli
-  5: 1,
-  // optimism-kovan
-  69: 1,
-};
+import { BigNumber, ethers } from "ethers";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 export function fromRateToValue(
   contributionRate: BigNumber,
@@ -47,11 +34,15 @@ export function calculateTimeString(remaining: number) {
   return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-export function calculateBufferNeeded(
-  stream: BigNumber,
-  currentChainID: number
+export async function calculateBufferNeeded(
+  sfFramework: Framework,
+  provider: ethers.providers.Web3Provider,
+  paymentToken: NativeAssetSuperToken,
+  stream: BigNumber
 ) {
-  return stream.mul(depositHoursMap[currentChainID]).div(365 * 24);
+  return await sfFramework.cfaV1.contract
+    .connect(provider)
+    .getDepositRequiredForFlowRate(paymentToken.address, stream);
 }
 
 export function calculateAuctionValue(

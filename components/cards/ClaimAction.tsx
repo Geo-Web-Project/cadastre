@@ -5,7 +5,7 @@ import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import BN from "bn.js";
 import { SidebarProps } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
@@ -31,6 +31,8 @@ function ClaimAction(props: ClaimActionProps) {
     requiredBid,
     setNewParcel,
     provider,
+    sfFramework,
+    paymentToken,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -64,9 +66,26 @@ function ClaimAction(props: ClaimActionProps) {
         )
       : null;
 
-  const requiredBuffer = newFlowRate
-    ? calculateBufferNeeded(newFlowRate, NETWORK_ID)
-    : null;
+  const [requiredBuffer, setRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  React.useEffect(() => {
+    const run = async () => {
+      if (!newFlowRate) {
+        setRequiredBuffer(null);
+        return;
+      }
+
+      const _bufferNeeded = await calculateBufferNeeded(
+        sfFramework,
+        provider,
+        paymentToken,
+        newFlowRate
+      );
+      setRequiredBuffer(_bufferNeeded);
+    };
+
+    run();
+  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
 
   async function _claim() {
     if (!claimBase1Coord || !claimBase2Coord) {
@@ -160,9 +179,7 @@ function ClaimAction(props: ClaimActionProps) {
         flowOperator={flowOperator}
         {...props}
       />
-      <StreamingInfo
-        {...props}
-      />
+      <StreamingInfo {...props} />
     </>
   );
 }
