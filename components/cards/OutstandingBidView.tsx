@@ -123,7 +123,7 @@ function OutstandingBidView({
     bidDeadline && new Date(Number(bidDeadline) * 1000) <= new Date();
 
   const formattedActionDate = actionDate
-    ? dayjs(actionDate).utc().format("YYYY-MM-DD HH:mm z")
+    ? dayjs(actionDate).format("YYYY-MM-DD HH:mm z")
     : null;
 
   const shouldAllowTrigger = shouldBidPeriodEndEarly || isPastDeadline;
