@@ -280,7 +280,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <ApproveOrPerformButton
               {...props}
               isDisabled={isActing || isInvalid}
-              buttonText={"Bid"}
+              buttonText={"Place Bid"}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 newForSalePrice && requiredBuffer
