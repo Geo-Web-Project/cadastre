@@ -29,9 +29,9 @@ import type { IPFS } from "ipfs-core-types";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 
 export const ZOOM_GRID_LEVEL = 17;
-const GRID_DIM = 50;
-export const GW_MAX_LAT = 21;
-export const GW_MAX_LON = 22;
+const GRID_DIM = 100;
+export const GW_MAX_LAT = 22;
+export const GW_MAX_LON = 23;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 1000;
 
@@ -198,7 +198,9 @@ export type MapProps = {
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   portfolioParcelCoords: GeoPoint | null;
-  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<GeoPoint | null>>;
+  setPortfolioParcelCoords: React.Dispatch<
+    React.SetStateAction<GeoPoint | null>
+  >;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
