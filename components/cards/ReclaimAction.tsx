@@ -108,6 +108,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     }
 
     const txn = await licenseDiamondContract.reclaim(
+      ethers.utils.parseEther(displayNewForSalePrice),
       newNetworkFee,
       ethers.utils.parseEther(displayNewForSalePrice)
     );
