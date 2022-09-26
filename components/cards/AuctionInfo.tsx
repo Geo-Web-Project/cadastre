@@ -77,7 +77,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           .mul(1000)
           .toNumber();
         setAuctionEnd(
-          `${dayjs.unix(invalidationTime / 1000).format("MM-DD-YYYY HH:mm z")}`
+          `${dayjs(invalidationTime).format("MM-DD-YYYY HH:mm z")}`
         );
 
         interval = setInterval(() => {

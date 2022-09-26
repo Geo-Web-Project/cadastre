@@ -384,7 +384,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             <ApproveOrPerformButton
               {...props}
               isDisabled={isActing || isInvalid}
-              buttonText={"Bid"}
+              buttonText={"Reject Bid"}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 penaltyPayment && newRequiredBuffer && oldRequiredBuffer

@@ -384,7 +384,14 @@ export function ActionForm(props: ActionFormProps) {
             <ApproveOrPerformButton
               {...props}
               isDisabled={isActing || isLoading || isInvalid}
-              buttonText={"Confirm"}
+              buttonText={
+                interactionState === STATE.PARCEL_EDITING
+                  ? "Submit"
+                  : interactionState === STATE.PARCEL_RECLAIMING &&
+                    account.toLowerCase() === licenseOwner?.toLowerCase()
+                  ? "Reclaim"
+                  : "Claim"
+              }
               requiredFlowAmount={requiredFlowAmount}
               requiredPayment={requiredPayment ?? null}
               performAction={submit}
