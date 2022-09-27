@@ -1,5 +1,5 @@
-export const NETWORK_ID = 420;
-export const NETWORK_NAME = "Optimism Goerli";
+export const NETWORK_ID = 5;
+export const NETWORK_NAME = "Goerli";
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
