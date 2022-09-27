@@ -120,7 +120,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newNetworkFee
       );
@@ -128,7 +127,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   async function placeBid() {
     setIsActing(true);
@@ -147,10 +146,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     try {
-      const txn = await licenseDiamondContract.placeBid(
-        newNetworkFee,
-        newForSalePrice
-      );
+      const txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .placeBid(newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
       console.error(err);

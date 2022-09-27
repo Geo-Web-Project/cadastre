@@ -162,7 +162,6 @@ function RejectBidAction(props: RejectBidActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         existingNetworkFee
       );
@@ -170,7 +169,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayCurrentForSalePrice]);
+  }, [sfFramework, paymentToken, displayCurrentForSalePrice]);
 
   const [newRequiredBuffer, setNewRequiredBuffer] =
     React.useState<BigNumber | null>(null);
@@ -183,7 +182,6 @@ function RejectBidAction(props: RejectBidActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newNetworkFee
       );
@@ -191,7 +189,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
     async function checkBidPeriod() {
@@ -238,10 +236,9 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     try {
-      const txn = await licenseDiamondContract.rejectBid(
-        newNetworkFee,
-        newForSalePrice
-      );
+      const txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .rejectBid(newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
       console.error(err);

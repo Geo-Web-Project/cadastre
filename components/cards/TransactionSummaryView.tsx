@@ -33,7 +33,6 @@ function TransactionSummaryView({
   penaltyPayment,
   sfFramework,
   paymentToken,
-  provider,
 }: TransactionSummaryViewProps) {
   const txnReady = newAnnualNetworkFee != null;
 
@@ -61,7 +60,6 @@ function TransactionSummaryView({
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         stream.div(365 * 24 * 60 * 60)
       );
@@ -72,7 +70,6 @@ function TransactionSummaryView({
   }, [
     sfFramework,
     paymentToken,
-    provider,
     newAnnualNetworkFee,
     existingAnnualNetworkFee,
   ]);

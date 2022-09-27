@@ -29,7 +29,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     selectedParcelId,
     sfFramework,
     paymentToken,
-    provider,
   } = props;
 
   const [actionData, setActionData] = React.useState<ActionData>({
@@ -74,7 +73,6 @@ function ReclaimAction(props: ReclaimActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newNetworkFee
       );
@@ -82,7 +80,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {

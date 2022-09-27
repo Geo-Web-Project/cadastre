@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 
 export function fromRateToValue(
@@ -36,12 +36,11 @@ export function calculateTimeString(remaining: number) {
 
 export async function calculateBufferNeeded(
   sfFramework: Framework,
-  provider: ethers.providers.Web3Provider,
   paymentToken: NativeAssetSuperToken,
   stream: BigNumber
 ) {
   return await sfFramework.cfaV1.contract
-    .connect(provider)
+    .connect(sfFramework.settings.provider)
     .getDepositRequiredForFlowRate(paymentToken.address, stream);
 }
 

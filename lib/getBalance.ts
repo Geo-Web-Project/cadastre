@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { formatBalance } from "./formatBalance";
 
 export const getETHBalance = async (
-  provider: ethers.providers.Web3Provider,
+  provider: ethers.providers.Provider,
   account: string
 ): Promise<string> => {
   const balance = await provider.getBalance(account);

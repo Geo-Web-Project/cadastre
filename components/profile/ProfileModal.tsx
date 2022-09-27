@@ -179,9 +179,12 @@ function ProfileModal(props: ProfileModalProps) {
     let isMounted = true;
 
     const initBalance = async () => {
-      if (provider && account) {
+      if (sfFramework.settings.provider && account) {
         try {
-          const ethBalance = await getETHBalance(provider, account);
+          const ethBalance = await getETHBalance(
+            sfFramework.settings.provider,
+            account
+          );
 
           if (isMounted) {
             setETHBalance(ethBalance);
@@ -197,7 +200,7 @@ function ProfileModal(props: ProfileModalProps) {
     return () => {
       isMounted = false;
     };
-  }, [provider, account]);
+  }, [sfFramework, account]);
 
   useEffect(() => {
     if (!data || !data.bidder) {
@@ -324,12 +327,7 @@ function ProfileModal(props: ProfileModalProps) {
           }
         })
         .then(() =>
-          calculateBufferNeeded(
-            sfFramework,
-            provider,
-            paymentToken,
-            contributionRate
-          )
+          calculateBufferNeeded(sfFramework, paymentToken, contributionRate)
         )
         .then((bufferNeeded) => {
           buffer = bufferNeeded;
@@ -341,7 +339,7 @@ function ProfileModal(props: ProfileModalProps) {
               .getAccountFlowInfo({
                 superToken: paymentToken.address,
                 account: licenseDiamondAddress,
-                providerOrSigner: signer,
+                providerOrSigner: sfFramework.settings.provider,
               })
               .then(({ timestamp }) => {
                 auctionStart = timestamp.getTime() / 1000;
@@ -536,7 +534,10 @@ function ProfileModal(props: ProfileModalProps) {
 
       await txn.wait();
 
-      const ethBalance = await getETHBalance(provider, account);
+      const ethBalance = await getETHBalance(
+        sfFramework.settings.provider,
+        account
+      );
 
       setETHBalance(ethBalance);
     } catch (error) {

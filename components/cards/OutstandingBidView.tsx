@@ -102,7 +102,7 @@ function OutstandingBidView({
         const accountInfo = await sfFramework.cfaV1.getAccountFlowInfo({
           superToken: paymentToken.address,
           account: licenseDiamondContract.address,
-          providerOrSigner: provider,
+          providerOrSigner: sfFramework.settings.provider,
         });
         setActionDate(accountInfo.timestamp);
       } else {
@@ -145,7 +145,9 @@ function OutstandingBidView({
     }
 
     try {
-      const txn = await licenseDiamondContract.acceptBid();
+      const txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .acceptBid();
       await txn.wait();
     } catch (err) {
       console.error(err);
@@ -175,7 +177,9 @@ function OutstandingBidView({
     }
 
     try {
-      const txn = await licenseDiamondContract.triggerTransfer();
+      const txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .triggerTransfer();
 
       await txn.wait();
     } catch (err) {
@@ -215,7 +219,6 @@ function OutstandingBidView({
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         existingNetworkFee
       );
@@ -235,7 +238,6 @@ function OutstandingBidView({
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newNetworkFee
       );
@@ -243,7 +245,7 @@ function OutstandingBidView({
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, newForSalePrice]);
+  }, [sfFramework, paymentToken, newForSalePrice]);
 
   const calculatePayerPayout = (availableBalance: BigNumber) => {
     if (!newBuffer || !existingBuffer) {
