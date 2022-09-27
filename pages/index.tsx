@@ -27,7 +27,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
-import { DIDSession } from "@glazed/did-session";
+import { DIDSession } from "did-session";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -96,12 +96,13 @@ function IndexPage() {
         authState.connected.provider.state.provider,
         authState.connected.accountID.address
       );
-      const session = new DIDSession({ authProvider: ethereumAuthProvider });
-      const did = await session.authorize();
+      const session = await DIDSession.authorize(ethereumAuthProvider, {
+        resources: ["ceramic://*"],
+      });
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
-      ceramic.did = did;
+      ceramic.did = session.did;
       setCeramic(ceramic);
 
       if (!ipfs) {
