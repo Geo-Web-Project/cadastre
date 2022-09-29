@@ -12,7 +12,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import { NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
-import { switchNetwork } from "../lib/wallets/connectors";
+import { switchNetwork, RPC_URLS } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 
@@ -27,7 +27,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
-import { DIDSession } from "@glazed/did-session";
+import { DIDSession } from "did-session";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -39,29 +39,25 @@ function getLibrary(provider: any) {
 function IndexPage() {
   const [authState, activate, deactivate] = useMultiAuth();
 
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.Web3Provider | null>(null);
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [portfolioParcelCoords, setPortfolioParcelCoords] = React.useState<
-    GeoPoint
-  | null>(null);
+  const [portfolioParcelCoords, setPortfolioParcelCoords] =
+    React.useState<GeoPoint | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
 
   const connectWallet = async () => {
@@ -72,10 +68,7 @@ function IndexPage() {
 
     const framework = await Framework.create({
       chainId: NETWORK_ID,
-      provider: new ethers.providers.InfuraProvider(
-        NETWORK_ID,
-        process.env.NEXT_PUBLIC_INFURA_PROJECT_ID
-      ),
+      provider: new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID]),
     });
     setSfFramework(framework);
     const superToken = await framework.loadNativeAssetSuperToken("ETHx");
@@ -103,12 +96,13 @@ function IndexPage() {
         authState.connected.provider.state.provider,
         authState.connected.accountID.address
       );
-      const session = new DIDSession({ authProvider: ethereumAuthProvider });
-      const did = await session.authorize();
+      const session = await DIDSession.authorize(ethereumAuthProvider, {
+        resources: ["ceramic://*"],
+      });
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
-      ceramic.did = did;
+      ceramic.did = session.did;
       setCeramic(ceramic);
 
       if (!ipfs) {
@@ -176,25 +170,29 @@ function IndexPage() {
     } else {
       return (
         <>
-          {sfFramework && ceramic && registryContract && paymentToken && library && (
-            <Profile
-              account={authState.connected.accountID.address}
-              sfFramework={sfFramework}
-              ceramic={ceramic}
-              registryContract={registryContract}
-              disconnectWallet={disconnectWallet}
-              paymentToken={paymentToken}
-              provider={library}
-              portfolioNeedActionCount={portfolioNeedActionCount}
-              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-              setSelectedParcelId={setSelectedParcelId}
-              interactionState={interactionState}
-              setInteractionState={setInteractionState}
-              setPortfolioParcelCoords={setPortfolioParcelCoords}
-              isPortfolioToUpdate={isPortfolioToUpdate}
-              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
-            />
-          )}
+          {sfFramework &&
+            ceramic &&
+            registryContract &&
+            paymentToken &&
+            library && (
+              <Profile
+                account={authState.connected.accountID.address}
+                sfFramework={sfFramework}
+                ceramic={ceramic}
+                registryContract={registryContract}
+                disconnectWallet={disconnectWallet}
+                paymentToken={paymentToken}
+                provider={library}
+                portfolioNeedActionCount={portfolioNeedActionCount}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                setSelectedParcelId={setSelectedParcelId}
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+                setPortfolioParcelCoords={setPortfolioParcelCoords}
+                isPortfolioToUpdate={isPortfolioToUpdate}
+                setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+              />
+            )}
         </>
       );
     }

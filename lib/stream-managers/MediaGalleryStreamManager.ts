@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import { TileStreamManager } from "./TileStreamManager";
 import * as React from "react";
-import { TileLoader } from "@glazed/tile-loader";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
 import { MediaGallery } from "@geo-web/datamodels";
 import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
@@ -9,7 +8,6 @@ import { AssetContentManager } from "../AssetContentManager";
 
 export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
   assetContentManager: AssetContentManager;
-  private loader: TileLoader;
 
   constructor(_assetContentManager: AssetContentManager) {
     super(
@@ -18,7 +16,6 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
       _assetContentManager.controller
     );
     this.assetContentManager = _assetContentManager;
-    this.loader = new TileLoader({ ceramic: this.ceramic });
   }
 
   async createOrUpdateStream(content: MediaGallery) {
@@ -46,7 +43,9 @@ export class MediaGalleryStreamManager extends TileStreamManager<MediaGallery> {
     }
 
     const items: string[] = mediaGalleryContent["mediaGalleryItems"] ?? [];
-    const streams = await Promise.all(items.map((v) => this.loader.load(v)));
+    const streams = await Promise.all(
+      items.map((v) => TileDocument.load<MediaObject>(this.ceramic, v))
+    );
     return streams.reduce((prev, cur) => {
       prev[cur.id.toString()] = cur;
       return prev;

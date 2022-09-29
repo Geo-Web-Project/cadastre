@@ -9,8 +9,9 @@ import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import Button from "react-bootstrap/Button";
+import { SidebarProps } from "../Sidebar";
 
-type WrapModalProps = {
+type WrapModalProps = SidebarProps & {
   account: string;
   provider: ethers.providers.Web3Provider;
   show: boolean;
@@ -108,7 +109,13 @@ function WrapModal({
   );
 
   return (
-    <Modal show={show} onHide={handleClose} centered contentClassName="bg-dark" className="wrap-modal">
+    <Modal
+      show={show}
+      onHide={handleClose}
+      centered
+      contentClassName="bg-dark"
+      className="wrap-modal"
+    >
       <Modal.Header className="bg-dark border-0">
         <Modal.Title className="text-primary">
           Wrap ETH for Streaming

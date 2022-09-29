@@ -60,7 +60,6 @@ export function ActionForm(props: ActionFormProps) {
   const {
     account,
     licenseOwner,
-    provider,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
@@ -73,7 +72,6 @@ export function ActionForm(props: ActionFormProps) {
     licenseAddress,
     ceramic,
     setSelectedParcelId,
-    paymentToken,
     summaryView,
     requiredBid,
     requiredPayment,
@@ -431,11 +429,9 @@ export function ActionForm(props: ActionFormProps) {
 
       {showWrapModal && (
         <WrapModal
-          account={account}
-          provider={provider}
           show={showWrapModal}
           handleClose={handleWrapModalClose}
-          paymentToken={paymentToken}
+          {...props}
         />
       )}
     </>

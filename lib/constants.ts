@@ -3,12 +3,12 @@ export const NETWORK_NAME = "Goerli";
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-subgraph";
+  "https://api.thegraph.com/subgraphs/name/geo-web-project/geo-web-testnet";
 
 export const CERAMIC_URL = "https://g12-a-ceramic.3boxlabs.com/";
 export const CONNECT_NETWORK = "mainnet";
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
-export const BLOCK_EXPLORER = `https://goerli.etherscan.io`;
+export const BLOCK_EXPLORER = `https://goerli-optimism.etherscan.io`;
 
 export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 export const STORAGE_WORKER_ENDPOINT =
@@ -17,6 +17,6 @@ export const STORAGE_WORKER_ENDPOINT =
 export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
-export const MAX_PARCEL_CLAIM = 900;
+export const MAX_PARCEL_CLAIM = 3000;
 
 export const SPATIAL_DOMAIN = "https://geoweb.app/";

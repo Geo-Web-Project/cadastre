@@ -144,7 +144,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
       const allowance = await paymentToken.allowance({
         owner: account,
         spender: spender,
-        providerOrSigner: provider,
+        providerOrSigner: sfFramework.settings.provider,
       });
 
       if (requiredPayment && BigNumber.from(allowance).lt(requiredPayment)) {
@@ -157,8 +157,9 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
         superToken: paymentToken.address,
         flowOperator: flowOperator,
         sender: account,
-        providerOrSigner: provider,
+        providerOrSigner: sfFramework.settings.provider,
       });
+      console.log("HELLO1");
 
       if (
         requiredFlowAmount &&

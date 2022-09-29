@@ -77,7 +77,6 @@ function ClaimAction(props: ClaimActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newFlowRate
       );
@@ -85,7 +84,7 @@ function ClaimAction(props: ClaimActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   async function _claim() {
     if (!claimBase1Coord || !claimBase2Coord) {

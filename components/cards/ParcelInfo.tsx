@@ -103,7 +103,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     firebasePerf,
     invalidLicenseId,
     setInvalidLicenseId,
-    provider,
     selectedParcelCoords,
     sfFramework,
     paymentToken,
@@ -115,9 +114,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     pollInterval: 2000,
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] = React.useState<
-    string | null
-  >(null);
+  const [parcelIndexStreamId, setParcelIndexStreamId] =
+    React.useState<string | null>(null);
 
   const [assetContentManager, setAssetContentManager] =
     React.useState<AssetContentManager | null>(null);
@@ -186,12 +184,9 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const signer = provider.getSigner() as any;
-
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
         licenseDiamondAddress,
-        signer
+        sfFramework.settings.provider
       );
 
       setLicenseDiamondContract(_licenseDiamond);
@@ -211,7 +206,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       const { timestamp } = await sfFramework.cfaV1.getAccountFlowInfo({
         superToken: paymentToken.address,
         account: licenseDiamondAddress,
-        providerOrSigner: signer,
+        providerOrSigner: sfFramework.settings.provider,
       });
       setAuctionStart(timestamp);
     };
@@ -226,12 +221,9 @@ function ParcelInfo(props: ParcelInfoProps) {
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const signer = provider.getSigner() as any;
-
       const _licenseDiamond = PCOLicenseDiamondFactory.connect(
         licenseDiamondAddress,
-        signer
+        sfFramework.settings.provider
       );
 
       setLicenseDiamondContract(_licenseDiamond);

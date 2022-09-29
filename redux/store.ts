@@ -14,6 +14,7 @@ import { ethers } from "ethers";
 import { createWrapper } from "next-redux-wrapper";
 import { NETWORK_ID } from "../lib/constants";
 import { Framework } from "@superfluid-finance/sdk-core";
+import { RPC_URLS } from "../lib/wallets/connectors";
 
 export const sfApi = initializeRpcApiSlice(
   createApiWithReactHooks
@@ -29,10 +30,7 @@ export const makeStore = () => {
   setFrameworkForSdkRedux(NETWORK_ID, async () => {
     return await Framework.create({
       chainId: NETWORK_ID,
-      provider: new ethers.providers.InfuraProvider(
-        NETWORK_ID,
-        process.env.NEXT_PUBLIC_INFURA_PROJECT_ID
-      ),
+      provider: new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID]),
     });
   });
 

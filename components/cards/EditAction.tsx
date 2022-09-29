@@ -125,7 +125,6 @@ function EditAction(props: EditActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         existingNetworkFee
       );
@@ -133,7 +132,7 @@ function EditAction(props: EditActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayCurrentForSalePrice]);
+  }, [sfFramework, paymentToken, displayCurrentForSalePrice]);
 
   const [requiredNewBuffer, setRequiredNewBuffer] =
     React.useState<BigNumber | null>(null);
@@ -146,7 +145,6 @@ function EditAction(props: EditActionProps) {
 
       const _bufferNeeded = await calculateBufferNeeded(
         sfFramework,
-        provider,
         paymentToken,
         newNetworkFee
       );
@@ -154,7 +152,7 @@ function EditAction(props: EditActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, displayNewForSalePrice]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   async function _edit() {
     updateActionData({ isActing: true });
@@ -177,10 +175,9 @@ function EditAction(props: EditActionProps) {
       return;
     }
 
-    const txn = await licenseDiamondContract.editBid(
-      newNetworkFee,
-      ethers.utils.parseEther(displayNewForSalePrice)
-    );
+    const txn = await licenseDiamondContract
+      .connect(provider.getSigner())
+      .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
     await txn.wait();
   }
 
