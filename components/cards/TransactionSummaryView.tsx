@@ -9,7 +9,6 @@ import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
 
 type TransactionSummaryViewProps = SidebarProps & {
-  displayNewForSalePrice: string;
   existingAnnualNetworkFee?: BigNumber;
   newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
