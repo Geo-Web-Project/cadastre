@@ -9,6 +9,7 @@ import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
 
 type TransactionSummaryViewProps = SidebarProps & {
+  displayNewForSalePrice: string;
   existingAnnualNetworkFee?: BigNumber;
   newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
@@ -51,6 +52,7 @@ function TransactionSummaryView({
 
   const [streamBuffer, setStreamBuffer] =
     React.useState<BigNumber | null>(null);
+  const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
   React.useEffect(() => {
     const run = async () => {
       if (!stream || stream.div(365 * 24 * 60 * 60).lte(0)) {
@@ -58,12 +60,15 @@ function TransactionSummaryView({
         return;
       }
 
-      const _bufferNeeded = await calculateBufferNeeded(
-        sfFramework,
-        paymentToken,
-        stream.div(365 * 24 * 60 * 60)
-      );
-      setStreamBuffer(_bufferNeeded);
+      if (!lastStream || !stream.eq(lastStream)) {
+        const _bufferNeeded = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          stream.div(365 * 24 * 60 * 60)
+        );
+        setStreamBuffer(_bufferNeeded);
+        setLastStream(stream);
+      }
     };
 
     run();

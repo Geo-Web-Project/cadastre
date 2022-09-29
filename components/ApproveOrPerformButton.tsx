@@ -159,6 +159,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
         sender: account,
         providerOrSigner: sfFramework.settings.provider,
       });
+      console.log("HELLO1");
 
       if (
         requiredFlowAmount &&
