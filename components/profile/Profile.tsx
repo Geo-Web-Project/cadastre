@@ -25,7 +25,7 @@ type ProfileProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  disconnectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
   paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;
   portfolioNeedActionCount: number;

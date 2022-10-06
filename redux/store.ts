@@ -12,9 +12,8 @@ import {
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { ethers } from "ethers";
 import { createWrapper } from "next-redux-wrapper";
-import { NETWORK_ID } from "../lib/constants";
+import { NETWORK_ID, RPC_URLS } from "../lib/constants";
 import { Framework } from "@superfluid-finance/sdk-core";
-import { RPC_URLS } from "../lib/wallets/connectors";
 
 export const sfApi = initializeRpcApiSlice(
   createApiWithReactHooks

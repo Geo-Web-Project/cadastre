@@ -1,8 +1,8 @@
 import { OverlayTrigger, Tooltip, Button } from "react-bootstrap";
 import { truncateStr } from "../lib/truncate";
 import { useCallback } from "react";
-import { useMultiAuth } from "@ceramicstudio/multiauth";
 import Image from "react-bootstrap/Image";
+import { useSigner } from 'wagmi'
 
 export type TokenOptions = {
   address: string;
@@ -13,18 +13,17 @@ export type TokenOptions = {
 };
 
 export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
-  const [authState] = useMultiAuth();
+  const { data: signer } = useSigner();
 
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(options.address);
   }, [options.address]);
 
   const addToMetaMask = useCallback(() => {
-    if (authState.status !== "connected") return;
+    if (!options.address) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const provider: any = authState.connected.provider.state.provider;
-    provider.request({
+    (signer?.provider as any).provider.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20",

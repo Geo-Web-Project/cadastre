@@ -7,29 +7,51 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
-import { SUBGRAPH_URL } from "../lib/constants";
-import {
-  Provider as MultiAuth,
-  // eslint-disable-next-line import/named
-  PartialConnectorConfig,
-} from "@ceramicstudio/multiauth";
+import { SUBGRAPH_URL, NETWORK_NAME } from "../lib/constants";
 import "../styles.scss";
-import {
-  injected,
-  walletconnect,
-  // fortmatic,
-  // portis,
-  torus,
-} from "../lib/wallets/connectors";
 import { AppProps } from "next/app";
 
-const connectors = new Array<PartialConnectorConfig>(
-  { key: "injected", connector: injected },
-  { key: "walletConnect", connector: walletconnect },
-  // { key: "fortmatic", connector: fortmatic },
-  // { key: "portis", connector: portis },
-  { key: "torus", connector: torus }
+import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
+import { infuraProvider } from "wagmi/providers/infura";
+import {
+  connectorsForWallets,
+  RainbowKitProvider,
+  lightTheme,
+} from "@rainbow-me/rainbowkit";
+import {
+  injectedWallet,
+  metaMaskWallet,
+  walletConnectWallet,
+  ledgerWallet,
+  coinbaseWallet,
+  braveWallet,
+} from "@rainbow-me/rainbowkit/wallets";
+import "@rainbow-me/rainbowkit/styles.css";
+
+const { chains, provider } = configureChains(
+  [chain[NETWORK_NAME]],
+  [infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID })]
 );
+
+const connectors = connectorsForWallets([
+  {
+    groupName: "Suggested",
+    wallets: [
+      injectedWallet({ chains }),
+      metaMaskWallet({ chains }),
+      ledgerWallet({ chains }),
+      walletConnectWallet({ chains }),
+      coinbaseWallet({ appName: "Geo Web Cadastre", chains }),
+      braveWallet({ chains }),
+    ],
+  },
+]);
+
+const wagmiClient = createClient({
+  autoConnect: false,
+  connectors,
+  provider,
+});
 
 export function App({ Component, pageProps }: AppProps) {
   const client = new ApolloClient({
@@ -53,11 +75,22 @@ export function App({ Component, pageProps }: AppProps) {
   });
 
   return (
-    <MultiAuth providers={[{ key: "ethereum", connectors }]}>
-      <ApolloProvider client={client}>
-        <Component {...pageProps} />
-      </ApolloProvider>
-    </MultiAuth>
+    <WagmiConfig client={wagmiClient}>
+      <RainbowKitProvider
+        chains={chains}
+        modalSize="compact"
+        theme={lightTheme({
+          accentColor: "#2fc1c1",
+          accentColorForeground: "#202333",
+          borderRadius: "medium",
+          fontStack: "system",
+        })}
+      >
+        <ApolloProvider client={client}>
+          <Component {...pageProps} />
+        </ApolloProvider>
+      </RainbowKitProvider>
+    </WagmiConfig>
   );
 }
 
