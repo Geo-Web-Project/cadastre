@@ -23,6 +23,8 @@ import {
   metaMaskWallet,
   walletConnectWallet,
   ledgerWallet,
+  coinbaseWallet,
+  braveWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import "@rainbow-me/rainbowkit/styles.css";
 
@@ -39,6 +41,8 @@ const connectors = connectorsForWallets([
       metaMaskWallet({ chains }),
       ledgerWallet({ chains }),
       walletConnectWallet({ chains }),
+      coinbaseWallet({ chains }),
+      braveWallet({ chains }),
     ],
   },
 ]);
