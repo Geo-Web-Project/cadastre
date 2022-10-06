@@ -79,6 +79,7 @@ interface GWCoordinateGQL {
 const query = gql`
   query Polygons(
     $lastBlock: BigInt
+    $lastId: BigInt
     $minX: BigInt
     $maxX: BigInt
     $minY: BigInt
@@ -88,6 +89,7 @@ const query = gql`
       orderBy: createdAtBlock
       first: 1000
       where: {
+        id_gt: $lastId
         createdAtBlock_gt: $lastBlock
         coordX_gte: $minX
         coordX_lt: $maxX
@@ -228,6 +230,7 @@ function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
       lastBlock: 0,
+      lastId: 0,
       minX: 0,
       maxX: 0,
       minY: 0,
@@ -349,9 +352,46 @@ function Map(props: MapProps) {
     let newLastBlock;
 
     if (data.geoWebCoordinates.length > 0) {
-      newLastBlock =
-        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
-          .createdAtBlock;
+      if (
+        data.geoWebCoordinates.every((element, index) => {
+          if (
+            !index ||
+            (element.parcel.id === data.geoWebCoordinates[0].parcel.id &&
+              element.id !== data.geoWebCoordinates[0].id)
+          ) {
+            return true;
+          }
+        })
+      ) {
+        const lastElement =
+          data.geoWebCoordinates[data.geoWebCoordinates.length - 1];
+
+        newLastBlock = BigInt(lastElement.createdAtBlock) - BigInt(1);
+
+        const gwCoord = GeoWebCoordinate.fromGPS(
+          viewport.longitude,
+          viewport.latitude,
+          GW_MAX_LON,
+          GW_MAX_LAT
+        );
+
+        const x = gwCoord.getX().toNumber();
+        const y = gwCoord.getY().toNumber();
+
+        const params = normalizeQueryVariables(x, y);
+
+        fetchMore({
+          variables: {
+            lastBlock: newLastBlock.toString(),
+            lastId: lastElement.id,
+            ...params,
+          },
+        });
+      } else {
+        newLastBlock =
+          data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
+            .createdAtBlock;
+      }
     } else if (newParcel.id) {
       newLastBlock = 0;
     } else {
