@@ -12,13 +12,11 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import { NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
-import { switchNetwork, RPC_URLS } from "../lib/wallets/connectors";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 
 import { ethers } from "ethers";
 import { useFirebase } from "../lib/Firebase";
-import { useMultiAuth } from "@ceramicstudio/multiauth";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
@@ -29,27 +27,34 @@ import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
 import { DIDSession } from "did-session";
 
-const { httpClient, jsIpfs } = providers;
+import { useDisconnect, useAccount, useSigner, useNetwork } from "wagmi";
+import {
+  ConnectButton,
+  useConnectModal,
+  useChainModal,
+} from "@rainbow-me/rainbowkit";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider, "any");
 }
 
-function IndexPage() {
-  const [authState, activate, deactivate] = useMultiAuth();
+const { httpClient, jsIpfs } = providers;
 
-  const [registryContract, setRegistryContract] =
-    React.useState<Contracts["registryDiamondContract"] | null>(null);
+function IndexPage() {
+  const [registryContract, setRegistryContract] = React.useState<
+    Contracts["registryDiamondContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
-  const [library, setLibrary] =
-    React.useState<ethers.providers.Web3Provider | null>(null);
+  const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -60,45 +65,86 @@ function IndexPage() {
     React.useState<GeoPoint | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
 
-  const connectWallet = async () => {
-    const _authState = await activate();
+  const { chain } = useNetwork();
+  const { address, status } = useAccount();
+  const { data: signer } = useSigner();
+  const { openConnectModal } = useConnectModal();
+  const { openChainModal } = useChainModal();
+  const { disconnect } = useDisconnect();
 
-    const lib = getLibrary(_authState?.provider.state.provider);
-    setLibrary(lib);
-
-    const framework = await Framework.create({
-      chainId: NETWORK_ID,
-      provider: new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID]),
-    });
-    setSfFramework(framework);
-    const superToken = await framework.loadNativeAssetSuperToken("ETHx");
-    setPaymentToken(superToken);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
+  const connectWallet = () => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
   };
 
-  const disconnectWallet = async () => {
-    deactivate();
+  const disconnectWallet = () => {
+    if (disconnect) {
+      disconnect();
+    }
+  };
+
+  const loadCeramicSession = async (
+    authMethod: EthereumAuthProvider,
+    address: string
+  ): Promise<DIDSession | undefined> => {
+    const sessionStr = localStorage.getItem("didsession");
+    let session;
+
+    if (sessionStr) {
+      session = await DIDSession.fromSession(sessionStr);
+    }
+
+    if (
+      !session ||
+      (session.hasSession && session.isExpired) ||
+      !session.cacao.p.iss.includes(address.toLowerCase())
+    ) {
+      try {
+        session = await DIDSession.authorize(authMethod, {
+          resources: ["ceramic://*"],
+        });
+        localStorage.setItem("didsession", session.serialize());
+      } catch (err) {
+        console.error(err);
+        disconnectWallet();
+      }
+    }
+
+    return session;
   };
 
   React.useEffect(() => {
-    if (authState.status !== "connected") {
+    if (!address || !signer || chain?.id !== NETWORK_ID) {
       return;
     }
 
     const start = async () => {
-      localStorage.removeItem("cacao");
-      localStorage.removeItem("sessionSeed");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const lib = getLibrary((signer.provider as any).provider);
+      setLibrary(lib);
 
-      await switchNetwork(authState.connected.provider.state.provider);
+      const framework = await Framework.create({
+        chainId: NETWORK_ID,
+        provider: lib,
+      });
+      setSfFramework(framework);
+
+      const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+      setPaymentToken(superToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
 
       const ethereumAuthProvider = new EthereumAuthProvider(
-        authState.connected.provider.state.provider,
-        authState.connected.accountID.address
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (signer.provider as any).provider,
+        address.toLowerCase()
       );
-      const session = await DIDSession.authorize(ethereumAuthProvider, {
-        resources: ["ceramic://*"],
-      });
+      const session = await loadCeramicSession(ethereumAuthProvider, address);
+
+      if (!session) {
+        return;
+      }
 
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
@@ -133,7 +179,7 @@ function IndexPage() {
     };
 
     start();
-  }, [authState]);
+  }, [signer]);
 
   // Setup Contracts on App Load
   React.useEffect(() => {
@@ -152,50 +198,75 @@ function IndexPage() {
   }, [sfFramework]);
 
   const Connector = () => {
-    if (authState.status !== "connected") {
-      return (
-        <Button
-          variant="outline-primary"
-          className="text-light fw-bold border-dark"
-          style={{ height: "100px" }}
-          disabled={authState.status === "connecting"}
-          onClick={() => {
-            connectWallet();
-          }}
-        >
-          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
-          Connect Wallet
-        </Button>
-      );
-    } else {
-      return (
-        <>
-          {sfFramework &&
-            ceramic &&
-            registryContract &&
-            paymentToken &&
-            library && (
-              <Profile
-                account={authState.connected.accountID.address}
-                sfFramework={sfFramework}
-                ceramic={ceramic}
-                registryContract={registryContract}
-                disconnectWallet={disconnectWallet}
-                paymentToken={paymentToken}
-                provider={library}
-                portfolioNeedActionCount={portfolioNeedActionCount}
-                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                setSelectedParcelId={setSelectedParcelId}
-                interactionState={interactionState}
-                setInteractionState={setInteractionState}
-                setPortfolioParcelCoords={setPortfolioParcelCoords}
-                isPortfolioToUpdate={isPortfolioToUpdate}
-                setIsPortfolioToUpdate={setIsPortfolioToUpdate}
-              />
-            )}
-        </>
-      );
-    }
+    return (
+      <ConnectButton.Custom>
+        {({ mounted }) => {
+          return (
+            <div>
+              {(() => {
+                if (chain && chain.unsupported) {
+                  return (
+                    <Button
+                      onClick={openChainModal}
+                      type="button"
+                      variant="danger"
+                    >
+                      Wrong network
+                    </Button>
+                  );
+                }
+
+                if (
+                  address &&
+                  sfFramework &&
+                  ceramic &&
+                  registryContract &&
+                  paymentToken &&
+                  library
+                ) {
+                  return (
+                    <Profile
+                      account={address.toLowerCase()}
+                      sfFramework={sfFramework}
+                      ceramic={ceramic}
+                      registryContract={registryContract}
+                      disconnectWallet={disconnectWallet}
+                      paymentToken={paymentToken}
+                      provider={library}
+                      portfolioNeedActionCount={portfolioNeedActionCount}
+                      setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                      setSelectedParcelId={setSelectedParcelId}
+                      interactionState={interactionState}
+                      setInteractionState={setInteractionState}
+                      setPortfolioParcelCoords={setPortfolioParcelCoords}
+                      isPortfolioToUpdate={isPortfolioToUpdate}
+                      setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                    />
+                  );
+                }
+
+                return (
+                  <Button
+                    variant="outline-primary"
+                    className="text-light fw-bold border-dark"
+                    disabled={!mounted}
+                    style={{ height: "100px" }}
+                    onClick={connectWallet}
+                  >
+                    <Image
+                      src="vector.png"
+                      width="40"
+                      style={{ marginRight: 20 }}
+                    />
+                    Connect Wallet
+                  </Button>
+                );
+              })()}
+            </div>
+          );
+        }}
+      </ConnectButton.Custom>
+    );
   };
 
   return (
@@ -229,8 +300,8 @@ function IndexPage() {
         </Navbar>
       </Container>
       <Container fluid>
-        {authState.status === "connected" &&
-        registryContract &&
+        {registryContract &&
+        address &&
         library &&
         paymentToken &&
         ceramic &&
@@ -240,7 +311,7 @@ function IndexPage() {
           <Row>
             <Map
               registryContract={registryContract}
-              account={authState.connected.accountID.address}
+              account={address.toLowerCase()}
               provider={library}
               ceramic={ceramic}
               ipfs={ipfs}
@@ -260,7 +331,7 @@ function IndexPage() {
             ></Map>
           </Row>
         ) : (
-          <Home connectWallet={connectWallet} status={authState.status} />
+          <Home connectWallet={connectWallet} status={status} />
         )}
       </Container>
     </>

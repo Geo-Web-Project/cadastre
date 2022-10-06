@@ -190,7 +190,7 @@ export type MapProps = {
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
   provider: ethers.providers.Web3Provider;
-  disconnectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
   ceramic: CeramicClient;
   ipfs: IPFS;
   firebasePerf: firebase.performance.Performance;

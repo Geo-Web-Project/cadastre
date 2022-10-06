@@ -47,8 +47,8 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
-const LON_OFFSET = 0.00085;
-const LAT_OFFSET = 0.0002;
+export const LON_OFFSET = 0.00085;
+export const LAT_OFFSET = 0.0002;
 
 type ProfileModalProps = {
   accountTokenSnapshot: AccountTokenSnapshot;
@@ -61,7 +61,7 @@ type ProfileModalProps = {
   provider: ethers.providers.Web3Provider;
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
-  disconnectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
   handleCloseProfile: () => void;
   setPortfolioParcelCoords: React.Dispatch<
     React.SetStateAction<GeoPoint | null>
