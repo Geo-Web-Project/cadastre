@@ -41,7 +41,7 @@ const connectors = connectorsForWallets([
       metaMaskWallet({ chains }),
       ledgerWallet({ chains }),
       walletConnectWallet({ chains }),
-      coinbaseWallet({ chains }),
+      coinbaseWallet({ appName: "Geo Web Cadastre", chains }),
       braveWallet({ chains }),
     ],
   },
