@@ -34,8 +34,8 @@ export const GW_MAX_LAT = 22;
 export const GW_MAX_LON = 23;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 1000;
-export const PORTFOLIO_PARCEL_LON_OFFSET = 0.00085;
-export const PORTFOLIO_PARCEL_LAT_OFFSET = 0.0002;
+export const LON_OFFSET = 0.00062;
+export const LAT_OFFSET = 0.0001;
 
 export enum STATE {
   VIEWING = 0,
@@ -565,8 +565,8 @@ function Map(props: MapProps) {
         setInteractionState(STATE.CLAIM_SELECTING);
 
         flyToLocation({
-          longitude: event.lngLat.lng,
-          latitude: event.lngLat.lat,
+          longitude: event.lngLat.lng + LON_OFFSET,
+          latitude: event.lngLat.lat + LAT_OFFSET,
           zoom: ZOOM_GRID_LEVEL + 1,
           duration: 500,
         });
@@ -650,8 +650,8 @@ function Map(props: MapProps) {
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCoords.lon - PORTFOLIO_PARCEL_LON_OFFSET,
-        y: portfolioParcelCoords.lat - PORTFOLIO_PARCEL_LAT_OFFSET,
+        x: portfolioParcelCoords.lon - LON_OFFSET,
+        y: portfolioParcelCoords.lat - LAT_OFFSET,
       });
     }
   }, [portfolioParcelCoords]);

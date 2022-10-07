@@ -44,8 +44,8 @@ import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import {
   STATE,
   GeoPoint,
-  PORTFOLIO_PARCEL_LON_OFFSET,
-  PORTFOLIO_PARCEL_LAT_OFFSET,
+  LON_OFFSET,
+  LAT_OFFSET,
 } from "../Map";
 
 dayjs.extend(utc);
@@ -383,8 +383,8 @@ function ProfileModal(props: ProfileModalProps) {
             buffer: buffer,
             action: action,
             coords: {
-              lon: Number(coords[0].pointTR.lon) + PORTFOLIO_PARCEL_LON_OFFSET,
-              lat: Number(coords[0].pointTR.lat) + PORTFOLIO_PARCEL_LAT_OFFSET,
+              lon: Number(coords[0].pointTR.lon) + LON_OFFSET,
+              lat: Number(coords[0].pointTR.lat) + LAT_OFFSET,
             },
           });
         });
