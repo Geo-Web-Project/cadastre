@@ -41,12 +41,7 @@ import {
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
-import {
-  STATE,
-  GeoPoint,
-  LON_OFFSET,
-  LAT_OFFSET,
-} from "../Map";
+import { STATE, GeoPoint, LON_OFFSET, LAT_OFFSET } from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -91,6 +86,11 @@ interface PortfolioTotal {
   buffer: BigNumber;
 }
 
+interface GeoWebCoordinate {
+  pointTL: GeoPoint;
+  pointBR: GeoPoint;
+}
+
 enum SuperTokenAction {
   WRAP,
   UNWRAP,
@@ -131,7 +131,11 @@ const portfolioQuery = gql`
             contributionRate
           }
           coordinates {
-            pointTR {
+            pointTL {
+              lon
+              lat
+            }
+            pointBR {
               lon
               lat
             }
@@ -373,6 +377,26 @@ function ProfileModal(props: ProfileModalProps) {
               ? parcelContent.name
               : `Parcel ${parcelId}`;
 
+          const topLeftLon = findMinPoint(
+            coords,
+            "pointTL",
+            "lon"
+          );
+          const bottomRightLon = findMaxPoint(
+            coords,
+            "pointBR",
+            "lon"
+          );
+          const topLeftLat = findMaxPoint(
+            coords,
+            "pointTL",
+            "lat"
+          );
+          const bottomRightLat = findMinPoint(
+            coords,
+            "pointBR",
+            "lat"
+          );
           _portfolio.push({
             parcelId: parcelId,
             status: status,
@@ -383,8 +407,8 @@ function ProfileModal(props: ProfileModalProps) {
             buffer: buffer,
             action: action,
             coords: {
-              lon: Number(coords[0].pointTR.lon) + LON_OFFSET,
-              lat: Number(coords[0].pointTR.lat) + LAT_OFFSET,
+              lon: (topLeftLon + bottomRightLon) / 2 + LON_OFFSET,
+              lat: (topLeftLat + bottomRightLat) / 2 + LAT_OFFSET,
             },
           });
         });
@@ -565,6 +589,30 @@ function ProfileModal(props: ProfileModalProps) {
       await executeSuperTokenTransaction(amount, action);
       e.target.reset();
     }
+  };
+
+  const findMinPoint = (
+    coords: GeoWebCoordinate[],
+    field: keyof GeoWebCoordinate,
+    unit: keyof GeoPoint
+  ): number => {
+    return Math.min(
+      ...coords.map((obj) => {
+        return Number(obj[field][unit]);
+      })
+    );
+  };
+
+  const findMaxPoint = (
+    coords: GeoWebCoordinate[],
+    field: keyof GeoWebCoordinate,
+    unit: keyof GeoPoint
+  ): number => {
+    return Math.max(
+      ...coords.map((obj) => {
+        return Number(obj[field][unit]);
+      })
+    );
   };
 
   const calcTotal = (portfolio: Parcel[], field: keyof Parcel): BigNumber =>

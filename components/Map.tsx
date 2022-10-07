@@ -557,6 +557,11 @@ function Map(props: MapProps) {
     switch (interactionState) {
       case STATE.VIEWING:
         if (_checkParcelClick()) {
+          setViewport({
+            ...viewport,
+            longitude: event.lngLat.lng + LON_OFFSET,
+            latitude: event.lngLat.lat + LAT_OFFSET,
+          });
           return;
         }
 
