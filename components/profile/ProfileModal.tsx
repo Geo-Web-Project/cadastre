@@ -41,14 +41,16 @@ import {
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
-import { STATE, GeoPoint } from "../Map";
+import {
+  STATE,
+  GeoPoint,
+  PORTFOLIO_PARCEL_LON_OFFSET,
+  PORTFOLIO_PARCEL_LAT_OFFSET,
+} from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
-
-export const LON_OFFSET = 0.00085;
-export const LAT_OFFSET = 0.0002;
 
 type ProfileModalProps = {
   accountTokenSnapshot: AccountTokenSnapshot;
@@ -129,7 +131,7 @@ const portfolioQuery = gql`
             contributionRate
           }
           coordinates {
-            pointTL {
+            pointTR {
               lon
               lat
             }
@@ -381,8 +383,8 @@ function ProfileModal(props: ProfileModalProps) {
             buffer: buffer,
             action: action,
             coords: {
-              lon: Number(coords[0].pointTL.lon) + LON_OFFSET,
-              lat: Number(coords[0].pointTL.lat) + LAT_OFFSET,
+              lon: Number(coords[0].pointTR.lon) + PORTFOLIO_PARCEL_LON_OFFSET,
+              lat: Number(coords[0].pointTR.lat) + PORTFOLIO_PARCEL_LAT_OFFSET,
             },
           });
         });
