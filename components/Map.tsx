@@ -288,6 +288,7 @@ function Map(props: MapProps) {
     id: string;
     timerId: number | null;
   }>({ id: "", timerId: null });
+  const [lastDataLength, setLastDataLength] = useState<number>(0);
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
@@ -323,6 +324,12 @@ function Map(props: MapProps) {
     };
   }, [data, newParcel.id, fetchMore]);
 
+  useEffect(() => {
+    if (data?.geoWebCoordinates.length) {
+      setLastDataLength(data?.geoWebCoordinates.length);
+    }
+  }, [data]);
+
   const flyToLocation = useCallback(
     ({
       longitude,
@@ -353,15 +360,8 @@ function Map(props: MapProps) {
 
     if (data.geoWebCoordinates.length > 0) {
       if (
-        data.geoWebCoordinates.every((element, index) => {
-          if (
-            !index ||
-            (element.parcel.id === data.geoWebCoordinates[0].parcel.id &&
-              element.id !== data.geoWebCoordinates[0].id)
-          ) {
-            return true;
-          }
-        })
+        data.geoWebCoordinates.length === 1000 ||
+        data.geoWebCoordinates.length - lastDataLength === 1000
       ) {
         const lastElement =
           data.geoWebCoordinates[data.geoWebCoordinates.length - 1];
@@ -387,6 +387,7 @@ function Map(props: MapProps) {
             ...params,
           },
         });
+        return;
       } else {
         newLastBlock =
           data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
