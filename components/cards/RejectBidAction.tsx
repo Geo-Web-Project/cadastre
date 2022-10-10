@@ -23,7 +23,8 @@ import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
-import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import ApproveButton from "../ApproveButton";
+import PerformButton from "../PerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
 
 dayjs.extend(utc);
@@ -76,6 +77,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
+  const [isAllowed, setIsAllowed] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -376,25 +378,32 @@ function RejectBidAction(props: RejectBidActionProps) {
               className="w-100 mb-3"
               onClick={handleWrapModalOpen}
             >
-              {`Wrap to ${PAYMENT_TOKEN}`}
+              {`Wrap ETH to ${PAYMENT_TOKEN}`}
             </Button>
-            <ApproveOrPerformButton
+            <ApproveButton
               {...props}
-              isDisabled={isActing || isInvalid}
-              buttonText={"Reject Bid"}
+              isDisabled={isActing}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 penaltyPayment && newRequiredBuffer && oldRequiredBuffer
                   ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
                   : null
               }
-              performAction={rejectBid}
               spender={licenseDiamondContract?.address ?? null}
               requiredFlowPermissions={2}
               flowOperator={licenseDiamondContract?.address ?? null}
               setErrorMessage={setErrorMessage}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
+              isAllowed={isAllowed}
+              setIsAllowed={setIsAllowed}
+            />
+            <PerformButton
+              isDisabled={isActing || isInvalid}
+              isActing={isActing}
+              buttonText={"Reject Bid"}
+              performAction={rejectBid}
+              isAllowed={isAllowed}
             />
           </Form>
 
