@@ -25,7 +25,13 @@ export function PerformButton(props: PerformButtonProps) {
 
   return (
     <Button
-      variant={isAllowed || isDisabled ? "success" : "info"}
+      variant={
+        !isAllowed
+          ? "info"
+          : buttonText === "Reject Bid"
+          ? "danger"
+          : "success"
+      }
       className="w-100"
       onClick={() => submit()}
       disabled={isDisabled || !isAllowed}

@@ -92,7 +92,6 @@ export function ApproveButton(props: ApproveButtonProps) {
       );
       setIsActing(false);
       setDidFail(true);
-      setIsAllowed(false);
       return false;
     }
 
@@ -125,7 +124,6 @@ export function ApproveButton(props: ApproveButtonProps) {
       );
       setIsActing(false);
       setDidFail(true);
-      setIsAllowed(false);
       return false;
     }
 
@@ -153,7 +151,6 @@ export function ApproveButton(props: ApproveButtonProps) {
       if (requiredPayment && BigNumber.from(allowance).lt(requiredPayment)) {
         _approvals.push(approvePayment);
         _approvalStr = `Allow ${PAYMENT_TOKEN} Transfer`;
-        setIsAllowed(false);
       }
 
       // Check flow allowance
@@ -177,8 +174,12 @@ export function ApproveButton(props: ApproveButtonProps) {
           _approvals.length > 1
             ? `Allow ${PAYMENT_TOKEN} Transfer + Stream`
             : `Allow ${PAYMENT_TOKEN} Stream`;
-      } else {
+      }
+
+      if (_approvals.length === 0) {
         setIsAllowed(true);
+      } else {
+        setIsAllowed(false);
       }
 
       setApprovals(_approvals);
