@@ -215,31 +215,6 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
-    const loadLicenseDiamond = async () => {
-      if (!licenseDiamondAddress) {
-        setLicenseDiamondContract(null);
-        return;
-      }
-
-      const _licenseDiamond = PCOLicenseDiamondFactory.connect(
-        licenseDiamondAddress,
-        sfFramework.settings.provider
-      );
-
-      setLicenseDiamondContract(_licenseDiamond);
-
-      const isPayerBidActive = await _licenseDiamond.isPayerBidActive();
-      if (isPayerBidActive) {
-        setInvalidLicenseId("");
-      } else {
-        setInvalidLicenseId(selectedParcelId);
-      }
-    };
-
-    loadLicenseDiamond();
-  }, [licenseDiamondAddress, sfFramework, paymentToken]);
-
-  React.useEffect(() => {
     (async () => {
       if (ceramic == null || !ceramic.did) {
         console.error("Ceramic instance not found");
