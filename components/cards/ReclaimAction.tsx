@@ -20,6 +20,7 @@ export type ReclaimActionProps = SidebarProps & {
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
+    provider,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
@@ -64,6 +65,7 @@ function ReclaimAction(props: ReclaimActionProps) {
 
   const [requiredBuffer, setRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -105,11 +107,13 @@ function ReclaimAction(props: ReclaimActionProps) {
       );
     }
 
-    const txn = await licenseDiamondContract.reclaim(
-      ethers.utils.parseEther(displayNewForSalePrice),
-      newNetworkFee,
-      ethers.utils.parseEther(displayNewForSalePrice)
-    );
+    const txn = await licenseDiamondContract
+      .connect(provider.getSigner())
+      .reclaim(
+        ethers.utils.parseEther(displayNewForSalePrice),
+        newNetworkFee,
+        ethers.utils.parseEther(displayNewForSalePrice)
+      );
     await txn.wait();
 
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
