@@ -185,7 +185,7 @@ function WrapModal({
             style={{ width: "128px" }}
             disabled={isWrapping}
           >
-            {isWrapping ? "Wrapping..." : `Wrap to ${PAYMENT_TOKEN}`}
+            {isWrapping ? "Wrapping..." : `Wrap ETH to ${PAYMENT_TOKEN}`}
           </Button>
         </form>
       </Modal.Footer>

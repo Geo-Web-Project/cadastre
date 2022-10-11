@@ -24,7 +24,8 @@ import { model as GeoWebModel, BasicProfile } from "@geo-web/datamodels";
 import { DataModel } from "@glazed/datamodel";
 import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
-import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import ApproveButton from "../ApproveButton";
+import PerformButton from "../PerformButton";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -90,6 +91,7 @@ export function ActionForm(props: ActionFormProps) {
     errorMessage,
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
+  const [isAllowed, setIsAllowed] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -377,22 +379,13 @@ export function ActionForm(props: ActionFormProps) {
               className="w-100 mb-3"
               onClick={handleWrapModalOpen}
             >
-              {`Wrap to ${PAYMENT_TOKEN}`}
+              {`Wrap ETH to ${PAYMENT_TOKEN}`}
             </Button>
-            <ApproveOrPerformButton
+            <ApproveButton
               {...props}
-              isDisabled={isActing || isLoading || isInvalid}
-              buttonText={
-                interactionState === STATE.PARCEL_EDITING
-                  ? "Submit"
-                  : interactionState === STATE.PARCEL_RECLAIMING &&
-                    account.toLowerCase() === licenseOwner?.toLowerCase()
-                  ? "Reclaim"
-                  : "Claim"
-              }
-              requiredFlowAmount={requiredFlowAmount}
+              isDisabled={isActing ?? false}
+              requiredFlowAmount={requiredFlowAmount ?? null}
               requiredPayment={requiredPayment ?? null}
-              performAction={submit}
               spender={spender ?? null}
               setErrorMessage={(v) => {
                 updateActionData({ errorMessage: v });
@@ -403,6 +396,22 @@ export function ActionForm(props: ActionFormProps) {
               setDidFail={(v) => {
                 updateActionData({ didFail: v });
               }}
+              isAllowed={isAllowed}
+              setIsAllowed={setIsAllowed}
+            />
+            <PerformButton
+              isDisabled={isActing || isLoading || isInvalid}
+              isActing={isActing ?? false}
+              buttonText={
+                interactionState === STATE.PARCEL_EDITING
+                  ? "Submit"
+                  : interactionState === STATE.PARCEL_RECLAIMING &&
+                    account.toLowerCase() === licenseOwner?.toLowerCase()
+                  ? "Reclaim"
+                  : "Claim"
+              }
+              performAction={submit}
+              isAllowed={isAllowed}
             />
           </Form>
 

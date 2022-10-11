@@ -1,14 +1,13 @@
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
+import Image from "react-bootstrap/Image";
 import { BigNumber, constants } from "ethers";
 import { SidebarProps } from "./Sidebar";
 import { PAYMENT_TOKEN } from "../lib/constants";
 
-export type ApproveOrPerformButtonProps = SidebarProps & {
+export type ApproveButtonProps = SidebarProps & {
   isDisabled: boolean;
-  performAction: () => Promise<string | void>;
-  buttonText: string;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;
   requiredFlowPermissions: number | null;
@@ -17,6 +16,8 @@ export type ApproveOrPerformButtonProps = SidebarProps & {
   setErrorMessage: (v: string) => void;
   setIsActing: (v: boolean) => void;
   setDidFail: (v: boolean) => void;
+  isAllowed: boolean;
+  setIsAllowed: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,11 +28,9 @@ const asyncEvery = async (arr: any, predicate: any) => {
   return true;
 };
 
-export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
+export function ApproveButton(props: ApproveButtonProps) {
   const {
     isDisabled,
-    performAction,
-    buttonText,
     paymentToken,
     account,
     spender,
@@ -44,12 +43,14 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     setErrorMessage,
     setIsActing,
     setDidFail,
+    isAllowed,
+    setIsAllowed,
   } = props;
 
   const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
     []
   );
-  const [approvalStr, setApprovalStr] = React.useState<string>(buttonText);
+  const [approvalStr, setApprovalStr] = React.useState<string>("");
   const [completedActions, setCompletedActions] = React.useState<number>(0);
   const [totalActions, setTotalActions] = React.useState<number>(0);
 
@@ -132,7 +133,7 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
   React.useEffect(() => {
     const checkRequirements = async () => {
       const _approvals: (() => Promise<boolean>)[] = [];
-      let _approvalStr = buttonText;
+      let _approvalStr = `Allow ${PAYMENT_TOKEN} Transfer`;
 
       if (!isReady) {
         setApprovals(_approvals);
@@ -175,6 +176,12 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
             : `Allow ${PAYMENT_TOKEN} Stream`;
       }
 
+      if (_approvals.length === 0) {
+        setIsAllowed(true);
+      } else {
+        setIsAllowed(false);
+      }
+
       setApprovals(_approvals);
       setApprovalStr(_approvalStr);
     };
@@ -194,30 +201,38 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
     if (approvals.length > 0) {
       setTotalActions(approvals.length);
       setCompletedActions(0);
-      setApprovalStr(buttonText);
       let _completedActions = 0;
-      await asyncEvery(approvals, async (f: () => Promise<boolean>) => {
-        const success = await f();
-        setCompletedActions(++_completedActions);
-        return success;
-      });
-    } else {
-      setTotalActions(1);
-      setCompletedActions(0);
+      const isSubmissionSuccessful = await asyncEvery(
+        approvals,
+        async (f: () => Promise<boolean>) => {
+          const success = await f();
+          setCompletedActions(++_completedActions);
+          return success;
+        }
+      );
 
-      await performAction();
-      setTotalActions(0);
+      if (!isSubmissionSuccessful) {
+        setCompletedActions(0);
+        setTotalActions(0);
+      }
     }
-  }, [approvals, completedActions, buttonText]);
+  }, [approvals, completedActions]);
 
   return (
     <Button
-      variant="primary"
-      className="w-100"
+      variant={isAllowed ? "info" : "primary"}
+      className="w-100 mb-3"
       onClick={() => submit()}
-      disabled={isDisabled || totalActions > completedActions || !isReady}
+      disabled={
+        isDisabled || !isReady || isAllowed || totalActions > completedActions
+      }
     >
-      {totalActions > completedActions ? (
+      {isAllowed ? (
+        <>
+          <span className="ms-4">{PAYMENT_TOKEN} use allowed</span>
+          <Image src="./task-done.svg" className="float-end"></Image>
+        </>
+      ) : totalActions > completedActions ? (
         <>
           {spinner} {`${completedActions}/${totalActions}`}
         </>
@@ -228,4 +243,4 @@ export function ApproveOrPerformButton(props: ApproveOrPerformButtonProps) {
   );
 }
 
-export default ApproveOrPerformButton;
+export default ApproveButton;

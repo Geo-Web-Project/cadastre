@@ -18,7 +18,8 @@ import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
-import { ApproveOrPerformButton } from "../ApproveOrPerformButton";
+import { ApproveButton } from "../ApproveButton";
+import { PerformButton } from "../PerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
 
 export type PlaceBidActionProps = SidebarProps & {
@@ -55,8 +56,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
-    React.useState<string | null>(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
+    string | null
+  >(null);
+  const [isAllowed, setIsAllowed] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -109,8 +112,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  const [requiredBuffer, setRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -273,25 +277,32 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               className="w-100 mb-3"
               onClick={handleWrapModalOpen}
             >
-              {`Wrap to ${PAYMENT_TOKEN}`}
+              {`Wrap ETH to ${PAYMENT_TOKEN}`}
             </Button>
-            <ApproveOrPerformButton
+            <ApproveButton
               {...props}
-              isDisabled={isActing || isInvalid}
-              buttonText={"Place Bid"}
+              isDisabled={isActing}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 newForSalePrice && requiredBuffer
                   ? newForSalePrice.add(requiredBuffer)
                   : null
               }
-              performAction={placeBid}
               spender={licenseDiamondContract?.address ?? null}
               requiredFlowPermissions={1}
               flowOperator={licenseDiamondContract?.address ?? null}
               setErrorMessage={setErrorMessage}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
+              isAllowed={isAllowed}
+              setIsAllowed={setIsAllowed}
+            />
+            <PerformButton
+              isDisabled={isActing || isInvalid}
+              isActing={isActing}
+              buttonText={"Place Bid"}
+              performAction={placeBid}
+              isAllowed={isAllowed}
             />
           </Form>
 
