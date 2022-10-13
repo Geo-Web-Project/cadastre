@@ -3,6 +3,7 @@ import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
 import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -113,11 +114,10 @@ function ParcelInfo(props: ParcelInfoProps) {
     sfFramework,
     paymentToken,
   } = props;
-  const { loading, data } = useQuery<ParcelQuery>(parcelQuery, {
+  const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
-    pollInterval: 2000,
   });
 
   const [parcelIndexStreamId, setParcelIndexStreamId] =
@@ -133,6 +133,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<PCOLicenseDiamond | null>(null);
   const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
     React.useState<ParcelFieldsToUpdate | null>(null);
+  const [queryTimerId, setQueryTimerId] =
+    React.useState<NodeJS.Timer | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -147,9 +149,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     : null;
 
   const spinner = (
-    <span className="spinner-border" role="status">
+    <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Loading...</span>
-    </span>
+    </Spinner>
   );
 
   const forSalePrice =
@@ -275,6 +277,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       setParcelFieldsToUpdate(null);
     }
 
+    if (queryTimerId) {
+      setQueryTimerId(null);
+    }
+
     if (!outstandingBidder) {
       setIsParcelAvailable(true);
       return;
@@ -284,11 +290,21 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [data]);
 
   React.useEffect(() => {
-    if (parcelFieldsToUpdate && invalidLicenseId) {
-      setInvalidLicenseId("");
+    if (parcelFieldsToUpdate) {
+      const timerId = setTimeout(() => {
+        refetch({
+          id: selectedParcelId,
+        });
+      }, 2000);
 
-      if (licenseOwner === account) {
-        setParcelFieldsToUpdate(null);
+      setQueryTimerId(timerId);
+
+      if (invalidLicenseId) {
+        setInvalidLicenseId("");
+
+        if (licenseOwner === account) {
+          setParcelFieldsToUpdate(null);
+        }
       }
     }
   }, [parcelFieldsToUpdate]);
@@ -321,53 +337,41 @@ function ParcelInfo(props: ParcelInfoProps) {
   );
 
   const editButton = (
-    <>
-      {!parcelFieldsToUpdate ? (
-        <Button
-          variant="primary"
-          className="w-100 mb-2"
-          onClick={() => {
-            setInteractionState(STATE.PARCEL_EDITING);
-          }}
-        >
-          Edit Parcel
-        </Button>
-      ) : null}
-    </>
+    <Button
+      variant="primary"
+      className="w-100 mb-2"
+      onClick={() => {
+        setInteractionState(STATE.PARCEL_EDITING);
+      }}
+    >
+      Edit Parcel
+    </Button>
   );
 
   const editGalleryButton = (
-    <>
-      {!parcelFieldsToUpdate ? (
-        <Button
-          variant="secondary"
-          className="w-100"
-          onClick={() => {
-            setInteractionState(STATE.EDITING_GALLERY);
-          }}
-        >
-          Edit Media Gallery
-        </Button>
-      ) : null}
-    </>
+    <Button
+      variant="secondary"
+      className="w-100"
+      onClick={() => {
+        setInteractionState(STATE.EDITING_GALLERY);
+      }}
+    >
+      Edit Media Gallery
+    </Button>
   );
 
   const placeBidButton = (
     <>
-      {!parcelFieldsToUpdate ? (
-        <>
-          <Button
-            variant="primary"
-            className="w-100"
-            onClick={() => {
-              setInteractionState(STATE.PARCEL_PLACING_BID);
-            }}
-          >
-            Place Bid
-          </Button>
-          <AuctionInstructions />
-        </>
-      ) : null}
+      <Button
+        variant="primary"
+        className="w-100"
+        onClick={() => {
+          setInteractionState(STATE.PARCEL_PLACING_BID);
+        }}
+      >
+        Place Bid
+      </Button>
+      <AuctionInstructions />
     </>
   );
 
@@ -476,7 +480,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   }
 
   let buttons;
-  if (interactionState != STATE.PARCEL_SELECTED) {
+  if (parcelFieldsToUpdate) {
+    buttons = null;
+  } else if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
     if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
@@ -549,7 +555,11 @@ function ParcelInfo(props: ParcelInfoProps) {
                 )}
               </p>
               <br />
-              {invalidLicenseId == selectedParcelId ? null : buttons}
+              {invalidLicenseId == selectedParcelId
+                ? null
+                : parcelFieldsToUpdate
+                ? null
+                : buttons}
             </>
           ) : null}
           {(interactionState == STATE.PARCEL_RECLAIMING ||
@@ -621,8 +631,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING &&
-          licenseOwner ? (
+          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
               licenseOwner={licenseOwner}

@@ -8,6 +8,7 @@ import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Spinner from "react-bootstrap/Spinner";
 import { truncateEth } from "../../lib/truncate";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
@@ -87,9 +88,9 @@ function RejectBidAction(props: RejectBidActionProps) {
   const handleWrapModalClose = () => setShowWrapModal(false);
 
   const spinner = (
-    <span className="spinner-border" role="status">
+    <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Sending Transaction...</span>
-    </span>
+    </Spinner>
   );
 
   const displayCurrentForSalePrice = formatBalance(

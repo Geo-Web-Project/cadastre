@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { ethers, BigNumber } from "ethers";
 import * as React from "react";
-import { Card } from "react-bootstrap";
+import { Card, Spinner } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
@@ -88,9 +88,9 @@ function OutstandingBidView({
     React.useState<BigNumber | null>(null);
 
   const spinner = (
-    <span className="spinner-border" role="status">
+    <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Loading...</span>
-    </span>
+    </Spinner>
   );
 
   React.useEffect(() => {
