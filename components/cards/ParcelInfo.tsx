@@ -622,14 +622,12 @@ function ParcelInfo(props: ParcelInfoProps) {
             />
           ) : null}
           {interactionState == STATE.PARCEL_RECLAIMING &&
-          licenseOwner &&
-          currentOwnerBidForSalePrice ? (
+          licenseOwner ? (
             <ReclaimAction
               {...props}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
-              existingForSalePrice={currentOwnerBidForSalePrice}
               setParcelFieldsToUpdate={setParcelFieldsToUpdate}
             ></ReclaimAction>
           ) : null}
