@@ -80,17 +80,17 @@ interface GWCoordinateGQL {
 
 const query = gql`
   query Polygons(
-    $lastBlock: BigInt
+    $lastId: BigInt
     $minX: BigInt
     $maxX: BigInt
     $minY: BigInt
     $maxY: BigInt
   ) {
     geoWebCoordinates(
-      orderBy: createdAtBlock
+      orderBy: id
       first: 1000
       where: {
-        createdAtBlock_gt: $lastBlock
+        id_gt: $lastId
         coordX_gte: $minX
         coordX_lt: $maxX
         coordY_gte: $minY
@@ -229,7 +229,7 @@ function Map(props: MapProps) {
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
-      lastBlock: 0,
+      lastId: 0,
       minX: 0,
       maxX: 0,
       minY: 0,
@@ -348,14 +348,12 @@ function Map(props: MapProps) {
       return;
     }
 
-    let newLastBlock;
+    let newLastId;
 
     if (data.geoWebCoordinates.length > 0) {
-      newLastBlock =
-        data.geoWebCoordinates[data.geoWebCoordinates.length - 1]
-          .createdAtBlock;
+      newLastId = data.geoWebCoordinates[data.geoWebCoordinates.length - 1].id;
     } else if (newParcel.id) {
-      newLastBlock = 0;
+      newLastId = 0;
     } else {
       return;
     }
@@ -374,7 +372,7 @@ function Map(props: MapProps) {
 
     fetchMore({
       variables: {
-        lastBlock: newLastBlock,
+        lastId: newLastId,
         ...params,
       },
     });
@@ -392,7 +390,7 @@ function Map(props: MapProps) {
     const params = normalizeQueryVariables(x, y);
 
     const opts = {
-      lastBlock: 0,
+      lastId: 0,
       ...params,
     };
     refetch(opts);
@@ -427,7 +425,7 @@ function Map(props: MapProps) {
 
     if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
       const opts = {
-        lastBlock: 0,
+        lastId: 0,
         ...params,
       };
       refetch(opts);
@@ -445,7 +443,7 @@ function Map(props: MapProps) {
         Math.abs(y - oldCoordY) > QUERY_DIM)
     ) {
       const opts = {
-        lastBlock: 0,
+        lastId: 0,
         ...params,
       };
       refetch(opts);
