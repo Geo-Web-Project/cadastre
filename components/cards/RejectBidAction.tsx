@@ -8,6 +8,7 @@ import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Spinner from "react-bootstrap/Spinner";
 import { truncateEth } from "../../lib/truncate";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
@@ -25,7 +26,7 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelFieldsToUpdate } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +39,9 @@ export type RejectBidActionProps = SidebarProps & {
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 const infoIcon = (
@@ -61,6 +65,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidForSalePrice,
     setInteractionState,
     setIsPortfolioToUpdate,
+    setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
     provider,
@@ -83,9 +88,9 @@ function RejectBidAction(props: RejectBidActionProps) {
   const handleWrapModalClose = () => setShowWrapModal(false);
 
   const spinner = (
-    <span className="spinner-border" role="status">
+    <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Sending Transaction...</span>
-    </span>
+    </Spinner>
   );
 
   const displayCurrentForSalePrice = formatBalance(
@@ -155,6 +160,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [oldRequiredBuffer, setOldRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!existingNetworkFee) {
@@ -175,6 +181,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [newRequiredBuffer, setNewRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -259,6 +266,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     setIsActing(false);
     setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: false,
+    });
   }
 
   return (

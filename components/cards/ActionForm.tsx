@@ -44,7 +44,6 @@ export type ActionFormProps = SidebarProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
-  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export type ActionData = {

@@ -9,7 +9,7 @@ import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfil
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelFieldsToUpdate } from "./ParcelInfo";
 
 export type EditActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -18,6 +18,9 @@ export type EditActionProps = SidebarProps & {
   hasOutstandingBid: boolean;
   parcelData: GeoWebParcel;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 function EditAction(props: EditActionProps) {
@@ -32,6 +35,7 @@ function EditAction(props: EditActionProps) {
     sfFramework,
     paymentToken,
     provider,
+    setParcelFieldsToUpdate,
   } = props;
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
@@ -116,6 +120,7 @@ function EditAction(props: EditActionProps) {
 
   const [requiredExistingBuffer, setRequiredExistingBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!existingNetworkFee) {
@@ -136,6 +141,7 @@ function EditAction(props: EditActionProps) {
 
   const [requiredNewBuffer, setRequiredNewBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -179,6 +185,7 @@ function EditAction(props: EditActionProps) {
       .connect(provider.getSigner())
       .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
     await txn.wait();
+    setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: false });
   }
 
   return (

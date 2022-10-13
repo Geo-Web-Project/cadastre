@@ -2,8 +2,8 @@ import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
-import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -44,7 +44,7 @@ interface Bid {
   perSecondFeeDenominator: string;
   forSalePrice: string;
   timestamp: string;
-  bidder?: string;
+  bidder?: { id: string };
 }
 
 export interface GeoWebParcel {
@@ -57,6 +57,11 @@ export interface GeoWebParcel {
 
 export interface ParcelQuery {
   geoWebParcel?: GeoWebParcel;
+}
+
+export interface ParcelFieldsToUpdate {
+  forSalePrice: boolean;
+  licenseOwner: boolean;
 }
 
 const parcelQuery = gql`
@@ -74,7 +79,9 @@ const parcelQuery = gql`
       }
       pendingBid {
         timestamp
-        bidder
+        bidder {
+          id
+        }
         contributionRate
         perSecondFeeNumerator
         perSecondFeeDenominator
@@ -107,11 +114,10 @@ function ParcelInfo(props: ParcelInfoProps) {
     sfFramework,
     paymentToken,
   } = props;
-  const { loading, data } = useQuery<ParcelQuery>(parcelQuery, {
+  const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
       id: selectedParcelId,
     },
-    pollInterval: 2000,
   });
 
   const [parcelIndexStreamId, setParcelIndexStreamId] =
@@ -125,6 +131,10 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
+  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
+    React.useState<ParcelFieldsToUpdate | null>(null);
+  const [queryTimerId, setQueryTimerId] =
+    React.useState<NodeJS.Timer | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -139,9 +149,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     : null;
 
   const spinner = (
-    <span className="spinner-border" role="status">
+    <Spinner as="span" size="sm" animation="border" role="status">
       <span className="visually-hidden">Loading...</span>
-    </span>
+    </Spinner>
   );
 
   const forSalePrice =
@@ -159,7 +169,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         ) ?? false
       : false;
   const outstandingBidder = hasOutstandingBid
-    ? data?.geoWebParcel?.pendingBid?.bidder ?? null
+    ? data?.geoWebParcel?.pendingBid?.bidder?.id ?? null
     : null;
   const currentOwnerBidForSalePrice =
     data && data.geoWebParcel
@@ -262,7 +272,15 @@ function ParcelInfo(props: ParcelInfoProps) {
     })();
   }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    if (parcelFieldsToUpdate) {
+      setParcelFieldsToUpdate(null);
+    }
+
+    if (queryTimerId) {
+      setQueryTimerId(null);
+    }
+
     if (!outstandingBidder) {
       setIsParcelAvailable(true);
       return;
@@ -270,6 +288,26 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
+
+  React.useEffect(() => {
+    if (parcelFieldsToUpdate) {
+      const timerId = setTimeout(() => {
+        refetch({
+          id: selectedParcelId,
+        });
+      }, 2000);
+
+      setQueryTimerId(timerId);
+
+      if (invalidLicenseId) {
+        setInvalidLicenseId("");
+
+        if (licenseOwner === account) {
+          setParcelFieldsToUpdate(null);
+        }
+      }
+    }
+  }, [parcelFieldsToUpdate]);
 
   const isLoading = loading || data == null;
 
@@ -442,7 +480,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   }
 
   let buttons;
-  if (interactionState != STATE.PARCEL_SELECTED) {
+  if (parcelFieldsToUpdate) {
+    buttons = null;
+  } else if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
     if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
@@ -470,7 +510,9 @@ function ParcelInfo(props: ParcelInfoProps) {
             <>
               <p>
                 <span className="fw-bold">For Sale Price:</span>{" "}
-                {isLoading ? spinner : forSalePrice}
+                {isLoading || parcelFieldsToUpdate?.forSalePrice
+                  ? spinner
+                  : forSalePrice}
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Parcel ID:</span>{" "}
@@ -493,7 +535,9 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Licensee:</span>{" "}
-                {isLoading || !licenseOwner
+                {isLoading ||
+                !licenseOwner ||
+                parcelFieldsToUpdate?.licenseOwner
                   ? spinner
                   : truncateStr(licenseOwner, 11)}
               </p>
@@ -511,7 +555,11 @@ function ParcelInfo(props: ParcelInfoProps) {
                 )}
               </p>
               <br />
-              {invalidLicenseId == selectedParcelId ? null : buttons}
+              {invalidLicenseId == selectedParcelId
+                ? null
+                : parcelFieldsToUpdate
+                ? null
+                : buttons}
             </>
           ) : null}
           {(interactionState == STATE.PARCEL_RECLAIMING ||
@@ -533,7 +581,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_SELECTED &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          currentOwnerBidForSalePrice ? (
+          currentOwnerBidForSalePrice &&
+          !parcelFieldsToUpdate ? (
             <>
               <OutstandingBidView
                 newForSalePrice={outstandingBidForSalePrice}
@@ -541,6 +590,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 bidTimestamp={outstandingBidTimestamp ?? null}
                 licensorIsOwner={licenseOwner === account}
                 licenseDiamondContract={licenseDiamondContract}
+                setParcelFieldsToUpdate={setParcelFieldsToUpdate}
                 {...props}
               />
               <AuctionInstructions />
@@ -550,8 +600,11 @@ function ParcelInfo(props: ParcelInfoProps) {
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data.geoWebParcel}
-              hasOutstandingBid={hasOutstandingBid}
+              hasOutstandingBid={
+                !parcelFieldsToUpdate ? hasOutstandingBid : false
+              }
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -560,18 +613,21 @@ function ParcelInfo(props: ParcelInfoProps) {
             <PlaceBidAction
               parcelData={data.geoWebParcel}
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          data?.geoWebParcel ? (
+          data?.geoWebParcel &&
+          !parcelFieldsToUpdate ? (
             <RejectBidAction
               parcelData={data.geoWebParcel}
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -581,6 +637,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
             ></ReclaimAction>
           ) : null}
         </Col>

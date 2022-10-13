@@ -173,7 +173,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
-  const [timerId, setTimerId] = useState<NodeJS.Timer>();
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch } = useQuery(portfolioQuery, {
     variables: {
@@ -455,7 +455,7 @@ function ProfileModal(props: ProfileModalProps) {
 
     if (timerId) {
       clearInterval(timerId);
-      setTimerId(undefined);
+      setTimerId(null);
       setIsPortfolioToUpdate(false);
       return;
     }
