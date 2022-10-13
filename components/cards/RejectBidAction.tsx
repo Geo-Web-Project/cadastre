@@ -25,7 +25,7 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelFieldsToUpdate } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +38,9 @@ export type RejectBidActionProps = SidebarProps & {
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 const infoIcon = (
@@ -61,6 +64,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidForSalePrice,
     setInteractionState,
     setIsPortfolioToUpdate,
+    setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
     provider,
@@ -155,6 +159,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [oldRequiredBuffer, setOldRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!existingNetworkFee) {
@@ -175,6 +180,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const [newRequiredBuffer, setNewRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -259,6 +265,10 @@ function RejectBidAction(props: RejectBidActionProps) {
     setIsActing(false);
     setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: false,
+    });
   }
 
   return (

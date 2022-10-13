@@ -6,6 +6,9 @@ import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
+import { formatBalance } from "../../lib/formatBalance";
+import { truncateEth } from "../../lib/truncate";
+import { ParcelFieldsToUpdate } from "./ParcelInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import BN from "bn.js";
 
@@ -13,8 +16,12 @@ export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   requiredBid?: BigNumber;
+  existingForSalePrice: BigNumber;
   licenseOwner: string;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -23,6 +30,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     provider,
     licenseOwner,
     requiredBid,
+    existingForSalePrice,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     licenseDiamondContract,
@@ -30,6 +38,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     selectedParcelId,
     sfFramework,
     paymentToken,
+    setParcelFieldsToUpdate,
   } = props;
 
   const [actionData, setActionData] = React.useState<ActionData>({
@@ -62,6 +71,11 @@ function ReclaimAction(props: ReclaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
+
+  const displayCurrentForSalePrice = truncateEth(
+    formatBalance(existingForSalePrice),
+    18
+  );
 
   const [requiredBuffer, setRequiredBuffer] =
     React.useState<BigNumber | null>(null);
@@ -115,6 +129,11 @@ function ReclaimAction(props: ReclaimActionProps) {
         ethers.utils.parseEther(displayNewForSalePrice)
       );
     await txn.wait();
+
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: licenseOwner !== account,
+    });
 
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
   }

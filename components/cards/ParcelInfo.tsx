@@ -2,7 +2,6 @@ import * as React from "react";
 import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
-import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import {
   PAYMENT_TOKEN,
@@ -44,7 +43,7 @@ interface Bid {
   perSecondFeeDenominator: string;
   forSalePrice: string;
   timestamp: string;
-  bidder?: string;
+  bidder?: { id: string };
 }
 
 export interface GeoWebParcel {
@@ -57,6 +56,11 @@ export interface GeoWebParcel {
 
 export interface ParcelQuery {
   geoWebParcel?: GeoWebParcel;
+}
+
+export interface ParcelFieldsToUpdate {
+  forSalePrice: boolean;
+  licenseOwner: boolean;
 }
 
 const parcelQuery = gql`
@@ -74,7 +78,9 @@ const parcelQuery = gql`
       }
       pendingBid {
         timestamp
-        bidder
+        bidder {
+          id
+        }
         contributionRate
         perSecondFeeNumerator
         perSecondFeeDenominator
@@ -125,6 +131,8 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
+  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
+    React.useState<ParcelFieldsToUpdate | null>(null);
 
   const basicProfileStreamManager =
     useBasicProfileStreamManager(assetContentManager);
@@ -159,7 +167,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         ) ?? false
       : false;
   const outstandingBidder = hasOutstandingBid
-    ? data?.geoWebParcel?.pendingBid?.bidder ?? null
+    ? data?.geoWebParcel?.pendingBid?.bidder?.id ?? null
     : null;
   const currentOwnerBidForSalePrice =
     data && data.geoWebParcel
@@ -262,7 +270,11 @@ function ParcelInfo(props: ParcelInfoProps) {
     })();
   }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    if (parcelFieldsToUpdate) {
+      setParcelFieldsToUpdate(null);
+    }
+
     if (!outstandingBidder) {
       setIsParcelAvailable(true);
       return;
@@ -270,6 +282,16 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
   }, [data]);
+
+  React.useEffect(() => {
+    if (parcelFieldsToUpdate && invalidLicenseId) {
+      setInvalidLicenseId("");
+
+      if (licenseOwner === account) {
+        setParcelFieldsToUpdate(null);
+      }
+    }
+  }, [parcelFieldsToUpdate]);
 
   const isLoading = loading || data == null;
 
@@ -299,41 +321,53 @@ function ParcelInfo(props: ParcelInfoProps) {
   );
 
   const editButton = (
-    <Button
-      variant="primary"
-      className="w-100 mb-2"
-      onClick={() => {
-        setInteractionState(STATE.PARCEL_EDITING);
-      }}
-    >
-      Edit Parcel
-    </Button>
+    <>
+      {!parcelFieldsToUpdate ? (
+        <Button
+          variant="primary"
+          className="w-100 mb-2"
+          onClick={() => {
+            setInteractionState(STATE.PARCEL_EDITING);
+          }}
+        >
+          Edit Parcel
+        </Button>
+      ) : null}
+    </>
   );
 
   const editGalleryButton = (
-    <Button
-      variant="secondary"
-      className="w-100"
-      onClick={() => {
-        setInteractionState(STATE.EDITING_GALLERY);
-      }}
-    >
-      Edit Media Gallery
-    </Button>
+    <>
+      {!parcelFieldsToUpdate ? (
+        <Button
+          variant="secondary"
+          className="w-100"
+          onClick={() => {
+            setInteractionState(STATE.EDITING_GALLERY);
+          }}
+        >
+          Edit Media Gallery
+        </Button>
+      ) : null}
+    </>
   );
 
   const placeBidButton = (
     <>
-      <Button
-        variant="primary"
-        className="w-100"
-        onClick={() => {
-          setInteractionState(STATE.PARCEL_PLACING_BID);
-        }}
-      >
-        Place Bid
-      </Button>
-      <AuctionInstructions />
+      {!parcelFieldsToUpdate ? (
+        <>
+          <Button
+            variant="primary"
+            className="w-100"
+            onClick={() => {
+              setInteractionState(STATE.PARCEL_PLACING_BID);
+            }}
+          >
+            Place Bid
+          </Button>
+          <AuctionInstructions />
+        </>
+      ) : null}
     </>
   );
 
@@ -470,7 +504,9 @@ function ParcelInfo(props: ParcelInfoProps) {
             <>
               <p>
                 <span className="fw-bold">For Sale Price:</span>{" "}
-                {isLoading ? spinner : forSalePrice}
+                {isLoading || parcelFieldsToUpdate?.forSalePrice
+                  ? spinner
+                  : forSalePrice}
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Parcel ID:</span>{" "}
@@ -493,7 +529,9 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Licensee:</span>{" "}
-                {isLoading || !licenseOwner
+                {isLoading ||
+                !licenseOwner ||
+                parcelFieldsToUpdate?.licenseOwner
                   ? spinner
                   : truncateStr(licenseOwner, 11)}
               </p>
@@ -533,7 +571,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_SELECTED &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          currentOwnerBidForSalePrice ? (
+          currentOwnerBidForSalePrice &&
+          !parcelFieldsToUpdate ? (
             <>
               <OutstandingBidView
                 newForSalePrice={outstandingBidForSalePrice}
@@ -541,6 +580,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 bidTimestamp={outstandingBidTimestamp ?? null}
                 licensorIsOwner={licenseOwner === account}
                 licenseDiamondContract={licenseDiamondContract}
+                setParcelFieldsToUpdate={setParcelFieldsToUpdate}
                 {...props}
               />
               <AuctionInstructions />
@@ -550,8 +590,11 @@ function ParcelInfo(props: ParcelInfoProps) {
             <EditAction
               basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data.geoWebParcel}
-              hasOutstandingBid={hasOutstandingBid}
+              hasOutstandingBid={
+                !parcelFieldsToUpdate ? hasOutstandingBid : false
+              }
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -560,27 +603,34 @@ function ParcelInfo(props: ParcelInfoProps) {
             <PlaceBidAction
               parcelData={data.geoWebParcel}
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
-          data?.geoWebParcel ? (
+          data?.geoWebParcel &&
+          !parcelFieldsToUpdate ? (
             <RejectBidAction
               parcelData={data.geoWebParcel}
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
+          {interactionState == STATE.PARCEL_RECLAIMING &&
+          licenseOwner &&
+          currentOwnerBidForSalePrice ? (
             <ReclaimAction
               {...props}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
+              existingForSalePrice={currentOwnerBidForSalePrice}
+              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
             ></ReclaimAction>
           ) : null}
         </Col>

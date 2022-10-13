@@ -15,6 +15,7 @@ import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
+import { ParcelFieldsToUpdate } from "./ParcelInfo";
 import { sfSubgraph } from "../../redux/store";
 
 dayjs.extend(utc);
@@ -29,6 +30,9 @@ type OutstandingBidViewProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 function OutstandingBidView({
@@ -44,6 +48,7 @@ function OutstandingBidView({
   setInteractionState,
   setSelectedParcelId,
   setIsPortfolioToUpdate,
+  setParcelFieldsToUpdate,
   sfFramework,
   paymentToken,
   provider,
@@ -165,6 +170,10 @@ function OutstandingBidView({
 
     setIsActing(false);
     setIsPortfolioToUpdate(true);
+    setParcelFieldsToUpdate({
+      forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
+      licenseOwner: true,
+    });
     setInteractionState(STATE.PARCEL_SELECTED);
   }
 
@@ -210,6 +219,7 @@ function OutstandingBidView({
 
   const [existingBuffer, setExistingBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!existingNetworkFee) {
@@ -229,6 +239,7 @@ function OutstandingBidView({
   }, [sfFramework, paymentToken, provider, existingForSalePrice]);
 
   const [newBuffer, setNewBuffer] = React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {

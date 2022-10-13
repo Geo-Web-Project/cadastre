@@ -20,13 +20,16 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelFieldsToUpdate } from "./ParcelInfo";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: GeoWebParcel;
   licenseDiamondContract: PCOLicenseDiamond | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 const infoIcon = (
@@ -47,6 +50,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     licenseDiamondContract,
     setInteractionState,
     setIsPortfolioToUpdate,
+    setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
     provider,
@@ -56,9 +60,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
-    string | null
-  >(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
+    React.useState<string | null>(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
@@ -112,9 +115,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
-    null
-  );
+  const [requiredBuffer, setRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newNetworkFee) {
@@ -171,6 +174,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     setIsActing(false);
     setIsPortfolioToUpdate(true);
     setInteractionState(STATE.PARCEL_SELECTED);
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: false,
+    });
   }
 
   return (
