@@ -466,15 +466,6 @@ function ParcelInfo(props: ParcelInfoProps) {
             </Col>
           </Row>
         </div>
-        {interactionState == STATE.PARCEL_RECLAIMING ? (
-          <Row className="mb-3">
-            <h1 style={{ fontSize: "1.rem", fontWeight: 600 }}>
-              {account.toLowerCase() == licenseOwner?.toLowerCase()
-                ? "Reclaim"
-                : "Foreclosure Claim"}
-            </h1>
-          </Row>
-        ) : null}
       </>
     );
   }

@@ -227,6 +227,18 @@ export function ActionForm(props: ActionFormProps) {
   return (
     <>
       <Card border="secondary" className="bg-dark mt-5">
+        <Card.Header>
+          <h3>
+            {interactionState === STATE.PARCEL_EDITING
+              ? "Edit"
+              : interactionState === STATE.PARCEL_RECLAIMING &&
+                licenseOwner === account
+              ? "Reclaim"
+              : interactionState === STATE.PARCEL_RECLAIMING
+              ? "Foreclosure Claim"
+              : null}
+          </h3>
+        </Card.Header>
         <Card.Body>
           <Form>
             <Form.Group>
