@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
-import { SidebarProps } from "../Sidebar";
+import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -20,7 +20,7 @@ import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
-import { GeoWebParcel, ParcelFieldsToUpdate } from "./ParcelInfo";
+import { GeoWebParcel } from "./ParcelInfo";
 
 export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;

@@ -3,7 +3,7 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import BN from "bn.js";
-import { SidebarProps } from "../Sidebar";
+import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
@@ -17,6 +17,9 @@ export type ClaimActionProps = SidebarProps & {
   /** during the fair launch period (true) or after (false). */
   isFairLaunch?: boolean;
   requiredBid: BigNumber;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 function ClaimAction(props: ClaimActionProps) {
@@ -30,6 +33,7 @@ function ClaimAction(props: ClaimActionProps) {
     isFairLaunch,
     requiredBid,
     setNewParcel,
+    setParcelFieldsToUpdate,
     provider,
     sfFramework,
     paymentToken,
@@ -68,6 +72,7 @@ function ClaimAction(props: ClaimActionProps) {
 
   const [requiredBuffer, setRequiredBuffer] =
     React.useState<BigNumber | null>(null);
+
   React.useEffect(() => {
     const run = async () => {
       if (!newFlowRate) {
@@ -137,6 +142,8 @@ function ClaimAction(props: ClaimActionProps) {
     setNewParcel((prev) => {
       return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
     });
+
+    setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: true });
 
     return licenseId;
   }
