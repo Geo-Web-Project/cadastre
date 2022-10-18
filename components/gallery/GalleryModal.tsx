@@ -32,7 +32,7 @@ function GalleryModal(props: GalleryModalProps) {
 
   const mediaGalleryStreamManager =
     useMediaGalleryStreamManager(assetContentManager);
-  const { mediaGalleryData, mediaGalleryItems } = useMediaGalleryItemData(
+  const { mediaGalleryData, mediaGalleryItems, setShouldMediaGalleryUpdate } = useMediaGalleryItemData(
     mediaGalleryStreamManager,
     assetContentManager
   );
@@ -173,6 +173,7 @@ function GalleryModal(props: GalleryModalProps) {
                   selectedMediaGalleryItemManager
                 }
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
+                setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
               <GalleryDisplayGrid

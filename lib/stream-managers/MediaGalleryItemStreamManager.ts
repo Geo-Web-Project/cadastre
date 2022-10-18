@@ -89,6 +89,8 @@ export function useMediaGalleryItemData(
   const [mediaGalleryItems, setMediaGalleryItems] = React.useState<
     Record<string, MediaGalleryItemStreamManager>
   >({});
+  const [shouldMediaGalleryUpdate, setShouldMediaGalleryUpdate] =
+    React.useState(true);
 
   const state = mediaGalleryStreamManager
     ? mediaGalleryStreamManager.getStreamContent() ?? {
@@ -104,7 +106,8 @@ export function useMediaGalleryItemData(
       if (
         !mediaGalleryData ||
         !mediaGalleryStreamManager ||
-        !assetContentManager
+        !assetContentManager ||
+        !shouldMediaGalleryUpdate
       ) {
         return;
       }
@@ -125,13 +128,20 @@ export function useMediaGalleryItemData(
       );
 
       setMediaGalleryItems(mediaGalleryItems);
+      setShouldMediaGalleryUpdate(false);
     }
 
     updateItems();
-  }, [mediaGalleryLength, mediaGalleryStreamManager, assetContentManager]);
+  }, [
+    mediaGalleryLength,
+    mediaGalleryStreamManager,
+    assetContentManager,
+    shouldMediaGalleryUpdate,
+  ]);
 
   return {
     mediaGalleryData: mediaGalleryData,
     mediaGalleryItems: mediaGalleryItems,
+    setShouldMediaGalleryUpdate: setShouldMediaGalleryUpdate,
   };
 }

@@ -25,6 +25,9 @@ export type GalleryFormProps = GalleryModalProps & {
   setSelectedMediaGalleryItemId: React.Dispatch<
     React.SetStateAction<string | null>
   >;
+  setShouldMediaGalleryUpdate: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 };
 
 function GalleryForm(props: GalleryFormProps) {
@@ -35,8 +38,7 @@ function GalleryForm(props: GalleryFormProps) {
     ipfs,
     assetContentManager,
     pinningManager,
-    selectedParcelId,
-    setSelectedParcelId,
+    setShouldMediaGalleryUpdate,
   } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
@@ -187,17 +189,13 @@ function GalleryForm(props: GalleryFormProps) {
         mediaGalleryStreamManager
       );
       await _mediaGalleryItemStreamManager.addToMediaGallery();
-
-      // Reload parcel
-      const oldParcelId = selectedParcelId;
-      setSelectedParcelId("");
-      setSelectedParcelId(oldParcelId);
     }
 
     clearForm();
 
     trace?.stop();
 
+    setShouldMediaGalleryUpdate(true);
     setIsSaving(false);
   }
 
@@ -297,16 +295,16 @@ function GalleryForm(props: GalleryFormProps) {
                 className="text-white mt-1"
                 style={{ backgroundColor: "#111320", border: "none" }}
                 onChange={onSelectFileFormat}
-                value={detectedFileFormat ?? fileFormat ?? undefined}
+                value={detectedFileFormat ?? fileFormat ?? ""}
                 required
                 disabled={detectedFileFormat != null}
               >
-                <option value="" selected>
+                <option value="">
                   Select a File Format
                 </option>
 
-                {galleryFileFormats.map((_format) => (
-                  <option value={_format.encoding}>
+                {galleryFileFormats.map((_format, i) => (
+                  <option key={i} value={_format.encoding}>
                     {_format.extension} ({_format.encoding})
                   </option>
                 ))}
@@ -321,7 +319,7 @@ function GalleryForm(props: GalleryFormProps) {
               className="text-white mt-1"
               type="text"
               placeholder="Display Name of Media"
-              value={mediaGalleryItem.name}
+              value={mediaGalleryItem.name ?? ""}
               required
               onChange={(e) => {
                 updateMediaGalleryItem({
