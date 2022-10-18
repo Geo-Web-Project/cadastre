@@ -17,7 +17,7 @@ import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CID from "cids";
-import { SidebarProps } from "../Sidebar";
+import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import ReclaimAction from "./ReclaimAction";
@@ -59,11 +59,6 @@ export interface ParcelQuery {
   geoWebParcel?: GeoWebParcel;
 }
 
-export interface ParcelFieldsToUpdate {
-  forSalePrice: boolean;
-  licenseOwner: boolean;
-}
-
 const parcelQuery = gql`
   query GeoWebParcel($id: String) {
     geoWebParcel(id: $id) {
@@ -94,7 +89,10 @@ const parcelQuery = gql`
 export type ParcelInfoProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
+  parcelFieldsToUpdate: ParcelFieldsToUpdate | null;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -111,6 +109,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     invalidLicenseId,
     setInvalidLicenseId,
     selectedParcelCoords,
+    parcelFieldsToUpdate,
+    setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
   } = props;
@@ -131,8 +131,6 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<PCOLicenseDiamond | null>(null);
-  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
-    React.useState<ParcelFieldsToUpdate | null>(null);
   const [queryTimerId, setQueryTimerId] =
     React.useState<NodeJS.Timer | null>(null);
 
@@ -273,11 +271,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
 
   React.useEffect(() => {
-    if (parcelFieldsToUpdate) {
+    if (data?.geoWebParcel && parcelFieldsToUpdate && queryTimerId) {
+      clearInterval(queryTimerId);
       setParcelFieldsToUpdate(null);
-    }
-
-    if (queryTimerId) {
       setQueryTimerId(null);
     }
 
@@ -290,8 +286,8 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [data]);
 
   React.useEffect(() => {
-    if (parcelFieldsToUpdate) {
-      const timerId = setTimeout(() => {
+    if (parcelFieldsToUpdate && selectedParcelId) {
+      const timerId = setInterval(() => {
         refetch({
           id: selectedParcelId,
         });
@@ -307,7 +303,13 @@ function ParcelInfo(props: ParcelInfoProps) {
         }
       }
     }
-  }, [parcelFieldsToUpdate]);
+
+    return () => {
+      if (queryTimerId) {
+        clearInterval(queryTimerId);
+      }
+    };
+  }, [parcelFieldsToUpdate, selectedParcelId]);
 
   const isLoading = loading || data == null;
 
@@ -581,7 +583,6 @@ function ParcelInfo(props: ParcelInfoProps) {
                 bidTimestamp={outstandingBidTimestamp ?? null}
                 licensorIsOwner={licenseOwner === account}
                 licenseDiamondContract={licenseDiamondContract}
-                setParcelFieldsToUpdate={setParcelFieldsToUpdate}
                 {...props}
               />
               <AuctionInstructions />
@@ -595,7 +596,6 @@ function ParcelInfo(props: ParcelInfoProps) {
                 !parcelFieldsToUpdate ? hasOutstandingBid : false
               }
               licenseDiamondContract={licenseDiamondContract}
-              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -604,7 +604,6 @@ function ParcelInfo(props: ParcelInfoProps) {
             <PlaceBidAction
               parcelData={data.geoWebParcel}
               licenseDiamondContract={licenseDiamondContract}
-              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -618,7 +617,6 @@ function ParcelInfo(props: ParcelInfoProps) {
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}
-              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
               {...props}
             />
           ) : null}
@@ -628,7 +626,6 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
-              setParcelFieldsToUpdate={setParcelFieldsToUpdate}
             ></ReclaimAction>
           ) : null}
         </Col>

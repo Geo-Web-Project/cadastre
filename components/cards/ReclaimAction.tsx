@@ -1,12 +1,11 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { ActionData, ActionForm } from "./ActionForm";
-import { SidebarProps } from "../Sidebar";
+import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
-import { ParcelFieldsToUpdate } from "./ParcelInfo";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import BN from "bn.js";
 

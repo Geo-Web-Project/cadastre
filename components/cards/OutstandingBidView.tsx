@@ -5,7 +5,7 @@ import { Card, Spinner } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
-import { SidebarProps } from "../Sidebar";
+import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -15,7 +15,6 @@ import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
-import { ParcelFieldsToUpdate } from "./ParcelInfo";
 import { sfSubgraph } from "../../redux/store";
 
 dayjs.extend(utc);

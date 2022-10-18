@@ -22,6 +22,11 @@ export type SidebarProps = MapProps & {
   >;
 };
 
+export interface ParcelFieldsToUpdate {
+  forSalePrice: boolean;
+  licenseOwner: boolean;
+}
+
 function Sidebar(props: SidebarProps) {
   const {
     registryContract,
@@ -35,6 +40,8 @@ function Sidebar(props: SidebarProps) {
     React.useState<BigNumber | null>(null);
   const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
     React.useState<BigNumber | null>(null);
+  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
+    React.useState<ParcelFieldsToUpdate | null>(null);
 
   React.useEffect(() => {
     registryContract
@@ -115,6 +122,8 @@ function Sidebar(props: SidebarProps) {
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
           selectedParcelCoords={selectedParcelCoords}
+          parcelFieldsToUpdate={parcelFieldsToUpdate}
+          setParcelFieldsToUpdate={setParcelFieldsToUpdate}
         ></ParcelInfo>
       ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? (
@@ -134,6 +143,7 @@ function Sidebar(props: SidebarProps) {
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             requiredBid={requiredBid}
+            setParcelFieldsToUpdate={setParcelFieldsToUpdate}
           ></ClaimAction>
         </>
       ) : null}
