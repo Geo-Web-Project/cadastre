@@ -36,7 +36,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
 
 interface Bid {
   contributionRate: string;

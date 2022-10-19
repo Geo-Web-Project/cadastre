@@ -13,7 +13,7 @@ import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
-import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
 
