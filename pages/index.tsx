@@ -1,5 +1,5 @@
 import Home from "../components/Home";
-import Map, { STATE, GeoPoint } from "../components/Map";
+import Map, { STATE } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 
@@ -26,6 +26,7 @@ import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
 import { DIDSession } from "did-session";
+import type { Point } from "@turf/turf";
 
 import { useDisconnect, useAccount, useSigner, useNetwork } from "wagmi";
 import {
@@ -42,27 +43,24 @@ function getLibrary(provider: any) {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [portfolioParcelCoords, setPortfolioParcelCoords] =
-    React.useState<GeoPoint | null>(null);
+  const [portfolioParcelCenter, setPortfolioParcelCenter] =
+    React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
 
   const { chain } = useNetwork();
@@ -238,7 +236,7 @@ function IndexPage() {
                       setSelectedParcelId={setSelectedParcelId}
                       interactionState={interactionState}
                       setInteractionState={setInteractionState}
-                      setPortfolioParcelCoords={setPortfolioParcelCoords}
+                      setPortfolioParcelCenter={setPortfolioParcelCenter}
                       isPortfolioToUpdate={isPortfolioToUpdate}
                       setIsPortfolioToUpdate={setIsPortfolioToUpdate}
                     />
@@ -324,9 +322,9 @@ function IndexPage() {
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              portfolioParcelCoords={portfolioParcelCoords}
+              portfolioParcelCenter={portfolioParcelCenter}
               isPortfolioToUpdate={isPortfolioToUpdate}
-              setPortfolioParcelCoords={setPortfolioParcelCoords}
+              setPortfolioParcelCenter={setPortfolioParcelCenter}
               setIsPortfolioToUpdate={setIsPortfolioToUpdate}
             ></Map>
           </Row>

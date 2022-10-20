@@ -41,8 +41,9 @@ import {
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
-import { STATE, LON_OFFSET, LAT_OFFSET } from "../Map";
-import { LngLat } from "mapbox-gl";
+import { STATE } from "../Map";
+import type { Point } from "@turf/turf";
+import * as turf from "@turf/turf";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -61,7 +62,7 @@ type ProfileModalProps = {
   showProfile: boolean;
   disconnectWallet: () => void;
   handleCloseProfile: () => void;
-  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<LngLat | null>>;
+  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
@@ -76,10 +77,7 @@ interface Parcel {
   fee: BigNumber;
   buffer: BigNumber;
   action: string;
-  bboxN: number;
-  bboxS: number;
-  bboxE: number;
-  bboxW: number;
+  center: Point;
 }
 
 interface PortfolioTotal {
@@ -103,6 +101,39 @@ enum PortfolioAction {
   RESPOND = "Respond",
   RECLAIM = "Reclaim",
   TRIGGER = "Trigger",
+}
+
+interface Bid {
+  contributionRate: string;
+  perSecondFeeNumerator: string;
+  perSecondFeeDenominator: string;
+  forSalePrice: string;
+  timestamp: number;
+  bidder?: { id: string };
+}
+
+interface GeoWebParcel {
+  id: string;
+  licenseOwner: string;
+  licenseDiamond: string;
+  currentBid: Bid;
+  pendingBid?: Bid;
+  bboxN: number;
+  bboxS: number;
+  bboxE: number;
+  bboxW: number;
+}
+
+interface BidderBid {
+  parcel: GeoWebParcel;
+}
+
+interface Bidder {
+  bids: BidderBid[];
+}
+
+interface BidderQuery {
+  bidder: Bidder;
 }
 
 const portfolioQuery = gql`
@@ -152,7 +183,7 @@ function ProfileModal(props: ProfileModalProps) {
     disconnectWallet,
     handleCloseProfile,
     setPortfolioNeedActionCount,
-    setPortfolioParcelCoords,
+    setPortfolioParcelCenter,
     isPortfolioToUpdate,
     setIsPortfolioToUpdate,
   } = props;
@@ -166,7 +197,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
-  const { data, refetch } = useQuery(portfolioQuery, {
+  const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
       id: account,
     },
@@ -227,7 +258,6 @@ function ProfileModal(props: ProfileModalProps) {
       const licenseOwner = bid.parcel.licenseOwner;
       const currentBid = bid.parcel.currentBid;
       const pendingBid = bid.parcel.pendingBid;
-      const coords = bid.parcel.coordinates;
       const signer = provider.getSigner();
       const licenseDiamondAddress = bid.parcel.licenseDiamond;
       const licenseDiamondContract = PCOLicenseDiamondFactory.connect(
@@ -368,10 +398,14 @@ function ProfileModal(props: ProfileModalProps) {
               ? parcelContent.name
               : `Parcel ${parcelId}`;
 
-          const topLeftLon = findMinPoint(coords, "pointTL", "lon");
-          const bottomRightLon = findMaxPoint(coords, "pointBR", "lon");
-          const topLeftLat = findMaxPoint(coords, "pointTL", "lat");
-          const bottomRightLat = findMinPoint(coords, "pointBR", "lat");
+          const poly = turf.bboxPolygon([
+            bid.parcel.bboxW,
+            bid.parcel.bboxS,
+            bid.parcel.bboxE,
+            bid.parcel.bboxN,
+          ]);
+          const center = turf.center(poly);
+
           _portfolio.push({
             parcelId: parcelId,
             status: status,
@@ -381,10 +415,7 @@ function ProfileModal(props: ProfileModalProps) {
             fee: annualFee,
             buffer: buffer,
             action: action,
-            coords: {
-              lon: (topLeftLon + bottomRightLon) / 2 + LON_OFFSET,
-              lat: (topLeftLat + bottomRightLat) / 2 + LAT_OFFSET,
-            },
+            center: center.geometry,
           });
         });
 
@@ -566,30 +597,6 @@ function ProfileModal(props: ProfileModalProps) {
     }
   };
 
-  const findMinPoint = (
-    coords: GeoWebCoordinate[],
-    field: keyof GeoWebCoordinate,
-    unit: keyof GeoPoint
-  ): number => {
-    return Math.min(
-      ...coords.map((obj) => {
-        return Number(obj[field][unit]);
-      })
-    );
-  };
-
-  const findMaxPoint = (
-    coords: GeoWebCoordinate[],
-    field: keyof GeoWebCoordinate,
-    unit: keyof GeoPoint
-  ): number => {
-    return Math.max(
-      ...coords.map((obj) => {
-        return Number(obj[field][unit]);
-      })
-    );
-  };
-
   const calcTotal = (portfolio: Parcel[], field: keyof Parcel): BigNumber =>
     portfolio
       .map((parcel) => parcel[field] as BigNumber)
@@ -641,7 +648,7 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     setSelectedParcelId(parcel.parcelId);
-    setPortfolioParcelCoords(parcel.coords);
+    setPortfolioParcelCenter(parcel.center);
   };
 
   return (

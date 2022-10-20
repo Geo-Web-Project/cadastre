@@ -12,7 +12,7 @@ function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
   const features: GeoJSON.Feature[] = data.geoWebParcels.map((p) => {
     const coordinates = p.coordinates.reduce(
       (prev, cur) => {
-        let last = prev[prev.length - 1];
+        const last = prev[prev.length - 1];
         if (last.length < 2) {
           last.push(cur);
           prev[prev.length - 1] = last;

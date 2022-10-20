@@ -27,6 +27,7 @@ import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
+import type { Point } from "@turf/turf";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM = 100;
@@ -173,8 +174,8 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  portfolioParcelCoords: LngLat | null;
-  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<LngLat | null>>;
+  portfolioParcelCenter: Point | null;
+  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -197,7 +198,7 @@ function Map(props: MapProps) {
     setSelectedParcelId,
     interactionState,
     setInteractionState,
-    portfolioParcelCoords,
+    portfolioParcelCenter,
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -594,20 +595,20 @@ function Map(props: MapProps) {
   }, [data]);
 
   useEffect(() => {
-    if (portfolioParcelCoords) {
+    if (portfolioParcelCenter) {
       flyToLocation({
-        longitude: portfolioParcelCoords.lng,
-        latitude: portfolioParcelCoords.lat,
+        longitude: portfolioParcelCenter.coordinates[0],
+        latitude: portfolioParcelCenter.coordinates[1],
         zoom: ZOOM_GRID_LEVEL + 1,
         duration: 500,
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCoords.lng - LON_OFFSET,
-        y: portfolioParcelCoords.lat - LAT_OFFSET,
+        x: portfolioParcelCenter.coordinates[0] - LON_OFFSET,
+        y: portfolioParcelCenter.coordinates[1] - LAT_OFFSET,
       });
     }
-  }, [portfolioParcelCoords]);
+  }, [portfolioParcelCenter]);
 
   return (
     <>
