@@ -86,7 +86,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, displayNewForSalePrice, registryContract]);
+  }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
