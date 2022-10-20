@@ -49,8 +49,9 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const [streamBuffer, setStreamBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
+    null
+  );
   const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
   React.useEffect(() => {
     const run = async () => {
@@ -101,7 +102,10 @@ function TransactionSummaryView({
                 ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream."
                 : isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
                 ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
-                : "Unclaimed parcels do not require a one-time payment after the conclusion of the Fair Launch Auction. Network fee payments still apply."}
+                : `Unclaimed parcels require a minimum one-time payment of ${truncateEth(
+                    ethers.utils.formatEther(claimPayment),
+                    8
+                  )} ETHx. This is enforced to prevent low-value claims and squatting.`}
             </div>
           }
           target={

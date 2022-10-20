@@ -15,7 +15,7 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
@@ -64,6 +64,8 @@ function IndexPage() {
   const [portfolioParcelCoords, setPortfolioParcelCoords] =
     React.useState<GeoPoint | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
+  const [minForSalePrice, setMinForSalePrice] =
+    React.useState<BigNumber | null>(null);
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -192,8 +194,16 @@ function IndexPage() {
         NETWORK_ID,
         sfFramework.settings.provider
       );
+
+      registryDiamondContract
+        .getMinForSalePrice()
+        .then((_minForSalePrice) => {
+          setMinForSalePrice(_minForSalePrice);
+        });
+
       setRegistryContract(registryDiamondContract);
     }
+
     contractsSetup();
   }, [sfFramework]);
 
@@ -221,6 +231,7 @@ function IndexPage() {
                   sfFramework &&
                   ceramic &&
                   registryContract &&
+                  minForSalePrice &&
                   paymentToken &&
                   library
                 ) {
@@ -230,6 +241,7 @@ function IndexPage() {
                       sfFramework={sfFramework}
                       ceramic={ceramic}
                       registryContract={registryContract}
+                      minForSalePrice={minForSalePrice}
                       disconnectWallet={disconnectWallet}
                       paymentToken={paymentToken}
                       provider={library}
@@ -301,6 +313,7 @@ function IndexPage() {
       </Container>
       <Container fluid>
         {registryContract &&
+        minForSalePrice &&
         address &&
         library &&
         paymentToken &&
@@ -311,6 +324,7 @@ function IndexPage() {
           <Row>
             <Map
               registryContract={registryContract}
+              minForSalePrice={minForSalePrice}
               account={address.toLowerCase()}
               provider={library}
               ceramic={ceramic}

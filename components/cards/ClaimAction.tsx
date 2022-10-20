@@ -37,6 +37,7 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     sfFramework,
     paymentToken,
+    minForSalePrice,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -149,13 +150,13 @@ function ClaimAction(props: ClaimActionProps) {
   }
 
   React.useEffect(() => {
-    const _fetchFlowOperator = async () => {
-      const _flowOperator = await registryContract.getNextProxyAddress(account);
-      setFlowOperator(_flowOperator);
-    };
+  const _fetchFlowOperator = async () => {
+    const _flowOperator = await registryContract.getNextProxyAddress(account);
+    setFlowOperator(_flowOperator);
+  };
 
-    _fetchFlowOperator();
-  }, [registryContract, account]);
+  _fetchFlowOperator();
+}, [registryContract, account]);
 
   return (
     <>
@@ -167,7 +168,7 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerYear ? (
             <TransactionSummaryView
-              claimPayment={isFairLaunch ? requiredBid : BigNumber.from(0)}
+              claimPayment={isFairLaunch ? requiredBid : minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               {...props}
             />

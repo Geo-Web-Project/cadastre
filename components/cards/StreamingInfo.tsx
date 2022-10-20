@@ -11,7 +11,7 @@ import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { STATE, GeoPoint } from "../Map";
 
@@ -31,6 +31,7 @@ type StreamingInfoProps = {
   >;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  minForSalePrice: BigNumber;
 };
 
 function StreamingInfo(props: StreamingInfoProps) {

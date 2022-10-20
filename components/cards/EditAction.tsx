@@ -137,7 +137,7 @@ function EditAction(props: EditActionProps) {
     };
 
     run();
-  }, [sfFramework, paymentToken, displayCurrentForSalePrice]);
+  }, [sfFramework, registryContract, paymentToken, displayCurrentForSalePrice]);
 
   const [requiredNewBuffer, setRequiredNewBuffer] =
     React.useState<BigNumber | null>(null);
