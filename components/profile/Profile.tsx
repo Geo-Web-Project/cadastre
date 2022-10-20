@@ -80,12 +80,12 @@ function Profile(props: ProfileProps) {
                 }
                 accountTokenSnapshot={data.items[0]}
               />
-              <ProfileModal
+              {/* <ProfileModal
                 accountTokenSnapshot={data.items[0]}
                 showProfile={showProfile}
                 handleCloseProfile={handleCloseProfile}
                 {...props}
-              />
+              /> */}
             </>
           )}
         </Button>

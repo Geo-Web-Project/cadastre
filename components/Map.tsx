@@ -58,27 +58,13 @@ export interface PolygonQuery {
   geoWebParcels: GeoWebParcel[];
 }
 
-export interface GeoPoint {
-  id?: string;
-  lon: number;
-  lat: number;
-}
-
 interface GeoWebParcel {
   id: string;
   bboxN: number;
   bboxS: number;
   bboxE: number;
   bboxW: number;
-  coordinates: GWCoordinateGQL[];
-}
-
-interface GWCoordinateGQL {
-  id: string;
-  pointBL: GeoPoint;
-  pointBR: GeoPoint;
-  pointTR: GeoPoint;
-  pointTL: GeoPoint;
+  coordinates: number[];
 }
 
 const query = gql`
@@ -105,24 +91,7 @@ const query = gql`
       bboxS
       bboxE
       bboxW
-      coordinates {
-        pointBR {
-          lon
-          lat
-        }
-        pointBL {
-          lon
-          lat
-        }
-        pointTR {
-          lon
-          lat
-        }
-        pointTL {
-          lon
-          lat
-        }
-      }
+      coordinates
     }
   }
 `;

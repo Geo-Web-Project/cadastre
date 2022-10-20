@@ -3,7 +3,7 @@ export const NETWORK_NAME = "goerli";
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/id/Qmb59J2BhKMW9bReDCvJEVEgjcjDfb6gVSkdr2YPGC6TyX";
+  "https://api.thegraph.com/subgraphs/id/QmNSdqgPP6Zz8w9iCSTmUEEmZbZT4XTFnqLmJTT6wxb2Dy";
 
 export const CERAMIC_URL = "https://ceramic-clay.geoweb.network/";
 export const CONNECT_NETWORK = "testnet-clay";

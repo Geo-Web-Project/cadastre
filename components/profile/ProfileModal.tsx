@@ -41,7 +41,8 @@ import {
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
-import { STATE, GeoPoint, LON_OFFSET, LAT_OFFSET } from "../Map";
+import { STATE, LON_OFFSET, LAT_OFFSET } from "../Map";
+import { LngLat } from "mapbox-gl";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -60,9 +61,7 @@ type ProfileModalProps = {
   showProfile: boolean;
   disconnectWallet: () => void;
   handleCloseProfile: () => void;
-  setPortfolioParcelCoords: React.Dispatch<
-    React.SetStateAction<GeoPoint | null>
-  >;
+  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<LngLat | null>>;
   isPortfolioToUpdate: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
@@ -77,18 +76,16 @@ interface Parcel {
   fee: BigNumber;
   buffer: BigNumber;
   action: string;
-  coords: GeoPoint;
+  bboxN: number;
+  bboxS: number;
+  bboxE: number;
+  bboxW: number;
 }
 
 interface PortfolioTotal {
   price: BigNumber;
   fee: BigNumber;
   buffer: BigNumber;
-}
-
-interface GeoWebCoordinate {
-  pointTL: GeoPoint;
-  pointBR: GeoPoint;
 }
 
 enum SuperTokenAction {
@@ -130,16 +127,10 @@ const portfolioQuery = gql`
             timestamp
             contributionRate
           }
-          coordinates {
-            pointTL {
-              lon
-              lat
-            }
-            pointBR {
-              lon
-              lat
-            }
-          }
+          bboxN
+          bboxS
+          bboxE
+          bboxW
         }
       }
     }
@@ -377,26 +368,10 @@ function ProfileModal(props: ProfileModalProps) {
               ? parcelContent.name
               : `Parcel ${parcelId}`;
 
-          const topLeftLon = findMinPoint(
-            coords,
-            "pointTL",
-            "lon"
-          );
-          const bottomRightLon = findMaxPoint(
-            coords,
-            "pointBR",
-            "lon"
-          );
-          const topLeftLat = findMaxPoint(
-            coords,
-            "pointTL",
-            "lat"
-          );
-          const bottomRightLat = findMinPoint(
-            coords,
-            "pointBR",
-            "lat"
-          );
+          const topLeftLon = findMinPoint(coords, "pointTL", "lon");
+          const bottomRightLon = findMaxPoint(coords, "pointBR", "lon");
+          const topLeftLat = findMaxPoint(coords, "pointTL", "lat");
+          const bottomRightLat = findMinPoint(coords, "pointBR", "lat");
           _portfolio.push({
             parcelId: parcelId,
             status: status,
