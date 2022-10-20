@@ -9,26 +9,32 @@ import {
 } from "../map-style";
 
 function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
-  const features: GeoJSON.Feature[] = data.geoWebCoordinates.map((c) => {
-    const coordinates = [
-      [
-        [c.pointBL.lon, c.pointBL.lat],
-        [c.pointBR.lon, c.pointBR.lat],
-        [c.pointTR.lon, c.pointTR.lat],
-        [c.pointTL.lon, c.pointTL.lat],
-      ],
-    ];
-    return {
-      type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: coordinates,
-      },
-      properties: {
-        parcelId: c.parcel.id,
-      },
-    };
-  });
+  const features: GeoJSON.Feature[] = data.geoWebParcels
+    .flatMap((v) =>
+      v.coordinates.map((c) => {
+        return { ...c, parcelId: v.id };
+      })
+    )
+    .map((c) => {
+      const coordinates = [
+        [
+          [c.pointBL.lon, c.pointBL.lat],
+          [c.pointBR.lon, c.pointBR.lat],
+          [c.pointTR.lon, c.pointTR.lat],
+          [c.pointTL.lon, c.pointTL.lat],
+        ],
+      ];
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: coordinates,
+        },
+        properties: {
+          parcelId: c.parcelId,
+        },
+      };
+    });
   return features;
 }
 

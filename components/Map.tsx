@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
 import ReactMapGL, { NavigationControl } from "react-map-gl";
 import type { ViewState, MapRef } from "react-map-gl";
-import { MapLayerMouseEvent } from "mapbox-gl";
+import { MapLayerMouseEvent, LngLatBounds, LngLat } from "mapbox-gl";
 import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
@@ -55,7 +55,7 @@ export type Coord = {
 };
 
 export interface PolygonQuery {
-  geoWebCoordinates: GWCoordinateGQL[];
+  geoWebParcels: GeoWebParcel[];
 }
 
 export interface GeoPoint {
@@ -66,12 +66,15 @@ export interface GeoPoint {
 
 interface GeoWebParcel {
   id: string;
+  bboxN: number;
+  bboxS: number;
+  bboxE: number;
+  bboxW: number;
+  coordinates: GWCoordinateGQL[];
 }
 
 interface GWCoordinateGQL {
   id: string;
-  createdAtBlock: bigint;
-  parcel: GeoWebParcel;
   pointBL: GeoPoint;
   pointBR: GeoPoint;
   pointTR: GeoPoint;
@@ -81,42 +84,44 @@ interface GWCoordinateGQL {
 const query = gql`
   query Polygons(
     $lastId: BigInt
-    $minX: BigInt
-    $maxX: BigInt
-    $minY: BigInt
-    $maxY: BigInt
+    $north: BigDecimal
+    $south: BigDecimal
+    $east: BigDecimal
+    $west: BigDecimal
   ) {
-    geoWebCoordinates(
+    geoWebParcels(
       orderBy: id
       first: 1000
       where: {
         id_gt: $lastId
-        coordX_gte: $minX
-        coordX_lt: $maxX
-        coordY_gte: $minY
-        coordY_lt: $maxY
+        bboxN_gt: $south
+        bboxS_lt: $north
+        bboxE_gt: $west
+        bboxW_lt: $east
       }
     ) {
       id
-      createdAtBlock
-      parcel {
-        id
-      }
-      pointBR {
-        lon
-        lat
-      }
-      pointBL {
-        lon
-        lat
-      }
-      pointTR {
-        lon
-        lat
-      }
-      pointTL {
-        lon
-        lat
+      bboxN
+      bboxS
+      bboxE
+      bboxW
+      coordinates {
+        pointBR {
+          lon
+          lat
+        }
+        pointBL {
+          lon
+          lat
+        }
+        pointTR {
+          lon
+          lat
+        }
+        pointTL {
+          lon
+          lat
+        }
       }
     }
   }
@@ -175,12 +180,12 @@ export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
   };
 }
 
-function normalizeQueryVariables(x: number, y: number) {
+function normalizeQueryVariables(mapBounds: LngLatBounds) {
   return {
-    minX: Math.floor((x - QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
-    maxX: Math.floor((x + QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
-    minY: Math.floor((y - QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
-    maxY: Math.floor((y + QUERY_DIM) / QUERY_DIM) * QUERY_DIM,
+    north: mapBounds.getNorth(),
+    south: mapBounds.getSouth(),
+    east: mapBounds.getEast(),
+    west: mapBounds.getWest(),
   };
 }
 
@@ -199,10 +204,8 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  portfolioParcelCoords: GeoPoint | null;
-  setPortfolioParcelCoords: React.Dispatch<
-    React.SetStateAction<GeoPoint | null>
-  >;
+  portfolioParcelCoords: LngLat | null;
+  setPortfolioParcelCoords: React.Dispatch<React.SetStateAction<LngLat | null>>;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -230,10 +233,10 @@ function Map(props: MapProps) {
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
       lastId: 0,
-      minX: 0,
-      maxX: 0,
-      minY: 0,
-      maxY: 0,
+      north: 0,
+      south: 0,
+      east: 0,
+      west: 0,
     },
   });
 
@@ -263,8 +266,7 @@ function Map(props: MapProps) {
     },
   });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
-  const [oldCoordX, setOldCoordX] = useState(0);
-  const [oldCoordY, setOldCoordY] = useState(0);
+  const [oldCoord, setOldCoord] = useState<LngLat | null>(null);
   const [grid, setGrid] = useState<Grid | null>(null);
   const [parcelHoverId, setParcelHoverId] = useState("");
 
@@ -296,8 +298,7 @@ function Map(props: MapProps) {
   // Fetch more until none left
   useEffect(() => {
     if (newParcel.id) {
-      const lastParcel =
-        data?.geoWebCoordinates[data.geoWebCoordinates?.length - 1]?.parcel;
+      const lastParcel = data?.geoWebParcels[data.geoWebParcels?.length - 1];
 
       if (lastParcel?.id === newParcel.id) {
         clearInterval(newParcel.timerId ?? undefined);
@@ -344,31 +345,22 @@ function Map(props: MapProps) {
   );
 
   function _fetchMoreParcels() {
-    if (data == null || viewport == null) {
+    if (data == null || viewport == null || mapRef.current == null) {
       return;
     }
 
     let newLastId;
 
-    if (data.geoWebCoordinates.length > 0) {
-      newLastId = data.geoWebCoordinates[data.geoWebCoordinates.length - 1].id;
+    if (data.geoWebParcels.length > 0) {
+      newLastId = data.geoWebParcels[data.geoWebParcels.length - 1].id;
     } else if (newParcel.id) {
       newLastId = 0;
     } else {
       return;
     }
 
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      viewport.longitude,
-      viewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-
-    const params = normalizeQueryVariables(x, y);
+    const mapBounds = mapRef.current.getBounds();
+    const params = normalizeQueryVariables(mapBounds);
 
     fetchMore({
       variables: {
@@ -379,15 +371,12 @@ function Map(props: MapProps) {
   }
 
   function _onLoad() {
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      viewport.longitude,
-      viewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-    const params = normalizeQueryVariables(x, y);
+    if (mapRef.current == null) {
+      return;
+    }
+
+    const mapBounds = mapRef.current.getBounds();
+    const params = normalizeQueryVariables(mapBounds);
 
     const opts = {
       lastId: 0,
@@ -395,12 +384,11 @@ function Map(props: MapProps) {
     };
     refetch(opts);
 
-    setOldCoordX(x);
-    setOldCoordY(y);
+    setOldCoord(mapBounds.getCenter());
   }
 
   function _onMove(nextViewport: ViewState) {
-    if (interactionState == STATE.EDITING_GALLERY) {
+    if (interactionState == STATE.EDITING_GALLERY || mapRef.current == null) {
       return;
     }
     setViewport(nextViewport);
@@ -413,15 +401,8 @@ function Map(props: MapProps) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
     }
 
-    const gwCoord = GeoWebCoordinate.fromGPS(
-      nextViewport.longitude,
-      nextViewport.latitude,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-    const x = gwCoord.getX().toNumber();
-    const y = gwCoord.getY().toNumber();
-    const params = normalizeQueryVariables(x, y);
+    const mapBounds = mapRef.current.getBounds();
+    const params = normalizeQueryVariables(mapBounds);
 
     if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
       const opts = {
@@ -438,9 +419,10 @@ function Map(props: MapProps) {
     }
 
     if (
+      oldCoord &&
       nextViewport.zoom >= ZOOM_QUERY_LEVEL &&
-      (Math.abs(x - oldCoordX) > QUERY_DIM ||
-        Math.abs(y - oldCoordY) > QUERY_DIM)
+      (Math.abs(mapBounds.getCenter().lng - oldCoord.lng) > QUERY_DIM ||
+        Math.abs(mapBounds.getCenter().lat - oldCoord.lat) > QUERY_DIM)
     ) {
       const opts = {
         lastId: 0,
@@ -448,8 +430,7 @@ function Map(props: MapProps) {
       };
       refetch(opts);
 
-      setOldCoordX(x);
-      setOldCoordY(y);
+      setOldCoord(mapBounds.getCenter());
     }
   }
 
@@ -625,7 +606,7 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (data != null) {
       const _existingCoords = new Set<string>(
-        data.geoWebCoordinates.flatMap((p) => p.id)
+        data.geoWebParcels.flatMap((p) => p.id)
       );
       setExistingCoords(_existingCoords);
     }
@@ -646,14 +627,14 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (portfolioParcelCoords) {
       flyToLocation({
-        longitude: portfolioParcelCoords.lon,
+        longitude: portfolioParcelCoords.lng,
         latitude: portfolioParcelCoords.lat,
         zoom: ZOOM_GRID_LEVEL + 1,
         duration: 500,
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCoords.lon - LON_OFFSET,
+        x: portfolioParcelCoords.lng - LON_OFFSET,
         y: portfolioParcelCoords.lat - LAT_OFFSET,
       });
     }
