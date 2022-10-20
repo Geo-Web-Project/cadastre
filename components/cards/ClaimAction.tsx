@@ -150,13 +150,13 @@ function ClaimAction(props: ClaimActionProps) {
   }
 
   React.useEffect(() => {
-  const _fetchFlowOperator = async () => {
-    const _flowOperator = await registryContract.getNextProxyAddress(account);
-    setFlowOperator(_flowOperator);
-  };
+    const _fetchFlowOperator = async () => {
+      const _flowOperator = await registryContract.getNextProxyAddress(account);
+      setFlowOperator(_flowOperator);
+    };
 
-  _fetchFlowOperator();
-}, [registryContract, account]);
+    _fetchFlowOperator();
+  }, [registryContract, account]);
 
   return (
     <>
