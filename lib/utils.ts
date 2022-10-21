@@ -47,14 +47,17 @@ export async function calculateBufferNeeded(
 export function calculateAuctionValue(
   forSalePrice: BigNumber,
   auctionStart: BigNumber,
-  auctionLength: BigNumber
+  auctionLength: BigNumber,
+  minForSalePrice: BigNumber
 ) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
   if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
-    return BigNumber.from(0);
+    return minForSalePrice;
   }
 
   const timeElapsed = blockTimestamp.sub(auctionStart);
   const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
-  return forSalePrice.sub(priceDecrease);
+  const requiredBid = forSalePrice.sub(priceDecrease);
+
+  return requiredBid.lt(minForSalePrice) ? minForSalePrice : requiredBid;
 }

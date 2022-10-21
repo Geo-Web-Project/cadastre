@@ -37,6 +37,7 @@ function ClaimAction(props: ClaimActionProps) {
     provider,
     sfFramework,
     paymentToken,
+    minForSalePrice,
   } = props;
   const [actionData, setActionData] = React.useState<ActionData>({
     isActing: false,
@@ -167,7 +168,7 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerYear ? (
             <TransactionSummaryView
-              claimPayment={isFairLaunch ? requiredBid : BigNumber.from(0)}
+              claimPayment={isFairLaunch ? requiredBid : minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               {...props}
             />

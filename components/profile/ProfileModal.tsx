@@ -66,6 +66,7 @@ type ProfileModalProps = {
   isPortfolioToUpdate: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  minForSalePrice: BigNumber;
 };
 
 interface Parcel {
@@ -164,6 +165,7 @@ function ProfileModal(props: ProfileModalProps) {
     setPortfolioParcelCoords,
     isPortfolioToUpdate,
     setIsPortfolioToUpdate,
+    minForSalePrice,
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string>("");
@@ -357,7 +359,8 @@ function ProfileModal(props: ProfileModalProps) {
                 forSalePrice = calculateAuctionValue(
                   forSalePrice,
                   BigNumber.from(auctionStart),
-                  BigNumber.from(auctionLength)
+                  BigNumber.from(auctionLength),
+                  minForSalePrice
                 );
                 annualFee = BigNumber.from(0);
                 buffer = BigNumber.from(0);

@@ -34,6 +34,7 @@ function Sidebar(props: SidebarProps) {
     setInteractionState,
     parcelClaimSize,
     selectedParcelCoords,
+    minForSalePrice,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -62,9 +63,8 @@ function Sidebar(props: SidebarProps) {
     null
   );
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
-  const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
-    BigNumber.from(0)
-  );
+  const [requiredBid, setRequiredBid] =
+    React.useState<BigNumber>(minForSalePrice);
 
   React.useEffect(() => {
     let isMounted = true;

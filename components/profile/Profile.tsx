@@ -1,5 +1,5 @@
 import React from "react";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { truncateStr, truncateEth } from "../../lib/truncate";
@@ -35,6 +35,7 @@ type ProfileProps = {
   >;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  minForSalePrice: BigNumber;
 };
 
 function Profile(props: ProfileProps) {
