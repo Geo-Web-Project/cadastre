@@ -623,6 +623,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
+              basicProfileStreamManager={basicProfileStreamManager}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
