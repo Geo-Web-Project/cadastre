@@ -93,6 +93,7 @@ export type ParcelInfoProps = SidebarProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
+  minForSalePrice: BigNumber;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {

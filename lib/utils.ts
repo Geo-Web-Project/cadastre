@@ -48,16 +48,14 @@ export function calculateAuctionValue(
   forSalePrice: BigNumber,
   auctionStart: BigNumber,
   auctionLength: BigNumber,
-  minForSalePrice: BigNumber
 ) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
   if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
-    return minForSalePrice;
+    return BigNumber.from(0);
   }
 
   const timeElapsed = blockTimestamp.sub(auctionStart);
   const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
-  const requiredBid = forSalePrice.sub(priceDecrease);
 
-  return requiredBid.lt(minForSalePrice) ? minForSalePrice : requiredBid;
+  return forSalePrice.sub(priceDecrease);
 }

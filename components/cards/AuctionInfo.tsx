@@ -34,7 +34,6 @@ function AuctionInfo(props: AuctionInfoProps) {
     licenseOwner,
     forSalePrice,
     auctionStart,
-    minForSalePrice,
     interactionState,
     setInteractionState,
     requiredBid,
@@ -90,7 +89,6 @@ function AuctionInfo(props: AuctionInfoProps) {
               forSalePrice,
               BigNumber.from(auctionStart.getTime()).div(1000),
               auctionLength,
-              minForSalePrice
             )
           );
         }, 1000);
