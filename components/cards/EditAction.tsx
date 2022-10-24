@@ -21,6 +21,7 @@ export type EditActionProps = SidebarProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
+  minForSalePrice: BigNumber;
 };
 
 function EditAction(props: EditActionProps) {

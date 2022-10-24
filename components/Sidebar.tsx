@@ -34,7 +34,6 @@ function Sidebar(props: SidebarProps) {
     setInteractionState,
     parcelClaimSize,
     selectedParcelCoords,
-    minForSalePrice,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -55,16 +54,20 @@ function Sidebar(props: SidebarProps) {
       .then((_perSecondFeeDenominator) => {
         setPerSecondFeeDenominator(_perSecondFeeDenominator);
       });
+    registryContract.getMinForSalePrice().then((_minForSalePrice) => {
+      setMinForSalePrice(_minForSalePrice);
+    });
   }, [registryContract]);
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] = React.useState<BigNumber | null>(
-    null
-  );
+  const [auctionStart, setAuctionStart] =
+    React.useState<BigNumber | null>(null);
   const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
   const [requiredBid, setRequiredBid] =
-    React.useState<BigNumber>(minForSalePrice);
+    React.useState<BigNumber>(BigNumber.from(0));
+  const [minForSalePrice, setMinForSalePrice] =
+    React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -116,11 +119,14 @@ function Sidebar(props: SidebarProps) {
           setRequiredBid={setRequiredBid}
           {...props}
         />
-      ) : perSecondFeeNumerator && perSecondFeeDenominator ? (
+      ) : perSecondFeeNumerator &&
+        perSecondFeeDenominator &&
+        minForSalePrice ? (
         <ParcelInfo
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
+          minForSalePrice={minForSalePrice}
           selectedParcelCoords={selectedParcelCoords}
           parcelFieldsToUpdate={parcelFieldsToUpdate}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
@@ -134,7 +140,8 @@ function Sidebar(props: SidebarProps) {
       ) : null}
       {interactionState == STATE.CLAIM_SELECTED &&
       perSecondFeeNumerator &&
-      perSecondFeeDenominator ? (
+      perSecondFeeDenominator &&
+      minForSalePrice ? (
         <>
           <ClaimAction
             {...props}
@@ -143,6 +150,7 @@ function Sidebar(props: SidebarProps) {
             perSecondFeeNumerator={perSecondFeeNumerator}
             perSecondFeeDenominator={perSecondFeeDenominator}
             requiredBid={requiredBid}
+            minForSalePrice={minForSalePrice}
             setParcelFieldsToUpdate={setParcelFieldsToUpdate}
           ></ClaimAction>
         </>

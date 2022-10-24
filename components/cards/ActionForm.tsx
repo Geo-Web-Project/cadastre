@@ -44,6 +44,7 @@ export type ActionFormProps = SidebarProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
+  minForSalePrice: BigNumber;
 };
 
 export type ActionData = {
@@ -112,7 +113,11 @@ export function ActionForm(props: ActionFormProps) {
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils
         .parseEther(displayNewForSalePrice)
-        .lt(requiredBid ?? minForSalePrice));
+        .lt(
+          !requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+            ? minForSalePrice
+            : requiredBid
+        ));
 
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
@@ -343,9 +348,9 @@ export function ActionForm(props: ActionFormProps) {
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
                   For Sale Price must be greater than or equal to{" "}
-                  {requiredBid?.gt(minForSalePrice)
-                    ? truncateEth(ethers.utils.formatEther(requiredBid), 8)
-                    : ethers.utils.formatEther(minForSalePrice)}
+                  {!requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+                    ? ethers.utils.formatEther(minForSalePrice)
+                    : truncateEth(ethers.utils.formatEther(requiredBid), 8)}
                 </Form.Control.Feedback>
               ) : null}
 

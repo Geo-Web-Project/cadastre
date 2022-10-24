@@ -19,7 +19,7 @@ import Image from "react-bootstrap/Image";
 
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import { ethers, BigNumber } from "ethers";
+import { ethers } from "ethers";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
@@ -205,7 +205,6 @@ export type MapProps = {
   >;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-  minForSalePrice: BigNumber;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
