@@ -1,5 +1,6 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
+import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
@@ -12,6 +13,7 @@ import BN from "bn.js";
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
+  basicProfileStreamManager: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   licenseOwner: string;
   licenseDiamondContract: PCOLicenseDiamond | null;
@@ -24,6 +26,7 @@ function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
     provider,
+    basicProfileStreamManager,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
@@ -87,6 +90,19 @@ function ReclaimAction(props: ReclaimActionProps) {
 
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
+
+  React.useEffect(() => {
+    const parcelContent = basicProfileStreamManager
+      ? basicProfileStreamManager.getStreamContent()
+      : null;
+
+    if (parcelContent && licenseOwner === account) {
+      updateActionData({
+        parcelName: parcelContent.name,
+        parcelWebContentURI: parcelContent.url,
+      });
+    }
+  }, [basicProfileStreamManager]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
