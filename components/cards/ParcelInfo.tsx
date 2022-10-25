@@ -36,7 +36,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import type { PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamond";
+import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
 
 interface Bid {
   contributionRate: string;
@@ -93,6 +93,7 @@ export type ParcelInfoProps = SidebarProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
+  minForSalePrice: BigNumber;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -623,6 +624,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
+              basicProfileStreamManager={basicProfileStreamManager}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}

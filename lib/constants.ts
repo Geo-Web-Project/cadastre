@@ -5,8 +5,8 @@ export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const SUBGRAPH_URL =
   "https://api.thegraph.com/subgraphs/id/QmV2UWWwcq3YKn341Uf1vuyS7V3ZgFgdTQk6RSXPz1Uo1P";
 
-export const CERAMIC_URL = "https://g12-a-ceramic.3boxlabs.com/";
-export const CONNECT_NETWORK = "mainnet";
+export const CERAMIC_URL = "https://ceramic-clay.geoweb.network/";
+export const CONNECT_NETWORK = "testnet-clay";
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
 export const BLOCK_EXPLORER = `https://goerli.etherscan.io`;
 export const RPC_URLS = {

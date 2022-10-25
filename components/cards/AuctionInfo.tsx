@@ -88,7 +88,7 @@ function AuctionInfo(props: AuctionInfoProps) {
             calculateAuctionValue(
               forSalePrice,
               BigNumber.from(auctionStart.getTime()).div(1000),
-              auctionLength
+              auctionLength,
             )
           );
         }, 1000);

@@ -192,8 +192,10 @@ function IndexPage() {
         NETWORK_ID,
         sfFramework.settings.provider
       );
+
       setRegistryContract(registryDiamondContract);
     }
+
     contractsSetup();
   }, [sfFramework]);
 

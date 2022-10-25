@@ -44,6 +44,7 @@ export type ActionFormProps = SidebarProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
+  minForSalePrice: BigNumber;
 };
 
 export type ActionData = {
@@ -78,6 +79,7 @@ export function ActionForm(props: ActionFormProps) {
     spender,
     hasOutstandingBid = false,
     setIsPortfolioToUpdate,
+    minForSalePrice,
   } = props;
 
   const {
@@ -111,7 +113,11 @@ export function ActionForm(props: ActionFormProps) {
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils
         .parseEther(displayNewForSalePrice)
-        .lt(requiredBid ?? BigNumber.from(0)));
+        .lt(
+          !requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+            ? minForSalePrice
+            : requiredBid
+        ));
 
   const annualFeePercentage =
     (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
@@ -298,11 +304,13 @@ export function ActionForm(props: ActionFormProps) {
                 <InfoTooltip
                   content={
                     <div style={{ textAlign: "left" }}>
-                      Be honest about your personal valuation!
+                      Be honest about your personal valuation! A{" "}
+                      {ethers.utils.formatEther(minForSalePrice)} ETHx minimum
+                      valuation is enforced to prevent low-value squatting.
                       <br />
                       <br />
                       You'll have 7 days to accept or reject any bid that meets
-                      this price. You must pay a penalty equal to 10% of the
+                      your price. You must pay a penalty equal to 10% of the
                       bidder's new For Sale Price if you wish to reject the bid.{" "}
                       <br />
                       <br />
@@ -339,10 +347,10 @@ export function ActionForm(props: ActionFormProps) {
               />
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
-                  For Sale Price must be a number greater than{" "}
-                  {requiredBid
-                    ? truncateEth(ethers.utils.formatEther(requiredBid), 8)
-                    : "0"}
+                  For Sale Price must be greater than or equal to{" "}
+                  {!requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+                    ? ethers.utils.formatEther(minForSalePrice)
+                    : truncateEth(ethers.utils.formatEther(requiredBid), 8)}
                 </Form.Control.Feedback>
               ) : null}
 

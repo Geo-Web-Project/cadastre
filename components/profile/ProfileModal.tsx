@@ -357,7 +357,7 @@ function ProfileModal(props: ProfileModalProps) {
                 forSalePrice = calculateAuctionValue(
                   forSalePrice,
                   BigNumber.from(auctionStart),
-                  BigNumber.from(auctionLength)
+                  BigNumber.from(auctionLength),
                 );
                 annualFee = BigNumber.from(0);
                 buffer = BigNumber.from(0);
