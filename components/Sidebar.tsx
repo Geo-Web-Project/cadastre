@@ -56,6 +56,7 @@ function Sidebar(props: SidebarProps) {
       });
     registryContract.getMinForSalePrice().then((_minForSalePrice) => {
       setMinForSalePrice(_minForSalePrice);
+      setRequiredBid(_minForSalePrice);
     });
   }, [registryContract]);
 
