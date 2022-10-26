@@ -125,8 +125,8 @@ function ClaimAction(props: ClaimActionProps) {
         ethers.utils.parseEther(displayNewForSalePrice),
         {
           swCoordinate: BigNumber.from(swCoord.toString()),
-          lngDim: neX - swX,
-          latDim: neY - swY,
+          lngDim: neX - swX + 1,
+          latDim: neY - swY + 1,
         }
       );
     const receipt = await txn.wait();
