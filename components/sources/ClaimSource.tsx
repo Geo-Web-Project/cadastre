@@ -67,11 +67,11 @@ function ClaimSource(props: Props) {
     const bboxInter = intersection ? turf.bbox(intersection) : null;
 
     // Correct for detecting border intersection
-    if (
-      (bboxInter &&
-        bboxInter[3] - bboxInter[1] > 180 / 2 ** (GW_MAX_LAT + 1)) ||
-      parcelClaimSize > MAX_PARCEL_CLAIM
-    ) {
+    const overlapX =
+      bboxInter && bboxInter[2] - bboxInter[0] > 360 / 2 ** (GW_MAX_LON + 1);
+    const overlapY =
+      bboxInter && bboxInter[3] - bboxInter[1] > 180 / 2 ** (GW_MAX_LAT + 1);
+    if ((overlapX && overlapY) || parcelClaimSize > MAX_PARCEL_CLAIM) {
       _isValid = false;
     }
 
