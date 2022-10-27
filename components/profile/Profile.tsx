@@ -15,7 +15,8 @@ import Badge from "react-bootstrap/Badge";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { STATE, GeoPoint } from "../Map";
+import { STATE } from "../Map";
+import type { Point } from "@turf/turf";
 
 type ProfileProps = {
   sfFramework: Framework;
@@ -30,9 +31,7 @@ type ProfileProps = {
   provider: ethers.providers.Web3Provider;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setPortfolioParcelCoords: React.Dispatch<
-    React.SetStateAction<GeoPoint | null>
-  >;
+  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
