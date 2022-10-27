@@ -159,17 +159,22 @@ export function ActionForm(props: ActionFormProps) {
       // Perform action
       parcelId = await performAction();
     } catch (err) {
-      console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        errorMessage: (err as any).reason
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message,
-      });
-      return;
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        console.error(err);
+        updateActionData({
+          isActing: false,
+          didFail: true,
+          errorMessage: (err as any).reason
+            ? (err as any).reason.replace("execution reverted: ", "")
+            : (err as Error).message,
+        });
+        return;
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
     const content: BasicProfile = {};
