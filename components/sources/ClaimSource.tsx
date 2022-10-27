@@ -4,9 +4,13 @@ import { claimLayer } from "../map-style";
 import { Coord, coordToFeature, GW_MAX_LAT, GW_MAX_LON } from "../Map";
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import { MAX_PARCEL_CLAIM } from "../../lib/constants";
+import type { MultiPolygon, Polygon } from "@turf/turf";
+import * as turf from "@turf/turf";
+import { coordToPolygon } from "./ParcelSource";
+import { BigNumber } from "ethers";
 
 type Props = {
-  existingCoords: Set<string>;
+  existingMultiPoly: MultiPolygon | Polygon;
   claimBase1Coord: Coord | null;
   claimBase2Coord: Coord | null;
   isValidClaim: boolean;
@@ -17,7 +21,7 @@ type Props = {
 
 function ClaimSource(props: Props) {
   const {
-    existingCoords,
+    existingMultiPoly,
     claimBase1Coord,
     claimBase2Coord,
     isValidClaim,
@@ -26,10 +30,9 @@ function ClaimSource(props: Props) {
     setParcelClaimSize,
   } = props;
 
-  let gwCoord: GeoWebCoordinate | null = null;
-
   const geoJsonFeatures = useMemo(() => {
     const _features = [];
+    let polygon: MultiPolygon | Polygon = turf.multiPolygon([]).geometry;
     if (claimBase1Coord != null && claimBase2Coord != null) {
       for (
         let _x = Math.min(claimBase1Coord.x, claimBase2Coord.x);
@@ -41,26 +44,40 @@ function ClaimSource(props: Props) {
           _y <= Math.max(claimBase1Coord.y, claimBase2Coord.y);
           _y++
         ) {
-          gwCoord = GeoWebCoordinate.fromXandY(_x, _y, GW_MAX_LON, GW_MAX_LAT);
+          const gwCoord = GeoWebCoordinate.fromXandY(
+            _x,
+            _y,
+            GW_MAX_LON,
+            GW_MAX_LAT
+          );
           _features.push(coordToFeature(gwCoord));
+          polygon = turf.union(polygon, coordToPolygon(gwCoord))!.geometry;
         }
       }
     }
-    return _features;
+    return { _features, polygon };
   }, [claimBase1Coord, claimBase2Coord]);
 
   useEffect(() => {
     let _isValid = true;
-    if (
-      (gwCoord && existingCoords.has(gwCoord.toString())) ||
-      parcelClaimSize > MAX_PARCEL_CLAIM
-    ) {
+    const intersection = turf.intersect(
+      geoJsonFeatures.polygon,
+      existingMultiPoly
+    );
+    const bboxInter = intersection ? turf.bbox(intersection) : null;
+
+    // Correct for detecting border intersection
+    const overlapX =
+      bboxInter && bboxInter[2] - bboxInter[0] > 360 / 2 ** (GW_MAX_LON + 1);
+    const overlapY =
+      bboxInter && bboxInter[3] - bboxInter[1] > 180 / 2 ** (GW_MAX_LAT + 1);
+    if ((overlapX && overlapY) || parcelClaimSize > MAX_PARCEL_CLAIM) {
       _isValid = false;
     }
 
     setIsValidClaim(_isValid);
-    setParcelClaimSize(geoJsonFeatures.length);
-  }, [existingCoords, setIsValidClaim, setParcelClaimSize, geoJsonFeatures]);
+    setParcelClaimSize(geoJsonFeatures._features.length);
+  }, [existingMultiPoly, setIsValidClaim, setParcelClaimSize, geoJsonFeatures]);
 
   return (
     <Source
@@ -68,7 +85,7 @@ function ClaimSource(props: Props) {
       type="geojson"
       data={{
         type: "FeatureCollection",
-        features: geoJsonFeatures,
+        features: geoJsonFeatures._features,
       }}
     >
       <Layer {...claimLayer(isValidClaim)} />
