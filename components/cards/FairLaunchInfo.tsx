@@ -107,14 +107,17 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
                 <div style={{ textAlign: "left" }}>
                   To promote a fair launch and help limit gas fee costs, Geo Web
                   land claims were initiated with a global Dutch auction. The
-                  auction requires one-time payments (bids) to execute valid
-                  parcel claims. These auction payments are made in addition to
-                  the ongoing partial common ownership market requirements.
+                  auction requires one-time payments (bids) to execute parcel
+                  claims. These auction payments are made in addition to the
+                  ongoing partial common ownership market requirements.
                   <br />
                   <br />
-                  The auction started at [Auction Starting Price] ETHx and will
-                  linearly decrease in price over two weeks to an ongoing claim
-                  price of 0 ETHx.
+                  The auction started at {ethers.utils.formatEther(
+                    startingBid
+                  )}{" "}
+                  ETHx and will linearly decrease to an ongoing minimum claim
+                  price of {ethers.utils.formatEther(endingBid)} ETHx over two
+                  weeks.
                 </div>
               }
               target={infoIcon}

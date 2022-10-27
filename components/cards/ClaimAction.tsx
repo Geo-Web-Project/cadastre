@@ -97,22 +97,17 @@ function ClaimAction(props: ClaimActionProps) {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
-    const baseCoord = GeoWebCoordinate.fromXandY(
-      claimBase1Coord.x,
-      claimBase1Coord.y,
+
+    const swX = Math.min(claimBase1Coord.x, claimBase2Coord.x);
+    const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
+    const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
+    const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
+    const swCoord = GeoWebCoordinate.fromXandY(
+      swX,
+      swY,
       GW_MAX_LON,
       GW_MAX_LAT
     );
-    const destCoord = GeoWebCoordinate.fromXandY(
-      claimBase2Coord.x,
-      claimBase2Coord.y,
-      GW_MAX_LON,
-      GW_MAX_LAT
-    );
-    let path = GeoWebCoordinate.makeRectPath(baseCoord, destCoord);
-    if (path.length == 0) {
-      path = [BigNumber.from(0)];
-    }
 
     if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
       throw new Error(
@@ -125,15 +120,18 @@ function ClaimAction(props: ClaimActionProps) {
 
     const txn = await registryContract
       .connect(signer)
-      .claim(
+      ["claim(int96,uint256,(uint64,uint256,uint256))"](
         newFlowRate,
         ethers.utils.parseEther(displayNewForSalePrice),
-        BigNumber.from(baseCoord.toString()),
-        path
+        {
+          swCoordinate: BigNumber.from(swCoord.toString()),
+          lngDim: neX - swX + 1,
+          latDim: neY - swY + 1,
+        }
       );
     const receipt = await txn.wait();
 
-    const filter = registryContract.filters.ParcelClaimed(null, null);
+    const filter = registryContract.filters.ParcelClaimedV2(null, null);
 
     const res = await registryContract.queryFilter(
       filter,

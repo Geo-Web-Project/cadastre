@@ -37,6 +37,7 @@ export const parcelLayer: LayerProps = {
   paint: {
     "fill-color": "#2FC1C1",
     "fill-opacity": 0.5,
+    "fill-outline-color": "#000000",
   },
 };
 export function parcelHighlightLayer(
@@ -49,6 +50,7 @@ export function parcelHighlightLayer(
     paint: {
       "fill-color": "#2FC1C1",
       "fill-opacity": 0.75,
+      "fill-outline-color": "#000000",
     },
     filter: [
       "any",

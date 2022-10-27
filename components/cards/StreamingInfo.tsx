@@ -13,7 +13,8 @@ import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { STATE, GeoPoint } from "../Map";
+import { STATE } from "../Map";
+import type { Point } from "@turf/turf";
 
 type StreamingInfoProps = {
   sfFramework: Framework;
@@ -26,9 +27,7 @@ type StreamingInfoProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setPortfolioParcelCoords: React.Dispatch<
-    React.SetStateAction<GeoPoint | null>
-  >;
+  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
