@@ -7,6 +7,7 @@ import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { coordToPolygon } from "./ParcelSource";
+import { BigNumber } from "ethers";
 
 type Props = {
   existingMultiPoly: MultiPolygon | Polygon;
@@ -59,9 +60,16 @@ function ClaimSource(props: Props) {
 
   useEffect(() => {
     let _isValid = true;
-    console.log(turf.intersect(geoJsonFeatures.polygon, existingMultiPoly));
+    const intersection = turf.intersect(
+      geoJsonFeatures.polygon,
+      existingMultiPoly
+    );
+    const bboxInter = intersection ? turf.bbox(intersection) : null;
+
+    // Correct for detecting border intersection
     if (
-      turf.intersect(geoJsonFeatures.polygon, existingMultiPoly) ||
+      (bboxInter &&
+        bboxInter[3] - bboxInter[1] > 180 / (2 ** GW_MAX_LAT - 1)) ||
       parcelClaimSize > MAX_PARCEL_CLAIM
     ) {
       _isValid = false;
