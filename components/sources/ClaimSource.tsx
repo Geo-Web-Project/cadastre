@@ -69,7 +69,7 @@ function ClaimSource(props: Props) {
     // Correct for detecting border intersection
     if (
       (bboxInter &&
-        bboxInter[3] - bboxInter[1] > 180 / (2 ** GW_MAX_LAT - 1)) ||
+        bboxInter[3] - bboxInter[1] > 180 / 2 ** (GW_MAX_LAT + 1)) ||
       parcelClaimSize > MAX_PARCEL_CLAIM
     ) {
       _isValid = false;
