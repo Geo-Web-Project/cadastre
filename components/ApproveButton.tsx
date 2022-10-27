@@ -114,17 +114,22 @@ export function ApproveButton(props: ApproveButtonProps) {
       const txn = await op.exec(signer);
       await txn.wait();
     } catch (err) {
-      console.error(err);
-      setErrorMessage(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (err as any).reason
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message
-      );
-      setIsActing(false);
-      setDidFail(true);
-      return false;
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        console.error(err);
+        setErrorMessage(
+          (err as any).reason
+            ? (err as any).reason.replace("execution reverted: ", "")
+            : (err as Error).message
+        );
+        setIsActing(false);
+        setDidFail(true);
+        return false;
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
     return true;

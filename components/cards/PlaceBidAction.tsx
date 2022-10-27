@@ -158,17 +158,22 @@ function PlaceBidAction(props: PlaceBidActionProps) {
         .placeBid(newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
-      console.error(err);
-      setErrorMessage(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (err as any).reason
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (err as any).reason.replace("execution reverted: ", "")
-          : (err as Error).message
-      );
-      setDidFail(true);
-      setIsActing(false);
-      return;
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        console.error(err);
+        setErrorMessage(
+          (err as any).reason
+            ? (err as any).reason.replace("execution reverted: ", "")
+            : (err as Error).message
+        );
+        setDidFail(true);
+        setIsActing(false);
+        return;
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
     setIsActing(false);
