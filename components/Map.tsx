@@ -9,7 +9,10 @@ import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
 import GridSource, { Grid } from "./sources/GridSource";
-import ParcelSource from "./sources/ParcelSource";
+import ParcelSource, {
+  coordToPolygon,
+  parcelsToMultiPoly,
+} from "./sources/ParcelSource";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
@@ -27,7 +30,8 @@ import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
 
 import { GeoWebCoordinate } from "js-geo-web-coordinate";
-import type { Point } from "@turf/turf";
+import type { Point, MultiPolygon, Polygon } from "@turf/turf";
+import * as turf from "@turf/turf";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM = 100;
@@ -59,7 +63,7 @@ export interface PolygonQuery {
   geoWebParcels: GeoWebParcel[];
 }
 
-interface GeoWebParcel {
+export interface GeoWebParcel {
   id: string;
   bboxN: number;
   bboxS: number;
@@ -246,7 +250,9 @@ function Map(props: MapProps) {
   const [selectedParcelCoords, setSelectedParcelCoords] =
     useState<Coord | null>(null);
 
-  const [existingCoords, setExistingCoords] = useState<Set<string>>(new Set());
+  const [existingMultiPoly, setExistingMultiPoly] = useState<
+    MultiPolygon | Polygon
+  >(turf.multiPolygon([]).geometry);
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
@@ -423,7 +429,7 @@ function Map(props: MapProps) {
           GW_MAX_LAT
         );
 
-        if (!existingCoords.has(gwCoord.toString())) {
+        if (!turf.intersect(existingMultiPoly, coordToPolygon(gwCoord))) {
           setParcelHoverId("");
         }
       }
@@ -484,7 +490,7 @@ function Map(props: MapProps) {
           GW_MAX_LAT
         );
 
-        if (existingCoords.has(gwCoord.toString())) {
+        if (turf.intersect(existingMultiPoly, coordToPolygon(gwCoord))) {
           return true;
         }
       }
@@ -575,10 +581,8 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (data != null) {
-      const _existingCoords = new Set<string>(
-        data.geoWebParcels.flatMap((p) => p.id)
-      );
-      setExistingCoords(_existingCoords);
+      const _existingMultiPoly = parcelsToMultiPoly(data);
+      setExistingMultiPoly(_existingMultiPoly);
     }
 
     const listener = (e: KeyboardEvent) => {
@@ -657,7 +661,7 @@ function Map(props: MapProps) {
             invalidLicenseId={invalidLicenseId}
           ></ParcelSource>
           <ClaimSource
-            existingCoords={existingCoords}
+            existingMultiPoly={existingMultiPoly}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
             isValidClaim={isValidClaim}
