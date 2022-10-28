@@ -9,6 +9,8 @@ import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
 
 type TransactionSummaryViewProps = SidebarProps & {
+  existingNetworkFee?: BigNumber;
+  newNetworkFee: BigNumber | null;
   existingAnnualNetworkFee?: BigNumber;
   newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
@@ -23,6 +25,8 @@ type TransactionSummaryViewProps = SidebarProps & {
 function TransactionSummaryView({
   existingAnnualNetworkFee = BigNumber.from(0),
   newAnnualNetworkFee,
+  existingNetworkFee = BigNumber.from(0),
+  newNetworkFee,
   account,
   interactionState,
   licenseOwner,
@@ -59,24 +63,25 @@ function TransactionSummaryView({
         return;
       }
 
-      if (!lastStream || !stream.eq(lastStream)) {
-        const _bufferNeeded = await calculateBufferNeeded(
+      if ((!lastStream || !stream.eq(lastStream)) && newNetworkFee) {
+        const existingBuffer = await calculateBufferNeeded(
           sfFramework,
           paymentToken,
-          stream.div(365 * 24 * 60 * 60)
+          existingNetworkFee
         );
-        setStreamBuffer(_bufferNeeded);
+        const newBuffer = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          newNetworkFee
+        );
+        // Multiply by 2x for user buffer and PCOLicenseDiamond buffer
+        setStreamBuffer(newBuffer.sub(existingBuffer).mul(2));
         setLastStream(stream);
       }
     };
 
     run();
-  }, [
-    sfFramework,
-    paymentToken,
-    newAnnualNetworkFee,
-    existingAnnualNetworkFee,
-  ]);
+  }, [sfFramework, paymentToken, newNetworkFee, existingNetworkFee]);
 
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 18)
@@ -223,24 +228,15 @@ function TransactionSummaryView({
       <InfoTooltip
         content={
           <div style={{ textAlign: "left" }}>
-            {collateralDeposit ? (
-              <>
-                This is the amount you authorize to add to your buffer deposit
-                if your bid is accepted.
-                <br />
-                <br />
-                It is used to incentivize closing your stream(s) if your ETHx
-                balance reaches 0.
-              </>
-            ) : (
-              <>
-                This is the required adjustment to your stream buffer deposit.
-                <br />
-                <br />
-                It is used to incentivize closing your stream(s) if your ETHx
-                balance reaches 0.
-              </>
-            )}
+            This is the required adjustment to your stream buffer deposit. Half
+            of this adjustment will take the form of an ERC20 transfer between
+            your wallet and the parcel smart contract. The other half will be
+            automatically subtracted/added to your wallet's available{" "}
+            {PAYMENT_TOKEN} balance.
+            <br />
+            <br />
+            Stream buffers are used to incentivize closing your stream(s) if
+            your {PAYMENT_TOKEN} balance reaches 0.
           </div>
         }
         target={

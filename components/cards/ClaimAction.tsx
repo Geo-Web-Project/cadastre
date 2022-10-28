@@ -169,6 +169,7 @@ function ClaimAction(props: ClaimActionProps) {
             <TransactionSummaryView
               claimPayment={isFairLaunch ? requiredBid : minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
+              newNetworkFee={newFlowRate}
               {...props}
             />
           ) : (

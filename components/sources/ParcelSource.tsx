@@ -1,16 +1,34 @@
 import type GeoJSON from "geojson";
 import { useMemo } from "react";
 import { Source, Layer } from "react-map-gl";
-import { PolygonQuery } from "../Map";
+import { PolygonQuery, GeoWebParcel } from "../Map";
 import {
   parcelLayer,
   parcelHighlightLayer,
   parcelInvalidLayer,
 } from "../map-style";
+import type { Polygon, MultiPolygon, Position } from "@turf/turf";
+import { GeoWebCoordinate } from "js-geo-web-coordinate";
+import * as turf from "@turf/turf";
 
-function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
-  const features: GeoJSON.Feature[] = data.geoWebParcels.map((p) => {
-    const coordinates = p.coordinates.reduce(
+export function coordToPolygon(gwCoord: GeoWebCoordinate): Polygon {
+  const coords = gwCoord.toGPS();
+  return turf.polygon([[...coords, coords[0]]]).geometry;
+}
+
+export function parcelsToMultiPoly(data: PolygonQuery): MultiPolygon | Polygon {
+  const polygons: (MultiPolygon | Polygon)[] =
+    data.geoWebParcels.map(parcelToPolygon);
+
+  return polygons.reduce((prev, cur) => {
+    return turf.union(prev, cur)!.geometry;
+  }, turf.multiPolygon([]).geometry);
+}
+
+function parcelToPolygon(parcel: GeoWebParcel): Polygon {
+  const coordinates = parcel.coordinates
+    .map((c) => Number(c))
+    .reduce(
       (prev, cur) => {
         const last = prev[prev.length - 1];
         if (last.length < 2) {
@@ -21,20 +39,21 @@ function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
         }
         return prev;
       },
-      [[]] as GeoJSON.Position[]
+      [[]] as Position[]
     );
+  return turf.polygon([coordinates]).geometry;
+}
+
+function convertToGeoJson(data: PolygonQuery): GeoJSON.Feature[] {
+  const features: GeoJSON.Feature[] = data.geoWebParcels.map((p) => {
     return {
       type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: [coordinates],
-      },
+      geometry: parcelToPolygon(p),
       properties: {
         parcelId: p.id,
       },
     };
   });
-  console.log(features);
   return features;
 }
 
