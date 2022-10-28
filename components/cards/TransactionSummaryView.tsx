@@ -74,15 +74,6 @@ function TransactionSummaryView({
           paymentToken,
           newNetworkFee
         );
-        console.log("stream: ", stream.toString());
-        console.log("existingBuffer: ", existingBuffer.toString());
-        console.log("newBuffer: ", newBuffer.toString());
-        console.log("existingNetworkFee: ", existingNetworkFee.toString());
-        console.log("newNetworkFee: ", newNetworkFee.toString());
-        console.log(
-          "newBuffer - existingBuffer: ",
-          newBuffer.sub(existingBuffer).toString()
-        );
         setStreamBuffer(newBuffer.sub(existingBuffer));
         setLastStream(stream);
       }
