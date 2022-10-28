@@ -204,6 +204,8 @@ function EditAction(props: EditActionProps) {
               newAnnualNetworkFee={
                 newAnnualNetworkFee ?? existingAnnualNetworkFee
               }
+              existingNetworkFee={existingNetworkFee ?? undefined}
+              newNetworkFee={newNetworkFee}
               {...props}
             />
           ) : (

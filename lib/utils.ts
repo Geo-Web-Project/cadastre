@@ -47,7 +47,7 @@ export async function calculateBufferNeeded(
 export function calculateAuctionValue(
   forSalePrice: BigNumber,
   auctionStart: BigNumber,
-  auctionLength: BigNumber,
+  auctionLength: BigNumber
 ) {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
   if (blockTimestamp.gt(auctionStart.add(auctionLength))) {
