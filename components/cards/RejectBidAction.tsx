@@ -382,6 +382,8 @@ function RejectBidAction(props: RejectBidActionProps) {
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
                 newAnnualNetworkFee={annualNetworkFeeRate ?? null}
+                existingNetworkFee={existingNetworkFee}
+                newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 {...props}

@@ -87,6 +87,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
 
+  const existingNetworkFee = fromValueToRate(
+    currentForSalePrice,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator
+  );
+
   const existingAnnualNetworkFee = fromValueToRate(
     currentForSalePrice,
     perSecondFeeNumerator.mul(SECONDS_IN_YEAR),
@@ -277,6 +283,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
                 newAnnualNetworkFee={annualNetworkFeeRate ?? null}
+                existingNetworkFee={existingNetworkFee ?? undefined}
+                newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 {...props}

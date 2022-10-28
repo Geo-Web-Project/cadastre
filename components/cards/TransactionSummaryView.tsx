@@ -9,6 +9,8 @@ import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
 
 type TransactionSummaryViewProps = SidebarProps & {
+  existingNetworkFee?: BigNumber;
+  newNetworkFee: BigNumber | null;
   existingAnnualNetworkFee?: BigNumber;
   newAnnualNetworkFee: BigNumber | null;
   claimPayment?: BigNumber;
@@ -23,6 +25,8 @@ type TransactionSummaryViewProps = SidebarProps & {
 function TransactionSummaryView({
   existingAnnualNetworkFee = BigNumber.from(0),
   newAnnualNetworkFee,
+  existingNetworkFee = BigNumber.from(0),
+  newNetworkFee,
   account,
   interactionState,
   licenseOwner,
@@ -59,24 +63,33 @@ function TransactionSummaryView({
         return;
       }
 
-      if (!lastStream || !stream.eq(lastStream)) {
-        const _bufferNeeded = await calculateBufferNeeded(
+      if ((!lastStream || !stream.eq(lastStream)) && newNetworkFee) {
+        const existingBuffer = await calculateBufferNeeded(
           sfFramework,
           paymentToken,
-          stream.div(365 * 24 * 60 * 60)
+          existingNetworkFee
         );
-        setStreamBuffer(_bufferNeeded);
+        const newBuffer = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          newNetworkFee
+        );
+        console.log("stream: ", stream.toString());
+        console.log("existingBuffer: ", existingBuffer.toString());
+        console.log("newBuffer: ", newBuffer.toString());
+        console.log("existingNetworkFee: ", existingNetworkFee.toString());
+        console.log("newNetworkFee: ", newNetworkFee.toString());
+        console.log(
+          "newBuffer - existingBuffer: ",
+          newBuffer.sub(existingBuffer).toString()
+        );
+        setStreamBuffer(newBuffer.sub(existingBuffer));
         setLastStream(stream);
       }
     };
 
     run();
-  }, [
-    sfFramework,
-    paymentToken,
-    newAnnualNetworkFee,
-    existingAnnualNetworkFee,
-  ]);
+  }, [sfFramework, paymentToken, newNetworkFee, existingNetworkFee]);
 
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 18)

@@ -162,6 +162,7 @@ function ReclaimAction(props: ReclaimActionProps) {
                   : requiredBid
               }
               newAnnualNetworkFee={newAnnualNetworkFee}
+              newNetworkFee={newNetworkFee}
               {...props}
             />
           ) : (
