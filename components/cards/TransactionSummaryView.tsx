@@ -74,7 +74,8 @@ function TransactionSummaryView({
           paymentToken,
           newNetworkFee
         );
-        setStreamBuffer(newBuffer.sub(existingBuffer));
+        // Multiply by 2x for user buffer and PCOLicenseDiamond buffer
+        setStreamBuffer(newBuffer.sub(existingBuffer).mul(2));
         setLastStream(stream);
       }
     };
@@ -227,24 +228,15 @@ function TransactionSummaryView({
       <InfoTooltip
         content={
           <div style={{ textAlign: "left" }}>
-            {collateralDeposit ? (
-              <>
-                This is the amount you authorize to add to your buffer deposit
-                if your bid is accepted.
-                <br />
-                <br />
-                It is used to incentivize closing your stream(s) if your ETHx
-                balance reaches 0.
-              </>
-            ) : (
-              <>
-                This is the required adjustment to your stream buffer deposit.
-                <br />
-                <br />
-                It is used to incentivize closing your stream(s) if your ETHx
-                balance reaches 0.
-              </>
-            )}
+            This is the required adjustment to your stream buffer deposit. Half
+            of this adjustment will take the form of an ERC20 transfer between
+            your wallet and the parcel smart contract. The other half will be
+            automatically subtracted/added to your wallet's available{" "}
+            {PAYMENT_TOKEN} balance.
+            <br />
+            <br />
+            Stream buffers are used to incentivize closing your stream(s) if
+            your {PAYMENT_TOKEN} balance reaches 0.
           </div>
         }
         target={
