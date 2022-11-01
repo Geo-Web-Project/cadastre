@@ -216,7 +216,11 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? `${streamDisplay} ${PAYMENT_TOKEN}/year` : `N/A`}
+            {txnReady
+              ? `${
+                  stream.gt(0) ? "+" : ""
+                }${streamDisplay} ${PAYMENT_TOKEN}/year`
+              : `N/A`}
           </span>
         }
       />
@@ -242,7 +246,11 @@ function TransactionSummaryView({
         }
         target={
           <span style={{ textDecoration: "underline" }}>
-            {txnReady ? `${streamBufferDisplay} ${PAYMENT_TOKEN}` : `N/A`}
+            {txnReady
+              ? `${
+                  streamBuffer?.gt(0) ? "+" : ""
+                }${streamBufferDisplay} ${PAYMENT_TOKEN}`
+              : `N/A`}
           </span>
         }
       />
