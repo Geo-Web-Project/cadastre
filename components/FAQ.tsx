@@ -50,7 +50,7 @@ function FAQ() {
     <>
       <Button
         variant="outline-primary"
-        className="text-light fw-bold border-dark d-flex align-items-center gap-1"
+        className="text-light fw-bold border-dark d-flex justify-content-center align-items-center gap-1"
         style={{ height: "100px", width: "100px" }}
         onClick={handleShow}
       >
