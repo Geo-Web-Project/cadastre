@@ -12,6 +12,9 @@ export type GalleryDisplayGridProps = GalleryModalProps & {
   setSelectedMediaGalleryItemId: React.Dispatch<
     React.SetStateAction<string | null>
   >;
+  setShouldMediaGalleryUpdate: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 };
 
 function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
