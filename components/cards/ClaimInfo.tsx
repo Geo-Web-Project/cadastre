@@ -32,6 +32,7 @@ function ClaimInfo({
         </Card.Text>
         <Card.Text>Single click again to set your parcel shape.</Card.Text>
         <Card.Text>Click and drag the map to pan, if needed.</Card.Text>
+        <Card.Text>Your claim cannot be more than 200 coordinates wide or tall.</Card.Text>
         <Button
           variant="danger"
           className="w-100 mb-2"

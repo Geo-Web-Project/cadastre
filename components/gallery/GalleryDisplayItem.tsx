@@ -29,6 +29,9 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
   setSelectedMediaGalleryItemId: React.Dispatch<
     React.SetStateAction<string | null>
   >;
+  setShouldMediaGalleryUpdate: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 };
 
 function GalleryDisplayItem(props: GalleryDisplayItemProps) {
@@ -38,8 +41,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     index,
     selectedMediaGalleryItemId,
     setSelectedMediaGalleryItemId,
-    selectedParcelId,
-    setSelectedParcelId,
+    setShouldMediaGalleryUpdate,
   } = props;
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
@@ -120,12 +122,9 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     setIsRemoving(true);
     await mediaGalleryItemStreamManager.removeFromMediaGallery();
     if (name) await pinningManager?.unpinCid(name);
-    setIsRemoving(false);
 
-    // Reload parcel
-    const oldParcelId = selectedParcelId;
-    setSelectedParcelId("");
-    setSelectedParcelId(oldParcelId);
+    setShouldMediaGalleryUpdate(true);
+    setIsRemoving(false);
   }
 
   async function retriggerPin() {
