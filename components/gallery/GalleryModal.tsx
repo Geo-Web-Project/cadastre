@@ -181,6 +181,7 @@ function GalleryModal(props: GalleryModalProps) {
                 mediaGalleryItems={mediaGalleryItems}
                 selectedMediaGalleryItemId={selectedMediaGalleryItemId}
                 setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
+                setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
               <a
