@@ -601,15 +601,15 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (portfolioParcelCenter) {
       flyToLocation({
-        longitude: portfolioParcelCenter.coordinates[0],
-        latitude: portfolioParcelCenter.coordinates[1],
+        longitude: portfolioParcelCenter.coordinates[0] + LON_OFFSET,
+        latitude: portfolioParcelCenter.coordinates[1] + LAT_OFFSET,
         zoom: ZOOM_GRID_LEVEL + 1,
         duration: 500,
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCenter.coordinates[0] - LON_OFFSET,
-        y: portfolioParcelCenter.coordinates[1] - LAT_OFFSET,
+        x: portfolioParcelCenter.coordinates[0],
+        y: portfolioParcelCenter.coordinates[1],
       });
     }
   }, [portfolioParcelCenter]);
