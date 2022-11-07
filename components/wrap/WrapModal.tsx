@@ -3,6 +3,7 @@ import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
+import { truncateEth } from "../../lib/truncate";
 import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
@@ -131,14 +132,14 @@ function WrapModal({
       <Modal.Body className="bg-dark text-light position-relative">
         <p>Current Balances</p>
         <div style={{ padding: "0 16px" }}>
-          <p>ETH: {ETHBalance ?? "---"}</p>
+          <p>ETH: {ETHBalance ? truncateEth(ETHBalance, 8) : "---"}</p>
           <p className="mb-0 me-3">
             ETHx:{" "}
             {isLoading || data == null ? (
               <Spinner animation="border" role="status"></Spinner>
             ) : (
               <FlowingBalance
-                format={(x) => ethers.utils.formatUnits(x)}
+                format={(x) => truncateEth(ethers.utils.formatUnits(x), 8)}
                 accountTokenSnapshot={data.items[0]}
               />
             )}
@@ -157,7 +158,7 @@ function WrapModal({
       >
         <form
           id="wrapForm"
-          className="form-inline"
+          className="form-inline d-flex align-items-center"
           noValidate
           onSubmit={onSubmit}
         >
@@ -182,7 +183,6 @@ function WrapModal({
           <Button
             type="submit"
             className="btn btn-primary mb-2"
-            style={{ width: "128px" }}
             disabled={isWrapping}
           >
             {isWrapping ? "Wrapping..." : `Wrap ETH to ${PAYMENT_TOKEN}`}
