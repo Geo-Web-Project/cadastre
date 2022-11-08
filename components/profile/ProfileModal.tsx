@@ -357,7 +357,7 @@ function ProfileModal(props: ProfileModalProps) {
           calculateBufferNeeded(sfFramework, paymentToken, contributionRate)
         )
         .then((bufferNeeded) => {
-          buffer = bufferNeeded;
+          buffer = bufferNeeded.mul(2);
         })
         .then(() => licenseDiamondContract.isPayerBidActive())
         .then((isPayerBidActive) => {
