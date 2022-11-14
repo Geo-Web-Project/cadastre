@@ -65,6 +65,7 @@ export interface PolygonQuery {
 
 export interface GeoWebParcel {
   id: string;
+  createdAtBlock: number;
   bboxN: number;
   bboxS: number;
   bboxE: number;
@@ -74,17 +75,17 @@ export interface GeoWebParcel {
 
 const query = gql`
   query Polygons(
-    $lastId: BigInt
+    $lastBlock: BigInt
     $north: BigDecimal
     $south: BigDecimal
     $east: BigDecimal
     $west: BigDecimal
   ) {
     geoWebParcels(
-      orderBy: id
+      orderBy: createdAtBlock
       first: 1000
       where: {
-        id_gt: $lastId
+        createdAtBlock_gt: $lastBlock
         bboxN_gt: $south
         bboxS_lt: $north
         bboxE_gt: $west
@@ -92,6 +93,7 @@ const query = gql`
       }
     ) {
       id
+      createdAtBlock
       bboxN
       bboxS
       bboxE
@@ -206,7 +208,7 @@ function Map(props: MapProps) {
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
-      lastId: 0,
+      lastBlock: 0,
       north: 0,
       south: 0,
       east: 0,
@@ -325,12 +327,12 @@ function Map(props: MapProps) {
       return;
     }
 
-    let newLastId;
+    let newLastBlock;
 
     if (data.geoWebParcels.length > 0) {
-      newLastId = data.geoWebParcels[data.geoWebParcels.length - 1].id;
+      newLastBlock = data.geoWebParcels[data.geoWebParcels.length - 1].createdAtBlock;
     } else if (newParcel.id) {
-      newLastId = 0;
+      newLastBlock = 0;
     } else {
       return;
     }
@@ -340,7 +342,7 @@ function Map(props: MapProps) {
 
     fetchMore({
       variables: {
-        lastId: newLastId,
+        lastBlock: newLastBlock,
         ...params,
       },
     });
@@ -355,7 +357,7 @@ function Map(props: MapProps) {
     const params = normalizeQueryVariables(mapBounds);
 
     const opts = {
-      lastId: 0,
+      lastBlock: 0,
       ...params,
     };
     refetch(opts);
@@ -382,7 +384,7 @@ function Map(props: MapProps) {
 
     if (nextViewport.zoom >= ZOOM_QUERY_LEVEL && shouldUpdateOnNextZoom) {
       const opts = {
-        lastId: 0,
+        lastBlock: 0,
         ...params,
       };
       refetch(opts);
@@ -401,7 +403,7 @@ function Map(props: MapProps) {
         Math.abs(mapBounds.getCenter().lat - oldCoord.lat) > QUERY_DIM)
     ) {
       const opts = {
-        lastId: 0,
+        lastBlock: 0,
         ...params,
       };
       refetch(opts);
@@ -601,15 +603,15 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (portfolioParcelCenter) {
       flyToLocation({
-        longitude: portfolioParcelCenter.coordinates[0],
-        latitude: portfolioParcelCenter.coordinates[1],
+        longitude: portfolioParcelCenter.coordinates[0] + LON_OFFSET,
+        latitude: portfolioParcelCenter.coordinates[1] + LAT_OFFSET,
         zoom: ZOOM_GRID_LEVEL + 1,
         duration: 500,
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCenter.coordinates[0] - LON_OFFSET,
-        y: portfolioParcelCenter.coordinates[1] - LAT_OFFSET,
+        x: portfolioParcelCenter.coordinates[0],
+        y: portfolioParcelCenter.coordinates[1],
       });
     }
   }, [portfolioParcelCenter]);
