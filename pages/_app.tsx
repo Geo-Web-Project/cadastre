@@ -62,7 +62,7 @@ export function App({ Component, pageProps }: AppProps) {
       typePolicies: {
         Query: {
           fields: {
-            geoWebCoordinates: {
+            geoWebParcels: {
               keyArgs: [],
               merge(existing = [], incoming) {
                 return [...existing, ...incoming];
