@@ -38,7 +38,7 @@ const GRID_DIM = 100;
 export const GW_MAX_LAT = 22;
 export const GW_MAX_LON = 23;
 const ZOOM_QUERY_LEVEL = 8;
-const QUERY_DIM = 1000;
+const QUERY_DIM = 0.025;
 export const LON_OFFSET = 0.00062;
 export const LAT_OFFSET = 0.0001;
 
@@ -259,9 +259,8 @@ function Map(props: MapProps) {
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
   const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
-  const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
-    string[]
-  >(["parcels-layer"]);
+  const [interactiveLayerIds, setInteractiveLayerIds] =
+    React.useState<string[]>(["parcels-layer"]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
   const [newParcel, setNewParcel] = React.useState<{
     id: string;
@@ -330,7 +329,8 @@ function Map(props: MapProps) {
     let newLastBlock;
 
     if (data.geoWebParcels.length > 0) {
-      newLastBlock = data.geoWebParcels[data.geoWebParcels.length - 1].createdAtBlock;
+      newLastBlock =
+        data.geoWebParcels[data.geoWebParcels.length - 1].createdAtBlock;
     } else if (newParcel.id) {
       newLastBlock = 0;
     } else {
