@@ -7,7 +7,6 @@ import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { coordToPolygon } from "./ParcelSource";
-import { BigNumber } from "ethers";
 
 type Props = {
   existingMultiPoly: MultiPolygon | Polygon;
@@ -51,6 +50,7 @@ function ClaimSource(props: Props) {
             GW_MAX_LAT
           );
           _features.push(coordToFeature(gwCoord));
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           polygon = turf.union(polygon, coordToPolygon(gwCoord))!.geometry;
         }
       }
