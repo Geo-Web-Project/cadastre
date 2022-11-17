@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import Spinner from "react-bootstrap/Spinner";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FlowingBalance } from "./profile/FlowingBalance";
@@ -9,23 +8,21 @@ import { truncateEth } from "../lib/truncate";
 
 interface FundsRaisedCounterProps {
   beneficiaryAddress: string;
-  paymentToken?: NativeAssetSuperToken;
 }
 
 function FundsRaisedCounter(props: FundsRaisedCounterProps) {
-  const { beneficiaryAddress, paymentToken } = props;
+  const { beneficiaryAddress } = props;
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery(
     {
       chainId: NETWORK_ID,
       filter: {
         account: beneficiaryAddress,
-        token: paymentToken?.address ?? "",
       },
     },
     {
       pollingInterval: 5000,
-      skip: !beneficiaryAddress || !paymentToken,
+      skip: !beneficiaryAddress,
     }
   );
 

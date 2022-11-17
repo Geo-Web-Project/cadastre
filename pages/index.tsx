@@ -59,9 +59,8 @@ function IndexPage() {
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
-  const [interactionState, setInteractionState] = React.useState<STATE>(
-    STATE.VIEWING
-  );
+  const [interactionState, setInteractionState] =
+    React.useState<STATE>(STATE.VIEWING);
   const [portfolioParcelCenter, setPortfolioParcelCenter] =
     React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
@@ -118,21 +117,9 @@ function IndexPage() {
 
   React.useEffect(() => {
     async function start() {
-      const framework = await Framework.create({
-        chainId: NETWORK_ID,
-        provider: new ethers.providers.JsonRpcProvider(
-          RPC_URLS[NETWORK_ID],
-          NETWORK_ID
-        ),
-      });
-      setSfFramework(framework);
-
-      const superToken = await framework.loadNativeAssetSuperToken("ETHx");
-      setPaymentToken(superToken);
-
       const { registryDiamondContract } = getContractsForChainOrThrow(
         NETWORK_ID,
-        framework.settings.provider
+        new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID], NETWORK_ID)
       );
 
       setRegistryContract(registryDiamondContract);
@@ -179,6 +166,16 @@ function IndexPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lib = getLibrary((signer.provider as any).provider);
       setLibrary(lib);
+
+      const framework = await Framework.create({
+        chainId: NETWORK_ID,
+        provider: lib
+      });
+      setSfFramework(framework);
+
+      const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+      setPaymentToken(superToken);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
 
@@ -303,7 +300,6 @@ function IndexPage() {
           <Col>
             <FundsRaisedCounter
               beneficiaryAddress={beneficiaryAddress}
-              paymentToken={paymentToken}
             />
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
