@@ -2,6 +2,7 @@ import Home from "../components/Home";
 import Map, { STATE } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
+import FundsRaisedCounter from "../components/FundsRaisedCounter";
 
 import React from "react";
 import Container from "react-bootstrap/Container";
@@ -10,7 +11,9 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import { NETWORK_ID, CERAMIC_URL } from "../lib/constants";
+import NavDropdown from "react-bootstrap/NavDropdown";
+
+import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
@@ -56,12 +59,12 @@ function IndexPage() {
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
-  const [interactionState, setInteractionState] = React.useState<STATE>(
-    STATE.VIEWING
-  );
+  const [interactionState, setInteractionState] =
+    React.useState<STATE>(STATE.VIEWING);
   const [portfolioParcelCenter, setPortfolioParcelCenter] =
     React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
+  const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -113,23 +116,66 @@ function IndexPage() {
   };
 
   React.useEffect(() => {
+    async function start() {
+      const { registryDiamondContract } = getContractsForChainOrThrow(
+        NETWORK_ID,
+        new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID], NETWORK_ID)
+      );
+
+      setRegistryContract(registryDiamondContract);
+
+      const _beneficiaryAddress =
+        await registryDiamondContract.getBeneficiary();
+
+      setBeneficiaryAddress(_beneficiaryAddress);
+
+      const { ipfs, provider, apiAddress } = await getIpfs({
+        providers: [
+          httpClient({
+            loadHttpClientModule: () => require("ipfs-http-client"),
+            apiAddress: "/ip4/127.0.0.1/tcp/5001",
+          }),
+          jsIpfs({
+            loadJsIpfsModule: () => IPFSCore,
+            options: {
+              preload: {
+                enabled: false,
+              },
+            },
+          }),
+        ],
+      });
+
+      console.log("IPFS API is provided by: " + provider);
+      if (provider === "httpClient") {
+        console.log("HTTP API address: " + apiAddress);
+      }
+
+      setIPFS(ipfs);
+    }
+
+    start();
+  }, []);
+
+  React.useEffect(() => {
     if (!address || !signer || chain?.id !== NETWORK_ID) {
       return;
     }
 
-    const start = async () => {
+    const initSession = async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lib = getLibrary((signer.provider as any).provider);
       setLibrary(lib);
 
       const framework = await Framework.create({
         chainId: NETWORK_ID,
-        provider: lib,
+        provider: lib
       });
       setSfFramework(framework);
 
       const superToken = await framework.loadNativeAssetSuperToken("ETHx");
       setPaymentToken(superToken);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
 
@@ -148,54 +194,10 @@ function IndexPage() {
       const ceramic = new CeramicClient(CERAMIC_URL);
       ceramic.did = session.did;
       setCeramic(ceramic);
-
-      if (!ipfs) {
-        const { ipfs, provider, apiAddress } = await getIpfs({
-          providers: [
-            httpClient({
-              loadHttpClientModule: () => require("ipfs-http-client"),
-              apiAddress: "/ip4/127.0.0.1/tcp/5001",
-            }),
-            jsIpfs({
-              loadJsIpfsModule: () => IPFSCore,
-              options: {
-                preload: {
-                  enabled: false,
-                },
-              },
-            }),
-          ],
-        });
-
-        console.log("IPFS API is provided by: " + provider);
-        if (provider === "httpClient") {
-          console.log("HTTP API address: " + apiAddress);
-        }
-
-        setIPFS(ipfs);
-      }
     };
 
-    start();
+    initSession();
   }, [signer]);
-
-  // Setup Contracts on App Load
-  React.useEffect(() => {
-    async function contractsSetup() {
-      if (sfFramework == null) {
-        return;
-      }
-
-      const { registryDiamondContract } = getContractsForChainOrThrow(
-        NETWORK_ID,
-        sfFramework.settings.provider
-      );
-
-      setRegistryContract(registryDiamondContract);
-    }
-
-    contractsSetup();
-  }, [sfFramework]);
 
   const Connector = () => {
     return (
@@ -277,25 +279,79 @@ function IndexPage() {
           variant="dark"
           fixed="top"
           style={{ height: "100px" }}
-          className="border-bottom border-purple border-opacity-25"
+          className="d-flex justify-content-space-between border-bottom border-purple border-opacity-25"
         >
-          <Col sm="3" className="ps-3 pe-3">
-            <FAQ />
-          </Col>
-          <Col sm="6" className="text-center p-2 mx-auto">
+          <Col className="ms-4 ps-3">
             <div
-              className="text-primary"
-              style={{ fontSize: "2.5em", fontFamily: "Abel" }}
+              className="d-flex align-items-center text-light"
+              style={{
+                fontSize: "2.5em",
+                fontFamily: "Abel",
+              }}
             >
-              <Image style={{ height: "1.1em" }} src="logo.png" /> Geo Web
-              Cadastre
-            </div>
-            <div className="text-light" style={{ fontSize: "1em" }}>
-              Claim, transfer, and manage digital land
+              <Image
+                style={{ height: "1.1em", marginRight: "10px" }}
+                src="logo.png"
+              />
+              <span className="fs-1">Cadastre</span>
+              <span className="fs-6 align-self-start">BETA</span>
             </div>
           </Col>
-          <Col sm="3" className="ps-3 pe-3 text-end">
+          <Col>
+            <FundsRaisedCounter
+              beneficiaryAddress={beneficiaryAddress}
+            />
+          </Col>
+          <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
             <Connector />
+            <NavDropdown
+              title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
+              id="collasible-nav-dropdown"
+              menuVariant="dark"
+              align="end"
+            >
+              <NavDropdown.Item
+                href="https://faucet.paradigm.xyz/"
+                target="_blank"
+                rel="noopener"
+                className="d-flex gap-2"
+              >
+                Request testnet ETH
+                <Image src="open-new.svg" alt="open-new" />
+              </NavDropdown.Item>
+              <NavDropdown.Item
+                href="https://docs.geoweb.network/"
+                target="_blank"
+                rel="noopener"
+                className="d-flex gap-2"
+              >
+                Documentation
+                <Image src="open-new.svg" alt="open-new" />
+              </NavDropdown.Item>
+              <NavDropdown.Item>
+                <FAQ />
+              </NavDropdown.Item>
+              <div className="d-flex align-items-center">
+                <NavDropdown.Item
+                  href="https://discord.com/invite/reXgPru7ck"
+                  target="_blank"
+                  rel="noopener"
+                  bsPrefix="none"
+                  style={{ width: "48px", margin: "4px 0 0 16px" }}
+                >
+                  <Image src="discord.svg" alt="discord" />
+                </NavDropdown.Item>
+                <NavDropdown.Item
+                  href="https://twitter.com/thegeoweb"
+                  target="_blank"
+                  rel="noopener"
+                  bsPrefix="none"
+                  style={{ width: "48px", margin: "4px 0 0 0" }}
+                >
+                  <Image src="twitter.svg" alt="twitter" />
+                </NavDropdown.Item>
+              </div>
+            </NavDropdown>
           </Col>
         </Navbar>
       </Container>
