@@ -2,7 +2,7 @@ import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Image from "react-bootstrap/Image";
-import { BigNumber, constants } from "ethers";
+import { BigNumber } from "ethers";
 import { SidebarProps } from "./Sidebar";
 import { PAYMENT_TOKEN } from "../lib/constants";
 
@@ -47,9 +47,8 @@ export function ApproveButton(props: ApproveButtonProps) {
     setIsAllowed,
   } = props;
 
-  const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
-    []
-  );
+  const [approvals, setApprovals] =
+    React.useState<(() => Promise<boolean>)[]>([]);
   const [approvalStr, setApprovalStr] = React.useState<string>("");
   const [completedActions, setCompletedActions] = React.useState<number>(0);
   const [totalActions, setTotalActions] = React.useState<number>(0);
@@ -68,7 +67,7 @@ export function ApproveButton(props: ApproveButtonProps) {
   );
 
   const approvePayment = React.useCallback(async () => {
-    if (!spender) {
+    if (!spender || !requiredPayment) {
       return true;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +75,7 @@ export function ApproveButton(props: ApproveButtonProps) {
 
     try {
       const op = paymentToken.approve({
-        amount: constants.MaxUint256.toString(),
+        amount: requiredPayment.toString(),
         receiver: spender,
       });
       const txn = await op.exec(signer);
@@ -96,19 +95,21 @@ export function ApproveButton(props: ApproveButtonProps) {
     }
 
     return true;
-  }, [spender]);
+  }, [spender, requiredPayment]);
 
   const approveFlowAllowance = React.useCallback(async () => {
-    if (!flowOperator) {
+    if (!flowOperator || !requiredFlowAmount) {
       return true;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const signer = provider.getSigner() as any;
 
     try {
-      const op = sfFramework.cfaV1.authorizeFlowOperatorWithFullControl({
-        superToken: paymentToken.address,
+      const op = sfFramework.cfaV1.updateFlowOperatorPermissions({
         flowOperator: flowOperator,
+        permissions: 3, // Create or update
+        flowRateAllowance: requiredFlowAmount.toString(),
+        superToken: paymentToken.address,
       });
 
       const txn = await op.exec(signer);
@@ -133,7 +134,7 @@ export function ApproveButton(props: ApproveButtonProps) {
     }
 
     return true;
-  }, [flowOperator]);
+  }, [flowOperator, requiredFlowAmount]);
 
   React.useEffect(() => {
     const checkRequirements = async () => {
