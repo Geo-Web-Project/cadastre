@@ -96,6 +96,7 @@ function Home({
         left: "0",
         top: "0",
         padding: "16px",
+        minHeight: "100vh",
       }}
     >
       <BetaAgreementModal />
