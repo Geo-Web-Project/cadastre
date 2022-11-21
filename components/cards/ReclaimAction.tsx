@@ -7,7 +7,7 @@ import StreamingInfo from "./StreamingInfo";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import BN from "bn.js";
 
 export type ReclaimActionProps = SidebarProps & {
@@ -16,7 +16,7 @@ export type ReclaimActionProps = SidebarProps & {
   basicProfileStreamManager: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   licenseOwner: string;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;

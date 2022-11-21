@@ -17,7 +17,7 @@ import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
@@ -26,7 +26,7 @@ export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: GeoWebParcel;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
