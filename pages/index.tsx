@@ -279,7 +279,7 @@ function IndexPage() {
           variant="dark"
           fixed="top"
           style={{ height: "100px" }}
-          className="d-flex justify-content-space-between border-bottom border-purple border-opacity-25"
+          className="border-bottom border-purple border-opacity-25"
         >
           <Col className="ms-4 ps-3">
             <div
