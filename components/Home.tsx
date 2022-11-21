@@ -19,7 +19,7 @@ function HomeContent() {
           </Col>
           <Col xs={10} className={"pe-4"}>
             <div className="text-black fs-6">
-              The Geo Web is not mobile-friendly. Please switch to your desktop.
+              The Geo Web Cadastre is not mobile-friendly yet. Please switch to your desktop.
             </div>
           </Col>
         </Row>
