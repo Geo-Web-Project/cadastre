@@ -21,7 +21,7 @@ export type AuctionInfoProps = ParcelInfoProps & {
   account: string;
   licenseOwner: string;
   forSalePrice: BigNumber;
-  auctionStart: Date;
+  auctionStartTimestamp: Date;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   requiredBid: BigNumber | null;
@@ -33,7 +33,7 @@ function AuctionInfo(props: AuctionInfoProps) {
     account,
     licenseOwner,
     forSalePrice,
-    auctionStart,
+    auctionStartTimestamp,
     interactionState,
     setInteractionState,
     requiredBid,
@@ -70,8 +70,8 @@ function AuctionInfo(props: AuctionInfoProps) {
     let interval: NodeJS.Timer | null = null;
 
     async function run() {
-      if (forSalePrice && auctionStart && auctionLength) {
-        const invalidationTime = BigNumber.from(auctionStart.getTime())
+      if (forSalePrice && auctionStartTimestamp && auctionLength) {
+        const invalidationTime = BigNumber.from(auctionStartTimestamp.getTime())
           .div(1000)
           .add(auctionLength)
           .mul(1000)
@@ -87,7 +87,7 @@ function AuctionInfo(props: AuctionInfoProps) {
           setRequiredBid(
             calculateAuctionValue(
               forSalePrice,
-              BigNumber.from(auctionStart.getTime()).div(1000),
+              BigNumber.from(auctionStartTimestamp.getTime()).div(1000),
               auctionLength,
             )
           );
@@ -102,10 +102,10 @@ function AuctionInfo(props: AuctionInfoProps) {
         clearInterval(interval);
       }
     };
-  }, [forSalePrice, auctionStart, auctionLength]);
+  }, [forSalePrice, auctionStartTimestamp, auctionLength]);
 
   const isLoading =
-    forSalePrice == null || auctionStart == null || timeRemaining == null;
+    forSalePrice == null || auctionStartTimestamp == null || timeRemaining == null;
   const spinner = (
     <span className="spinner-border" role="status">
       <span className="visually-hidden">Loading...</span>

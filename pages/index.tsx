@@ -3,6 +3,7 @@ import Map, { STATE } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 import FundsRaisedCounter from "../components/FundsRaisedCounter";
+import FairLaunchCountdown from "../components/FairLaunchCountdown";
 
 import React from "react";
 import Container from "react-bootstrap/Container";
@@ -18,7 +19,7 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
 
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
@@ -49,7 +50,7 @@ function IndexPage() {
   const [registryContract, setRegistryContract] =
     React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
-  const [ipfs, setIPFS] = React.useState<IPFS | null>(null);
+  const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
   const [paymentToken, setPaymentToken] =
@@ -65,6 +66,11 @@ function IndexPage() {
     React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
+  const [auctionStart, setAuctionStart] =
+    React.useState<BigNumber>(BigNumber.from(0));
+  const [auctionEnd, setAuctionEnd] =
+    React.useState<BigNumber>(BigNumber.from(0));
+  const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -124,12 +130,23 @@ function IndexPage() {
 
       setRegistryContract(registryDiamondContract);
 
+      const [_auctionStart, _auctionEnd] = await Promise.all([
+        registryDiamondContract.getAuctionStart(),
+        registryDiamondContract.getAuctionEnd(),
+      ]);
+
+      if (!_auctionStart.isZero() || !_auctionEnd.isZero()) {
+        setAuctionStart(_auctionStart);
+        setAuctionEnd(_auctionEnd);
+        setIsPreFairLaunch(Date.now() / 1000 < _auctionStart.toNumber());
+      }
+
       const _beneficiaryAddress =
         await registryDiamondContract.getBeneficiary();
 
       setBeneficiaryAddress(_beneficiaryAddress);
 
-      const { ipfs, provider, apiAddress } = await getIpfs({
+      const _ipfs = await getIpfs({
         providers: [
           httpClient({
             loadHttpClientModule: () => require("ipfs-http-client"),
@@ -146,12 +163,14 @@ function IndexPage() {
         ],
       });
 
-      console.log("IPFS API is provided by: " + provider);
-      if (provider === "httpClient") {
-        console.log("HTTP API address: " + apiAddress);
-      }
+      if (_ipfs) {
+        console.log("IPFS API is provided by: " + _ipfs.provider);
+        if (_ipfs.provider === "httpClient") {
+          console.log("HTTP API address: " + _ipfs.apiAddress);
+        }
 
-      setIPFS(ipfs);
+        setIpfs(_ipfs.ipfs);
+      }
     }
 
     start();
@@ -169,7 +188,7 @@ function IndexPage() {
 
       const framework = await Framework.create({
         chainId: NETWORK_ID,
-        provider: lib
+        provider: lib,
       });
       setSfFramework(framework);
 
@@ -298,9 +317,14 @@ function IndexPage() {
             </div>
           </Col>
           <Col>
-            <FundsRaisedCounter
-              beneficiaryAddress={beneficiaryAddress}
-            />
+            {isPreFairLaunch ? (
+              <FairLaunchCountdown
+                auctionStart={auctionStart}
+                setIsPreFairLaunch={setIsPreFairLaunch}
+              />
+            ) : (
+              <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
+            )}
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
             <Connector />
@@ -384,6 +408,9 @@ function IndexPage() {
               isPortfolioToUpdate={isPortfolioToUpdate}
               setPortfolioParcelCenter={setPortfolioParcelCenter}
               setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+              isPreFairLaunch={isPreFairLaunch}
+              auctionStart={auctionStart}
+              auctionEnd={auctionEnd}
             ></Map>
           </Row>
         ) : (
