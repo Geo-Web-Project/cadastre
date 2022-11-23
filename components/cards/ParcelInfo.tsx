@@ -128,7 +128,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<AssetContentManager | null>(null);
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] = React.useState<Date | null>(null);
+  const [auctionStartTimestamp, setAuctionStartTimestamp] = React.useState<Date | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
@@ -208,7 +208,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       }
 
       if (!sfFramework || !paymentToken) {
-        setAuctionStart(null);
+        setAuctionStartTimestamp(null);
         return;
       }
 
@@ -217,7 +217,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         account: licenseDiamondAddress,
         providerOrSigner: sfFramework.settings.provider,
       });
-      setAuctionStart(timestamp);
+      setAuctionStartTimestamp(timestamp);
     };
 
     loadLicenseDiamond();
@@ -562,11 +562,11 @@ function ParcelInfo(props: ParcelInfoProps) {
               data)) &&
           licenseOwner &&
           currentOwnerBidForSalePrice &&
-          auctionStart ? (
+          auctionStartTimestamp ? (
             <AuctionInfo
               licenseOwner={licenseOwner}
               forSalePrice={currentOwnerBidForSalePrice}
-              auctionStart={auctionStart}
+              auctionStartTimestamp={auctionStartTimestamp}
               requiredBid={requiredBid}
               setRequiredBid={setRequiredBid}
               {...props}

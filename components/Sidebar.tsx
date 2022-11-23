@@ -5,6 +5,7 @@ import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps, Coord } from "./Map";
 import { BigNumber } from "ethers";
+import PreFairLaunchInfo from "./cards/PreFairLaunchInfo";
 import FairLaunchInfo from "./cards/FairLaunchInfo";
 
 export type SidebarProps = MapProps & {
@@ -34,6 +35,9 @@ function Sidebar(props: SidebarProps) {
     setInteractionState,
     parcelClaimSize,
     selectedParcelCoords,
+    auctionStart,
+    auctionEnd,
+    isPreFairLaunch,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -62,9 +66,6 @@ function Sidebar(props: SidebarProps) {
 
   const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
   const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] =
-    React.useState<BigNumber | null>(null);
-  const [auctionEnd, setAuctionEnd] = React.useState<BigNumber | null>(null);
   const [requiredBid, setRequiredBid] =
     React.useState<BigNumber>(BigNumber.from(0));
   const [minForSalePrice, setMinForSalePrice] =
@@ -74,21 +75,14 @@ function Sidebar(props: SidebarProps) {
     let isMounted = true;
 
     (async () => {
-      const [_startingBid, _endingBid, _auctionStart, _auctionEnd] =
-        await Promise.all([
-          registryContract.getStartingBid(),
-          registryContract.getEndingBid(),
-          registryContract.getAuctionStart(),
-          registryContract.getAuctionEnd(),
-        ]);
-      if (_auctionStart.isZero() || _auctionEnd.isZero()) {
-        return;
-      }
+      const [_startingBid, _endingBid] = await Promise.all([
+        registryContract.getStartingBid(),
+        registryContract.getEndingBid(),
+      ]);
+
       if (isMounted) {
         setStartingBid(_startingBid);
         setEndingBid(_endingBid);
-        setAuctionStart(_auctionStart);
-        setAuctionEnd(_auctionEnd);
       }
     })();
 
@@ -110,17 +104,18 @@ function Sidebar(props: SidebarProps) {
       className="bg-dark px-4 text-light"
       style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
     >
-      {isFairLaunch && interactionState == STATE.CLAIM_SELECTED ? (
+      {!isPreFairLaunch &&
+      isFairLaunch &&
+      interactionState == STATE.CLAIM_SELECTED ? (
         <FairLaunchInfo
-          auctionStart={auctionStart}
-          auctionEnd={auctionEnd}
           startingBid={startingBid}
           endingBid={endingBid}
           requiredBid={requiredBid}
           setRequiredBid={setRequiredBid}
           {...props}
         />
-      ) : perSecondFeeNumerator &&
+      ) : !isPreFairLaunch &&
+        perSecondFeeNumerator &&
         perSecondFeeDenominator &&
         minForSalePrice ? (
         <ParcelInfo
@@ -140,21 +135,29 @@ function Sidebar(props: SidebarProps) {
         />
       ) : null}
       {interactionState == STATE.CLAIM_SELECTED &&
+      !isPreFairLaunch &&
       perSecondFeeNumerator &&
       perSecondFeeDenominator &&
       minForSalePrice ? (
-        <>
-          <ClaimAction
-            {...props}
-            licenseAddress={registryContract.address}
-            isFairLaunch={isFairLaunch ?? undefined}
-            perSecondFeeNumerator={perSecondFeeNumerator}
-            perSecondFeeDenominator={perSecondFeeDenominator}
-            requiredBid={requiredBid}
-            minForSalePrice={minForSalePrice}
-            setParcelFieldsToUpdate={setParcelFieldsToUpdate}
-          ></ClaimAction>
-        </>
+        <ClaimAction
+          {...props}
+          licenseAddress={registryContract.address}
+          isFairLaunch={isFairLaunch ?? undefined}
+          perSecondFeeNumerator={perSecondFeeNumerator}
+          perSecondFeeDenominator={perSecondFeeDenominator}
+          requiredBid={requiredBid}
+          minForSalePrice={minForSalePrice}
+          setParcelFieldsToUpdate={setParcelFieldsToUpdate}
+        ></ClaimAction>
+      ) : interactionState == STATE.CLAIM_SELECTED &&
+        isPreFairLaunch &&
+        startingBid &&
+        endingBid ? (
+        <PreFairLaunchInfo
+          startingBid={startingBid}
+          endingBid={endingBid}
+          {...props}
+        />
       ) : null}
     </Col>
   );
