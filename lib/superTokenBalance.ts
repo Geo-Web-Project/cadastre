@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { sfSubgraph } from "../redux/store";
 import { NETWORK_ID } from "./constants";
 
@@ -24,13 +24,13 @@ function useSuperTokenBalance(account: string, token: string) {
 
     const accountTokenSnapshot = data.items[0];
 
-    const balanceBigNumber = ethers.BigNumber.from(
+    const balanceBigNumber = BigNumber.from(
       accountTokenSnapshot ? accountTokenSnapshot.balanceUntilUpdatedAt : "0"
     );
-    const flowRateBigNumber = ethers.BigNumber.from(
+    const flowRateBigNumber = BigNumber.from(
       accountTokenSnapshot ? accountTokenSnapshot.totalNetFlowRate : "0"
     );
-    const balanceTimestampBigNumber = ethers.BigNumber.from(
+    const balanceTimestampBigNumber = BigNumber.from(
       accountTokenSnapshot ? accountTokenSnapshot.updatedAtTimestamp : "0"
     ).mul(1000);
 
@@ -46,7 +46,7 @@ function useSuperTokenBalance(account: string, token: string) {
           return;
         }
 
-        const currentTimestampBigNumber = ethers.BigNumber.from(
+        const currentTimestampBigNumber = BigNumber.from(
           new Date().getTime()
         );
 
