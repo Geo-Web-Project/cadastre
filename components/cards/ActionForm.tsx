@@ -124,7 +124,9 @@ export function ActionForm(props: ActionFormProps) {
       ethers.utils
         .parseEther(displayNewForSalePrice)
         .lt(
-          !requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+          !requiredBid ||
+            (interactionState === STATE.PARCEL_RECLAIMING &&
+              requiredBid.lt(minForSalePrice))
             ? minForSalePrice
             : requiredBid
         ));
@@ -369,7 +371,9 @@ export function ActionForm(props: ActionFormProps) {
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
                   For Sale Price must be greater than or equal to{" "}
-                  {!requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+                  {!requiredBid ||
+                  (interactionState === STATE.PARCEL_RECLAIMING &&
+                    requiredBid.lt(minForSalePrice))
                     ? ethers.utils.formatEther(minForSalePrice)
                     : truncateEth(ethers.utils.formatEther(requiredBid), 8)}
                 </Form.Control.Feedback>
