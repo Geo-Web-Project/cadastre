@@ -151,7 +151,11 @@ export function ActionForm(props: ActionFormProps) {
         false || parcelWebContentURI.length > 150
     : false;
 
-  const requiredFlowAmount = annualNetworkFeeRate;
+  const requiredFlowAmount =
+    displayCurrentForSalePrice &&
+    displayCurrentForSalePrice === displayNewForSalePrice
+      ? BigNumber.from(0)
+      : annualNetworkFeeRate;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
