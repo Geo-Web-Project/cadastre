@@ -391,6 +391,9 @@ function ProfileModal(props: ProfileModalProps) {
         .then((basicProfileStreamId) =>
           basicProfileStreamManager.setExistingStreamId(basicProfileStreamId)
         )
+        .catch((err) => {
+          console.error(`[PARCEL ID: ${parcelId}] ${err.message}`);
+        })
         .then(() => {
           const parcelContent = basicProfileStreamManager.getStreamContent();
           const name =
