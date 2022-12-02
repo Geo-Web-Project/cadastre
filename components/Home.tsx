@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import React from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import BetaAgreementModal from "./BetaAgreementModal";
+//import BetaAgreementModal from "./BetaAgreementModal";
 
 function HomeContent() {
   return (
@@ -99,7 +99,7 @@ function Home({
         minHeight: "100vh",
       }}
     >
-      <BetaAgreementModal />
+      {/*<BetaAgreementModal />*/}
       <div
         style={{ paddingTop: "128px", gap: "24px" }}
         className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
