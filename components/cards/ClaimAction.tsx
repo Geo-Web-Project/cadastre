@@ -120,15 +120,11 @@ function ClaimAction(props: ClaimActionProps) {
 
     const txn = await registryContract
       .connect(signer)
-      ["claim(int96,uint256,(uint64,uint256,uint256))"](
-        newFlowRate,
-        ethers.utils.parseEther(displayNewForSalePrice),
-        {
-          swCoordinate: BigNumber.from(swCoord.toString()),
-          lngDim: neX - swX + 1,
-          latDim: neY - swY + 1,
-        }
-      );
+      .claim(newFlowRate, ethers.utils.parseEther(displayNewForSalePrice), {
+        swCoordinate: BigNumber.from(swCoord.toString()),
+        lngDim: neX - swX + 1,
+        latDim: neY - swY + 1,
+      });
     const receipt = await txn.wait();
 
     const filter = registryContract.filters.ParcelClaimedV2(null, null);
@@ -177,9 +173,9 @@ function ClaimAction(props: ClaimActionProps) {
           )
         }
         requiredPayment={
-          isFairLaunch && requiredBuffer
+          requiredBid && requiredBuffer
             ? requiredBid.add(requiredBuffer)
-            : requiredBuffer
+            : null
         }
         requiredFlowPermissions={1}
         spender={registryContract.address}

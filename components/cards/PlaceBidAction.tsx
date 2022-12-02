@@ -8,7 +8,9 @@ import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
@@ -17,7 +19,7 @@ import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
@@ -26,7 +28,7 @@ export type PlaceBidActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: GeoWebParcel;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
@@ -44,6 +46,7 @@ const infoIcon = (
 
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
+    account,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -63,6 +66,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string | null>(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
+  const [isBalanceInsufficient, setIsBalanceInsufficient] =
+    React.useState(false);
+
+  const { superTokenBalance } = useSuperTokenBalance(
+    account,
+    paymentToken.address
+  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -86,12 +96,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     displayNewForSalePrice.length > 0 &&
     (isNaN(Number(displayNewForSalePrice)) ||
       ethers.utils.parseEther(displayNewForSalePrice).lt(currentForSalePrice));
-
-  const existingNetworkFee = fromValueToRate(
-    currentForSalePrice,
-    perSecondFeeNumerator,
-    perSecondFeeDenominator
-  );
 
   const existingAnnualNetworkFee = fromValueToRate(
     currentForSalePrice,
@@ -141,6 +145,17 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
+
+  React.useEffect(() => {
+    const requiredPayment =
+      newForSalePrice && requiredBuffer
+        ? newForSalePrice.add(requiredBuffer)
+        : null;
+
+    setIsBalanceInsufficient(
+      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
+    );
+  }, [superTokenBalance]);
 
   async function placeBid() {
     setIsActing(true);
@@ -283,7 +298,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}
                 newAnnualNetworkFee={annualNetworkFeeRate ?? null}
-                existingNetworkFee={existingNetworkFee ?? undefined}
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
@@ -318,7 +332,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               setIsAllowed={setIsAllowed}
             />
             <PerformButton
-              isDisabled={isActing || isInvalid}
+              isDisabled={isActing || isInvalid || isBalanceInsufficient}
               isActing={isActing}
               buttonText={"Place Bid"}
               performAction={placeBid}
@@ -327,7 +341,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           </Form>
 
           <br />
-          {didFail && !isActing ? (
+          {isBalanceInsufficient && displayNewForSalePrice ? (
+            <Alert key="warning" variant="warning">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              Please wrap enough ETH to ETHx to complete this transaction with
+              the button above.
+            </Alert>
+          ) : didFail && !isActing ? (
             <TransactionError
               message={errorMessage}
               onClick={() => setDidFail(false)}

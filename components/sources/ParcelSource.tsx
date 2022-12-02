@@ -21,6 +21,7 @@ export function parcelsToMultiPoly(data: PolygonQuery): MultiPolygon | Polygon {
     data.geoWebParcels.map(parcelToPolygon);
 
   return polygons.reduce((prev, cur) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return turf.union(prev, cur)!.geometry;
   }, turf.multiPolygon([]).geometry);
 }

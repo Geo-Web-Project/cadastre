@@ -6,7 +6,6 @@ import AccordionContext from "react-bootstrap/AccordionContext";
 import Card from "react-bootstrap/Card";
 import { useAccordionButton } from "react-bootstrap/AccordionButton";
 import Modal from "react-bootstrap/Modal";
-import { PAYMENT_TOKEN_FAUCET_URL, PAYMENT_TOKEN } from "../lib/constants";
 import Image from "react-bootstrap/Image";
 
 function ContextAwareToggle({
@@ -48,14 +47,11 @@ function FAQ() {
 
   return (
     <>
-      <Button
-        variant="outline-primary"
-        className="text-light fw-bold border-dark d-flex justify-content-center align-items-center gap-1"
-        style={{ height: "100px", width: "100px" }}
+      <span
         onClick={handleShow}
       >
-        <Image src="help.svg" />FAQ
-      </Button>
+        Frequently Asked Questions
+      </span>
       <Modal
         show={show}
         size="lg"

@@ -9,6 +9,7 @@ $gray: #e6e7ee;
 $danger: #dc3545;
 $light: #f8f9fa;
 $success: #28a745;
+$warning: #f7bdbd;
 
 $theme-colors: (
   "primary": $primary,
@@ -20,6 +21,7 @@ $theme-colors: (
   "danger": $danger,
   "light": $light,
   "success": $success,
+  "warning": $warning,
 );
 
 $font-family-base: "Open Sans";
@@ -28,6 +30,16 @@ $link-decoration: none;
 $link-hover-decoration: underline;
 
 $tooltip-arrow-height: 0.2rem;
+$dropdown-item-padding-y: 0.4rem;
+$dropdown-border-radius: 6px;
+$dropdown-dark-color: $gray;
+$dropdown-dark-bg: $dark;
+$dropdown-dark-link-hover-color: $light;
+$dropdown-dark-link-hover-bg: $purple;
+
+.dropdown-menu {
+  top: 68px !important;
+}
 
 .mapboxgl-canvas {
   background-color: black;
@@ -104,6 +116,11 @@ $tooltip-arrow-height: 0.2rem;
 
 .tooltip-inner {
   max-width: 300px;
+  text-align: left;
+}
+
+.bs-tooltip-bottom {
+  top: 8px !important;
 }
 
 .btn {

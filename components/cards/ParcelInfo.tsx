@@ -36,7 +36,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 
 interface Bid {
   contributionRate: string;
@@ -128,10 +128,10 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<AssetContentManager | null>(null);
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
-  const [auctionStart, setAuctionStart] = React.useState<Date | null>(null);
+  const [auctionStartTimestamp, setAuctionStartTimestamp] = React.useState<Date | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
-    React.useState<PCOLicenseDiamond | null>(null);
+    React.useState<IPCOLicenseDiamond | null>(null);
   const [queryTimerId, setQueryTimerId] =
     React.useState<NodeJS.Timer | null>(null);
 
@@ -208,7 +208,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       }
 
       if (!sfFramework || !paymentToken) {
-        setAuctionStart(null);
+        setAuctionStartTimestamp(null);
         return;
       }
 
@@ -217,7 +217,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         account: licenseDiamondAddress,
         providerOrSigner: sfFramework.settings.provider,
       });
-      setAuctionStart(timestamp);
+      setAuctionStartTimestamp(timestamp);
     };
 
     loadLicenseDiamond();
@@ -562,11 +562,11 @@ function ParcelInfo(props: ParcelInfoProps) {
               data)) &&
           licenseOwner &&
           currentOwnerBidForSalePrice &&
-          auctionStart ? (
+          auctionStartTimestamp ? (
             <AuctionInfo
               licenseOwner={licenseOwner}
               forSalePrice={currentOwnerBidForSalePrice}
-              auctionStart={auctionStart}
+              auctionStartTimestamp={auctionStartTimestamp}
               requiredBid={requiredBid}
               setRequiredBid={setRequiredBid}
               {...props}

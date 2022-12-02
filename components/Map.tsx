@@ -22,7 +22,7 @@ import Image from "react-bootstrap/Image";
 
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
@@ -183,6 +183,9 @@ export type MapProps = {
   portfolioParcelCenter: Point | null;
   setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
+  auctionStart: BigNumber;
+  auctionEnd: BigNumber;
+  isPreFairLaunch: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 

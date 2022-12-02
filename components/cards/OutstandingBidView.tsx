@@ -13,7 +13,7 @@ import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
 
@@ -28,7 +28,7 @@ type OutstandingBidViewProps = SidebarProps & {
   licensorIsOwner: boolean;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;

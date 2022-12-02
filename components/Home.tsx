@@ -1,10 +1,29 @@
 import Image from "react-bootstrap/Image";
 import Button from "react-bootstrap/Button";
 import React from "react";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+//import BetaAgreementModal from "./BetaAgreementModal";
 
 function HomeContent() {
   return (
     <div style={{ color: "white", lineHeight: "160%" }} className="px-3">
+      {/* only show warning on small screens(mobile) */}
+      <div
+        className="d-sm-none bg-warning mb-3"
+        style={{ borderRadius: "20px" }}
+      >
+        <Row className="py-3 align-items-center">
+          <Col xs={2} className={"text-center ps-3"}>
+            <Image src="warning.svg" />
+          </Col>
+          <Col xs={10} className={"pe-4"}>
+            <div className="text-black fs-6">
+              The Geo Web Cadastre is not mobile-friendly yet. Please switch to your desktop.
+            </div>
+          </Col>
+        </Row>
+      </div>
       <div className="mb-5">
         <h3 className="mb-3">What is the Geo Web?</h3>
         <p>
@@ -33,15 +52,20 @@ function HomeContent() {
             of their current `For Sale Price` to maintain their rights.
           </li>
           <li className="py-1">
-            `Network Fees` are used to fund public goods (not a centralized
-            corporation). You have a say in how these funds are used!
+            `Network Fees` are used to fund public goods and prosocial outcomes.
+            Initially, funds are being stewarded by a multi-sig and will be used
+            to fund matching pools for{" "}
+            <a href="https://wtfisqf.com" target={"_blank"}>
+              quadratic funding rounds
+            </a>
+            .
           </li>
         </ol>
       </div>
 
       <div className="mb-5">
         <h3 className="mb-3">
-          The Geo Web is a geospatial successor to the World Wide Web.
+          The Geo Web is a geospatial extension of the World Wide Web.
         </h3>
         <p>
           Landholders can anchor NFTs, AR/VR, images, video, audio, data, and
@@ -72,8 +96,10 @@ function Home({
         left: "0",
         top: "0",
         padding: "16px",
+        minHeight: "100vh",
       }}
     >
+      {/*<BetaAgreementModal />*/}
       <div
         style={{ paddingTop: "128px", gap: "24px" }}
         className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
@@ -97,15 +123,6 @@ function Home({
           <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
           <span>Get Started</span>
         </Button>
-        <Image
-          src="/claming.gif"
-          className="mt-5"
-          style={{ maxWidth: "80%" }}
-          alt=""
-        />
-        <span style={{ fontSize: "12px", marginTop: "18px", color: "white" }}>
-          Claiming a land parcel in New York City on the Geo Web
-        </span>
       </div>
     </div>
   );

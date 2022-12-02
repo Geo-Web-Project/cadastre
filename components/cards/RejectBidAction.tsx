@@ -9,7 +9,9 @@ import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Spinner from "react-bootstrap/Spinner";
+import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
@@ -23,7 +25,7 @@ import AuctionInstructions from "../AuctionInstructions";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel } from "./ParcelInfo";
@@ -38,7 +40,7 @@ export type RejectBidActionProps = SidebarProps & {
   parcelData: GeoWebParcel;
   bidTimestamp: BigNumber | null;
   bidForSalePrice: BigNumber;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
@@ -56,6 +58,7 @@ const infoIcon = (
 
 function RejectBidAction(props: RejectBidActionProps) {
   const {
+    account,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -83,6 +86,12 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
   const [isAllowed, setIsAllowed] = React.useState(false);
+  const [isBalanceInsufficient, setIsBalanceInsufficient] = React.useState(false);
+
+  const { superTokenBalance } = useSuperTokenBalance(
+    account,
+    paymentToken.address
+  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -217,6 +226,17 @@ function RejectBidAction(props: RejectBidActionProps) {
     checkBidPeriod();
     checkPenaltyRate();
   }, [registryContract]);
+
+  React.useEffect(() => {
+    const requiredPayment =
+      penaltyPayment && newRequiredBuffer && oldRequiredBuffer
+        ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
+        : null
+
+    setIsBalanceInsufficient(
+      requiredPayment ? requiredPayment?.gt(superTokenBalance) : false
+    );
+  }, [superTokenBalance]);
 
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
@@ -417,7 +437,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               setIsAllowed={setIsAllowed}
             />
             <PerformButton
-              isDisabled={isActing || isInvalid}
+              isDisabled={isActing || isInvalid || isBalanceInsufficient}
               isActing={isActing}
               buttonText={"Reject Bid"}
               performAction={rejectBid}
@@ -426,7 +446,13 @@ function RejectBidAction(props: RejectBidActionProps) {
           </Form>
 
           <br />
-          {didFail && !isActing ? (
+          {isBalanceInsufficient && displayNewForSalePrice ? (
+            <Alert key="warning" variant="warning">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              Please wrap enough ETH to ETHx to complete this transaction with
+              the button above.
+            </Alert>
+          ) : didFail && !isActing ? (
             <TransactionError
               message={errorMessage}
               onClick={() => setDidFail(false)}

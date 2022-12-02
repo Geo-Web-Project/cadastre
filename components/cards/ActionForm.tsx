@@ -1,6 +1,7 @@
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
+import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
@@ -26,6 +27,7 @@ import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 
 export type ActionFormProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -80,6 +82,7 @@ export function ActionForm(props: ActionFormProps) {
     hasOutstandingBid = false,
     setIsPortfolioToUpdate,
     minForSalePrice,
+    paymentToken,
   } = props;
 
   const {
@@ -93,6 +96,13 @@ export function ActionForm(props: ActionFormProps) {
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [isAllowed, setIsAllowed] = React.useState(false);
+  const [isBalanceInsufficient, setIsBalanceInsufficient] =
+    React.useState(false);
+
+  const { superTokenBalance } = useSuperTokenBalance(
+    account,
+    paymentToken.address
+  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -114,7 +124,9 @@ export function ActionForm(props: ActionFormProps) {
       ethers.utils
         .parseEther(displayNewForSalePrice)
         .lt(
-          !requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+          !requiredBid ||
+            (interactionState === STATE.PARCEL_RECLAIMING &&
+              requiredBid.lt(minForSalePrice))
             ? minForSalePrice
             : requiredBid
         ));
@@ -139,7 +151,11 @@ export function ActionForm(props: ActionFormProps) {
         false || parcelWebContentURI.length > 150
     : false;
 
-  const requiredFlowAmount = annualNetworkFeeRate;
+  const requiredFlowAmount =
+    displayCurrentForSalePrice &&
+    displayCurrentForSalePrice === displayNewForSalePrice
+      ? BigNumber.from(0)
+      : annualNetworkFeeRate;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -234,6 +250,12 @@ export function ActionForm(props: ActionFormProps) {
       updateActionData({ displayNewForSalePrice: displayCurrentForSalePrice });
     }
   }, [displayCurrentForSalePrice, displayNewForSalePrice, updateActionData]);
+
+  React.useEffect(() => {
+    setIsBalanceInsufficient(
+      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
+    );
+  }, [superTokenBalance]);
 
   return (
     <>
@@ -353,7 +375,9 @@ export function ActionForm(props: ActionFormProps) {
               {isForSalePriceInvalid ? (
                 <Form.Control.Feedback type="invalid">
                   For Sale Price must be greater than or equal to{" "}
-                  {!requiredBid || interactionState === STATE.PARCEL_RECLAIMING
+                  {!requiredBid ||
+                  (interactionState === STATE.PARCEL_RECLAIMING &&
+                    requiredBid.lt(minForSalePrice))
                     ? ethers.utils.formatEther(minForSalePrice)
                     : truncateEth(ethers.utils.formatEther(requiredBid), 8)}
                 </Form.Control.Feedback>
@@ -424,7 +448,9 @@ export function ActionForm(props: ActionFormProps) {
               setIsAllowed={setIsAllowed}
             />
             <PerformButton
-              isDisabled={isActing || isLoading || isInvalid}
+              isDisabled={
+                isActing || isLoading || isInvalid || isBalanceInsufficient
+              }
               isActing={isActing ?? false}
               buttonText={
                 interactionState === STATE.PARCEL_EDITING
@@ -440,7 +466,13 @@ export function ActionForm(props: ActionFormProps) {
           </Form>
 
           <br />
-          {didFail && !isActing ? (
+          {isBalanceInsufficient && displayNewForSalePrice ? (
+            <Alert key="warning" variant="warning">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              Please wrap enough ETH to ETHx to complete this transaction with
+              the button above.
+            </Alert>
+          ) : didFail && !isActing ? (
             <TransactionError
               message={errorMessage}
               onClick={() => updateActionData({ didFail: false })}

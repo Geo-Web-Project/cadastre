@@ -5,7 +5,7 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
-import { NETWORK_ID, PAYMENT_TOKEN_FAUCET_URL } from "../../lib/constants";
+import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "./FlowingBalance";
 import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
@@ -113,13 +113,6 @@ function Profile(props: ProfileProps) {
           )}
         </Button>
       </ButtonGroup>
-      <a
-        className="faucet-link text-white mt-1"
-        target="_blank"
-        href={PAYMENT_TOKEN_FAUCET_URL}
-      >
-        Request testnet ETH
-      </a>
     </div>
   );
 }

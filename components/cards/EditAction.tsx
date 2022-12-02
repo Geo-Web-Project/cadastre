@@ -8,7 +8,7 @@ import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
-import type { PCOLicenseDiamondABI as PCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/PCOLicenseDiamondABI";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { GeoWebParcel } from "./ParcelInfo";
 
 export type EditActionProps = SidebarProps & {
@@ -17,7 +17,7 @@ export type EditActionProps = SidebarProps & {
   basicProfileStreamManager: BasicProfileStreamManager | null;
   hasOutstandingBid: boolean;
   parcelData: GeoWebParcel;
-  licenseDiamondContract: PCOLicenseDiamond | null;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
