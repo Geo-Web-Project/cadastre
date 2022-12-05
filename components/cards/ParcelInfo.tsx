@@ -406,7 +406,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
   } else {
-    const spatialURL = `${SPATIAL_DOMAIN}?longitude=${selectedParcelCoords?.x}&latitude=${selectedParcelCoords?.y}`;
+    const spatialURL = `${SPATIAL_DOMAIN}?latitude=${selectedParcelCoords?.y}&longitude=${selectedParcelCoords?.x}`;
     header = (
       <>
         <div
