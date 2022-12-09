@@ -3316,10 +3316,10 @@
     typescript "^4.9.3"
     web3.storage "^4.4.0"
 
-"@geo-web/contracts@4.1.3":
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-4.1.3.tgz#18cb7698b93cabcf9958eee96ec5b93e7da03c01"
-  integrity sha512-yGlmzaJ3V66guxQFzmvQC3CPMx/KtNvGgM4hy1QRYIJDXLBXDFy/gKx2+n1zWZkjL72I50GfFirfDe9kVJlGqA==
+"@geo-web/contracts@4.1.4":
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/@geo-web/contracts/-/contracts-4.1.4.tgz#fd5c98df81dce46fa8dff44d33e5173119fafc03"
+  integrity sha512-jLVQNxyxHUaENhOrB+czSVBO4lsMMSyLGpR08vxia2PnuZQFykyzt7sn7PIlvNMcYSxHVCJmwjWGGkIwQJgPAQ==
   dependencies:
     "@openzeppelin/contracts" "^4.7.0"
     "@superfluid-finance/ethereum-contracts" "1.3.0"
@@ -3347,12 +3347,12 @@
     schema-org-ceramic "^1.4.0"
     uint8arrays "^3.0.0"
 
-"@geo-web/sdk@^4.1.3":
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.1.3.tgz#b9694160129dd0826e8fc771d2ebf0af807e0943"
-  integrity sha512-4SiA1nPt3uRRxObVCGo/BJKEb1mtwlR9m69rN489yLnJScuKHPIuCaN7BL9S+RG+ehnslPYA1qDFfDGxS+Jfzg==
+"@geo-web/sdk@^4.1.4":
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.1.4.tgz#a1c204725bc930b5d0a169f88f405169e454bccf"
+  integrity sha512-ZPikNQ85LQSFTx4mTd55PHjoVyHmYqQqxlvZ663NAEWp6kHaYI1rwsl0rGB8fWQznJB8D2FOQ40V7/PfQiS7Mw==
   dependencies:
-    "@geo-web/contracts" "4.1.3"
+    "@geo-web/contracts" "4.1.4"
     ethers ">=5.0.0"
     typescript "^4.6.3"
 
@@ -32072,12 +32072,7 @@ ws@^7.3.0, ws@^7.3.1, ws@^7.4.0, ws@^7.4.5, ws@^7.4.6:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.9.tgz#54fa7db29f4c7cec68b1ddd3a89de099942bb591"
   integrity sha512-F+P9Jil7UiSKSkppIiD94dN07AwvFixvLIj1Og1Rl9GGMuNipJnV9JzjD6XuqmAeiswGvUmNLjr5cFuXwNS77Q==
 
-ws@^8.4.0:
-  version "8.11.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.11.0.tgz#6a0d36b8edfd9f96d8b25683db2f8d7de6e8e143"
-  integrity sha512-HPG3wQd9sNQoT9xHyNCXoDUa+Xw/VevmY9FoHyQ+g+rrMn4j6FB4np7Z0OhdTgjx6MgQLK7jwSy1YecU1+4Asg==
-
-ws@^8.5.0:
+ws@^8.4.0, ws@^8.5.0:
   version "8.11.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.11.0.tgz#6a0d36b8edfd9f96d8b25683db2f8d7de6e8e143"
   integrity sha512-HPG3wQd9sNQoT9xHyNCXoDUa+Xw/VevmY9FoHyQ+g+rrMn4j6FB4np7Z0OhdTgjx6MgQLK7jwSy1YecU1+4Asg==
