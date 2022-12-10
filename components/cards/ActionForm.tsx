@@ -259,7 +259,8 @@ export function ActionForm(props: ActionFormProps) {
           token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
           endpoint: new URL("https://api.web3.storage"),
         });
-        const geoWebContent = new GeoWebContent({ ceramic, ipfs, web3Storage });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const geoWebContent = new GeoWebContent({ ceramic as any, ipfs, web3Storage });
         const rootCid = await geoWebContent.raw.resolveRoot({
           parcelId: assetId,
           ownerId,
