@@ -235,10 +235,10 @@ function GalleryForm(props: GalleryFormProps) {
       });
       const newRoot = await geoWebContent.raw.putPath(
         rootCid,
-        selectedMediaGalleryItemIndex
+        selectedMediaGalleryItemIndex !== null
           ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
           : "/mediaGallery",
-        selectedMediaGalleryItemIndex
+        selectedMediaGalleryItemIndex !== null
           ? mediaObjectCid
           : mediaGallery.concat(mediaObjectCid)
       );
