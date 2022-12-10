@@ -1,19 +1,18 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
+import BN from "bn.js";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
+import type { BasicProfile } from "@geo-web/types";
 import { ActionData, ActionForm } from "./ActionForm";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
-import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import BN from "bn.js";
 
 export type ReclaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   licenseOwner: string;
   licenseDiamondContract: IPCOLicenseDiamond | null;
@@ -21,13 +20,14 @@ export type ReclaimActionProps = SidebarProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
+  parcelContent: BasicProfile | null;
+  setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
     provider,
-    basicProfileStreamManager,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
@@ -38,6 +38,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     sfFramework,
     paymentToken,
     setParcelFieldsToUpdate,
+    parcelContent,
   } = props;
 
   const [actionData, setActionData] = React.useState<ActionData>({
@@ -94,9 +95,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
-    const parcelContent = basicProfileStreamManager
-      ? basicProfileStreamManager.getStreamContent()
-      : null;
 
     if (parcelContent && isOwner) {
       updateActionData({
@@ -104,7 +102,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         parcelWebContentURI: parcelContent.url,
       });
     }
-  }, [basicProfileStreamManager]);
+  }, [parcelContent]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {

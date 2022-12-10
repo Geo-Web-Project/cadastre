@@ -16,24 +16,23 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import { GeoWebContent } from "@geo-web/content";
+import { Web3Storage } from "web3.storage";
+import { TileDocument } from "@ceramicnetwork/stream-tile";
 import CID from "cids";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import ReclaimAction from "./ReclaimAction";
 import { BigNumber } from "ethers";
-import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { usePinningManager } from "../../lib/PinningManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
-import { DataModel } from "@glazed/datamodel";
-import { model as GeoWebModel } from "@geo-web/datamodels";
-import { AssetContentManager } from "../../lib/AssetContentManager";
-import { AssetId, AccountId } from "caip";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
+import { AssetId } from "caip";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
@@ -94,19 +93,20 @@ export type ParcelInfoProps = SidebarProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
+  licenseAddress: string;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
   const {
     account,
     interactionState,
+    licenseAddress,
     setInteractionState,
     selectedParcelId,
     setIsParcelAvailable,
     ceramic,
     registryContract,
     ipfs,
-    firebasePerf,
     invalidLicenseId,
     setInvalidLicenseId,
     selectedParcelCoords,
@@ -124,28 +124,23 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [parcelIndexStreamId, setParcelIndexStreamId] =
     React.useState<string | null>(null);
 
-  const [assetContentManager, setAssetContentManager] =
-    React.useState<AssetContentManager | null>(null);
-
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
-  const [auctionStartTimestamp, setAuctionStartTimestamp] = React.useState<Date | null>(null);
+  const [auctionStartTimestamp, setAuctionStartTimestamp] =
+    React.useState<Date | null>(null);
 
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
   const [queryTimerId, setQueryTimerId] =
     React.useState<NodeJS.Timer | null>(null);
+  const [geoWebContent, setGeoWebContent] =
+    React.useState<GeoWebContent | null>(null);
 
-  const basicProfileStreamManager =
-    useBasicProfileStreamManager(assetContentManager);
-  const pinningManager = usePinningManager(
-    assetContentManager,
-    ipfs,
-    firebasePerf
+  const { parcelContent, setShouldParcelContentUpdate } = useBasicProfile(
+    geoWebContent,
+    licenseAddress,
+    data?.geoWebParcel?.licenseOwner,
+    selectedParcelId
   );
-
-  const parcelContent = basicProfileStreamManager
-    ? basicProfileStreamManager.getStreamContent()
-    : null;
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -224,52 +219,41 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
+    if (!licenseAddress || !data?.geoWebParcel || !selectedParcelId) {
+      return;
+    }
+
     (async () => {
-      if (ceramic == null || !ceramic.did) {
-        console.error("Ceramic instance not found");
-        return;
-      }
+      const web3Storage = new Web3Storage({
+        token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+        endpoint: new URL("https://api.web3.storage"),
+      });
+      const geoWebContent = new GeoWebContent({
+        ceramic,
+        ipfs,
+        web3Storage,
+      });
 
-      setAssetContentManager(null);
+      setGeoWebContent(geoWebContent);
 
-      if (selectedParcelId && licenseOwner) {
-        const assetId = new AssetId({
-          chainId: `eip155:${NETWORK_ID}`,
-          assetName: {
-            namespace: "erc721",
-            reference: registryContract.address.toLowerCase(),
-          },
-          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-        });
+      const assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: registryContract.address.toLowerCase(),
+        },
+        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+      });
 
-        const accountId = new AccountId({
-          chainId: `eip155:${NETWORK_ID}`,
-          address: licenseOwner,
-        });
-
-        const model = new DataModel({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ceramic: ceramic as any,
-          aliases: GeoWebModel,
-        });
-
-        const _assetContentManager = new AssetContentManager(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ceramic as any,
-          model,
-          `did:pkh:${accountId.toString()}`,
-          assetId
-        );
-        setAssetContentManager(_assetContentManager);
-
-        const doc = await _assetContentManager.getIndex();
-        setParcelIndexStreamId(doc.id.toString());
-      } else {
-        setAssetContentManager(null);
-        setParcelIndexStreamId(null);
-      }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = await TileDocument.deterministic(ceramic as any, {
+        controllers: [ceramic.did?.parent ?? ""],
+        family: `geo-web-parcel`,
+        tags: [assetId.toString()],
+      });
+      setParcelIndexStreamId(doc.id.toString());
     })();
-  }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
+  }, [licenseAddress, data, selectedParcelId]);
 
   React.useEffect(() => {
     if (data?.geoWebParcel && parcelFieldsToUpdate && queryTimerId) {
@@ -311,6 +295,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       }
     };
   }, [parcelFieldsToUpdate, selectedParcelId]);
+
+  React.useEffect(() => {
+    setShouldParcelContentUpdate(true);
+  }, [selectedParcelId]);
 
   const isLoading = loading || data == null;
 
@@ -425,12 +413,12 @@ function ParcelInfo(props: ParcelInfoProps) {
           <Row>
             <Col className="mx-3" sm="10">
               <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-                {!basicProfileStreamManager
+                {!geoWebContent
                   ? spinner
-                  : parcelContent
+                  : parcelContent?.name
                   ? parcelContent.name
                   : data?.geoWebParcel?.id
-                  ? `Parcel ${data?.geoWebParcel?.id}`
+                  ? `Parcel ${data.geoWebParcel.id}`
                   : spinner}
               </h1>
             </Col>
@@ -591,12 +579,13 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
           {interactionState == STATE.PARCEL_EDITING && data?.geoWebParcel ? (
             <EditAction
-              basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data.geoWebParcel}
+              parcelContent={parcelContent}
               hasOutstandingBid={
                 !parcelFieldsToUpdate ? hasOutstandingBid : false
               }
               licenseDiamondContract={licenseDiamondContract}
+              setShouldParcelContentUpdate={setShouldParcelContentUpdate}
               {...props}
             />
           ) : null}
@@ -621,21 +610,23 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
+          {interactionState == STATE.PARCEL_RECLAIMING &&
+          licenseOwner &&
+          geoWebContent ? (
             <ReclaimAction
               {...props}
-              basicProfileStreamManager={basicProfileStreamManager}
+              parcelContent={parcelContent}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
+              setShouldParcelContentUpdate={setShouldParcelContentUpdate}
             ></ReclaimAction>
           ) : null}
         </Col>
       </Row>
       <GalleryModal
-        pinningManager={pinningManager}
-        assetContentManager={assetContentManager}
         show={interactionState == STATE.EDITING_GALLERY}
+        geoWebContent={geoWebContent}
         {...props}
       ></GalleryModal>
     </>

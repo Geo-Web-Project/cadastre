@@ -1,8 +1,8 @@
 import React from "react";
 import { ethers } from "ethers";
-import { CeramicClient } from "@ceramicnetwork/http-client";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { truncateStr, truncateEth } from "../../lib/truncate";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import type { Point } from "@turf/turf";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
@@ -15,13 +15,15 @@ import Badge from "react-bootstrap/Badge";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import type { IPFS } from "ipfs-core-types";
 import { STATE } from "../Map";
-import type { Point } from "@turf/turf";
+import { truncateStr, truncateEth } from "../../lib/truncate";
 
 type ProfileProps = {
   sfFramework: Framework;
   account: string;
   ceramic: CeramicClient;
+  ipfs: IPFS;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;

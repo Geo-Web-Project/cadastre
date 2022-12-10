@@ -6,7 +6,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import BN from "bn.js";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
-import { CeramicClient } from "@ceramicnetwork/http-client";
+import type { CeramicClient } from "@ceramicnetwork/http-client";
 import {
   Modal,
   Container,
@@ -23,15 +23,14 @@ import {
   NativeAssetSuperToken,
   Framework,
 } from "@superfluid-finance/sdk-core";
-import { DataModel } from "@glazed/datamodel";
-import { model as GeoWebModel } from "@geo-web/datamodels";
+import { Web3Storage } from "web3.storage";
 import { AssetId, AccountId } from "caip";
+import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
+import type { IPFS } from "ipfs-core-types";
 import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
-import { AssetContentManager } from "../../lib/AssetContentManager";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -49,11 +48,12 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
-type ProfileModalProps = {
+interface ProfileModalProps {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
   sfFramework: Framework;
   ceramic: CeramicClient;
+  ipfs: IPFS;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
@@ -66,9 +66,9 @@ type ProfileModalProps = {
   isPortfolioToUpdate: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-};
+}
 
-interface Parcel {
+interface PortfolioParcel {
   parcelId: string;
   status: string;
   actionDate: string;
@@ -84,23 +84,6 @@ interface PortfolioTotal {
   price: BigNumber;
   fee: BigNumber;
   buffer: BigNumber;
-}
-
-enum SuperTokenAction {
-  WRAP,
-  UNWRAP,
-}
-
-enum SortOrder {
-  ASC,
-  DESC,
-}
-
-enum PortfolioAction {
-  VIEW = "View",
-  RESPOND = "Respond",
-  RECLAIM = "Reclaim",
-  TRIGGER = "Trigger",
 }
 
 interface Bid {
@@ -134,6 +117,23 @@ interface Bidder {
 
 interface BidderQuery {
   bidder: Bidder;
+}
+
+enum SuperTokenAction {
+  WRAP,
+  UNWRAP,
+}
+
+enum SortOrder {
+  ASC,
+  DESC,
+}
+
+enum PortfolioAction {
+  VIEW = "View",
+  RESPOND = "Respond",
+  RECLAIM = "Reclaim",
+  TRIGGER = "Trigger",
 }
 
 const portfolioQuery = gql`
@@ -174,6 +174,7 @@ function ProfileModal(props: ProfileModalProps) {
     sfFramework,
     account,
     ceramic,
+    ipfs,
     registryContract,
     setSelectedParcelId,
     setInteractionState,
@@ -191,7 +192,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [ETHBalance, setETHBalance] = useState<string>("");
   const [isWrapping, setIsWrapping] = useState<boolean>(false);
   const [isUnWrapping, setIsUnwrapping] = useState<boolean>(false);
-  const [portfolio, setPortfolio] = useState<Parcel[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioParcel[]>([]);
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
@@ -237,8 +238,18 @@ function ProfileModal(props: ProfileModalProps) {
 
     let isMounted = true;
 
+    const web3Storage = new Web3Storage({
+      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+      endpoint: new URL("https://api.web3.storage"),
+    });
+    const geoWebContent = new GeoWebContent({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceramic: ceramic as any,
+      ipfs,
+      web3Storage,
+    });
     const bids = data.bidder.bids;
-    const _portfolio: Parcel[] = [];
+    const _portfolio: PortfolioParcel[] = [];
     const promises = [];
 
     for (const bid of bids) {
@@ -324,14 +335,6 @@ function ProfileModal(props: ProfileModalProps) {
 
       annualFee = forSalePrice.mul(annualFeePercentage).div(100);
 
-      const assetContentManager = getAssetContentManager(
-        parcelId,
-        licenseOwner
-      ) as AssetContentManager;
-      const basicProfileStreamManager = new BasicProfileStreamManager(
-        assetContentManager
-      );
-
       const promiseChain = licenseDiamondContract
         .shouldBidPeriodEndEarly()
         .then((shouldBidPeriodEndEarly) => {
@@ -378,7 +381,7 @@ function ProfileModal(props: ProfileModalProps) {
                 forSalePrice = calculateAuctionValue(
                   forSalePrice,
                   BigNumber.from(auctionStart),
-                  BigNumber.from(auctionLength),
+                  BigNumber.from(auctionLength)
                 );
                 annualFee = BigNumber.from(0);
                 buffer = BigNumber.from(0);
@@ -387,15 +390,8 @@ function ProfileModal(props: ProfileModalProps) {
           }
         })
         .then(() => Promise.resolve(foreclosureInfoPromise))
-        .then(() => assetContentManager.getRecordID("basicProfile"))
-        .then((basicProfileStreamId) =>
-          basicProfileStreamManager.setExistingStreamId(basicProfileStreamId)
-        )
-        .catch((err) => {
-          console.error(`[PARCEL ID: ${parcelId}] ${err.message}`);
-        })
-        .then(() => {
-          const parcelContent = basicProfileStreamManager.getStreamContent();
+        .then(() => getParcelContent(geoWebContent, parcelId, licenseOwner))
+        .then((parcelContent) => {
           const name =
             parcelContent && parcelContent.name
               ? parcelContent.name
@@ -498,44 +494,33 @@ function ProfileModal(props: ProfileModalProps) {
     handleCloseProfile();
   };
 
-  const getAssetContentManager = (
+  const getParcelContent = async (
+    geoWebContent: GeoWebContent,
     parcelId: string,
     licenseOwner: string
-  ): AssetContentManager | void => {
-    if (ceramic == null || !ceramic.did) {
-      console.error("Ceramic instance not found");
-      return;
+  ) => {
+    try {
+      const assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: registryContract.address.toLowerCase(),
+        },
+        tokenId: new BN(parcelId.slice(2), "hex").toString(10),
+      });
+      const ownerId = new AccountId({
+        chainId: `eip155:${NETWORK_ID}`,
+        address: licenseOwner,
+      });
+      const parcelContent = await geoWebContent.raw.getPath("/basicProfile", {
+        parcelId: assetId,
+        ownerId,
+      });
+
+      return parcelContent;
+    } catch (err) {
+      console.error(err);
     }
-
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: registryContract.address.toLowerCase(),
-      },
-      tokenId: new BN(parcelId.slice(2), "hex").toString(10),
-    });
-
-    const accountId = new AccountId({
-      chainId: `eip155:${NETWORK_ID}`,
-      address: licenseOwner,
-    });
-
-    const model = new DataModel({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ceramic: ceramic as any,
-      aliases: GeoWebModel,
-    });
-
-    const assetContentManager = new AssetContentManager(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ceramic as any,
-      model,
-      `did:pkh:${accountId.toString()}`,
-      assetId
-    );
-
-    return assetContentManager;
   };
 
   const executeSuperTokenTransaction = async (
@@ -600,15 +585,18 @@ function ProfileModal(props: ProfileModalProps) {
     }
   };
 
-  const calcTotal = (portfolio: Parcel[], field: keyof Parcel): BigNumber =>
+  const calcTotal = (
+    portfolio: PortfolioParcel[],
+    field: keyof PortfolioParcel
+  ): BigNumber =>
     portfolio
       .map((parcel) => parcel[field] as BigNumber)
       .reduce((prev, curr) => prev.add(curr), BigNumber.from(0));
 
   const sortPortfolio = (
-    portfolio: Parcel[],
-    field: keyof Parcel
-  ): Parcel[] => {
+    portfolio: PortfolioParcel[],
+    field: keyof PortfolioParcel
+  ): PortfolioParcel[] => {
     const sorted = [...portfolio].sort((a, b) => {
       let result = 0;
 
@@ -636,7 +624,7 @@ function ProfileModal(props: ProfileModalProps) {
     return sorted;
   };
 
-  const handlePortfolioAction = (parcel: Parcel): void => {
+  const handlePortfolioAction = (parcel: PortfolioParcel): void => {
     switch (parcel.action) {
       case PortfolioAction.VIEW:
       case PortfolioAction.RESPOND:

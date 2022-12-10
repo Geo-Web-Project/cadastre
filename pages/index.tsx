@@ -53,8 +53,9 @@ function IndexPage() {
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
   const [sfFramework, setSfFramework] =
     React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
@@ -241,6 +242,7 @@ function IndexPage() {
                   address &&
                   sfFramework &&
                   ceramic &&
+                  ipfs &&
                   registryContract &&
                   paymentToken &&
                   library
@@ -250,6 +252,7 @@ function IndexPage() {
                       account={address.toLowerCase()}
                       sfFramework={sfFramework}
                       ceramic={ceramic}
+                      ipfs={ipfs}
                       registryContract={registryContract}
                       disconnectWallet={disconnectWallet}
                       paymentToken={paymentToken}

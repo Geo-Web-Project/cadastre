@@ -1,20 +1,20 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
+import type { BasicProfile } from "@geo-web/types";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
-import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { GeoWebParcel } from "./ParcelInfo";
 
 export type EditActionProps = SidebarProps & {
+  parcelContent: BasicProfile | null;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
-  basicProfileStreamManager: BasicProfileStreamManager | null;
   hasOutstandingBid: boolean;
   parcelData: GeoWebParcel;
   licenseDiamondContract: IPCOLicenseDiamond | null;
@@ -22,12 +22,13 @@ export type EditActionProps = SidebarProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
+  setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function EditAction(props: EditActionProps) {
   const {
     parcelData,
-    basicProfileStreamManager,
+    parcelContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     hasOutstandingBid,
@@ -38,13 +39,11 @@ function EditAction(props: EditActionProps) {
     provider,
     setParcelFieldsToUpdate,
   } = props;
+
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
   );
 
-  const parcelContent = basicProfileStreamManager
-    ? basicProfileStreamManager.getStreamContent()
-    : null;
   const [actionData, setActionData] = React.useState<ActionData>({
     displayCurrentForSalePrice: displayCurrentForSalePrice,
     isActing: false,
@@ -52,8 +51,6 @@ function EditAction(props: EditActionProps) {
     displayNewForSalePrice: displayCurrentForSalePrice
       ? displayCurrentForSalePrice
       : "",
-    parcelName: parcelContent ? parcelContent.name : undefined,
-    parcelWebContentURI: parcelContent ? parcelContent.url : undefined,
   });
 
   function updateActionData(updatedValues: ActionData) {
@@ -161,6 +158,15 @@ function EditAction(props: EditActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
+  React.useEffect(() => {
+    if (parcelContent) {
+      updateActionData({
+        parcelName: parcelContent.name,
+        parcelWebContentURI: parcelContent.url,
+      });
+    }
+  }, [parcelContent]);
+
   async function _edit() {
     updateActionData({ isActing: true });
 
@@ -186,6 +192,7 @@ function EditAction(props: EditActionProps) {
       .connect(provider.getSigner())
       .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
     await txn.wait();
+
     setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: false });
   }
 
