@@ -228,9 +228,9 @@ function ParcelInfo(props: ParcelInfoProps) {
         token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
         endpoint: new URL("https://api.web3.storage"),
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const geoWebContent = new GeoWebContent({
-        ceramic as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ceramic: ceramic as any,
         ipfs,
         web3Storage,
       });
@@ -246,7 +246,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
       });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const doc = await TileDocument.deterministic(ceramic as any, {
         controllers: [ceramic.did?.parent ?? ""],
         family: `geo-web-parcel`,
