@@ -206,6 +206,8 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
+    let newRoot;
+    let rootCid;
     const assetId = new AssetId({
       chainId: `eip155:${NETWORK_ID}`,
       assetName: {
@@ -216,76 +218,67 @@ export function ActionForm(props: ActionFormProps) {
         ? licenseId.toString()
         : new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
-
-    if (licenseId) {
-      const mediaGallery: MediaObject[] = [];
-      const basicProfile = {
-        name: content.name ?? "",
-        url: content.url ?? "",
-      };
-
-      const mediaGalleryCid = await ipfs.dag.put(mediaGallery, {
-        storeCodec: "dag-cbor",
-      });
-
-      const basicProfileCid = await ipfs.dag.put(basicProfile, {
-        storeCodec: "dag-cbor",
-      });
-
-      const parcelRoot = {
-        basicProfile: basicProfileCid,
-        mediaGallery: mediaGalleryCid,
-      };
-
-      const parcelRootCid = await ipfs.dag.put(parcelRoot, {
-        storeCodec: "dag-cbor",
-      });
-      const bytes = dagjson.encode(parcelRootCid);
+    const ownerId = new AccountId(
+      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
+    );
+    const web3Storage = new Web3Storage({
+      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+      endpoint: new URL("https://api.web3.storage"),
+    });
+    const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const doc = await TileDocument.deterministic(ceramic as any, {
-        controllers: [ceramic.did?.parent ?? ""],
-        family: `geo-web-parcel`,
-        tags: [assetId.toString()],
+      ceramic: ceramic as any,
+      ipfs,
+      web3Storage,
+    });
+
+    if (
+      licenseId &&
+      (interactionState === STATE.CLAIM_SELECTED ||
+        (interactionState === STATE.PARCEL_RECLAIMING &&
+          account !== licenseOwner))
+    ) {
+      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerId });
+      rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
       });
-      await doc.update(json.decode(bytes));
+      newRoot = await geoWebContent.raw.putPath(rootCid, "/mediaGallery", [], {
+        parentSchema: "ParcelRoot",
+      });
+
+      await geoWebContent.raw.commit(newRoot, {
+        ownerId,
+        parcelId: assetId,
+        pin: true,
+      });
 
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
-    } else {
-      try {
-        const ownerId = new AccountId(
-          AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-        );
-        const web3Storage = new Web3Storage({
-          token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-          endpoint: new URL("https://api.web3.storage"),
-        });
-        const geoWebContent = new GeoWebContent({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ceramic: ceramic as any,
-          ipfs,
-          web3Storage,
-        });
-        const rootCid = await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerId,
-        });
-        const newRoot = await geoWebContent.raw.putPath(
-          rootCid,
-          "/basicProfile",
-          {
-            name: content.name ?? "",
-            url: content.url ?? "",
-          }
-        );
+    }
 
-        await geoWebContent.raw.commit(newRoot, {
-          ownerId,
-          parcelId: assetId,
-          pin: true,
-        });
-      } catch (err) {
-        console.log(err);
-      }
+    try {
+      rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/basicProfile",
+        {
+          name: content.name ?? "",
+          url: content.url ?? "",
+        },
+        { parentSchema: "ParcelRoot" }
+      );
+
+      await geoWebContent.raw.commit(newRoot, {
+        ownerId,
+        parcelId: assetId,
+        pin: true,
+      });
+    } catch (err) {
+      console.log(err);
     }
 
     updateActionData({ isActing: false });
@@ -293,6 +286,7 @@ export function ActionForm(props: ActionFormProps) {
     if (setShouldParcelContentUpdate) {
       setShouldParcelContentUpdate(true);
     }
+
     setInteractionState(STATE.PARCEL_SELECTED);
     setIsPortfolioToUpdate(true);
   }

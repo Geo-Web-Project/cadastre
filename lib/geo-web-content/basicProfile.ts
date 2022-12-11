@@ -50,7 +50,7 @@ function useBasicProfile(
         setShouldParcelContentUpdate(false);
       } catch (err) {
         setParcelContent(null);
-        console.log(err);
+        console.error(err);
       }
     })();
   }, [

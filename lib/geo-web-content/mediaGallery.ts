@@ -63,7 +63,7 @@ function useMediaGallery(
         setShouldMediaGalleryUpdate(false);
       } catch (err) {
         setMediaGalleryItems(null);
-        console.log(err);
+        console.error(err);
       }
     })();
   }, [geoWebContent, shouldMediaGalleryUpdate]);
