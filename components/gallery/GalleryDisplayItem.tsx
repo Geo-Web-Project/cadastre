@@ -7,6 +7,7 @@ import Image from "react-bootstrap/Image";
 import BN from "bn.js";
 import { AssetId, AccountId } from "caip";
 import { GalleryModalProps } from "./GalleryModal";
+import { getFormatType } from "./GalleryFileFormat";
 import { MediaGalleryItem } from "../../lib/geo-web-content/mediaGallery";
 import { NETWORK_ID } from "../../lib/constants";
 
@@ -32,11 +33,14 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
   } = props;
+
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
+
   const isEditing = selectedMediaGalleryItemIndex !== null;
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
   const name = mediaGalleryItem?.name;
+  const fileType = mediaGalleryItem?.encodingFormat;
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -120,6 +124,9 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
           <Image style={statusView ? { opacity: "0.3" } : {}} src="file.png" />
           <div className="position-relative bottom-100">{statusView}</div>
         </Col>
+      </Row>
+      <Row className="text-center" style={statusView ? { opacity: "0.3" } : {}}>
+        <Col>{getFormatType(fileType)}</Col>
       </Row>
       <Row
         style={{
