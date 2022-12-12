@@ -348,7 +348,7 @@ export function ActionForm(props: ActionFormProps) {
                     placeholder="URI (http://, https://, ipfs://, ipns://)"
                     aria-label="Web Content URI"
                     aria-describedby="web-content-uri"
-                    value={parcelWebContentURI}
+                    value={parcelWebContentURI ?? ""}
                     disabled={isActing || isLoading}
                     onChange={(e) =>
                       updateActionData({ parcelWebContentURI: e.target.value })
@@ -404,7 +404,7 @@ export function ActionForm(props: ActionFormProps) {
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
-                value={displayCurrentForSalePrice}
+                value={displayNewForSalePrice ?? ""}
                 disabled={isActing || isLoading || hasOutstandingBid}
                 onChange={(e) =>
                   updateActionData({ displayNewForSalePrice: e.target.value })

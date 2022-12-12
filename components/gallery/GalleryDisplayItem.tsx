@@ -6,13 +6,20 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import BN from "bn.js";
 import { AssetId, AccountId } from "caip";
+import type { MediaObject } from "@geo-web/types";
 import { GalleryModalProps } from "./GalleryModal";
 import { getFormatType } from "./GalleryFileFormat";
-import { MediaGalleryItem } from "../../lib/geo-web-content/mediaGallery";
 import { NETWORK_ID } from "../../lib/constants";
 
+const DISPLAY_TYPES: Record<string, string> = {
+  "3DModel": "3D Model",
+  ImageObject: "Image",
+  VideoObject: "Video",
+  AudioObject: "Audio",
+};
+
 export type GalleryDisplayItemProps = GalleryModalProps & {
-  mediaGalleryItem: MediaGalleryItem;
+  mediaGalleryItem: MediaObject;
   index: number;
   selectedMediaGalleryItemIndex: number | null;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
@@ -40,7 +47,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const isEditing = selectedMediaGalleryItemIndex !== null;
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
   const name = mediaGalleryItem?.name;
-  const fileType = mediaGalleryItem?.encodingFormat;
+  const fileType = getFormatType(mediaGalleryItem?.encodingFormat);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -125,9 +132,14 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
           <div className="position-relative bottom-100">{statusView}</div>
         </Col>
       </Row>
-      <Row className="text-center" style={statusView ? { opacity: "0.3" } : {}}>
-        <Col>{getFormatType(fileType)}</Col>
-      </Row>
+      {fileType && (
+        <Row
+          className="text-center"
+          style={statusView ? { opacity: "0.3" } : {}}
+        >
+          <Col>{DISPLAY_TYPES[fileType]}</Col>
+        </Row>
+      )}
       <Row
         style={{
           visibility: shouldHighlight ? "visible" : "hidden",

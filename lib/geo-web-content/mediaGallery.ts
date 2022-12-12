@@ -3,15 +3,8 @@ import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { GeoWebContent } from "@geo-web/content";
-import type { Encoding } from "@geo-web/types";
-import type { CID } from "multiformats/cid";
+import type { MediaObject } from "@geo-web/types";
 import { NETWORK_ID } from "../constants";
-
-export interface MediaGalleryItem {
-  name?: string;
-  content: CID;
-  encodingFormat: Encoding;
-}
 
 function useMediaGallery(
   geoWebContent: GeoWebContent | null,
@@ -20,7 +13,7 @@ function useMediaGallery(
   parcelId: string
 ) {
   const [mediaGalleryItems, setMediaGalleryItems] =
-    useState<MediaGalleryItem[] | null>(null);
+    useState<MediaObject[] | null>(null);
   const [shouldMediaGalleryUpdate, setShouldMediaGalleryUpdate] =
     useState<boolean>(true);
 

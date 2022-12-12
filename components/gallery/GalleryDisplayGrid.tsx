@@ -1,12 +1,12 @@
 import * as React from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
+import type { MediaObject } from "@geo-web/types";
 import GalleryDisplayItem from "./GalleryDisplayItem";
 import { GalleryModalProps } from "./GalleryModal";
-import { MediaGalleryItem } from "../../lib/geo-web-content/mediaGallery";
 
 export type GalleryDisplayGridProps = GalleryModalProps & {
-  mediaGalleryItems: MediaGalleryItem[];
+  mediaGalleryItems: MediaObject[];
   selectedMediaGalleryItemIndex: number | null;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>

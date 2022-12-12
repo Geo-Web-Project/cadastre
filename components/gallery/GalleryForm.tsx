@@ -15,18 +15,17 @@ import {
   getFormat,
   getFormatCS,
 } from "./GalleryFileFormat";
-import { MediaGalleryItem } from "../../lib/geo-web-content/mediaGallery";
 import { useFirebase } from "../../lib/Firebase";
 import { NETWORK_ID } from "../../lib/constants";
 
-interface NewMediaGalleryItem {
+interface MediaGalleryItem {
   name?: string;
   content?: string;
   encodingFormat?: string;
 }
 
 export type GalleryFormProps = GalleryModalProps & {
-  mediaGalleryItems: MediaGalleryItem[];
+  mediaGalleryItems: MediaObject[];
   selectedMediaGalleryItemIndex: number | null;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>
@@ -53,12 +52,8 @@ function GalleryForm(props: GalleryFormProps) {
   const [didFail, setDidFail] = React.useState(false);
 
   const [mediaGalleryItem, setMediaGalleryItem] =
-    React.useState<NewMediaGalleryItem>({});
+    React.useState<MediaGalleryItem>({});
   const { firebasePerf } = useFirebase();
-
-  const cid = mediaGalleryItem.content
-    ? mediaGalleryItem.content.replace("ipfs://", "")
-    : "";
 
   React.useEffect(() => {
     if (selectedMediaGalleryItemIndex === null) {
@@ -77,9 +72,9 @@ function GalleryForm(props: GalleryFormProps) {
     });
   }, [selectedMediaGalleryItemIndex]);
 
-  function updateMediaGalleryItem(updatedValues: NewMediaGalleryItem) {
-    function _updateData(updatedValues: NewMediaGalleryItem) {
-      return (prevState: NewMediaGalleryItem) => {
+  function updateMediaGalleryItem(updatedValues: MediaGalleryItem) {
+    function _updateData(updatedValues: MediaGalleryItem) {
+      return (prevState: MediaGalleryItem) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -103,7 +98,7 @@ function GalleryForm(props: GalleryFormProps) {
     }
 
     updateMediaGalleryItem({
-      content: `ipfs://${cid}`,
+      content: cid,
       encodingFormat: fileFormat ?? undefined,
     });
   }
@@ -130,7 +125,7 @@ function GalleryForm(props: GalleryFormProps) {
     const added = await ipfs.add(file);
 
     updateMediaGalleryItem({
-      content: `ipfs://${added.cid.toString()}`,
+      content: added.cid.toString(),
       encodingFormat: encoding,
     });
 
@@ -201,7 +196,7 @@ function GalleryForm(props: GalleryFormProps) {
   }
 
   const commitNewRoot = React.useCallback(
-    async (mediaGalleryItem: NewMediaGalleryItem) => {
+    async (mediaGalleryItem: MediaGalleryItem) => {
       if (!geoWebContent) {
         return;
       }
@@ -220,7 +215,7 @@ function GalleryForm(props: GalleryFormProps) {
         ownerId,
         parcelId: assetId,
       });
-      const cidStr = mediaGalleryItem.content?.replace("ipfs://", "");
+      const cidStr = mediaGalleryItem.content;
       const mediaObject: MediaObject = {
         name: mediaGalleryItem.name ?? "",
         content: CID.parse(cidStr ?? ""),
@@ -273,7 +268,7 @@ function GalleryForm(props: GalleryFormProps) {
                 type="text"
                 placeholder="Upload media or add an existing CID"
                 readOnly={isUploading || selectedMediaGalleryItemIndex !== null}
-                value={cid}
+                value={mediaGalleryItem?.content ?? ""}
                 onChange={updateContentUrl}
               />
               <Form.Control
