@@ -1,6 +1,7 @@
 import React from "react";
 import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { GeoWebContent } from "@geo-web/content";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import type { Point } from "@turf/turf";
 import ProfileModal from "./ProfileModal";
@@ -24,6 +25,7 @@ type ProfileProps = {
   account: string;
   ceramic: CeramicClient;
   ipfs: IPFS;
+  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;

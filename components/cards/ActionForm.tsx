@@ -7,13 +7,7 @@ import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { TileDocument } from "@ceramicnetwork/stream-tile";
-// eslint-disable-next-line import/no-unresolved
-import * as json from "multiformats/codecs/json";
-import * as dagjson from "@ipld/dag-json";
-import { Web3Storage } from "web3.storage";
-import { GeoWebContent } from "@geo-web/content";
-import type { BasicProfile, MediaObject } from "@geo-web/types";
+import type { BasicProfile, MediaGallery } from "@geo-web/types";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -66,7 +60,7 @@ export function ActionForm(props: ActionFormProps) {
   const {
     account,
     licenseOwner,
-    ipfs,
+    geoWebContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
@@ -206,8 +200,6 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    let newRoot;
-    let rootCid;
     const assetId = new AssetId({
       chainId: `eip155:${NETWORK_ID}`,
       assetName: {
@@ -221,16 +213,6 @@ export function ActionForm(props: ActionFormProps) {
     const ownerId = new AccountId(
       AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
     );
-    const web3Storage = new Web3Storage({
-      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-      endpoint: new URL("https://api.web3.storage"),
-    });
-    const geoWebContent = new GeoWebContent({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ceramic: ceramic as any,
-      ipfs,
-      web3Storage,
-    });
 
     if (
       licenseId &&
@@ -239,30 +221,34 @@ export function ActionForm(props: ActionFormProps) {
           account !== licenseOwner))
     ) {
       await geoWebContent.raw.initRoot({ parcelId: assetId, ownerId });
-      rootCid = await geoWebContent.raw.resolveRoot({
+      const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
         ownerId,
       });
-      newRoot = await geoWebContent.raw.putPath(rootCid, "/mediaGallery", [], {
-        parentSchema: "ParcelRoot",
-      });
+      const mediaGallery: MediaGallery = [];
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/mediaGallery",
+        mediaGallery,
+        {
+          parentSchema: "ParcelRoot",
+        }
+      );
 
       await geoWebContent.raw.commit(newRoot, {
         ownerId,
         parcelId: assetId,
         pin: true,
       });
-
-      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
     try {
-      rootCid = await geoWebContent.raw.resolveRoot({
+      const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
         ownerId,
       });
 
-      newRoot = await geoWebContent.raw.putPath(
+      const newRoot = await geoWebContent.raw.putPath(
         rootCid,
         "/basicProfile",
         {
@@ -278,13 +264,15 @@ export function ActionForm(props: ActionFormProps) {
         pin: true,
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
     updateActionData({ isActing: false });
 
     if (setShouldParcelContentUpdate) {
       setShouldParcelContentUpdate(true);
+    } else if (licenseId) {
+      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
     setInteractionState(STATE.PARCEL_SELECTED);

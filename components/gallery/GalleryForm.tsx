@@ -226,9 +226,6 @@ function GalleryForm(props: GalleryFormProps) {
         content: CID.parse(cidStr ?? ""),
         encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
       };
-      const mediaObjectCid = await ipfs.dag.put(mediaObject, {
-        storeCodec: "dag-cbor",
-      });
       const rootCid = await geoWebContent.raw.resolveRoot({
         ownerId,
         parcelId: assetId,
@@ -237,10 +234,9 @@ function GalleryForm(props: GalleryFormProps) {
         rootCid,
         selectedMediaGalleryItemIndex !== null
           ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
-          : "/mediaGallery",
-        selectedMediaGalleryItemIndex !== null
-          ? mediaObjectCid
-          : mediaGallery.concat(mediaObjectCid)
+          : `/mediaGallery/${mediaGallery.length}`,
+        mediaObject,
+        { parentSchema: "MediaGallery"}
       );
 
       await geoWebContent.raw.commit(newRoot, {

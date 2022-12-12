@@ -23,7 +23,6 @@ import {
   NativeAssetSuperToken,
   Framework,
 } from "@superfluid-finance/sdk-core";
-import { Web3Storage } from "web3.storage";
 import { AssetId, AccountId } from "caip";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -54,6 +53,7 @@ interface ProfileModalProps {
   sfFramework: Framework;
   ceramic: CeramicClient;
   ipfs: IPFS;
+  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
@@ -173,8 +173,7 @@ function ProfileModal(props: ProfileModalProps) {
     accountTokenSnapshot,
     sfFramework,
     account,
-    ceramic,
-    ipfs,
+    geoWebContent,
     registryContract,
     setSelectedParcelId,
     setInteractionState,
@@ -238,16 +237,6 @@ function ProfileModal(props: ProfileModalProps) {
 
     let isMounted = true;
 
-    const web3Storage = new Web3Storage({
-      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-      endpoint: new URL("https://api.web3.storage"),
-    });
-    const geoWebContent = new GeoWebContent({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ceramic: ceramic as any,
-      ipfs,
-      web3Storage,
-    });
     const bids = data.bidder.bids;
     const _portfolio: PortfolioParcel[] = [];
     const promises = [];

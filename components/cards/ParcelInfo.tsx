@@ -16,8 +16,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import { GeoWebContent } from "@geo-web/content";
-import { Web3Storage } from "web3.storage";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
 import CID from "cids";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
@@ -34,6 +32,7 @@ import AuctionInfo from "./AuctionInfo";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import { AssetId } from "caip";
 import BN from "bn.js";
+import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 
@@ -94,6 +93,7 @@ export type ParcelInfoProps = SidebarProps & {
   >;
   minForSalePrice: BigNumber;
   licenseAddress: string;
+  geoWebContent: GeoWebContent;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -106,7 +106,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     setIsParcelAvailable,
     ceramic,
     registryContract,
-    ipfs,
+    geoWebContent,
     invalidLicenseId,
     setInvalidLicenseId,
     selectedParcelCoords,
@@ -132,8 +132,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<IPCOLicenseDiamond | null>(null);
   const [queryTimerId, setQueryTimerId] =
     React.useState<NodeJS.Timer | null>(null);
-  const [geoWebContent, setGeoWebContent] =
-    React.useState<GeoWebContent | null>(null);
 
   const { parcelContent, setShouldParcelContentUpdate } = useBasicProfile(
     geoWebContent,
@@ -224,19 +222,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     }
 
     (async () => {
-      const web3Storage = new Web3Storage({
-        token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-        endpoint: new URL("https://api.web3.storage"),
-      });
-      const geoWebContent = new GeoWebContent({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ceramic: ceramic as any,
-        ipfs,
-        web3Storage,
-      });
-
-      setGeoWebContent(geoWebContent);
-
       const assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
         assetName: {
@@ -253,6 +238,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         tags: [assetId.toString()],
       });
       setParcelIndexStreamId(doc.id.toString());
+      setShouldParcelContentUpdate(true);
     })();
   }, [licenseAddress, data, selectedParcelId]);
 
@@ -414,7 +400,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           <Row>
             <Col className="mx-3" sm="10">
               <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-                {!geoWebContent
+                {!data
                   ? spinner
                   : parcelContent?.name
                   ? parcelContent.name
@@ -611,9 +597,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING &&
-          licenseOwner &&
-          geoWebContent ? (
+          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
               parcelContent={parcelContent}
@@ -627,7 +611,6 @@ function ParcelInfo(props: ParcelInfoProps) {
       </Row>
       <GalleryModal
         show={interactionState == STATE.EDITING_GALLERY}
-        geoWebContent={geoWebContent}
         {...props}
       ></GalleryModal>
     </>

@@ -8,6 +8,7 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import type { Point } from "@turf/turf";
 import type { IPFS } from "ipfs-core-types";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { GeoWebContent } from "@geo-web/content";
 import ProfileModal from "../profile/ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
@@ -22,6 +23,7 @@ type StreamingInfoProps = {
   account: string;
   ceramic: CeramicClient;
   ipfs: IPFS;
+  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;

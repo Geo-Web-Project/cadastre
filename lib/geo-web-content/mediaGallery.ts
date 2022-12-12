@@ -19,7 +19,8 @@ function useMediaGallery(
   licenseContractAddress: string,
   parcelId: string
 ) {
-  const [mediaGalleryItems, setMediaGalleryItems] = useState<MediaGalleryItem[] | null>(null);
+  const [mediaGalleryItems, setMediaGalleryItems] =
+    useState<MediaGalleryItem[] | null>(null);
   const [shouldMediaGalleryUpdate, setShouldMediaGalleryUpdate] =
     useState<boolean>(true);
 
