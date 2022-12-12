@@ -7,11 +7,12 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
-import { SUBGRAPH_URL, NETWORK_NAME } from "../lib/constants";
+import { SUBGRAPH_URL, NETWORK_ID } from "../lib/constants";
 import "../styles.scss";
 import { AppProps } from "next/app";
 
 import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
+import type { Chain } from "wagmi";
 import { infuraProvider } from "wagmi/providers/infura";
 import {
   connectorsForWallets,
@@ -28,8 +29,13 @@ import {
 } from "@rainbow-me/rainbowkit/wallets";
 import "@rainbow-me/rainbowkit/styles.css";
 
+const networkIdToChain: Record<number, Chain> = {
+  5: chain.goerli,
+  10: chain.optimism,
+  420: chain.optimismGoerli,
+};
 const { chains, provider } = configureChains(
-  [chain[NETWORK_NAME]],
+  [networkIdToChain[NETWORK_ID]],
   [infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID })]
 );
 
