@@ -44,7 +44,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
 
-  const isEditing = selectedMediaGalleryItemIndex !== null;
+  const isEditing = selectedMediaGalleryItemIndex === index;
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
   const name = mediaGalleryItem?.name;
   const fileType = getFormatType(mediaGalleryItem?.encodingFormat);
