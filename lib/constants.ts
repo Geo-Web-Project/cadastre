@@ -1,14 +1,13 @@
-export const NETWORK_ID = 5;
-export const NETWORK_NAME = "goerli";
+export const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID;
+export const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME;
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
-export const SUBGRAPH_URL =
-  "https://api.thegraph.com/subgraphs/id/QmaAZpdXw2aXqXEko5Dk3JR5QgGTht3AqgAUTMP7cnjdeZ";
+export const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
 
-export const CERAMIC_URL = "https://ceramic-clay.geoweb.network/";
-export const CONNECT_NETWORK = "testnet-clay";
+export const CERAMIC_URL = process.env.NEXT_PUBLIC_CERAMIC_URL;
+export const CONNECT_NETWORK = process.env.NEXT_PUBLIC_CERAMIC_CONNECT_NETWORK;
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
-export const BLOCK_EXPLORER = `https://goerli.etherscan.io`;
+export const BLOCK_EXPLORER = process.env.NEXT_PUBLIC_BLOCK_EXPLORER;
 export const RPC_URLS = {
   4: `https://rinkeby.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID}`,
   5: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID}`,
@@ -24,4 +23,4 @@ export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
 export const MAX_PARCEL_CLAIM = 3000;
 
-export const SPATIAL_DOMAIN = "https://geoweb.app/";
+export const SPATIAL_DOMAIN = process.env.NEXT_PUBLIC_SPATIAL_DOMAIN;
