@@ -7,7 +7,6 @@ import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  CERAMIC_EXPLORER,
   BLOCK_EXPLORER,
   SPATIAL_DOMAIN,
 } from "../../lib/constants";
@@ -16,7 +15,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import { TileDocument } from "@ceramicnetwork/stream-tile";
 import CID from "cids";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import { formatBalance } from "../../lib/formatBalance";
@@ -30,7 +28,7 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
-import { AssetId } from "caip";
+import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
@@ -104,7 +102,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     setInteractionState,
     selectedParcelId,
     setIsParcelAvailable,
-    ceramic,
     registryContract,
     geoWebContent,
     invalidLicenseId,
@@ -121,13 +118,12 @@ function ParcelInfo(props: ParcelInfoProps) {
     },
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] =
-    React.useState<string | null>(null);
-
+  const [rootCid, setRootCid] = React.useState<
+    string | null
+  >(null);
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
   const [auctionStartTimestamp, setAuctionStartTimestamp] =
     React.useState<Date | null>(null);
-
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
   const [queryTimerId, setQueryTimerId] =
@@ -217,7 +213,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
-    if (!licenseAddress || !data?.geoWebParcel || !selectedParcelId) {
+    if (!licenseAddress || !licenseOwner || !selectedParcelId) {
       return;
     }
 
@@ -230,17 +226,21 @@ function ParcelInfo(props: ParcelInfoProps) {
         },
         tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
       });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const doc = await TileDocument.deterministic(ceramic as any, {
-        controllers: [ceramic.did?.parent ?? ""],
-        family: `geo-web-parcel`,
-        tags: [assetId.toString()],
+      const ownerId = new AccountId({
+        chainId: `eip155:${NETWORK_ID}`,
+        address: licenseOwner,
       });
-      setParcelIndexStreamId(doc.id.toString());
+
+      const rootCid = (
+        await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerId,
+        })
+      ).toString();
+      setRootCid(rootCid);
       setShouldParcelContentUpdate(true);
     })();
-  }, [licenseAddress, data, selectedParcelId]);
+  }, [licenseAddress, licenseOwner, selectedParcelId]);
 
   React.useEffect(() => {
     if (data?.geoWebParcel && parcelFieldsToUpdate && queryTimerId) {
@@ -511,16 +511,16 @@ function ParcelInfo(props: ParcelInfoProps) {
                   : truncateStr(licenseOwner, 11)}
               </p>
               <p className="text-truncate">
-                <span className="fw-bold">Stream ID:</span>{" "}
-                {parcelIndexStreamId == null ? (
+                <span className="fw-bold">Root CID: </span>{" "}
+                {!rootCid ? (
                   spinner
                 ) : (
                   <a
-                    href={`${CERAMIC_EXPLORER}/${parcelIndexStreamId}`}
+                    href={`https://explore.ipld.io/#/explore/${rootCid}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`ceramic://${parcelIndexStreamId}`}</a>
+                  >{rootCid}</a>
                 )}
               </p>
               <br />
