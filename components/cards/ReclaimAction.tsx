@@ -170,7 +170,9 @@ function ReclaimAction(props: ReclaimActionProps) {
           )
         }
         requiredPayment={
-          requiredBid && requiredBuffer
+          requiredBid &&
+          requiredBuffer &&
+          account.toLowerCase() !== licenseOwner?.toLowerCase()
             ? requiredBid.add(requiredBuffer)
             : requiredBuffer
         }
