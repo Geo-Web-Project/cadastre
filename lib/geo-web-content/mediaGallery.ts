@@ -7,7 +7,7 @@ import type { MediaObject } from "@geo-web/types";
 import { NETWORK_ID } from "../constants";
 
 function useMediaGallery(
-  geoWebContent: GeoWebContent | null,
+  geoWebContent: GeoWebContent,
   ceramic: CeramicClient,
   licenseContractAddress: string,
   parcelId: string
@@ -20,7 +20,7 @@ function useMediaGallery(
   useEffect(() => {
     (async () => {
       try {
-        if (!ceramic || !geoWebContent || !shouldMediaGalleryUpdate) {
+        if (!parcelId || !shouldMediaGalleryUpdate) {
           return;
         }
 
@@ -60,7 +60,7 @@ function useMediaGallery(
         console.error(err);
       }
     })();
-  }, [geoWebContent, shouldMediaGalleryUpdate]);
+  }, [parcelId, shouldMediaGalleryUpdate]);
 
   return { mediaGalleryItems, setShouldMediaGalleryUpdate };
 }
