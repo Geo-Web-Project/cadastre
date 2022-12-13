@@ -114,6 +114,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
                   as the Genesis Parcel. Who will claim it? Where will it be?
                   How much funding will it raise for public goods?
                   <br />
+                  <br />
                   The minting address will receive a 1/1 NFT commemorating their
                   important role in Geo Web history and commitment to public
                   goods.
@@ -124,6 +125,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
                   shared reality? 10 Founders Parcels will be minted after the
                   Genesis Parcel. All proceeds are used to fund public goods.
                   <br />
+                  <br />
                   Minting addresses will receive a 1/10 NFT commemorating their
                   important role in Geo Web history and commitment to public
                   goods.
@@ -132,9 +134,12 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
                 <span>
                   Be part of the Geo Web’s founding story.
                   <br />
+                  <br />
                   All parcels claimed during the Fair Launch Auction will earn
-                  the minting address a commemorative Explorer Parcel NFT. All
-                  proceeds are used to fund public goods.
+                  the minting address a commemorative Explorer Parcel NFT.
+                  <br />
+                  <br />
+                  All proceeds are used to fund public goods.
                 </span>
               ) : null}
             </Tooltip>
