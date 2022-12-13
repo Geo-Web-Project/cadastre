@@ -37,6 +37,8 @@ function Sidebar(props: SidebarProps) {
     selectedParcelCoords,
     auctionStart,
     auctionEnd,
+    startingBid,
+    endingBid,
     isPreFairLaunch,
   } = props;
 
@@ -64,32 +66,10 @@ function Sidebar(props: SidebarProps) {
     });
   }, [registryContract]);
 
-  const [startingBid, setStartingBid] = React.useState<BigNumber | null>(null);
-  const [endingBid, setEndingBid] = React.useState<BigNumber | null>(null);
   const [requiredBid, setRequiredBid] =
     React.useState<BigNumber>(BigNumber.from(0));
   const [minForSalePrice, setMinForSalePrice] =
     React.useState<BigNumber | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      const [_startingBid, _endingBid] = await Promise.all([
-        registryContract.getStartingBid(),
-        registryContract.getEndingBid(),
-      ]);
-
-      if (isMounted) {
-        setStartingBid(_startingBid);
-        setEndingBid(_endingBid);
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [registryContract]);
 
   const isFairLaunch =
     auctionStart &&
@@ -108,8 +88,6 @@ function Sidebar(props: SidebarProps) {
       isFairLaunch &&
       interactionState == STATE.CLAIM_SELECTED ? (
         <FairLaunchInfo
-          startingBid={startingBid}
-          endingBid={endingBid}
           requiredBid={requiredBid}
           setRequiredBid={setRequiredBid}
           {...props}
@@ -155,8 +133,6 @@ function Sidebar(props: SidebarProps) {
         startingBid &&
         endingBid ? (
         <PreFairLaunchInfo
-          startingBid={startingBid}
-          endingBid={endingBid}
           {...props}
         />
       ) : null}
