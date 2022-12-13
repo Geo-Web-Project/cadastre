@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { OverlayTrigger, Tooltip, Spinner } from "react-bootstrap";
-import { PolygonQuery } from "./Map";
 import { PAYMENT_TOKEN } from "../lib/constants";
 import { truncateEth } from "../lib/truncate";
 import { formatBalance } from "../lib/formatBalance";
@@ -43,12 +42,13 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
   const [nowMinting, setNowMinting] = useState<string>("");
   const [requiredBid, setRequiredBid] = useState<BigNumber | null>(null);
 
-  const { data } = useQuery<PolygonQuery>(parcelsQuery, {
+  const { data } = useQuery(parcelsQuery, {
     variables: {
       lastBlock: 0,
       limit: ClaimTier.THIRD,
     },
     pollInterval: 10000,
+    fetchPolicy: "no-cache",
   });
 
   useEffect(() => {
