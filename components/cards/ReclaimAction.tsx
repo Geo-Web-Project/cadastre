@@ -70,6 +70,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
+  const isOwner = account === licenseOwner;
 
   const [requiredBuffer, setRequiredBuffer] =
     React.useState<BigNumber | null>(null);
@@ -97,7 +98,7 @@ function ReclaimAction(props: ReclaimActionProps) {
       ? basicProfileStreamManager.getStreamContent()
       : null;
 
-    if (parcelContent && licenseOwner === account) {
+    if (parcelContent && isOwner) {
       updateActionData({
         parcelName: parcelContent.name,
         parcelWebContentURI: parcelContent.url,
@@ -128,18 +129,30 @@ function ReclaimAction(props: ReclaimActionProps) {
       );
     }
 
-    const txn = await licenseDiamondContract
-      .connect(provider.getSigner())
-      .reclaim(
-        ethers.utils.parseEther(displayNewForSalePrice),
-        newNetworkFee,
-        ethers.utils.parseEther(displayNewForSalePrice)
-      );
+    let txn;
+
+    if (isOwner) {
+      txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .editBid(
+          newNetworkFee,
+          ethers.utils.parseEther(displayNewForSalePrice)
+        );
+    } else {
+      txn = await licenseDiamondContract
+        .connect(provider.getSigner())
+        .reclaim(
+          ethers.utils.parseEther(displayNewForSalePrice),
+          newNetworkFee,
+          ethers.utils.parseEther(displayNewForSalePrice)
+        );
+    }
+
     await txn.wait();
 
     setParcelFieldsToUpdate({
       forSalePrice: true,
-      licenseOwner: licenseOwner !== account,
+      licenseOwner: !isOwner,
     });
 
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
@@ -157,7 +170,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           newAnnualNetworkFee ? (
             <TransactionSummaryView
               claimPayment={
-                account.toLowerCase() == licenseOwner?.toLowerCase()
+                isOwner
                   ? BigNumber.from("0")
                   : requiredBid
               }
@@ -170,7 +183,9 @@ function ReclaimAction(props: ReclaimActionProps) {
           )
         }
         requiredPayment={
-          requiredBid && requiredBuffer
+          requiredBid &&
+          requiredBuffer &&
+          !isOwner
             ? requiredBid.add(requiredBuffer)
             : requiredBuffer
         }
