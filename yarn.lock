@@ -3347,10 +3347,10 @@
     schema-org-ceramic "^1.4.0"
     uint8arrays "^3.0.0"
 
-"@geo-web/sdk@^4.1.4":
-  version "4.1.4"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.1.4.tgz#a1c204725bc930b5d0a169f88f405169e454bccf"
-  integrity sha512-ZPikNQ85LQSFTx4mTd55PHjoVyHmYqQqxlvZ663NAEWp6kHaYI1rwsl0rGB8fWQznJB8D2FOQ40V7/PfQiS7Mw==
+"@geo-web/sdk@^4.1.5":
+  version "4.1.5"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.1.5.tgz#90ce1276a59fa1c1662b71f96f30842b37b726aa"
+  integrity sha512-zyBFfXbmZGc22wzguBukUCjl5NLC+/Te5mTAFNQ1JpetnN4lx2tLsgutU4jRIS1CVnb/QRiKASCrnYgmvme/Lg==
   dependencies:
     "@geo-web/contracts" "4.1.4"
     ethers ">=5.0.0"
