@@ -86,9 +86,9 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
 
     if (parcelsClaimed >= 0) {
       const nowMinting =
-        parcelsClaimed <= ClaimTier.FIRST
+        parcelsClaimed < ClaimTier.FIRST
           ? NftMinted.GENESIS
-          : parcelsClaimed <= ClaimTier.SECOND
+          : parcelsClaimed < ClaimTier.SECOND
           ? NftMinted.FOUNDER
           : NftMinted.EXPLORER;
 
