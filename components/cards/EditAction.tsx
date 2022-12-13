@@ -23,6 +23,7 @@ export type EditActionProps = SidebarProps & {
   >;
   minForSalePrice: BigNumber;
   setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function EditAction(props: EditActionProps) {

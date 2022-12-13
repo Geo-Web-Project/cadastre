@@ -44,6 +44,7 @@ function GalleryForm(props: GalleryFormProps) {
     setSelectedMediaGalleryItemIndex,
     ipfs,
     setShouldMediaGalleryUpdate,
+    setRootCid,
   } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
@@ -231,7 +232,7 @@ function GalleryForm(props: GalleryFormProps) {
           ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
           : `/mediaGallery/${mediaGallery.length}`,
         mediaObject,
-        { parentSchema: "MediaGallery"}
+        { parentSchema: "MediaGallery" }
       );
 
       await geoWebContent.raw.commit(newRoot, {
@@ -239,6 +240,12 @@ function GalleryForm(props: GalleryFormProps) {
         parcelId: assetId,
         pin: true,
       });
+      const newRootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      setRootCid(newRootCid.toString());
     },
     [geoWebContent, selectedMediaGalleryItemIndex]
   );

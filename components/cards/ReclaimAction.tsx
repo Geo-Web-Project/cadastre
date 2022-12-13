@@ -22,6 +22,7 @@ export type ReclaimActionProps = SidebarProps & {
   minForSalePrice: BigNumber;
   parcelContent: BasicProfile | null;
   setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {

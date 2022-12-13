@@ -118,9 +118,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     },
   });
 
-  const [rootCid, setRootCid] = React.useState<
-    string | null
-  >(null);
+  const [rootCid, setRootCid] =
+    React.useState<string | null>(null);
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
   const [auctionStartTimestamp, setAuctionStartTimestamp] =
     React.useState<Date | null>(null);
@@ -573,6 +572,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               }
               licenseDiamondContract={licenseDiamondContract}
               setShouldParcelContentUpdate={setShouldParcelContentUpdate}
+              setRootCid={setRootCid}
               {...props}
             />
           ) : null}
@@ -605,12 +605,14 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
               setShouldParcelContentUpdate={setShouldParcelContentUpdate}
+              setRootCid={setRootCid}
             ></ReclaimAction>
           ) : null}
         </Col>
       </Row>
       <GalleryModal
         show={interactionState == STATE.EDITING_GALLERY}
+        setRootCid={setRootCid}
         {...props}
       ></GalleryModal>
     </>

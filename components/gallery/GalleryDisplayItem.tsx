@@ -26,6 +26,7 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
     React.SetStateAction<number | null>
   >;
   setShouldMediaGalleryUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function GalleryDisplayItem(props: GalleryDisplayItemProps) {
@@ -39,6 +40,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     selectedMediaGalleryItemIndex,
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
+    setRootCid,
   } = props;
 
   const [isHovered, setIsHovered] = React.useState(false);
@@ -95,6 +97,12 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       pin: true,
     });
 
+    const newRootCid = await geoWebContent.raw.resolveRoot({
+      parcelId: assetId,
+      ownerId,
+    });
+
+    setRootCid(newRootCid.toString());
     setShouldMediaGalleryUpdate(true);
     setIsRemoving(false);
   }, [geoWebContent, index]);

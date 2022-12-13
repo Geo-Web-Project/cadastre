@@ -15,6 +15,7 @@ import { useMediaGallery } from "../../lib/geo-web-content/mediaGallery";
 export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
   geoWebContent: GeoWebContent | null;
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function GalleryModal(props: GalleryModalProps) {

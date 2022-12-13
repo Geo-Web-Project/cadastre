@@ -44,6 +44,7 @@ export type ActionFormProps = SidebarProps & {
   flowOperator: string | null;
   minForSalePrice: BigNumber;
   setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootCid?: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export type ActionData = {
@@ -82,6 +83,7 @@ export function ActionForm(props: ActionFormProps) {
     minForSalePrice,
     paymentToken,
     setShouldParcelContentUpdate,
+    setRootCid,
   } = props;
 
   const {
@@ -269,7 +271,13 @@ export function ActionForm(props: ActionFormProps) {
 
     updateActionData({ isActing: false });
 
-    if (setShouldParcelContentUpdate) {
+    if (setShouldParcelContentUpdate && setRootCid) {
+      const newRootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      setRootCid(newRootCid.toString());
       setShouldParcelContentUpdate(true);
     } else if (licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
