@@ -84,7 +84,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
 
     const parcelsClaimed = data.geoWebParcels?.length;
 
-    if (parcelsClaimed) {
+    if (parcelsClaimed >= 0) {
       const nowMinting =
         parcelsClaimed <= ClaimTier.FIRST
           ? NftMinted.GENESIS
