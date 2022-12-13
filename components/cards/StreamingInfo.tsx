@@ -5,7 +5,10 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import type { Point } from "@turf/turf";
+import type { IPFS } from "ipfs-core-types";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { GeoWebContent } from "@geo-web/content";
 import ProfileModal from "../profile/ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
@@ -14,12 +17,13 @@ import { truncateEth } from "../../lib/truncate";
 import { ethers } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { STATE } from "../Map";
-import type { Point } from "@turf/turf";
 
 type StreamingInfoProps = {
   sfFramework: Framework;
   account: string;
   ceramic: CeramicClient;
+  ipfs: IPFS;
+  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   provider: ethers.providers.Web3Provider;

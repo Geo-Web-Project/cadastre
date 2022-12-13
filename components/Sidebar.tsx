@@ -126,6 +126,7 @@ function Sidebar(props: SidebarProps) {
           selectedParcelCoords={selectedParcelCoords}
           parcelFieldsToUpdate={parcelFieldsToUpdate}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
+          licenseAddress={registryContract.address}
         ></ParcelInfo>
       ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? (

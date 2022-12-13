@@ -1,44 +1,50 @@
 /* eslint-disable import/no-unresolved */
 import * as React from "react";
+import BN from "bn.js";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
-import { MediaGalleryItemStreamManager } from "../../lib/stream-managers/MediaGalleryItemStreamManager";
-import { useFirebase } from "../../lib/Firebase";
+import type { MediaObject, Encoding } from "@geo-web/types";
+import { AssetId, AccountId } from "caip";
 import { CID } from "multiformats/cid";
-
+import { GalleryModalProps } from "./GalleryModal";
 import {
   galleryFileFormats,
   getFormat,
   getFormatCS,
-  getFormatType,
 } from "./GalleryFileFormat";
-import { MediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
-import { MediaObject } from "schema-org-ceramic/types/MediaObject.schema";
-import { GalleryModalProps } from "./GalleryModal";
+import { useFirebase } from "../../lib/Firebase";
+import { NETWORK_ID } from "../../lib/constants";
+
+interface MediaGalleryItem {
+  name?: string;
+  content?: string;
+  encodingFormat?: string;
+}
 
 export type GalleryFormProps = GalleryModalProps & {
-  mediaGalleryStreamManager: MediaGalleryStreamManager | null;
-  selectedMediaGalleryItemManager: MediaGalleryItemStreamManager | null;
-  setSelectedMediaGalleryItemId: React.Dispatch<
-    React.SetStateAction<string | null>
+  mediaGalleryItems: MediaObject[];
+  selectedMediaGalleryItemIndex: number | null;
+  setSelectedMediaGalleryItemIndex: React.Dispatch<
+    React.SetStateAction<number | null>
   >;
-  setShouldMediaGalleryUpdate: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
+  setShouldMediaGalleryUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function GalleryForm(props: GalleryFormProps) {
   const {
-    mediaGalleryStreamManager,
-    selectedMediaGalleryItemManager,
-    setSelectedMediaGalleryItemId,
+    licenseAddress,
+    selectedParcelId,
+    geoWebContent,
+    ceramic,
+    mediaGalleryItems,
+    selectedMediaGalleryItemIndex,
+    setSelectedMediaGalleryItemIndex,
     ipfs,
-    assetContentManager,
-    pinningManager,
     setShouldMediaGalleryUpdate,
+    setRootCid,
   } = props;
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
@@ -46,33 +52,30 @@ function GalleryForm(props: GalleryFormProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
 
-  const [mediaGalleryItem, setMediaGalleryItem] = React.useState<MediaObject>(
-    {}
-  );
+  const [mediaGalleryItem, setMediaGalleryItem] =
+    React.useState<MediaGalleryItem>({});
   const { firebasePerf } = useFirebase();
 
-  const cid = mediaGalleryItem.contentUrl
-    ? mediaGalleryItem.contentUrl.replace("ipfs://", "")
-    : "";
-
   React.useEffect(() => {
-    if (!selectedMediaGalleryItemManager) {
-      setMediaGalleryItem({});
+    if (selectedMediaGalleryItemIndex === null) {
       return;
     }
 
-    const mediaGalleryItemContent =
-      selectedMediaGalleryItemManager.getStreamContent();
-    setMediaGalleryItem(mediaGalleryItemContent ?? {});
+    setFileFormat(
+      mediaGalleryItems[selectedMediaGalleryItemIndex].encodingFormat
+    );
+    setMediaGalleryItem({
+      name: mediaGalleryItems[selectedMediaGalleryItemIndex].name,
+      content:
+        mediaGalleryItems[selectedMediaGalleryItemIndex].content.toString(),
+      encodingFormat:
+        mediaGalleryItems[selectedMediaGalleryItemIndex].encodingFormat,
+    });
+  }, [selectedMediaGalleryItemIndex]);
 
-    if (mediaGalleryItemContent) {
-      setFileFormat(mediaGalleryItemContent.encodingFormat ?? null);
-    }
-  }, [selectedMediaGalleryItemManager]);
-
-  function updateMediaGalleryItem(updatedValues: MediaObject) {
-    function _updateData(updatedValues: MediaObject) {
-      return (prevState: MediaObject) => {
+  function updateMediaGalleryItem(updatedValues: MediaGalleryItem) {
+    function _updateData(updatedValues: MediaGalleryItem) {
+      return (prevState: MediaGalleryItem) => {
         return { ...prevState, ...updatedValues };
       };
     }
@@ -86,7 +89,7 @@ function GalleryForm(props: GalleryFormProps) {
 
     if (!cid || cid.length == 0) {
       updateMediaGalleryItem({
-        contentUrl: undefined,
+        content: undefined,
       });
 
       setDetectedFileFormat(null);
@@ -96,8 +99,7 @@ function GalleryForm(props: GalleryFormProps) {
     }
 
     updateMediaGalleryItem({
-      //"@type": "3DModel",
-      contentUrl: `ipfs://${cid}`,
+      content: cid,
       encodingFormat: fileFormat ?? undefined,
     });
   }
@@ -117,15 +119,14 @@ function GalleryForm(props: GalleryFormProps) {
     setIsUploading(true);
 
     const format = getFormat(file.name);
-    const { encoding, type } = format;
+    const { encoding } = format;
     setFileFormat(encoding ?? null);
 
     // Add to IPFS
     const added = await ipfs.add(file);
 
     updateMediaGalleryItem({
-      "@type": type,
-      contentUrl: `ipfs://${added.cid.toString()}`,
+      content: added.cid.toString(),
       encodingFormat: encoding,
     });
 
@@ -142,55 +143,21 @@ function GalleryForm(props: GalleryFormProps) {
     // setPinningService("buckets");
     setDidFail(false);
 
-    setSelectedMediaGalleryItemId(null);
+    setSelectedMediaGalleryItemIndex(null);
   }
 
   async function addToGallery() {
+    if (!geoWebContent) {
+      return;
+    }
+
     setIsSaving(true);
     setDidFail(false);
 
     const trace = firebasePerf?.trace("add_media_item_to_gallery");
     trace?.start();
 
-    if (
-      mediaGalleryItem &&
-      assetContentManager &&
-      mediaGalleryStreamManager &&
-      pinningManager
-    ) {
-      const _mediaGalleryItemStreamManager = new MediaGalleryItemStreamManager(
-        assetContentManager,
-        mediaGalleryStreamManager
-      );
-      await _mediaGalleryItemStreamManager.createOrUpdateStream(
-        mediaGalleryItem
-      );
-
-      // Pin item
-      const cidStr = mediaGalleryItem.contentUrl?.replace("ipfs://", "");
-      const cid = cidStr ? CID.parse(cidStr) : null;
-      const name = cid
-        ? `${_mediaGalleryItemStreamManager.getStreamId()}-${cid}`
-        : null;
-
-      if (cid && name) {
-        try {
-          await pinningManager.pinCid(name, cid);
-        } catch (err) {
-          console.error(err);
-          setDidFail(true);
-          setIsSaving(false);
-          return;
-        }
-      }
-
-      // Add to gallery after pin
-      _mediaGalleryItemStreamManager.setMediaGalleryStreamManager(
-        mediaGalleryStreamManager
-      );
-      await _mediaGalleryItemStreamManager.addToMediaGallery();
-    }
-
+    await commitNewRoot(mediaGalleryItem);
     clearForm();
 
     trace?.stop();
@@ -202,15 +169,12 @@ function GalleryForm(props: GalleryFormProps) {
   async function saveChanges() {
     setIsSaving(true);
 
-    if (mediaGalleryItem) {
-      await selectedMediaGalleryItemManager?.createOrUpdateStream(
-        mediaGalleryItem
-      );
-    }
-
+    await commitNewRoot(mediaGalleryItem);
     clearForm();
 
     setIsSaving(false);
+    setSelectedMediaGalleryItemIndex(null);
+    setShouldMediaGalleryUpdate(true);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -218,7 +182,6 @@ function GalleryForm(props: GalleryFormProps) {
     setFileFormat(event.target.value);
 
     updateMediaGalleryItem({
-      "@type": getFormatType(event.target.value),
       encodingFormat: event.target.value,
     });
   }
@@ -233,8 +196,62 @@ function GalleryForm(props: GalleryFormProps) {
     // setPinningServiceAccessToken("");
   }
 
+  const commitNewRoot = React.useCallback(
+    async (mediaGalleryItem: MediaGalleryItem) => {
+      if (!geoWebContent) {
+        return;
+      }
+      const assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
+        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+      });
+      const ownerId = new AccountId(
+        AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
+      );
+      const mediaGallery = await geoWebContent.raw.getPath("/mediaGallery", {
+        ownerId,
+        parcelId: assetId,
+      });
+      const cidStr = mediaGalleryItem.content;
+      const mediaObject: MediaObject = {
+        name: mediaGalleryItem.name ?? "",
+        content: CID.parse(cidStr ?? ""),
+        encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
+      };
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        ownerId,
+        parcelId: assetId,
+      });
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        selectedMediaGalleryItemIndex !== null
+          ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
+          : `/mediaGallery/${mediaGallery.length}`,
+        mediaObject,
+        { parentSchema: "MediaGallery" }
+      );
+
+      await geoWebContent.raw.commit(newRoot, {
+        ownerId,
+        parcelId: assetId,
+        pin: true,
+      });
+      const newRootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      setRootCid(newRootCid.toString());
+    },
+    [geoWebContent, selectedMediaGalleryItemIndex]
+  );
+
   const isReadyToAdd =
-    mediaGalleryItem.contentUrl && mediaGalleryItem.name && !isSaving;
+    mediaGalleryItem.content && mediaGalleryItem.name && !isSaving;
 
   const spinner = (
     <span
@@ -257,10 +274,8 @@ function GalleryForm(props: GalleryFormProps) {
                 className="text-white mt-1"
                 type="text"
                 placeholder="Upload media or add an existing CID"
-                readOnly={
-                  isUploading || selectedMediaGalleryItemManager != null
-                }
-                value={cid}
+                readOnly={isUploading || selectedMediaGalleryItemIndex !== null}
+                value={mediaGalleryItem?.content ?? ""}
                 onChange={updateContentUrl}
               />
               <Form.Control
@@ -269,18 +284,14 @@ function GalleryForm(props: GalleryFormProps) {
                 style={{ backgroundColor: "#111320", border: "none" }}
                 className="mt-1"
                 accept={getFormatCS()}
-                disabled={
-                  isUploading || selectedMediaGalleryItemManager != null
-                }
+                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
                 onChange={captureFile}
                 hidden
               ></Form.Control>
               <Button
                 as="label"
                 htmlFor="uploadCid"
-                disabled={
-                  isUploading || selectedMediaGalleryItemManager != null
-                }
+                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
               >
                 {!isUploading ? "Upload" : spinner}
               </Button>
@@ -299,9 +310,7 @@ function GalleryForm(props: GalleryFormProps) {
                 required
                 disabled={detectedFileFormat != null}
               >
-                <option value="">
-                  Select a File Format
-                </option>
+                <option value="">Select a File Format</option>
 
                 {galleryFileFormats.map((_format, i) => (
                   <option key={i} value={_format.encoding}>
@@ -350,7 +359,7 @@ function GalleryForm(props: GalleryFormProps) {
             </Button>
           </Col>
           <Col xs="auto">
-            {selectedMediaGalleryItemManager ? (
+            {selectedMediaGalleryItemIndex !== null ? (
               <Button variant="secondary" onClick={saveChanges}>
                 {isSaving ? spinner : "Save Changes"}
               </Button>

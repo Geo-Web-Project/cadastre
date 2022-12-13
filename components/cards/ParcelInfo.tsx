@@ -7,7 +7,6 @@ import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
-  CERAMIC_EXPLORER,
   BLOCK_EXPLORER,
   SPATIAL_DOMAIN,
 } from "../../lib/constants";
@@ -22,19 +21,16 @@ import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import ReclaimAction from "./ReclaimAction";
 import { BigNumber } from "ethers";
-import { useBasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { usePinningManager } from "../../lib/PinningManager";
 import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
-import { DataModel } from "@glazed/datamodel";
-import { model as GeoWebModel } from "@geo-web/datamodels";
-import { AssetContentManager } from "../../lib/AssetContentManager";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
+import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 
@@ -94,19 +90,20 @@ export type ParcelInfoProps = SidebarProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
+  licenseAddress: string;
+  geoWebContent: GeoWebContent;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
   const {
     account,
     interactionState,
+    licenseAddress,
     setInteractionState,
     selectedParcelId,
     setIsParcelAvailable,
-    ceramic,
     registryContract,
-    ipfs,
-    firebasePerf,
+    geoWebContent,
     invalidLicenseId,
     setInvalidLicenseId,
     selectedParcelCoords,
@@ -121,31 +118,22 @@ function ParcelInfo(props: ParcelInfoProps) {
     },
   });
 
-  const [parcelIndexStreamId, setParcelIndexStreamId] =
+  const [rootCid, setRootCid] =
     React.useState<string | null>(null);
-
-  const [assetContentManager, setAssetContentManager] =
-    React.useState<AssetContentManager | null>(null);
-
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
-  const [auctionStartTimestamp, setAuctionStartTimestamp] = React.useState<Date | null>(null);
-
+  const [auctionStartTimestamp, setAuctionStartTimestamp] =
+    React.useState<Date | null>(null);
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
   const [queryTimerId, setQueryTimerId] =
     React.useState<NodeJS.Timer | null>(null);
 
-  const basicProfileStreamManager =
-    useBasicProfileStreamManager(assetContentManager);
-  const pinningManager = usePinningManager(
-    assetContentManager,
-    ipfs,
-    firebasePerf
+  const { parcelContent, setShouldParcelContentUpdate } = useBasicProfile(
+    geoWebContent,
+    licenseAddress,
+    data?.geoWebParcel?.licenseOwner,
+    selectedParcelId
   );
-
-  const parcelContent = basicProfileStreamManager
-    ? basicProfileStreamManager.getStreamContent()
-    : null;
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -224,52 +212,34 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
 
   React.useEffect(() => {
+    if (!licenseAddress || !licenseOwner || !selectedParcelId) {
+      return;
+    }
+
     (async () => {
-      if (ceramic == null || !ceramic.did) {
-        console.error("Ceramic instance not found");
-        return;
-      }
+      const assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: registryContract.address.toLowerCase(),
+        },
+        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+      });
+      const ownerId = new AccountId({
+        chainId: `eip155:${NETWORK_ID}`,
+        address: licenseOwner,
+      });
 
-      setAssetContentManager(null);
-
-      if (selectedParcelId && licenseOwner) {
-        const assetId = new AssetId({
-          chainId: `eip155:${NETWORK_ID}`,
-          assetName: {
-            namespace: "erc721",
-            reference: registryContract.address.toLowerCase(),
-          },
-          tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-        });
-
-        const accountId = new AccountId({
-          chainId: `eip155:${NETWORK_ID}`,
-          address: licenseOwner,
-        });
-
-        const model = new DataModel({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ceramic: ceramic as any,
-          aliases: GeoWebModel,
-        });
-
-        const _assetContentManager = new AssetContentManager(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ceramic as any,
-          model,
-          `did:pkh:${accountId.toString()}`,
-          assetId
-        );
-        setAssetContentManager(_assetContentManager);
-
-        const doc = await _assetContentManager.getIndex();
-        setParcelIndexStreamId(doc.id.toString());
-      } else {
-        setAssetContentManager(null);
-        setParcelIndexStreamId(null);
-      }
+      const rootCid = (
+        await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerId,
+        })
+      ).toString();
+      setRootCid(rootCid);
+      setShouldParcelContentUpdate(true);
     })();
-  }, [ceramic, selectedParcelId, licenseOwner, registryContract]);
+  }, [licenseAddress, licenseOwner, selectedParcelId]);
 
   React.useEffect(() => {
     if (data?.geoWebParcel && parcelFieldsToUpdate && queryTimerId) {
@@ -311,6 +281,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       }
     };
   }, [parcelFieldsToUpdate, selectedParcelId]);
+
+  React.useEffect(() => {
+    setShouldParcelContentUpdate(true);
+  }, [selectedParcelId]);
 
   const isLoading = loading || data == null;
 
@@ -425,12 +399,12 @@ function ParcelInfo(props: ParcelInfoProps) {
           <Row>
             <Col className="mx-3" sm="10">
               <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-                {!basicProfileStreamManager
+                {!data
                   ? spinner
-                  : parcelContent
+                  : parcelContent?.name
                   ? parcelContent.name
                   : data?.geoWebParcel?.id
-                  ? `Parcel ${data?.geoWebParcel?.id}`
+                  ? `Parcel ${data.geoWebParcel.id}`
                   : spinner}
               </h1>
             </Col>
@@ -536,16 +510,16 @@ function ParcelInfo(props: ParcelInfoProps) {
                   : truncateStr(licenseOwner, 11)}
               </p>
               <p className="text-truncate">
-                <span className="fw-bold">Stream ID:</span>{" "}
-                {parcelIndexStreamId == null ? (
+                <span className="fw-bold">Root CID: </span>{" "}
+                {!rootCid ? (
                   spinner
                 ) : (
                   <a
-                    href={`${CERAMIC_EXPLORER}/${parcelIndexStreamId}`}
+                    href={`https://explore.ipld.io/#/explore/${rootCid}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{`ceramic://${parcelIndexStreamId}`}</a>
+                  >{rootCid}</a>
                 )}
               </p>
               <br />
@@ -591,12 +565,14 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
           {interactionState == STATE.PARCEL_EDITING && data?.geoWebParcel ? (
             <EditAction
-              basicProfileStreamManager={basicProfileStreamManager}
               parcelData={data.geoWebParcel}
+              parcelContent={parcelContent}
               hasOutstandingBid={
                 !parcelFieldsToUpdate ? hasOutstandingBid : false
               }
               licenseDiamondContract={licenseDiamondContract}
+              setShouldParcelContentUpdate={setShouldParcelContentUpdate}
+              setRootCid={setRootCid}
               {...props}
             />
           ) : null}
@@ -624,18 +600,19 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
             <ReclaimAction
               {...props}
-              basicProfileStreamManager={basicProfileStreamManager}
+              parcelContent={parcelContent}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}
               requiredBid={requiredBid ?? undefined}
+              setShouldParcelContentUpdate={setShouldParcelContentUpdate}
+              setRootCid={setRootCid}
             ></ReclaimAction>
           ) : null}
         </Col>
       </Row>
       <GalleryModal
-        pinningManager={pinningManager}
-        assetContentManager={assetContentManager}
         show={interactionState == STATE.EDITING_GALLERY}
+        setRootCid={setRootCid}
         {...props}
       ></GalleryModal>
     </>

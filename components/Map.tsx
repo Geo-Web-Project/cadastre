@@ -15,6 +15,7 @@ import ParcelSource, {
 } from "./sources/ParcelSource";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { GeoWebContent } from "@geo-web/content";
 
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
@@ -176,6 +177,7 @@ export type MapProps = {
   disconnectWallet: () => void;
   ceramic: CeramicClient;
   ipfs: IPFS;
+  geoWebContent: GeoWebContent;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;

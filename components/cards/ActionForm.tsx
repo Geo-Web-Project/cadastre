@@ -7,23 +7,20 @@ import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import type { BasicProfile, MediaGallery } from "@geo-web/types";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import BN from "bn.js";
+import { AssetId, AccountId } from "caip";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
-import { BasicProfileStreamManager } from "../../lib/stream-managers/BasicProfileStreamManager";
-import { AssetId } from "caip";
-import { model as GeoWebModel, BasicProfile } from "@geo-web/datamodels";
-import { DataModel } from "@glazed/datamodel";
-import { AssetContentManager } from "../../lib/AssetContentManager";
 import TransactionError from "./TransactionError";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
@@ -39,7 +36,6 @@ export type ActionFormProps = SidebarProps & {
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
-  basicProfileStreamManager?: BasicProfileStreamManager | null;
   requiredBid?: BigNumber;
   hasOutstandingBid?: boolean;
   requiredPayment: BigNumber | null;
@@ -47,6 +43,8 @@ export type ActionFormProps = SidebarProps & {
   spender: string | null;
   flowOperator: string | null;
   minForSalePrice: BigNumber;
+  setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootCid?: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export type ActionData = {
@@ -63,17 +61,18 @@ export function ActionForm(props: ActionFormProps) {
   const {
     account,
     licenseOwner,
+    geoWebContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
     performAction,
     actionData,
     setActionData,
-    basicProfileStreamManager,
     interactionState,
     setInteractionState,
     licenseAddress,
     ceramic,
+    selectedParcelId,
     setSelectedParcelId,
     summaryView,
     requiredBid,
@@ -83,6 +82,8 @@ export function ActionForm(props: ActionFormProps) {
     setIsPortfolioToUpdate,
     minForSalePrice,
     paymentToken,
+    setShouldParcelContentUpdate,
+    setRootCid,
   } = props;
 
   const {
@@ -170,10 +171,10 @@ export function ActionForm(props: ActionFormProps) {
   async function submit() {
     updateActionData({ isActing: true, didFail: false });
 
-    let parcelId: string | void;
+    let licenseId: string | void;
     try {
       // Perform action
-      parcelId = await performAction();
+      licenseId = await performAction();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -201,42 +202,87 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    if (parcelId && !basicProfileStreamManager) {
-      const assetId = new AssetId({
-        chainId: `eip155:${NETWORK_ID}`,
-        assetName: {
-          namespace: "erc721",
-          reference: licenseAddress.toLowerCase(),
+    const assetId = new AssetId({
+      chainId: `eip155:${NETWORK_ID}`,
+      assetName: {
+        namespace: "erc721",
+        reference: licenseAddress.toLowerCase(),
+      },
+      tokenId: licenseId
+        ? licenseId.toString()
+        : new BN(selectedParcelId.slice(2), "hex").toString(10),
+    });
+    const ownerId = new AccountId(
+      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
+    );
+
+    if (
+      licenseId &&
+      (interactionState === STATE.CLAIM_SELECTED ||
+        (interactionState === STATE.PARCEL_RECLAIMING &&
+          account !== licenseOwner))
+    ) {
+      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerId });
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+      const mediaGallery: MediaGallery = [];
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/mediaGallery",
+        mediaGallery,
+        {
+          parentSchema: "ParcelRoot",
+        }
+      );
+
+      await geoWebContent.raw.commit(newRoot, {
+        ownerId,
+        parcelId: assetId,
+        pin: true,
+      });
+    }
+
+    try {
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/basicProfile",
+        {
+          name: content.name ?? "",
+          url: content.url ?? "",
         },
-        tokenId: parcelId.toString(),
-      });
-
-      const model = new DataModel({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ceramic: ceramic as any,
-        aliases: GeoWebModel,
-      });
-
-      const _assetContentManager = new AssetContentManager(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ceramic as any,
-        model,
-        ceramic.did?.capability.p.iss ?? "",
-        assetId
+        { parentSchema: "ParcelRoot" }
       );
 
-      const _basicProfileStreamManager = new BasicProfileStreamManager(
-        _assetContentManager
-      );
-      await _basicProfileStreamManager.createOrUpdateStream(content);
-
-      setSelectedParcelId(`0x${new BN(parcelId.toString()).toString(16)}`);
-    } else if (basicProfileStreamManager) {
-      // Use existing BasicProfileStreamManager
-      await basicProfileStreamManager.createOrUpdateStream(content);
+      await geoWebContent.raw.commit(newRoot, {
+        ownerId,
+        parcelId: assetId,
+        pin: true,
+      });
+    } catch (err) {
+      console.error(err);
     }
 
     updateActionData({ isActing: false });
+
+    if (setShouldParcelContentUpdate && setRootCid) {
+      const newRootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+
+      setRootCid(newRootCid.toString());
+      setShouldParcelContentUpdate(true);
+    } else if (licenseId) {
+      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
+    }
+
     setInteractionState(STATE.PARCEL_SELECTED);
     setIsPortfolioToUpdate(true);
   }
@@ -288,7 +334,7 @@ export function ActionForm(props: ActionFormProps) {
                     placeholder="Parcel Name"
                     aria-label="Parcel Name"
                     aria-describedby="parcel-name"
-                    defaultValue={parcelName}
+                    value={parcelName ?? ""}
                     disabled={isActing || isLoading}
                     onChange={(e) =>
                       updateActionData({ parcelName: e.target.value })
@@ -310,7 +356,7 @@ export function ActionForm(props: ActionFormProps) {
                     placeholder="URI (http://, https://, ipfs://, ipns://)"
                     aria-label="Web Content URI"
                     aria-describedby="web-content-uri"
-                    defaultValue={parcelWebContentURI}
+                    value={parcelWebContentURI ?? ""}
                     disabled={isActing || isLoading}
                     onChange={(e) =>
                       updateActionData({ parcelWebContentURI: e.target.value })
@@ -366,7 +412,7 @@ export function ActionForm(props: ActionFormProps) {
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
-                defaultValue={displayCurrentForSalePrice}
+                value={displayNewForSalePrice ?? ""}
                 disabled={isActing || isLoading || hasOutstandingBid}
                 onChange={(e) =>
                   updateActionData({ displayNewForSalePrice: e.target.value })

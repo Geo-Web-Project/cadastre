@@ -5,41 +5,41 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Container from "react-bootstrap/Container";
+import { GeoWebContent } from "@geo-web/content";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE } from "../Map";
-import { useMediaGalleryStreamManager } from "../../lib/stream-managers/MediaGalleryStreamManager";
-import {
-  MediaGalleryItemStreamManager,
-  useMediaGalleryItemData,
-} from "../../lib/stream-managers/MediaGalleryItemStreamManager";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
-import { AssetContentManager } from "../../lib/AssetContentManager";
-import { PinningManager } from "../../lib/PinningManager";
+import { useMediaGallery } from "../../lib/geo-web-content/mediaGallery";
 
 export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
-  assetContentManager: AssetContentManager | null;
-  pinningManager: PinningManager | null;
+  geoWebContent: GeoWebContent | null;
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function GalleryModal(props: GalleryModalProps) {
-  const { show, setInteractionState, assetContentManager, pinningManager } =
-    props;
+  const {
+    geoWebContent,
+    ceramic,
+    licenseAddress,
+    selectedParcelId,
+    show,
+    setInteractionState,
+  } = props;
   const handleClose = () => {
     setInteractionState(STATE.PARCEL_SELECTED);
   };
 
-  const mediaGalleryStreamManager =
-    useMediaGalleryStreamManager(assetContentManager);
-  const { mediaGalleryData, mediaGalleryItems, setShouldMediaGalleryUpdate } = useMediaGalleryItemData(
-    mediaGalleryStreamManager,
-    assetContentManager
+  const { mediaGalleryItems, setShouldMediaGalleryUpdate } = useMediaGallery(
+    geoWebContent,
+    ceramic,
+    licenseAddress,
+    selectedParcelId
   );
-  const [selectedMediaGalleryItemId, setSelectedMediaGalleryItemId] =
-    React.useState<string | null>(null);
-  const [selectedMediaGalleryItemManager, setSelectedMediaGalleryItemManager] =
-    React.useState<MediaGalleryItemStreamManager | null>(null);
+
+  const [selectedMediaGalleryItemIndex, setSelectedMediaGalleryItemIndex] =
+    React.useState<number | null>(null);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -47,82 +47,7 @@ function GalleryModal(props: GalleryModalProps) {
     </span>
   );
 
-  // Only update when ID changes
-  React.useEffect(() => {
-    const _selectedMediaGalleryItemManager =
-      mediaGalleryItems && selectedMediaGalleryItemId
-        ? mediaGalleryItems[selectedMediaGalleryItemId]
-        : null;
-    setSelectedMediaGalleryItemManager(_selectedMediaGalleryItemManager);
-  }, [selectedMediaGalleryItemId]);
-
-  const [storageLink, setStorageLink] = React.useState<string | null>(null);
-  const [storageUsed, setStorageUsed] = React.useState<number | null>(null);
-  const storageCapacity = pinningManager
-    ? pinningManager.getStorageLimit()
-    : null;
-
-  let storageDisplayStr;
-  if (storageUsed && storageCapacity) {
-    // storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB of ${(
-    //   storageCapacity / 1000000
-    // ).toFixed(1)} MB Used`;
-    storageDisplayStr = `${(storageUsed / 1000000).toFixed(1)} MB Used`;
-  } else {
-    storageDisplayStr = <>{spinner} MB Used</>;
-  }
-
-  React.useEffect(() => {
-    async function _update() {
-      if (!pinningManager) {
-        return;
-      }
-
-      const _storageLink = await pinningManager.getLink();
-      setStorageLink(_storageLink);
-
-      const _storageUsed = (await pinningManager.getStorageUsed()) ?? null;
-      setStorageUsed(_storageUsed);
-    }
-
-    _update();
-  }, [pinningManager, mediaGalleryItems]);
-
-  const isLoading =
-    mediaGalleryStreamManager == null ||
-    pinningManager == null ||
-    storageLink == null;
-
-  const [isResetting, setIsResetting] = React.useState(false);
-
-  const handleResetPinset = async () => {
-    setIsResetting(true);
-    await pinningManager?.reset();
-    setIsResetting(false);
-    handleClose();
-  };
-
-  const pinsetNotFoundModal = (
-    <Modal.Body className="bg-dark p-5 text-light text-center">
-      <p className="px-5">
-        The pinset associated to your DID could not be found. If you have
-        constrained connectivity, please refresh this page and try again.
-      </p>
-      <p className="px-5 mb-5">
-        If you keep getting this message, your pinset may have been corrupted or
-        lost (the Geo Web is a beta product). Please reset your pinset below and
-        re-add your desired content.
-      </p>
-      <Button
-        size="lg"
-        onClick={handleResetPinset}
-        variant="danger"
-        disabled={isResetting}
-      >
-        {isResetting ? spinner : "Reset Pinset"}
-      </Button>
-    </Modal.Body>
-  );
+  const isLoading = mediaGalleryItems == null;
 
   return (
     <Modal
@@ -152,13 +77,8 @@ function GalleryModal(props: GalleryModalProps) {
       </Modal.Header>
       {isLoading ? (
         <Modal.Body className="bg-dark p-5 text-light text-center">
-          {pinningManager == null ? (
-            <p>Provisioning Storage For Media Gallery</p>
-          ) : null}
           {spinner}
         </Modal.Body>
-      ) : pinningManager.latestQueuedLinks() == null ? (
-        pinsetNotFoundModal
       ) : (
         <>
           <Modal.Body className="bg-dark px-4 text-light">
@@ -168,30 +88,23 @@ function GalleryModal(props: GalleryModalProps) {
             </p>
             <div className="border border-secondary rounded p-3 text-center">
               <GalleryForm
-                mediaGalleryStreamManager={mediaGalleryStreamManager}
-                selectedMediaGalleryItemManager={
-                  selectedMediaGalleryItemManager
+                mediaGalleryItems={mediaGalleryItems}
+                selectedMediaGalleryItemIndex={selectedMediaGalleryItemIndex}
+                setSelectedMediaGalleryItemIndex={
+                  setSelectedMediaGalleryItemIndex
                 }
-                setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
                 setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
               <GalleryDisplayGrid
-                mediaGalleryData={mediaGalleryData}
                 mediaGalleryItems={mediaGalleryItems}
-                selectedMediaGalleryItemId={selectedMediaGalleryItemId}
-                setSelectedMediaGalleryItemId={setSelectedMediaGalleryItemId}
+                selectedMediaGalleryItemIndex={selectedMediaGalleryItemIndex}
+                setSelectedMediaGalleryItemIndex={
+                  setSelectedMediaGalleryItemIndex
+                }
                 setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
-              <a
-                className="text-light"
-                href={storageLink}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {storageDisplayStr}
-              </a>
             </div>
           </Modal.Body>
         </>

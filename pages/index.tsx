@@ -15,6 +15,8 @@ import Button from "react-bootstrap/Button";
 import NavDropdown from "react-bootstrap/NavDropdown";
 
 import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
+import { GeoWebContent } from "@geo-web/content";
+import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
@@ -71,6 +73,7 @@ function IndexPage() {
   const [auctionEnd, setAuctionEnd] =
     React.useState<BigNumber>(BigNumber.from(0));
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
+  const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -208,7 +211,6 @@ function IndexPage() {
       if (!session) {
         return;
       }
-
       // Create Ceramic and DID with resolvers
       const ceramic = new CeramicClient(CERAMIC_URL);
       ceramic.did = session.did;
@@ -217,6 +219,25 @@ function IndexPage() {
 
     initSession();
   }, [signer]);
+
+  React.useEffect(() => {
+    if (!ceramic || !ipfs) {
+      return;
+    }
+
+    const web3Storage = new Web3Storage({
+      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
+      endpoint: new URL("https://api.web3.storage"),
+    });
+    const geoWebContent = new GeoWebContent({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceramic: ceramic as any,
+      ipfs,
+      web3Storage,
+    });
+
+    setGeoWebContent(geoWebContent);
+  }, [ceramic, ipfs]);
 
   const Connector = () => {
     return (
@@ -241,6 +262,8 @@ function IndexPage() {
                   address &&
                   sfFramework &&
                   ceramic &&
+                  ipfs &&
+                  geoWebContent &&
                   registryContract &&
                   paymentToken &&
                   library
@@ -250,6 +273,8 @@ function IndexPage() {
                       account={address.toLowerCase()}
                       sfFramework={sfFramework}
                       ceramic={ceramic}
+                      ipfs={ipfs}
+                      geoWebContent={geoWebContent}
                       registryContract={registryContract}
                       disconnectWallet={disconnectWallet}
                       paymentToken={paymentToken}
@@ -386,6 +411,7 @@ function IndexPage() {
         paymentToken &&
         ceramic &&
         ipfs &&
+        geoWebContent &&
         firebasePerf &&
         sfFramework ? (
           <Row>
@@ -395,6 +421,7 @@ function IndexPage() {
               provider={library}
               ceramic={ceramic}
               ipfs={ipfs}
+              geoWebContent={geoWebContent}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
