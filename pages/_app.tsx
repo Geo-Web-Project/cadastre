@@ -27,7 +27,6 @@ import {
   coinbaseWallet,
   braveWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import "@rainbow-me/rainbowkit/styles.css";
 
 const networkIdToChain: Record<number, Chain> = {
   5: chain.goerli,

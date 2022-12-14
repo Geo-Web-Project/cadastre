@@ -1,6 +1,5 @@
 import Home from "../components/Home";
 import Map, { STATE } from "../components/Map";
-import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
 import FairLaunchCountdown from "../components/FairLaunchCountdown";
 import FairLaunchHeader from "../components/FairLaunchHeader";
@@ -13,7 +12,6 @@ import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import NavDropdown from "react-bootstrap/NavDropdown";
 
 import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
@@ -41,6 +39,7 @@ import {
   useConnectModal,
   useChainModal,
 } from "@rainbow-me/rainbowkit";
+import NavMenu from "../components/nav/NavMenu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
@@ -63,20 +62,25 @@ function IndexPage() {
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
-  const [interactionState, setInteractionState] =
-    React.useState<STATE>(STATE.VIEWING);
+  const [interactionState, setInteractionState] = React.useState<STATE>(
+    STATE.VIEWING
+  );
   const [portfolioParcelCenter, setPortfolioParcelCenter] =
     React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
-  const [auctionStart, setAuctionStart] =
-    React.useState<BigNumber>(BigNumber.from(0));
-  const [auctionEnd, setAuctionEnd] =
-    React.useState<BigNumber>(BigNumber.from(0));
-  const [startingBid, setStartingBid] =
-    React.useState<BigNumber>(BigNumber.from(0));
-  const [endingBid, setEndingBid] =
-    React.useState<BigNumber>(BigNumber.from(0));
+  const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [auctionEnd, setAuctionEnd] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [startingBid, setStartingBid] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [endingBid, setEndingBid] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
   const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
@@ -154,7 +158,9 @@ function IndexPage() {
         setStartingBid(_startingBid);
         setEndingBid(_endingBid);
         setIsPreFairLaunch(now < _auctionStart.toNumber());
-        setIsFairLaunch(now > _auctionStart.toNumber() && now < _auctionEnd.toNumber());
+        setIsFairLaunch(
+          now > _auctionStart.toNumber() && now < _auctionEnd.toNumber()
+        );
       }
 
       const _beneficiaryAddress =
@@ -375,54 +381,7 @@ function IndexPage() {
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
             <Connector />
-            <NavDropdown
-              title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
-              id="collasible-nav-dropdown"
-              menuVariant="dark"
-              align="end"
-            >
-              <NavDropdown.Item
-                href="https://faucet.paradigm.xyz/"
-                target="_blank"
-                rel="noopener"
-                className="d-flex gap-2"
-              >
-                Request testnet ETH
-                <Image src="open-new.svg" alt="open-new" />
-              </NavDropdown.Item>
-              <NavDropdown.Item
-                href="https://docs.geoweb.network/"
-                target="_blank"
-                rel="noopener"
-                className="d-flex gap-2"
-              >
-                Documentation
-                <Image src="open-new.svg" alt="open-new" />
-              </NavDropdown.Item>
-              <NavDropdown.Item>
-                <FAQ />
-              </NavDropdown.Item>
-              <div className="d-flex align-items-center">
-                <NavDropdown.Item
-                  href="https://discord.com/invite/reXgPru7ck"
-                  target="_blank"
-                  rel="noopener"
-                  bsPrefix="none"
-                  style={{ width: "48px", margin: "4px 0 0 16px" }}
-                >
-                  <Image src="discord.svg" alt="discord" />
-                </NavDropdown.Item>
-                <NavDropdown.Item
-                  href="https://twitter.com/thegeoweb"
-                  target="_blank"
-                  rel="noopener"
-                  bsPrefix="none"
-                  style={{ width: "48px", margin: "4px 0 0 0" }}
-                >
-                  <Image src="twitter.svg" alt="twitter" />
-                </NavDropdown.Item>
-              </div>
-            </NavDropdown>
+            <NavMenu />
           </Col>
         </Navbar>
       </Container>
