@@ -240,7 +240,9 @@ function ParcelInfo(props: ParcelInfoProps) {
         ownerId,
       });
 
-      setRootCid(root?.basicProfile ? rootCid.toString() : null);
+      setRootCid(
+        root?.basicProfile || root?.mediaGallery ? rootCid.toString() : null
+      );
       setShouldParcelContentUpdate(true);
     })();
   }, [licenseAddress, licenseOwner, selectedParcelId]);

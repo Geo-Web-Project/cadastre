@@ -281,7 +281,9 @@ export function ActionForm(props: ActionFormProps) {
         ownerId,
       });
 
-      setRootCid(root?.basicProfile ? newRootCid.toString() : null);
+      setRootCid(
+        root?.basicProfile || root?.mediaGallery ? newRootCid.toString() : null
+      );
       setShouldParcelContentUpdate(true);
     } else if (licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
