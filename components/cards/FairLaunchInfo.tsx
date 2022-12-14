@@ -131,6 +131,15 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
           <Card.Text>
             Time Remaining: <span>{timeRemaining}</span>
           </Card.Text>
+          <Card.Text className="text-center">
+            <Button
+              variant="primary"
+              className="text-light fw-bold border-dark mx-auto fit-content"
+              // onClick={connectWallet}
+            >
+              <span>Get Notified</span>
+            </Button>
+          </Card.Text>
         </Card.Body>
       </Card>
     </>
