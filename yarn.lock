@@ -3269,10 +3269,10 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/sdk@^4.1.5":
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.1.5.tgz#90ce1276a59fa1c1662b71f96f30842b37b726aa"
-  integrity sha512-zyBFfXbmZGc22wzguBukUCjl5NLC+/Te5mTAFNQ1JpetnN4lx2tLsgutU4jRIS1CVnb/QRiKASCrnYgmvme/Lg==
+"@geo-web/sdk@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/sdk/-/sdk-4.2.0.tgz#ac4f114cdcd91d30db8fca6acb088c284ddbb3f4"
+  integrity sha512-Acw1woSRtu/c7J3PzJxJPlmA/V6nvSGaQIy84iwxgpP871T2NITRPg3OvbMfckM5/EHFd7AvaZL/6ga4HFUBLg==
   dependencies:
     "@geo-web/contracts" "4.1.4"
     ethers ">=5.0.0"
