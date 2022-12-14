@@ -60,6 +60,22 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
     .format("YYYY-MM-DD HH:mm z");
 
   useEffect(() => {
+    const mailerFormJs = `
+        (function(m,a,i,l,e,r){ m['MailerLiteObject']=e;function f(){
+        var c={ a:arguments,q:[]};var r=this.push(c);return "number"!=typeof r?r:f.bind(c.q);}
+        f.q=f.q||[];m[e]=m[e]||f.bind(f.q);m[e].q=m[e].q||f.q;r=a.createElement(i);
+        var _=a.getElementsByTagName(i)[0];r.async=1;r.src=l+'?v'+(~~(new Date().getTime()/1000000));
+        _.parentNode.insertBefore(r,_);})(window, document, 'script', 'https://static.mailerlite.com/js/universal.js', 'ml');
+        
+        var ml_account = ml('accounts', '2708212', 'd2a0n7u4k9', 'load');
+      `;
+    const script = document.createElement("script");
+    const scriptText = document.createTextNode(mailerFormJs);
+    script.appendChild(scriptText);
+    document.body.appendChild(script);
+  }, []);
+
+  useEffect(() => {
     let interval: NodeJS.Timer | null = null;
 
     if (auctionStart && auctionEnd && startingBid && endingBid) {
@@ -80,6 +96,18 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
     };
   }, [auctionStart, auctionEnd, startingBid, endingBid]);
 
+  function showNotifyOnClose() {
+    const didShowAuctionNotification = localStorage.getItem(
+      "didShowAuctionNotification"
+    );
+    if (!didShowAuctionNotification) {
+      localStorage.setItem("didShowAuctionNotification", "true");
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ml_account("webforms", "5836954", "w6k5n8", "show");
+    }
+  }
+
   return (
     <>
       <Row className="mb-3">
@@ -92,7 +120,10 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
           <Button
             variant="link"
             size="sm"
-            onClick={() => setInteractionState(STATE.VIEWING)}
+            onClick={() => {
+              showNotifyOnClose();
+              setInteractionState(STATE.VIEWING);
+            }}
           >
             <Image src="close.svg" />
           </Button>
@@ -130,6 +161,19 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
           <Card.Text>Auction End: {formattedAuctionEnd}</Card.Text>
           <Card.Text>
             Time Remaining: <span>{timeRemaining}</span>
+          </Card.Text>
+          <Card.Text className="text-center">
+            <Button
+              variant="primary"
+              className="text-light fw-bold border-dark mx-auto fit-content"
+              onClick={() =>
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                ml_account("webforms", "5836954", "w6k5n8", "show")
+              }
+            >
+              <span>Get Notified</span>
+            </Button>
           </Card.Text>
         </Card.Body>
       </Card>
