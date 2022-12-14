@@ -49,7 +49,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
       limit: ClaimTier.THIRD,
     },
     pollInterval: 10000,
-    fetchPolicy: "no-cache",
+    fetchPolicy: "cache-and-network",
   });
 
   useEffect(() => {
