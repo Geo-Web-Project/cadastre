@@ -118,8 +118,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     },
   });
 
-  const [rootCid, setRootCid] =
-    React.useState<string | null>(null);
+  const [rootCid, setRootCid] = React.useState<string | null>("");
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
   const [auctionStartTimestamp, setAuctionStartTimestamp] =
     React.useState<Date | null>(null);
@@ -217,6 +216,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     }
 
     (async () => {
+      setRootCid("");
+
       const assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
         assetName: {
@@ -230,13 +231,16 @@ function ParcelInfo(props: ParcelInfoProps) {
         address: licenseOwner,
       });
 
-      const rootCid = (
-        await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerId,
-        })
-      ).toString();
-      setRootCid(rootCid);
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerId,
+      });
+      const root = await geoWebContent.raw.getPath("/", {
+        parcelId: assetId,
+        ownerId,
+      });
+
+      setRootCid(root?.basicProfile ? rootCid.toString() : null);
       setShouldParcelContentUpdate(true);
     })();
   }, [licenseAddress, licenseOwner, selectedParcelId]);
@@ -511,7 +515,9 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Root CID: </span>{" "}
-                {!rootCid ? (
+                {rootCid === null ? (
+                  "Not Available"
+                ) : !rootCid ? (
                   spinner
                 ) : (
                   <a
@@ -519,7 +525,9 @@ function ParcelInfo(props: ParcelInfoProps) {
                     target="_blank"
                     rel="noreferrer"
                     className="text-light"
-                  >{rootCid}</a>
+                  >
+                    {rootCid}
+                  </a>
                 )}
               </p>
               <br />
@@ -610,11 +618,13 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
         </Col>
       </Row>
-      <GalleryModal
-        show={interactionState == STATE.EDITING_GALLERY}
-        setRootCid={setRootCid}
-        {...props}
-      ></GalleryModal>
+      {interactionState == STATE.EDITING_GALLERY && (
+        <GalleryModal
+          show={interactionState === STATE.EDITING_GALLERY}
+          setRootCid={setRootCid}
+          {...props}
+        ></GalleryModal>
+      )}
     </>
   );
 }

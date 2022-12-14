@@ -216,16 +216,16 @@ function GalleryForm(props: GalleryFormProps) {
         ownerId,
         parcelId: assetId,
       });
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        ownerId,
+        parcelId: assetId,
+      });
       const cidStr = mediaGalleryItem.content;
       const mediaObject: MediaObject = {
         name: mediaGalleryItem.name ?? "",
         content: CID.parse(cidStr ?? ""),
         encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
       };
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        ownerId,
-        parcelId: assetId,
-      });
       const newRoot = await geoWebContent.raw.putPath(
         rootCid,
         selectedMediaGalleryItemIndex !== null

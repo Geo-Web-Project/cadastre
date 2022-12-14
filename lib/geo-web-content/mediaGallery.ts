@@ -3,14 +3,15 @@ import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { GeoWebContent } from "@geo-web/content";
-import type { MediaObject } from "@geo-web/types";
+import type { MediaGallery, MediaObject } from "@geo-web/types";
 import { NETWORK_ID } from "../constants";
 
 function useMediaGallery(
   geoWebContent: GeoWebContent,
   ceramic: CeramicClient,
   licenseContractAddress: string,
-  parcelId: string
+  parcelId: string,
+  setRootCid: React.Dispatch<React.SetStateAction<string | null>>
 ) {
   const [mediaGalleryItems, setMediaGalleryItems] =
     useState<MediaObject[] | null>(null);
@@ -37,23 +38,59 @@ function useMediaGallery(
         const ownerId = new AccountId(
           AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
         );
-        const mediaGalleryPath = await geoWebContent.raw.getPath(
-          "/mediaGallery",
-          { parcelId: assetId, ownerId }
-        );
+        const root = await geoWebContent.raw.getPath("/", {
+          parcelId: assetId,
+          ownerId,
+        });
 
-        for (const i in mediaGalleryPath) {
-          const mediaGalleryItem = await geoWebContent.raw.getPath(
-            `/mediaGallery/${i}`,
+        if (root?.mediaGallery) {
+          const mediaGalleryPath = await geoWebContent.raw.getPath(
+            "/mediaGallery",
+            { parcelId: assetId, ownerId }
+          );
+
+          for (const i in mediaGalleryPath) {
+            const mediaGalleryItem = await geoWebContent.raw.getPath(
+              `/mediaGallery/${i}`,
+              {
+                parcelId: assetId,
+                ownerId,
+              }
+            );
+            _mediaGalleryItems.push(mediaGalleryItem);
+          }
+
+          setMediaGalleryItems(_mediaGalleryItems);
+        } else {
+          const mediaGallery: MediaGallery = [];
+          const rootCid = await geoWebContent.raw.resolveRoot({
+            ownerId,
+            parcelId: assetId,
+          });
+          const newRoot = await geoWebContent.raw.putPath(
+            rootCid,
+            "/mediaGallery",
+            mediaGallery,
             {
-              parcelId: assetId,
-              ownerId,
+              parentSchema: "ParcelRoot",
             }
           );
-          _mediaGalleryItems.push(mediaGalleryItem);
+
+          await geoWebContent.raw.commit(newRoot, {
+            ownerId,
+            parcelId: assetId,
+            pin: true,
+          });
+
+          const newRootCid = await geoWebContent.raw.resolveRoot({
+            ownerId,
+            parcelId: assetId,
+          });
+
+          setMediaGalleryItems([]);
+          setRootCid(newRootCid.toString());
         }
 
-        setMediaGalleryItems(_mediaGalleryItems);
         setShouldMediaGalleryUpdate(false);
       } catch (err) {
         setMediaGalleryItems(null);
