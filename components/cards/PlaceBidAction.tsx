@@ -354,17 +354,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             />
           ) : null}
         </Card.Body>
-        <Card.Footer className="border-top border-secondary">
-          <Row>
-            <Col sm="1">
-              <Image src="notice.svg" />
-            </Col>
-            <Col className="fst-italic">
-              Claims, transfers, changes to For Sale Prices, and network fee
-              payments require confirmation in your Web3 wallet.
-            </Col>
-          </Row>
-        </Card.Footer>
       </Card>
 
       {showWrapModal && (

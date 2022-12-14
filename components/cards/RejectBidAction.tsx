@@ -86,7 +86,8 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
   const [isAllowed, setIsAllowed] = React.useState(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] = React.useState(false);
+  const [isBalanceInsufficient, setIsBalanceInsufficient] =
+    React.useState(false);
 
   const { superTokenBalance } = useSuperTokenBalance(
     account,
@@ -231,7 +232,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     const requiredPayment =
       penaltyPayment && newRequiredBuffer && oldRequiredBuffer
         ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
-        : null
+        : null;
 
     setIsBalanceInsufficient(
       requiredPayment ? requiredPayment?.gt(superTokenBalance) : false
@@ -459,17 +460,6 @@ function RejectBidAction(props: RejectBidActionProps) {
             />
           ) : null}
         </Card.Body>
-        <Card.Footer className="border-top border-secondary">
-          <Row>
-            <Col sm="1">
-              <Image src="notice.svg" />
-            </Col>
-            <Col className="fst-italic">
-              Claims, transfers, changes to For Sale Prices, and network fee
-              payments require confirmation in your Web3 wallet.
-            </Col>
-          </Row>
-        </Card.Footer>
       </Card>
 
       {showWrapModal && (
