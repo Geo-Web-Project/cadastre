@@ -9,6 +9,8 @@ export const RPC_URLS: Record<number, string> = {
     .NEXT_PUBLIC_INFURA_PROJECT_ID!}`,
   5: `https://goerli.infura.io/v3/${process.env
     .NEXT_PUBLIC_INFURA_PROJECT_ID!}`,
+  10: `https://optimism-mainnet.infura.io/v3/${process.env
+    .NEXT_PUBLIC_INFURA_PROJECT_ID!}`,
   420: `https://optimism-goerli.infura.io/v3/${process.env
     .NEXT_PUBLIC_INFURA_PROJECT_ID!}`,
 };
