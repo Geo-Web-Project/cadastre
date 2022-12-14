@@ -8,7 +8,7 @@ import { formatBalance } from "../lib/formatBalance";
 import { calculateRequiredBid } from "../lib/calculateRequiredBid";
 
 const parcelsQuery = gql`
-  query Polygons($lastBlock: BigInt, $limit: Int) {
+  query ParcelsClaimed($lastBlock: BigInt, $limit: Int) {
     geoWebParcels(orderBy: createdAtBlock, first: $limit) {
       id
     }
