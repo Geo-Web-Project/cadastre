@@ -189,3 +189,14 @@ $dropdown-dark-link-hover-bg: $purple;
   border-radius: 4px;
   background-color: $secondary;
 }
+
+.pulsate {
+  animation: pulsate 2s ease-out;
+  animation-iteration-count: infinite;
+  opacity: 1;
+}
+@keyframes pulsate {
+  50% {
+    opacity: 0;
+  }
+}

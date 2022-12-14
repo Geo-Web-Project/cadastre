@@ -2,8 +2,9 @@ import Home from "../components/Home";
 import Map, { STATE } from "../components/Map";
 import FAQ from "../components/FAQ";
 import Profile from "../components/profile/Profile";
-import FundsRaisedCounter from "../components/FundsRaisedCounter";
 import FairLaunchCountdown from "../components/FairLaunchCountdown";
+import FairLaunchHeader from "../components/FairLaunchHeader";
+import FundsRaisedCounter from "../components/FundsRaisedCounter";
 
 import React from "react";
 import Container from "react-bootstrap/Container";
@@ -72,8 +73,13 @@ function IndexPage() {
     React.useState<BigNumber>(BigNumber.from(0));
   const [auctionEnd, setAuctionEnd] =
     React.useState<BigNumber>(BigNumber.from(0));
+  const [startingBid, setStartingBid] =
+    React.useState<BigNumber>(BigNumber.from(0));
+  const [endingBid, setEndingBid] =
+    React.useState<BigNumber>(BigNumber.from(0));
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
+  const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -133,15 +139,22 @@ function IndexPage() {
 
       setRegistryContract(registryDiamondContract);
 
-      const [_auctionStart, _auctionEnd] = await Promise.all([
-        registryDiamondContract.getAuctionStart(),
-        registryDiamondContract.getAuctionEnd(),
-      ]);
+      const [_auctionStart, _auctionEnd, _startingBid, _endingBid] =
+        await Promise.all([
+          registryDiamondContract.getAuctionStart(),
+          registryDiamondContract.getAuctionEnd(),
+          registryDiamondContract.getStartingBid(),
+          registryDiamondContract.getEndingBid(),
+        ]);
 
       if (!_auctionStart.isZero() || !_auctionEnd.isZero()) {
+        const now = Date.now() / 1000;
         setAuctionStart(_auctionStart);
         setAuctionEnd(_auctionEnd);
-        setIsPreFairLaunch(Date.now() / 1000 < _auctionStart.toNumber());
+        setStartingBid(_startingBid);
+        setEndingBid(_endingBid);
+        setIsPreFairLaunch(now < _auctionStart.toNumber());
+        setIsFairLaunch(now > _auctionStart.toNumber() && now < _auctionEnd.toNumber());
       }
 
       const _beneficiaryAddress =
@@ -346,6 +359,15 @@ function IndexPage() {
               <FairLaunchCountdown
                 auctionStart={auctionStart}
                 setIsPreFairLaunch={setIsPreFairLaunch}
+                setIsFairLaunch={setIsFairLaunch}
+              />
+            ) : isFairLaunch ? (
+              <FairLaunchHeader
+                auctionStart={auctionStart}
+                auctionEnd={auctionEnd}
+                startingBid={startingBid}
+                endingBid={endingBid}
+                setIsFairLaunch={setIsFairLaunch}
               />
             ) : (
               <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
@@ -438,6 +460,8 @@ function IndexPage() {
               isPreFairLaunch={isPreFairLaunch}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}
+              startingBid={startingBid}
+              endingBid={endingBid}
             ></Map>
           </Row>
         ) : (

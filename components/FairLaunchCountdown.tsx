@@ -9,10 +9,11 @@ dayjs.extend(duration);
 interface FairLaunchCountdownProps {
   auctionStart: BigNumber;
   setIsPreFairLaunch: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsFairLaunch: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function FairLaunchCountdown(props: FairLaunchCountdownProps) {
-  const { auctionStart, setIsPreFairLaunch } = props;
+  const { auctionStart, setIsPreFairLaunch, setIsFairLaunch } = props;
 
   const [countdown, setCountdown] = useState("");
 
@@ -22,6 +23,7 @@ function FairLaunchCountdown(props: FairLaunchCountdownProps) {
 
       if (deltaTime <= 0) {
         setIsPreFairLaunch(false);
+        setIsFairLaunch(true);
         setCountdown("");
         clearInterval(timerId);
         return;

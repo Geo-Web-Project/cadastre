@@ -187,6 +187,8 @@ export type MapProps = {
   isPortfolioToUpdate: boolean;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
+  startingBid: BigNumber;
+  endingBid: BigNumber;
   isPreFairLaunch: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
