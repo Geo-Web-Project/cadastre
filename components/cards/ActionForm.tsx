@@ -276,8 +276,14 @@ export function ActionForm(props: ActionFormProps) {
         parcelId: assetId,
         ownerId,
       });
+      const root = await geoWebContent.raw.getPath("/", {
+        parcelId: assetId,
+        ownerId,
+      });
 
-      setRootCid(newRootCid.toString());
+      setRootCid(
+        root?.basicProfile || root?.mediaGallery ? newRootCid.toString() : null
+      );
       setShouldParcelContentUpdate(true);
     } else if (licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);

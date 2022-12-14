@@ -26,6 +26,7 @@ function GalleryModal(props: GalleryModalProps) {
     selectedParcelId,
     show,
     setInteractionState,
+    setRootCid,
   } = props;
   const handleClose = () => {
     setInteractionState(STATE.PARCEL_SELECTED);
@@ -35,7 +36,8 @@ function GalleryModal(props: GalleryModalProps) {
     geoWebContent,
     ceramic,
     licenseAddress,
-    selectedParcelId
+    selectedParcelId,
+    setRootCid
   );
 
   const [selectedMediaGalleryItemIndex, setSelectedMediaGalleryItemIndex] =

@@ -8,6 +8,7 @@
     "@ceramicnetwork/http-client": "^2.11.0",
     "@ceramicnetwork/stream-tile": "^2.10.0",
     "@didtools/pkh-ethereum": "^0.0.1",
+    "@geo-web/content": "^0.3.2",
     "@geo-web/sdk": "^4.2.0",
     "@geo-web/content": "^0.3.2",
     "@geo-web/types": "^0.1.3",
