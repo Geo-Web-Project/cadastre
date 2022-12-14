@@ -83,7 +83,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
       return;
     }
 
-    if (parcelsClaimed < data.geoWebParcels.length || parcelsClaimed === null) {
+    if (parcelsClaimed === null || parcelsClaimed < data.geoWebParcels.length) {
       const nowMinting =
         data.geoWebParcels.length < ClaimTier.FIRST
           ? NftMinted.GENESIS
