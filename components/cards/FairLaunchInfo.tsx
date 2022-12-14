@@ -116,8 +116,8 @@ function FairLaunchInfo(props: FairLaunchInfoProps) {
                     startingBid
                   )}{" "}
                   ETHx and will linearly decrease to an ongoing minimum claim
-                  price of {ethers.utils.formatEther(endingBid)} ETHx over two
-                  weeks.
+                  price of {ethers.utils.formatEther(endingBid)} ETHx over 30
+                  days.
                 </div>
               }
               target={infoIcon}

@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import React from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-//import BetaAgreementModal from "./BetaAgreementModal";
+import BetaAgreementModal from "./BetaAgreementModal";
 
 function HomeContent() {
   return (
@@ -19,7 +19,8 @@ function HomeContent() {
           </Col>
           <Col xs={10} className={"pe-4"}>
             <div className="text-black fs-6">
-              The Geo Web Cadastre is not mobile-friendly yet. Please switch to your desktop.
+              The Geo Web Cadastre is not mobile-friendly yet. Please switch to
+              your desktop.
             </div>
           </Col>
         </Row>
@@ -99,7 +100,7 @@ function Home({
         minHeight: "100vh",
       }}
     >
-      {/*<BetaAgreementModal />*/}
+      <BetaAgreementModal />
       <div
         style={{ paddingTop: "128px", gap: "24px" }}
         className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
