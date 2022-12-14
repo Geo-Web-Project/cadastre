@@ -147,10 +147,13 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
         >
           <div>
             <div className="fs-1 text-primary text-center">
-              {`${truncateEth(formatBalance(requiredBid), 4)} ${PAYMENT_TOKEN}`}
+              {`Current Bid: ${truncateEth(
+                formatBalance(requiredBid),
+                4
+              )} ${PAYMENT_TOKEN}`}
             </div>
             <div className="fs-6 text-light text-center">
-              <span className="pulsate">Now Minting: {nowMinting}</span>
+              <span className="pulsate">Now Minting {nowMinting}</span>
             </div>
           </div>
         </OverlayTrigger>
