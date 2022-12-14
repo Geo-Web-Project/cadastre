@@ -41,6 +41,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
 
   const [nowMinting, setNowMinting] = useState<string>("");
   const [requiredBid, setRequiredBid] = useState<BigNumber | null>(null);
+  const [parcelsClaimed, setParcelsClaimed] = useState<number | null>(null);
 
   const { data } = useQuery(parcelsQuery, {
     variables: {
@@ -78,21 +79,20 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
   }, [auctionStart, auctionEnd, startingBid, endingBid]);
 
   useEffect(() => {
-    if (!data) {
+    if (!data?.geoWebParcels) {
       return;
     }
 
-    const parcelsClaimed = data.geoWebParcels?.length;
-
-    if (parcelsClaimed >= 0) {
+    if (parcelsClaimed < data.geoWebParcels.length || parcelsClaimed === null) {
       const nowMinting =
-        parcelsClaimed < ClaimTier.FIRST
+        data.geoWebParcels.length < ClaimTier.FIRST
           ? NftMinted.GENESIS
-          : parcelsClaimed < ClaimTier.SECOND
+          : data.geoWebParcels.length < ClaimTier.SECOND
           ? NftMinted.FOUNDER
           : NftMinted.EXPLORER;
 
       setNowMinting(nowMinting);
+      setParcelsClaimed(data.geoWebParcels.length);
     }
   }, [data]);
 
