@@ -238,7 +238,7 @@ function Map(props: MapProps) {
   const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
-    zoom: 13,
+    zoom: 1,
     bearing: 0,
     pitch: 0,
     padding: {
@@ -267,7 +267,7 @@ function Map(props: MapProps) {
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
   const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
   const [interactiveLayerIds, setInteractiveLayerIds] =
-    React.useState<string[]>(["parcels-layer"]);
+    React.useState<string[]>([]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
   const [newParcel, setNewParcel] = React.useState<{
     id: string;
@@ -370,6 +370,7 @@ function Map(props: MapProps) {
     refetch(opts);
 
     setOldCoord(mapBounds.getCenter());
+    setInteractiveLayerIds(["parcels-layer"]);
   }
 
   function _onMove(nextViewport: ViewState) {
@@ -384,6 +385,7 @@ function Map(props: MapProps) {
       nextViewport.zoom >= ZOOM_GRID_LEVEL
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+      setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
     }
 
     const mapBounds = mapRef.current.getBounds();
@@ -573,7 +575,6 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
-        setInteractiveLayerIds(["parcels-layer"]);
         break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
@@ -581,7 +582,6 @@ function Map(props: MapProps) {
         setParcelHoverId(selectedParcelId);
         break;
       case STATE.CLAIM_SELECTING:
-        setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
         break;
       default:
         break;
