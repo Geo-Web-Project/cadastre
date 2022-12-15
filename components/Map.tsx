@@ -238,7 +238,7 @@ function Map(props: MapProps) {
   const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
-    zoom: 1,
+    zoom: process.env.NEXT_PUBLIC_APP_ENV === "mainnet" ? 1 : 13,
     bearing: 0,
     pitch: 0,
     padding: {
