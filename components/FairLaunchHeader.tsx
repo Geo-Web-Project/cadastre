@@ -146,7 +146,7 @@ function FairLaunchHeader(props: FairLaunchHeaderProps) {
           }
         >
           <div>
-            <div className="fs-1 text-primary text-center">
+            <div className="fs-1 text-primary text-center text-nowrap">
               {`Current Bid: ${truncateEth(
                 formatBalance(requiredBid),
                 4
