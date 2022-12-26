@@ -288,12 +288,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     };
   }, [parcelFieldsToUpdate, selectedParcelId]);
 
-  React.useEffect(() => {
-    if (rootCid) {
-      setShouldParcelContentUpdate(true);
-    }
-  }, [rootCid]);
-
   const isLoading = loading || data == null;
 
   let hrefWebContent;
