@@ -288,10 +288,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     };
   }, [parcelFieldsToUpdate, selectedParcelId]);
 
-  React.useEffect(() => {
-    setShouldParcelContentUpdate(true);
-  }, [selectedParcelId]);
-
   const isLoading = loading || data == null;
 
   let hrefWebContent;
