@@ -232,13 +232,12 @@ function GalleryForm(props: GalleryFormProps) {
           ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
           : `/mediaGallery/${mediaGallery.length}`,
         mediaObject,
-        { parentSchema: "MediaGallery" }
+        { parentSchema: "MediaGallery", pin: true }
       );
 
       await geoWebContent.raw.commit(newRoot, {
         ownerId,
         parcelId: assetId,
-        pin: true,
       });
       const newRootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,

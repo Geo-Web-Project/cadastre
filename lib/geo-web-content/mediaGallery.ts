@@ -73,13 +73,13 @@ function useMediaGallery(
             mediaGallery,
             {
               parentSchema: "ParcelRoot",
+              pin: true,
             }
           );
 
           await geoWebContent.raw.commit(newRoot, {
             ownerId,
             parcelId: assetId,
-            pin: true,
           });
 
           const newRootCid = await geoWebContent.raw.resolveRoot({

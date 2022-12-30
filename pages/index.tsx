@@ -32,6 +32,7 @@ import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
 import { DIDSession } from "did-session";
 import type { Point } from "@turf/turf";
+import * as IPFSHttpClient from "ipfs-http-client";
 
 import { useDisconnect, useAccount, useSigner, useNetwork } from "wagmi";
 import {
@@ -168,11 +169,15 @@ function IndexPage() {
 
       setBeneficiaryAddress(_beneficiaryAddress);
 
-      const _ipfs = await getIpfs({
+      const { ipfs, provider, apiAddress } = await getIpfs({
         providers: [
           httpClient({
-            loadHttpClientModule: () => require("ipfs-http-client"),
+            loadHttpClientModule: () => IPFSHttpClient,
             apiAddress: "/ip4/127.0.0.1/tcp/5001",
+          }),
+          httpClient({
+            loadHttpClientModule: () => IPFSHttpClient,
+            apiAddress: "/ip4/127.0.0.1/tcp/45005",
           }),
           jsIpfs({
             loadJsIpfsModule: () => IPFSCore,
@@ -185,14 +190,14 @@ function IndexPage() {
         ],
       });
 
-      if (_ipfs) {
-        console.log("IPFS API is provided by: " + _ipfs.provider);
-        if (_ipfs.provider === "httpClient") {
-          console.log("HTTP API address: " + _ipfs.apiAddress);
+      if (ipfs) {
+        console.log("IPFS API is provided by: " + provider);
+        if (provider === "httpClient") {
+          console.log("HTTP API address: " + apiAddress);
         }
-
-        setIpfs(_ipfs.ipfs);
       }
+
+      setIpfs(ipfs);
     }
 
     start();
@@ -251,6 +256,7 @@ function IndexPage() {
     const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic: ceramic as any,
+      ipfsGatewayHost: process.env.NEXT_PUBLIC_IPFS_GATEWAY,
       ipfs,
       web3Storage,
     });
