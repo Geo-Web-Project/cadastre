@@ -89,12 +89,14 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       ownerId,
       parcelId: assetId,
     });
-    const newRoot = await geoWebContent.raw.deletePath(rootCid, `/mediaGallery/${index}`)
+    const newRoot = await geoWebContent.raw.deletePath(
+      rootCid,
+      `/mediaGallery/${index}`
+    );
 
     await geoWebContent.raw.commit(newRoot, {
       ownerId,
       parcelId: assetId,
-      pin: true,
     });
 
     const newRootCid = await geoWebContent.raw.resolveRoot({

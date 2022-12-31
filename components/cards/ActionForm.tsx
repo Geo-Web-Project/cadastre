@@ -232,13 +232,13 @@ export function ActionForm(props: ActionFormProps) {
         mediaGallery,
         {
           parentSchema: "ParcelRoot",
+          pin: true,
         }
       );
 
       await geoWebContent.raw.commit(newRoot, {
         ownerId,
         parcelId: assetId,
-        pin: true,
       });
     }
 
@@ -255,13 +255,12 @@ export function ActionForm(props: ActionFormProps) {
           name: content.name ?? "",
           url: content.url ?? "",
         },
-        { parentSchema: "ParcelRoot" }
+        { parentSchema: "ParcelRoot", pin: true }
       );
 
       await geoWebContent.raw.commit(newRoot, {
         ownerId,
         parcelId: assetId,
-        pin: true,
       });
     } catch (err) {
       console.error(err);
