@@ -3236,10 +3236,10 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.5.1.tgz#a64d1af3c62e3bb89576ec58af880980a562bf4e"
   integrity sha512-dZMzN0uAjwJXWYYAcnxIwXqRTZw3o14hGe7O6uhwjD1ZQWPVYA5lASgnNskEBra0knVBsOXB4KXg+HnlKewN/A==
 
-"@geo-web/content@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.3.6.tgz#4492f5c39a98b03825f3819ee0a7d2be313ca59a"
-  integrity sha512-45p576D77H3RXWXCPCKmA/8Kkj/LHm5jyKpWtIJvvWXgIZqZhloCQsczBgHMujXGM4C+TnTvRzSVYIe53ibBgw==
+"@geo-web/content@^0.3.9":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.3.9.tgz#c08cd33ca92dfa598b8bf343912295c1d164b2a4"
+  integrity sha512-/B40ClbbjC3wPBUlKPhHByMWihk/RrSlPo9x0j3LdwnpMGNp+lPZk244IWBw3Ty6ysPmdJCBAX5eUaoJtYMyuQ==
   dependencies:
     "@ceramicnetwork/common" "^2.13.0"
     "@ceramicnetwork/http-client" "^2.10.0"
