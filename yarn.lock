@@ -9366,6 +9366,11 @@ arrify@^1.0.0, arrify@^1.0.1:
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
   integrity sha512-3CYzex9M9FGQjCGMGyi6/31c8GJbgb0qGyrx5HWxPd0aCwh4cB2YjMb2Xf9UuoogrMrlO9cTqnB5rI5GHZTcUA==
 
+as-geo-web-coordinate@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/as-geo-web-coordinate/-/as-geo-web-coordinate-0.8.0.tgz#e78eb925af69cbf7955ddbf63279959004f35d56"
+  integrity sha512-5bR14IdVy+zpsSiO7mMRL3L0zbc3u4iL4tiN4hRIlRdTQpWVzIR+GEEkH5WkL4xcxkxzPkNxuFlGEQ3gUZWwvw==
+
 asap@~2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
@@ -15156,7 +15161,7 @@ ethers@4.0.47:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.5.4, ethers@^5.6.5:
+ethers@>=5.0.0, ethers@^5.0.13, ethers@^5.5.4:
   version "5.6.9"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.9.tgz#4e12f8dfcb67b88ae7a78a9519b384c23c576a4d"
   integrity sha512-lMGC2zv9HC5EC+8r429WaWu3uWJUCgUCt8xxKCFqkrFuBDZXDYIdzDUECxzjf2BMF8IVBByY1EBoGSL3RTm8RA==
@@ -20705,14 +20710,6 @@ jotai@^1.6.2:
   version "1.7.8"
   resolved "https://registry.yarnpkg.com/jotai/-/jotai-1.7.8.tgz#1ac4daa2731e0f8e7fab8abb96aebf94b9dfc1a3"
   integrity sha512-rXwWz6uLqyZUCRzWIPiYTjI1hjskVxVpDN3lBoOHi66z6uQFkFmKwR8YhcQd+Ex4lODlReuKNIx6WwsF9aKy3g==
-
-js-geo-web-coordinate@^0.3.7:
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/js-geo-web-coordinate/-/js-geo-web-coordinate-0.3.7.tgz#08de765ff0703455571f652f60f3fc77443bf5fc"
-  integrity sha512-WAHVk4u2G1dz4QYRfPlINns/YErBcLDcFwxS3203hSYsF3snP/h66GdbpUq6fmwGmnCGYabHUt/oDecKWY9b0Q==
-  dependencies:
-    bn.js "^5.1.3"
-    ethers "^5.6.5"
 
 js-pinning-service-http-client@^1.0.2:
   version "1.0.2"

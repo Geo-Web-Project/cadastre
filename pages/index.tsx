@@ -1,5 +1,5 @@
 import Home from "../components/Home";
-import Map, { STATE } from "../components/Map";
+import Map, { STATE, GeoWebCoordinate } from "../components/Map";
 import Profile from "../components/profile/Profile";
 import FairLaunchCountdown from "../components/FairLaunchCountdown";
 import FairLaunchHeader from "../components/FairLaunchHeader";
@@ -50,16 +50,19 @@ function getLibrary(provider: any) {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] =
-    React.useState<Contracts["registryDiamondContract"] | null>(null);
+  const [registryContract, setRegistryContract] = React.useState<
+    Contracts["registryDiamondContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -84,6 +87,8 @@ function IndexPage() {
   );
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
+  const [geoWebCoordinate, setGeoWebCoordinate] =
+    React.useState<GeoWebCoordinate>();
   const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
 
   const { chain } = useNetwork();
@@ -141,6 +146,10 @@ function IndexPage() {
         NETWORK_ID,
         new ethers.providers.JsonRpcProvider(RPC_URLS[NETWORK_ID], NETWORK_ID)
       );
+      // eslint-disable-next-line import/no-unresolved
+      import("as-geo-web-coordinate").then((geoWebCoordinate) => {
+        setGeoWebCoordinate(geoWebCoordinate);
+      });
 
       setRegistryContract(registryDiamondContract);
 
@@ -399,6 +408,7 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         geoWebContent &&
+        geoWebCoordinate &&
         firebasePerf &&
         sfFramework ? (
           <Row>
@@ -409,6 +419,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               geoWebContent={geoWebContent}
+              geoWebCoordinate={geoWebCoordinate}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}

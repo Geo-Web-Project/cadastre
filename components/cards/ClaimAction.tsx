@@ -1,14 +1,12 @@
 import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
-import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import BN from "bn.js";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { GW_MAX_LAT, GW_MAX_LON } from "../Map";
 
 export type ClaimActionProps = SidebarProps & {
   perSecondFeeNumerator: BigNumber;
@@ -25,6 +23,7 @@ export type ClaimActionProps = SidebarProps & {
 
 function ClaimAction(props: ClaimActionProps) {
   const {
+    geoWebCoordinate,
     account,
     claimBase1Coord,
     claimBase2Coord,
@@ -102,11 +101,9 @@ function ClaimAction(props: ClaimActionProps) {
     const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
     const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
     const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
-    const swCoord = GeoWebCoordinate.fromXandY(
+    const swCoord = geoWebCoordinate.make_gw_coord(
       swX,
       swY,
-      GW_MAX_LON,
-      GW_MAX_LAT
     );
 
     if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {

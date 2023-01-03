@@ -9,10 +9,7 @@ import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
 import GridSource, { Grid } from "./sources/GridSource";
-import ParcelSource, {
-  coordToPolygon,
-  parcelsToMultiPoly,
-} from "./sources/ParcelSource";
+import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
@@ -30,14 +27,15 @@ import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
 
-import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import type { Point, MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM = 100;
-export const GW_MAX_LAT = 22;
-export const GW_MAX_LON = 23;
+export const GW_CELL_SIZE_LAT = 23;
+export const GW_CELL_SIZE_LON = 24;
+export const GW_MAX_LAT = (1 << (GW_CELL_SIZE_LAT - 1)) - 1;
+export const GW_MAX_LON = (1 << (GW_CELL_SIZE_LON - 1)) - 1;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 0.025;
 export const LON_OFFSET = 0.00062;
@@ -74,6 +72,14 @@ export interface GeoWebParcel {
   coordinates: number[];
 }
 
+export interface GeoWebCoordinate {
+  from_gps: (lon: number, lat: number, maxLat: number) => bigint;
+  to_gps: (gwCoord: bigint, maxLat: number, maxLon: number) => number[][];
+  get_x: (gwCoord: bigint) => number;
+  get_y: (gwCoord: bigint) => number;
+  make_gw_coord: (x: number, y: number) => bigint;
+}
+
 const query = gql`
   query Polygons(
     $lastBlock: BigInt
@@ -104,55 +110,22 @@ const query = gql`
   }
 `;
 
-function updateGrid(
-  lat: number,
-  lon: number,
-  oldGrid: Grid | null,
-  setGrid: React.Dispatch<React.SetStateAction<Grid | null>>
-) {
-  const gwCoord = GeoWebCoordinate.fromGPS(lon, lat, GW_MAX_LON, GW_MAX_LAT);
-  const x = gwCoord.getX().toNumber();
-  const y = gwCoord.getY().toNumber();
-
-  if (
-    oldGrid != null &&
-    Math.abs(oldGrid.center.x - x) < GRID_DIM / 2 &&
-    Math.abs(oldGrid.center.y - y) < GRID_DIM / 2
-  ) {
-    return;
-  }
-
-  const features = [];
-  for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
-    for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
-      features.push(
-        coordToFeature(
-          GeoWebCoordinate.fromXandY(_x, _y, GW_MAX_LON, GW_MAX_LAT)
-        )
-      );
-    }
-  }
-
-  setGrid({
-    center: {
-      x: x,
-      y: y,
-    },
-    features: features,
-  });
-}
-
-export function coordToFeature(gwCoord: GeoWebCoordinate): GeoJSON.Feature {
+export function coordToFeature(
+  gwCoord: bigint,
+  coords: number[][],
+  gwCoordX: number,
+  gwCoordY: number
+): GeoJSON.Feature {
   return {
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [gwCoord.toGPS()],
+      coordinates: [coords],
     },
     properties: {
-      gwCoord: parseInt(gwCoord.toString()).toString(16),
-      gwCoordX: gwCoord.getX().toNumber(),
-      gwCoordY: gwCoord.getY().toNumber(),
+      gwCoord: gwCoord.toString(),
+      gwCoordX: gwCoordX,
+      gwCoordY: gwCoordY,
     },
   };
 }
@@ -178,6 +151,7 @@ export type MapProps = {
   ceramic: CeramicClient;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
+  geoWebCoordinate: GeoWebCoordinate;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
@@ -207,6 +181,7 @@ const mapStyleUrlByName: Record<MapStyleName, string> = {
 
 function Map(props: MapProps) {
   const {
+    geoWebCoordinate,
     selectedParcelId,
     setSelectedParcelId,
     interactionState,
@@ -266,8 +241,9 @@ function Map(props: MapProps) {
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
   const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
-  const [interactiveLayerIds, setInteractiveLayerIds] =
-    React.useState<string[]>([]);
+  const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
+    string[]
+  >([]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
   const [newParcel, setNewParcel] = React.useState<{
     id: string;
@@ -328,6 +304,50 @@ function Map(props: MapProps) {
     []
   );
 
+  function updateGrid(
+    lat: number,
+    lon: number,
+    oldGrid: Grid | null,
+    setGrid: React.Dispatch<React.SetStateAction<Grid | null>>
+  ) {
+    const gwCoord = geoWebCoordinate.from_gps(lon, lat, GW_MAX_LAT);
+    const x = geoWebCoordinate.get_x(gwCoord);
+    const y = geoWebCoordinate.get_y(gwCoord);
+
+    if (
+      oldGrid != null &&
+      Math.abs(oldGrid.center.x - x) < GRID_DIM / 2 &&
+      Math.abs(oldGrid.center.y - y) < GRID_DIM / 2
+    ) {
+      return;
+    }
+
+    const features = [];
+    for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
+      for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
+        const gwCoord = geoWebCoordinate.make_gw_coord(_x, _y);
+        const coords = geoWebCoordinate.to_gps(gwCoord, GW_MAX_LAT, GW_MAX_LON);
+        const gwCoordX = geoWebCoordinate.get_x(gwCoord);
+        const gwCoordY = geoWebCoordinate.get_y(gwCoord);
+
+        features.push(coordToFeature(gwCoord, coords, gwCoordX, gwCoordY));
+      }
+    }
+
+    setGrid({
+      center: {
+        x: x,
+        y: y,
+      },
+      features: features,
+    });
+  }
+
+  function coordToPolygon(gwCoord: bigint): Polygon {
+    const coords = geoWebCoordinate.to_gps(gwCoord, GW_MAX_LAT, GW_MAX_LON);
+    return turf.polygon([[...coords, coords[0]]]).geometry;
+  }
+
   function _fetchMoreParcels() {
     if (data == null || viewport == null || mapRef.current == null) {
       return;
@@ -382,7 +402,7 @@ function Map(props: MapProps) {
     if (
       (interactionState == STATE.CLAIM_SELECTING ||
         interactionState == STATE.CLAIM_SELECTED) &&
-      nextViewport.zoom >= ZOOM_GRID_LEVEL
+      nextViewport.zoom >= ZOOM_GRID_LEVEL + 1
     ) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
       setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
@@ -433,10 +453,9 @@ function Map(props: MapProps) {
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties?.parcelId);
       } else {
-        const gwCoord = GeoWebCoordinate.fromGPS(
+        const gwCoord = geoWebCoordinate.from_gps(
           event.lngLat.lng,
           event.lngLat.lat,
-          GW_MAX_LON,
           GW_MAX_LAT
         );
 
@@ -494,10 +513,9 @@ function Map(props: MapProps) {
         setInteractionState(STATE.PARCEL_SELECTED);
         return true;
       } else {
-        const gwCoord = GeoWebCoordinate.fromGPS(
+        const gwCoord = geoWebCoordinate.from_gps(
           event.lngLat.lng,
           event.lngLat.lat,
-          GW_MAX_LON,
           GW_MAX_LAT
         );
 
@@ -508,16 +526,14 @@ function Map(props: MapProps) {
 
       return false;
     }
-
-    const gwCoord = GeoWebCoordinate.fromGPS(
+    const gwCoord = geoWebCoordinate.from_gps(
       event.lngLat.lng,
       event.lngLat.lat,
-      GW_MAX_LON,
       GW_MAX_LAT
     );
     const coord = {
-      x: gwCoord.getX().toNumber(),
-      y: gwCoord.getY().toNumber(),
+      x: geoWebCoordinate.get_x(gwCoord),
+      y: geoWebCoordinate.get_y(gwCoord),
     };
 
     switch (interactionState) {
@@ -670,6 +686,7 @@ function Map(props: MapProps) {
             invalidLicenseId={invalidLicenseId}
           ></ParcelSource>
           <ClaimSource
+            geoWebCoordinate={geoWebCoordinate}
             existingMultiPoly={existingMultiPoly}
             claimBase1Coord={claimBase1Coord}
             claimBase2Coord={claimBase2Coord}
