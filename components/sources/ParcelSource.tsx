@@ -8,13 +8,7 @@ import {
   parcelInvalidLayer,
 } from "../map-style";
 import type { Polygon, MultiPolygon, Position } from "@turf/turf";
-import { GeoWebCoordinate } from "js-geo-web-coordinate";
 import * as turf from "@turf/turf";
-
-export function coordToPolygon(gwCoord: GeoWebCoordinate): Polygon {
-  const coords = gwCoord.toGPS();
-  return turf.polygon([[...coords, coords[0]]]).geometry;
-}
 
 export function parcelsToMultiPoly(data: PolygonQuery): MultiPolygon | Polygon {
   const polygons: (MultiPolygon | Polygon)[] =
