@@ -1,5 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
 import ReactMapGL, { NavigationControl } from "react-map-gl";
@@ -250,6 +251,8 @@ function Map(props: MapProps) {
     timerId: number | null;
   }>({ id: "", timerId: null });
 
+  const router = useRouter();
+
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
     (interactionState == STATE.CLAIM_SELECTING ||
@@ -391,6 +394,26 @@ function Map(props: MapProps) {
 
     setOldCoord(mapBounds.getCenter());
     setInteractiveLayerIds(["parcels-layer"]);
+
+    const { query } = router;
+
+    if (query.longitude && query.latitude && query.id) {
+      flyToLocation({
+        longitude: Number(query.longitude) + LON_OFFSET,
+        latitude: Number(query.latitude) + LAT_OFFSET,
+        zoom: ZOOM_GRID_LEVEL + 1,
+        duration: 500,
+      });
+
+      setSelectedParcelId(
+        typeof query.id === "string" ? query.id : query.id[0]
+      );
+      setInteractionState(STATE.PARCEL_SELECTED);
+      setSelectedParcelCoords({
+        x: Number(query.longitude),
+        y: Number(query.latitude),
+      });
+    }
   }
 
   function _onMove(nextViewport: ViewState) {
@@ -672,6 +695,8 @@ function Map(props: MapProps) {
           interactiveLayerIds={interactiveLayerIds}
           projection="globe"
           fog={{}}
+          dragRotate={false}
+          touchZoomRotate={false}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
           onMouseMove={_onMouseMove}
