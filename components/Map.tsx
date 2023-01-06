@@ -39,8 +39,8 @@ export const GW_MAX_LAT = (1 << (GW_CELL_SIZE_LAT - 1)) - 1;
 export const GW_MAX_LON = (1 << (GW_CELL_SIZE_LON - 1)) - 1;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 0.025;
-export const LON_OFFSET = 0.00062;
-export const LAT_OFFSET = 0.0001;
+const LON_OFFSET = 0.00065;
+const LAT_OFFSET = 0.0001;
 
 export enum STATE {
   VIEWING = 0,
@@ -399,9 +399,9 @@ function Map(props: MapProps) {
 
     if (query.longitude && query.latitude && query.id) {
       flyToLocation({
-        longitude: Number(query.longitude) + LON_OFFSET,
-        latitude: Number(query.latitude) + LAT_OFFSET,
-        zoom: ZOOM_GRID_LEVEL + 1,
+        longitude: Number(query.longitude) + LON_OFFSET * 2,
+        latitude: Number(query.latitude) + LAT_OFFSET * 2,
+        zoom: ZOOM_GRID_LEVEL,
         duration: 500,
       });
 
@@ -649,9 +649,9 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (portfolioParcelCenter) {
       flyToLocation({
-        longitude: portfolioParcelCenter.coordinates[0] + LON_OFFSET,
-        latitude: portfolioParcelCenter.coordinates[1] + LAT_OFFSET,
-        zoom: ZOOM_GRID_LEVEL + 1,
+        longitude: portfolioParcelCenter.coordinates[0] + LON_OFFSET * 2,
+        latitude: portfolioParcelCenter.coordinates[1] + LAT_OFFSET * 2,
+        zoom: ZOOM_GRID_LEVEL,
         duration: 500,
       });
 
