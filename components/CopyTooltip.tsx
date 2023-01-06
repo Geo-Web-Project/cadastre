@@ -36,8 +36,8 @@ function CopyTooltip(props: CopyTooltipProps) {
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const handleOnMouseEnter = () => setShowTooltip(true);
-  const handleOnMouseLeave = () => {
+  const handleMouseEnter = () => setShowTooltip(true);
+  const handleMouseLeave = () => {
     if (!copied) {
       setShowTooltip(false);
     }
@@ -72,10 +72,10 @@ function CopyTooltip(props: CopyTooltipProps) {
       }
     >
       <Button
-        className="bg-transparent border-0 shadow-none"
-        onMouseEnter={handleOnMouseEnter}
-        onMouseLeave={handleOnMouseLeave}
-        onClick={() => handleClick()}
+        className="p-0 bg-transparent border-0 shadow-none"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
       >
         {target}
       </Button>

@@ -34,7 +34,7 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
   }, []);
 
   return (
-    <div className="bg-gray rounded d-flex align-items-center">
+    <div className="bg-gray rounded d-flex justify-content-around">
       <CopyTooltip
         contentClick="Copied"
         contentHover="Copy Address"

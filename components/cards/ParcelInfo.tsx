@@ -440,7 +440,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 ) : null}
               </p>
             </Col>
-            <Col className="d-flex align-items-center text-end pt-2 mx-2">
+            <Col className="d-flex justify-content-end gap-2 text-end pt-2 mx-2">
               <OverlayTrigger
                 key="top"
                 placement="top"
@@ -455,13 +455,13 @@ function ParcelInfo(props: ParcelInfoProps) {
                   href={spatialURL}
                   target="_blank"
                 >
-                  <Image width={42} src="open-in-browser.svg" />
+                  <Image width={32} src="open-in-browser.svg" />
                 </Button>
               </OverlayTrigger>
               <CopyTooltip
                 contentClick="Link Copied"
                 contentHover="Copy link to Parcel"
-                target={<Image src="link.svg" />}
+                target={<Image className="me-1" width={36} src="link.svg" />}
                 handleCopy={copyParcelLink}
               />
             </Col>
