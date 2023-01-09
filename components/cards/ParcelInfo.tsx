@@ -17,6 +17,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CID from "cids";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import CopyTooltip from "../CopyTooltip";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
 import ReclaimAction from "./ReclaimAction";
@@ -124,8 +125,9 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<Date | null>(null);
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
-  const [queryTimerId, setQueryTimerId] =
-    React.useState<NodeJS.Timer | null>(null);
+  const [queryTimerId, setQueryTimerId] = React.useState<NodeJS.Timer | null>(
+    null
+  );
 
   const { parcelContent, setShouldParcelContentUpdate } = useBasicProfile(
     geoWebContent,
@@ -172,6 +174,20 @@ function ParcelInfo(props: ParcelInfoProps) {
       ? BigNumber.from(data.geoWebParcel.pendingBid.timestamp)
       : null;
   const licenseDiamondAddress = data?.geoWebParcel?.licenseDiamond;
+
+  function copyParcelLink() {
+    if (!selectedParcelCoords) {
+      return;
+    }
+
+    const parcelLink = new URL(window.location.origin);
+
+    parcelLink.searchParams.set("latitude", selectedParcelCoords.y.toString());
+    parcelLink.searchParams.set("longitude", selectedParcelCoords.x.toString());
+    parcelLink.searchParams.set("id", selectedParcelId);
+
+    navigator.clipboard.writeText(parcelLink.href);
+  }
 
   React.useEffect(() => {
     const loadLicenseDiamond = async () => {
@@ -424,7 +440,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 ) : null}
               </p>
             </Col>
-            <Col className="text-end pt-2 mx-2">
+            <Col className="d-flex justify-content-end gap-2 text-end pt-2 mx-2">
               <OverlayTrigger
                 key="top"
                 placement="top"
@@ -435,13 +451,19 @@ function ParcelInfo(props: ParcelInfoProps) {
                 <Button
                   variant="link"
                   size="sm"
-                  className="text-right"
+                  className="text-right shadow-none"
                   href={spatialURL}
                   target="_blank"
                 >
-                  <Image src="open-in-browser.svg" />
+                  <Image width={32} src="open-in-browser.svg" />
                 </Button>
               </OverlayTrigger>
+              <CopyTooltip
+                contentClick="Link Copied"
+                contentHover="Copy link to Parcel"
+                target={<Image className="me-1" width={36} src="link.svg" />}
+                handleCopy={copyParcelLink}
+              />
             </Col>
           </Row>
         </div>
