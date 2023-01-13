@@ -11,7 +11,6 @@ export const calculateRequiredBid = (
   endingBid: BigNumber
 ) => {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
-  console.log(blockTimestamp.toString(), auctionEnd.toString());
   if (blockTimestamp.gt(auctionEnd)) {
     return endingBid;
   }
