@@ -11,13 +11,17 @@ export const calculateRequiredBid = (
   endingBid: BigNumber
 ) => {
   const blockTimestamp = BigNumber.from(Math.floor(Date.now() / 1000));
+  console.log(blockTimestamp.toString(), auctionEnd.toString());
   if (blockTimestamp.gt(auctionEnd)) {
     return endingBid;
   }
 
   const timeElapsed = blockTimestamp.sub(auctionStart);
   const auctionDuration = auctionEnd.sub(auctionStart);
-  const priceDecrease = startingBid.mul(timeElapsed).div(auctionDuration);
+  const priceDecrease = startingBid
+    .sub(endingBid)
+    .mul(timeElapsed)
+    .div(auctionDuration);
 
   return startingBid.sub(priceDecrease);
 };
