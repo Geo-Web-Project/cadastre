@@ -407,6 +407,7 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         geoWebContent &&
+        web3Storage &&
         geoWebCoordinate &&
         firebasePerf &&
         sfFramework ? (
