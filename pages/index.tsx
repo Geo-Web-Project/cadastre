@@ -50,19 +50,16 @@ function getLibrary(provider: any) {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -86,6 +83,7 @@ function IndexPage() {
     BigNumber.from(0)
   );
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
+  const [web3Storage, setWeb3Storage] = React.useState<Web3Storage>();
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
@@ -271,6 +269,7 @@ function IndexPage() {
     });
 
     setGeoWebContent(geoWebContent);
+    setWeb3Storage(web3Storage);
   }, [ceramic, ipfs]);
 
   const Connector = () => {
@@ -408,6 +407,7 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         geoWebContent &&
+        web3Storage &&
         geoWebCoordinate &&
         firebasePerf &&
         sfFramework ? (
@@ -419,6 +419,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               geoWebContent={geoWebContent}
+              web3Storage={web3Storage}
               geoWebCoordinate={geoWebCoordinate}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}

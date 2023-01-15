@@ -38,11 +38,11 @@ function GalleryForm(props: GalleryFormProps) {
     licenseAddress,
     selectedParcelId,
     geoWebContent,
+    web3Storage,
     ceramic,
     mediaGalleryItems,
     selectedMediaGalleryItemIndex,
     setSelectedMediaGalleryItemIndex,
-    ipfs,
     setShouldMediaGalleryUpdate,
     setRootCid,
   } = props;
@@ -122,11 +122,11 @@ function GalleryForm(props: GalleryFormProps) {
     const { encoding } = format;
     setFileFormat(encoding ?? null);
 
-    // Add to IPFS
-    const added = await ipfs.add(file);
+    // Upload to Web3 storage
+    const added = await web3Storage.put([file], { wrapWithDirectory: false });
 
     updateMediaGalleryItem({
-      content: added.cid.toString(),
+      content: added,
       encodingFormat: encoding,
     });
 

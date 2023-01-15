@@ -27,6 +27,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
+import { Web3Storage } from "web3.storage";
 
 import type { Point, MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
@@ -152,6 +153,7 @@ export type MapProps = {
   ceramic: CeramicClient;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
+  web3Storage: Web3Storage;
   geoWebCoordinate: GeoWebCoordinate;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
