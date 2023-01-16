@@ -11,6 +11,11 @@ const galleryFileFormats: Format[] = [
   { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" },
 ];
 
+const galleryFileFormats3D: Format[] = [
+  { extension: ".glb", encoding: "model/gltf-binary", type: "3DModel" },
+  { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" },
+];
+
 type Format = {
   encoding?: string;
   type?: string;
@@ -38,6 +43,13 @@ const getFormatCS = () => {
   return _formats.toString();
 };
 
+const getFormatCS3D = () => {
+  const _formats = galleryFileFormats3D.map((f) => {
+    return f.extension;
+  });
+  return _formats.toString();
+};
+
 const getFormatType = (encoding: string) => {
   const _type = galleryFileFormats.filter((f) => {
     return f.encoding === encoding;
@@ -45,4 +57,11 @@ const getFormatType = (encoding: string) => {
   return _type[0]["type"];
 };
 
-export { galleryFileFormats, getFormat, getFormatCS, getFormatType };
+export {
+  galleryFileFormats,
+  galleryFileFormats3D,
+  getFormat,
+  getFormatCS,
+  getFormatCS3D,
+  getFormatType,
+};
