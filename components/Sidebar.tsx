@@ -34,6 +34,7 @@ function Sidebar(props: SidebarProps) {
     interactionState,
     setInteractionState,
     parcelClaimSize,
+    selectedParcelId,
     selectedParcelCoords,
     auctionStart,
     auctionEnd,
@@ -105,6 +106,7 @@ function Sidebar(props: SidebarProps) {
           parcelFieldsToUpdate={parcelFieldsToUpdate}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
           licenseAddress={registryContract.address}
+          key={selectedParcelId}
         ></ParcelInfo>
       ) : null}
       {interactionState == STATE.CLAIM_SELECTING ? (
