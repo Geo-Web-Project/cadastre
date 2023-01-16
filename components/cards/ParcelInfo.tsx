@@ -417,7 +417,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           <Row>
             <Col className="mx-3" sm="10">
               <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-                {!data
+                {parcelContent === null
                   ? spinner
                   : parcelContent?.name
                   ? parcelContent.name

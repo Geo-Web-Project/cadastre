@@ -49,7 +49,7 @@ function useBasicProfile(
         setParcelContent(_parcelContent);
         setShouldParcelContentUpdate(false);
       } catch (err) {
-        setParcelContent(null);
+        setParcelContent({});
         setShouldParcelContentUpdate(false);
         console.error(err);
       }
