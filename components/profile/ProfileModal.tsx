@@ -831,12 +831,9 @@ function ProfileModal(props: ProfileModalProps) {
                   : "Unwrap"}
               </Button>
             </Form>
-            {!isOutOfBalanceUnwrap &&
-              unwrappingAmount !== "" &&
-              Number(paymentTokenBalance) - Number(unwrappingAmount) <
-                0.001 && (
-                <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
-              )}
+            {unwrappingError && (
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
+            )}
           </Col>
         </Row>
         <Row className="mt-3 ps-3 fs-1">Portfolio</Row>
