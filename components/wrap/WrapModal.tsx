@@ -29,6 +29,8 @@ function WrapModal({
 }: WrapModalProps) {
   const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
+  const [amount, setAmount] = React.useState<string>("");
+  const [error, setError] = React.useState<string>("");
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
@@ -37,6 +39,9 @@ function WrapModal({
       token: paymentToken.address,
     },
   });
+
+  const isOutOfBalance =
+    amount !== "" && ETHBalance !== "" && Number(amount) > Number(ETHBalance);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -61,22 +66,37 @@ function WrapModal({
   }, [provider, account]);
 
   const wrapETH = async (amount: string) => {
-    const txn = await paymentToken
-      .upgrade({
-        amount: ethers.utils.parseEther(amount).toString(),
-      })
-      .exec(provider.getSigner());
-
-    setIsWrapping(true);
-
     try {
+      const txn = await paymentToken
+        .upgrade({
+          amount: ethers.utils.parseEther(amount).toString(),
+        })
+        .exec(provider.getSigner());
+
+      setIsWrapping(true);
+
       await txn.wait();
       // Wrap ETHx successfully!
       const ethBalance = await getETHBalance(provider, account);
       // Update balances
       setETHBalance(ethBalance);
-    } catch (error) {
-      console.error(error);
+      setError("");
+    } catch (err) {
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        setError(
+          (err as any).reason
+            ? (err as any).reason
+                .replace("execution reverted: ", "")
+                .replace(/([^.])$/, "$1.")
+            : (err as Error).message
+        );
+        console.error(err);
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
     setIsWrapping(false);
@@ -85,15 +105,13 @@ function WrapModal({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSubmit = (e: any) => {
     e.preventDefault();
-    const amount = Number(e.target[0].value);
 
-    if (amount <= Number(ETHBalance)) {
-      if (!Number.isNaN(amount) && amount > 0) {
+    if (Number(amount) <= Number(ETHBalance)) {
+      if (!Number.isNaN(amount) && Number(amount) > 0) {
         console.log("amount is valid", amount);
         (async () => {
-          await wrapETH(amount.toString());
-          const form = document.getElementById("wrapForm") as HTMLFormElement;
-          form.reset();
+          await wrapETH(amount);
+          setAmount("");
         })();
       }
     }
@@ -157,14 +175,11 @@ function WrapModal({
         style={{ position: "relative" }}
       >
         <form
-          id="wrapForm"
           className="form-inline d-flex align-items-center"
           noValidate
           onSubmit={onSubmit}
         >
-          <label className="visually-hidden" htmlFor="amount">
-            Amount
-          </label>
+          <label className="visually-hidden">Amount</label>
           <input
             required
             autoFocus
@@ -177,17 +192,32 @@ function WrapModal({
               left: "16px",
               width: "auto",
             }}
-            id="amount"
             placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
           />
           <Button
             type="submit"
+            variant={isOutOfBalance ? "info" : "primary"}
             className="btn btn-primary mb-2"
-            disabled={isWrapping}
+            disabled={isWrapping || isOutOfBalance}
           >
-            {isWrapping ? "Wrapping..." : `Wrap ETH to ${PAYMENT_TOKEN}`}
+            {isWrapping
+              ? "Wrapping..."
+              : isOutOfBalance
+              ? "Insufficient ETH"
+              : `Wrap ETH to ${PAYMENT_TOKEN}`}
           </Button>
         </form>
+        {!isOutOfBalance &&
+        amount &&
+        Number(ETHBalance) - Number(amount) <= 0.001 ? (
+          <span className="d-inline-block w-100 px-1 me-0 text-danger">
+            Warning: Leave enough ETH for more transactions
+          </span>
+        ) : error ? (
+          <span className="d-inline-block w-100 px-1 me-0 text-danger">{`Error: ${error}`}</span>
+        ) : null}
       </Modal.Footer>
     </Modal>
   );

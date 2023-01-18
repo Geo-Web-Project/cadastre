@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
+import Card from "react-bootstrap/Card";
 import { useSigner } from "wagmi";
 import CopyTooltip from "./CopyTooltip";
 import { truncateStr } from "../lib/truncate";
@@ -34,33 +35,35 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
   }, []);
 
   return (
-    <div className="bg-gray rounded d-flex justify-content-around">
-      <CopyTooltip
-        contentClick="Copied"
-        contentHover="Copy Address"
-        target={
-          <div className="d-flex align-items-center">
-            <Image style={{ width: "16px" }} src="/eth.png" alt="eth" />
-            <span
-              className={`text-black ${
-                options.size === "small" ? "px-1 small" : "px-2"
-              }`}
-            >
-              {truncateStr(options.address, 16)}
-            </span>
-            <Image style={{ width: "16px" }} src="/copy.svg" alt="copy" />
-          </div>
-        }
-        handleCopy={copyAddress}
-      />
-      <Button
-        className={`bg-transparent border-0 ${
-          options.size === "small" ? "px-1" : "px-2"
-        }`}
-        onClick={addToMetaMask}
-      >
-        <Image style={{ width: "16px" }} src="/MetaMask.png" alt="metamask" />
-      </Button>
-    </div>
+    <Card className="bg-gray rounded me-lg-3 me-xl-0">
+      <Card.Body className="d-flex justify-content-around flex-wrap p-0">
+        <CopyTooltip
+          contentClick="Copied"
+          contentHover="Copy Address"
+          target={
+            <div className="d-flex flex-shrink-1 align-items-center">
+              <Image className="me-lg-1 me-xl-0" width={16} src="/eth.png" alt="eth" />
+              <span
+                className={`d-none d-xl-block text-black text-break ${
+                  options.size === "small" ? "px-1 small" : "px-2"
+                }`}
+              >
+                {truncateStr(options.address, 16)}
+              </span>
+              <Image width={16} src="/copy.svg" alt="copy" />
+            </div>
+          }
+          handleCopy={copyAddress}
+        />
+        <Button
+          className={`bg-transparent border-0 ${
+            options.size === "small" ? "px-1" : "px-2"
+          }`}
+          onClick={addToMetaMask}
+        >
+          <Image width={16} src="/MetaMask.png" alt="metamask" />
+        </Button>
+      </Card.Body>
+    </Card>
   );
 };
