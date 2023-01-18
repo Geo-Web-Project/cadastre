@@ -680,6 +680,10 @@ function ProfileModal(props: ProfileModalProps) {
       keyboard={false}
       centered
       onHide={handleCloseProfile}
+      onExit={() => {
+        setWrappingError("");
+        setUnwrappingError("");
+      }}
       size="xl"
       contentClassName="bg-dark"
     >
