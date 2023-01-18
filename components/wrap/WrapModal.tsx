@@ -80,6 +80,7 @@ function WrapModal({
       const ethBalance = await getETHBalance(provider, account);
       // Update balances
       setETHBalance(ethBalance);
+      setAmount("");
       setError("");
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -111,7 +112,6 @@ function WrapModal({
         console.log("amount is valid", amount);
         (async () => {
           await wrapETH(amount);
-          setAmount("");
         })();
       }
     }

@@ -599,10 +599,8 @@ function ProfileModal(props: ProfileModalProps) {
 
     if (action === SuperTokenAction.WRAP) {
       setIsWrapping(false);
-      setWrappingAmount("");
     } else if (action === SuperTokenAction.UNWRAP) {
       setIsUnwrapping(false);
-      setUnwrappingAmount("");
     }
   };
 
