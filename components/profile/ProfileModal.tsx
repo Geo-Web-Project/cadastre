@@ -768,7 +768,7 @@ function ProfileModal(props: ProfileModalProps) {
               </Button>
             </Form>
             {!isOutOfBalanceWrap &&
-            wrappingAmount &&
+            wrappingAmount !== "" &&
             Number(ETHBalance) - Number(wrappingAmount) <= 0.001 ? (
               <span className="d-inline-block text-danger m-0 mt-1 ms-3">
                 Warning: Leave enough ETH for more transactions
@@ -832,14 +832,11 @@ function ProfileModal(props: ProfileModalProps) {
               </Button>
             </Form>
             {!isOutOfBalanceUnwrap &&
-            unwrappingAmount &&
-            Number(paymentTokenBalance) - Number(unwrappingAmount) <= 0.001 ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">
-                {`Warning: Leave enough ${PAYMENT_TOKEN} for more transactions`}
-              </span>
-            ) : unwrappingError ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
-            ) : null}
+              unwrappingAmount !== "" &&
+              Number(paymentTokenBalance) - Number(unwrappingAmount) <=
+                0.001 && (
+                <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
+              )}
           </Col>
         </Row>
         <Row className="mt-3 ps-3 fs-1">Portfolio</Row>

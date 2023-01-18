@@ -210,7 +210,7 @@ function WrapModal({
           </Button>
         </form>
         {!isOutOfBalance &&
-        amount &&
+        amount !== "" &&
         Number(ETHBalance) - Number(amount) <= 0.001 ? (
           <span className="d-inline-block w-100 px-1 me-0 text-danger">
             Warning: Leave enough ETH for more transactions
