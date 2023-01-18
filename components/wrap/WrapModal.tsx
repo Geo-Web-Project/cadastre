@@ -194,7 +194,10 @@ function WrapModal({
             }}
             placeholder="0.00"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setError("");
+            }}
           />
           <Button
             type="submit"
@@ -209,14 +212,14 @@ function WrapModal({
               : `Wrap ETH to ${PAYMENT_TOKEN}`}
           </Button>
         </form>
-        {!isOutOfBalance &&
-        amount !== "" &&
-        Number(ETHBalance) - Number(amount) < 0.001 ? (
+        {error ? (
+          <span className="d-inline-block w-100 px-1 me-0 text-danger">{`Error: ${error}`}</span>
+        ) : !isOutOfBalance &&
+          amount !== "" &&
+          Number(ETHBalance) - Number(amount) < 0.001 ? (
           <span className="d-inline-block w-100 px-1 me-0 text-danger">
             Warning: Leave enough ETH for more transactions
           </span>
-        ) : error ? (
-          <span className="d-inline-block w-100 px-1 me-0 text-danger">{`Error: ${error}`}</span>
         ) : null}
       </Modal.Footer>
     </Modal>

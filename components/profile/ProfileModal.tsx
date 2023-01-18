@@ -753,7 +753,10 @@ function ProfileModal(props: ProfileModalProps) {
                 placeholder="0.00"
                 size="sm"
                 value={wrappingAmount}
-                onChange={(e) => setWrappingAmount(e.target.value)}
+                onChange={(e) => {
+                  setWrappingAmount(e.target.value);
+                  setWrappingError("");
+                }}
               />
               <Button
                 variant={isOutOfBalanceWrap ? "info" : "secondary"}
@@ -769,14 +772,14 @@ function ProfileModal(props: ProfileModalProps) {
                   : "Wrap"}
               </Button>
             </Form>
-            {!isOutOfBalanceWrap &&
-            wrappingAmount !== "" &&
-            Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
+            {wrappingError ? (
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
+            ) : !isOutOfBalanceWrap &&
+              wrappingAmount !== "" &&
+              Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
               <span className="d-inline-block text-danger m-0 mt-1 ms-3">
                 Warning: Leave enough ETH for more transactions
               </span>
-            ) : wrappingError ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
             ) : null}
           </Col>
           <Col
@@ -817,7 +820,10 @@ function ProfileModal(props: ProfileModalProps) {
                 placeholder="0.00"
                 size="sm"
                 value={unwrappingAmount}
-                onChange={(e) => setUnwrappingAmount(e.target.value)}
+                onChange={(e) => {
+                  setUnwrappingAmount(e.target.value);
+                  setUnwrappingError("");
+                }}
               />
               <Button
                 variant={isOutOfBalanceUnwrap ? "info" : "primary"}
