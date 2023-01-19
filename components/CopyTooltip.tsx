@@ -24,7 +24,7 @@ const UpdatingTooltip = forwardRef(function UpdatingTooltip(
   }
 
   return (
-    <Tooltip ref={ref} body {...props}>
+    <Tooltip ref={ref} {...props}>
       {children}
     </Tooltip>
   );

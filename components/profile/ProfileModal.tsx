@@ -37,6 +37,7 @@ import {
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import { STATE } from "../Map";
@@ -189,6 +190,10 @@ function ProfileModal(props: ProfileModalProps) {
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string>("");
+  const [wrappingAmount, setWrappingAmount] = useState<string>("");
+  const [unwrappingAmount, setUnwrappingAmount] = useState<string>("");
+  const [wrappingError, setWrappingError] = useState<string>("");
+  const [unwrappingError, setUnwrappingError] = useState<string>("");
   const [isWrapping, setIsWrapping] = useState<boolean>(false);
   const [isUnWrapping, setIsUnwrapping] = useState<boolean>(false);
   const [portfolio, setPortfolio] = useState<PortfolioParcel[]>([]);
@@ -203,6 +208,20 @@ function ProfileModal(props: ProfileModalProps) {
     },
   });
 
+  const { superTokenBalance } = useSuperTokenBalance(
+    account,
+    paymentToken.address
+  );
+
+  const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
+  const isOutOfBalanceWrap =
+    wrappingAmount !== "" &&
+    ETHBalance !== "" &&
+    Number(wrappingAmount) > Number(ETHBalance);
+  const isOutOfBalanceUnwrap =
+    unwrappingAmount !== "" &&
+    paymentTokenBalance !== "" &&
+    Number(unwrappingAmount) > Number(paymentTokenBalance);
   useEffect(() => {
     let isMounted = true;
 
@@ -518,25 +537,25 @@ function ProfileModal(props: ProfileModalProps) {
   ): Promise<void> => {
     let txn: ethers.providers.TransactionResponse | null = null;
 
-    if (action === SuperTokenAction.WRAP) {
-      txn = await paymentToken
-        .upgrade({
-          amount: ethers.utils.parseEther(amount).toString(),
-        })
-        .exec(provider.getSigner());
-
-      setIsWrapping(true);
-    } else if (action === SuperTokenAction.UNWRAP) {
-      txn = await paymentToken
-        .downgrade({
-          amount: ethers.utils.parseEther(amount).toString(),
-        })
-        .exec(provider.getSigner());
-
-      setIsUnwrapping(true);
-    }
-
     try {
+      if (action === SuperTokenAction.WRAP) {
+        txn = await paymentToken
+          .upgrade({
+            amount: ethers.utils.parseEther(amount).toString(),
+          })
+          .exec(provider.getSigner());
+
+        setIsWrapping(true);
+      } else if (action === SuperTokenAction.UNWRAP) {
+        txn = await paymentToken
+          .downgrade({
+            amount: ethers.utils.parseEther(amount).toString(),
+          })
+          .exec(provider.getSigner());
+
+        setIsUnwrapping(true);
+      }
+
       if (txn === null) {
         return;
       }
@@ -549,8 +568,33 @@ function ProfileModal(props: ProfileModalProps) {
       );
 
       setETHBalance(ethBalance);
-    } catch (error) {
-      console.error(error);
+
+      if (action === SuperTokenAction.WRAP) {
+        setWrappingAmount("");
+        setWrappingError("");
+      } else {
+        setUnwrappingAmount("");
+        setUnwrappingError("");
+      }
+    } catch (err) {
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        const message = (err as any).reason
+          ? (err as any).reason
+              .replace("execution reverted: ", "")
+              .replace(/([^.])$/, "$1.")
+          : (err as Error).message;
+        if (action === SuperTokenAction.WRAP) {
+          setWrappingError(message);
+        } else {
+          setUnwrappingError(message);
+        }
+        console.error(err);
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
     if (action === SuperTokenAction.WRAP) {
@@ -560,17 +604,16 @@ function ProfileModal(props: ProfileModalProps) {
     }
   };
 
-  const handleOnSubmit = async (
+  const handleSubmit = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     e: any,
+    amount: string,
     action: SuperTokenAction
   ): Promise<void> => {
     e.preventDefault();
-    const amount = e.target[0].value;
 
-    if (!Number.isNaN(amount) && amount > 0) {
+    if (!Number.isNaN(amount) && Number(amount) > 0) {
       await executeSuperTokenTransaction(amount, action);
-      e.target.reset();
     }
   };
 
@@ -637,6 +680,10 @@ function ProfileModal(props: ProfileModalProps) {
       keyboard={false}
       centered
       onHide={handleCloseProfile}
+      onExit={() => {
+        setWrappingError("");
+        setUnwrappingError("");
+      }}
       size="xl"
       contentClassName="bg-dark"
     >
@@ -684,35 +731,56 @@ function ProfileModal(props: ProfileModalProps) {
               : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
           </Col>
         </Row>
-        <Row className="mt-3">
+        <Row className="mt-3 align-items-start">
           <Col className="p-3 ms-3 fs-6 border border-purple rounded" sm="3">
-            <span style={{ marginLeft: "15px" }}>{`ETH: ${ETHBalance}`}</span>
+            <span style={{ marginLeft: "15px" }}>{`ETH: ${truncateEth(
+              ETHBalance,
+              8
+            )}`}</span>
             <Form
               id="wrapForm"
-              className="form-inline"
+              className="form-inline mt-5 ms-3 me-3"
               noValidate
-              onSubmit={(e) => handleOnSubmit(e, SuperTokenAction.WRAP)}
-              style={{ marginTop: "46px", marginLeft: "15px", width: "218px" }}
+              onSubmit={(e) =>
+                handleSubmit(e, wrappingAmount, SuperTokenAction.WRAP)
+              }
             >
               <Form.Control
                 required
                 autoFocus
                 type="text"
                 className="mb-2"
-                id="amount"
                 placeholder="0.00"
                 size="sm"
+                value={wrappingAmount}
+                onChange={(e) => {
+                  setWrappingAmount(e.target.value);
+                  setWrappingError("");
+                }}
               />
               <Button
-                variant="secondary"
+                variant={isOutOfBalanceWrap ? "info" : "secondary"}
                 type="submit"
-                disabled={isWrapping}
+                disabled={isWrapping || isOutOfBalanceWrap}
                 size="sm"
                 className="w-100"
               >
-                {isWrapping ? "Wrapping..." : "Wrap"}
+                {isWrapping
+                  ? "Wrapping..."
+                  : isOutOfBalanceWrap
+                  ? "Insufficient ETH"
+                  : "Wrap"}
               </Button>
             </Form>
+            {wrappingError ? (
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
+            ) : !isOutOfBalanceWrap &&
+              wrappingAmount !== "" &&
+              Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3">
+                Warning: Leave enough ETH for more transactions
+              </span>
+            ) : null}
           </Col>
           <Col
             sm="1"
@@ -724,7 +792,7 @@ function ProfileModal(props: ProfileModalProps) {
             <div style={{ marginLeft: "15px" }}>
               {`${PAYMENT_TOKEN}: `}
               <FlowingBalance
-                format={(x) => ethers.utils.formatUnits(x)}
+                format={(x) => truncateEth(ethers.utils.formatUnits(x), 8)}
                 accountTokenSnapshot={accountTokenSnapshot}
               />
             </div>
@@ -739,8 +807,10 @@ function ProfileModal(props: ProfileModalProps) {
             </div>
             <Form
               noValidate
-              onSubmit={(e) => handleOnSubmit(e, SuperTokenAction.UNWRAP)}
-              style={{ width: "220px", marginLeft: "15px" }}
+              onSubmit={(e) =>
+                handleSubmit(e, unwrappingAmount, SuperTokenAction.UNWRAP)
+              }
+              className="form-inline ms-3 me-3"
             >
               <Form.Control
                 required
@@ -749,17 +819,29 @@ function ProfileModal(props: ProfileModalProps) {
                 className="mb-2"
                 placeholder="0.00"
                 size="sm"
+                value={unwrappingAmount}
+                onChange={(e) => {
+                  setUnwrappingAmount(e.target.value);
+                  setUnwrappingError("");
+                }}
               />
               <Button
-                variant="primary"
+                variant={isOutOfBalanceUnwrap ? "info" : "primary"}
                 type="submit"
-                disabled={isUnWrapping}
+                disabled={isUnWrapping || isOutOfBalanceUnwrap}
                 size="sm"
-                className="w-100"
+                className="w-100 text-break"
               >
-                {isWrapping ? "Unwrapping..." : "Unwrap"}
+                {isUnWrapping
+                  ? "Unwrapping..."
+                  : isOutOfBalanceUnwrap
+                  ? `Insufficient ${PAYMENT_TOKEN}`
+                  : "Unwrap"}
               </Button>
             </Form>
+            {unwrappingError && (
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
+            )}
           </Col>
         </Row>
         <Row className="mt-3 ps-3 fs-1">Portfolio</Row>
