@@ -91,7 +91,10 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     });
     const newRoot = await geoWebContent.raw.deletePath(
       rootCid,
-      `/mediaGallery/${index}`
+      `/mediaGallery/${index}`,
+      {
+        pin: true,
+      }
     );
 
     await geoWebContent.raw.commit(newRoot, {
