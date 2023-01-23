@@ -514,7 +514,7 @@ function Map(props: MapProps) {
       case STATE.VIEWING:
         if (_checkParcelHover(gwCoord)) {
           setClaimBase1Coord(null);
-        } else if (gridFeature) {
+        } else if (isGridVisible) {
           setClaimBase1Coord({
             x: geoWebCoordinate.get_x(gwCoord),
             y: geoWebCoordinate.get_y(gwCoord),
@@ -817,8 +817,8 @@ function Map(props: MapProps) {
           onMove={(e) => _onMove(e.viewState)}
           onMoveEnd={(e) => _onMoveEnd(e.viewState)}
           onMouseMove={_onMouseMove}
-          onClick={_onClick}
           onMouseOut={_onMouseOut}
+          onClick={_onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
