@@ -20,7 +20,7 @@ function ClaimInfo({
             style={{
               width: "2rem",
             }}
-            src="grid.svg"
+            src="grid-primary.svg"
           />
           <span
             className={`text-${

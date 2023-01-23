@@ -21,6 +21,7 @@ export type SidebarProps = MapProps & {
   setNewParcel: React.Dispatch<
     React.SetStateAction<{ id: string; timerId: number | null }>
   >;
+  delay: boolean;
 };
 
 export interface ParcelFieldsToUpdate {
@@ -41,6 +42,7 @@ function Sidebar(props: SidebarProps) {
     startingBid,
     endingBid,
     isPreFairLaunch,
+    delay,
   } = props;
 
   const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
@@ -69,10 +71,16 @@ function Sidebar(props: SidebarProps) {
     });
   }, [registryContract]);
 
-  const [requiredBid, setRequiredBid] =
-    React.useState<BigNumber>(BigNumber.from(0));
+  const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
+    BigNumber.from(0)
+  );
   const [minForSalePrice, setMinForSalePrice] =
     React.useState<BigNumber | null>(null);
+  const [show, setShow] = React.useState(false);
+
+  React.useEffect(() => {
+    setTimeout(() => setShow(true), 500);
+  }, []);
 
   const isFairLaunch =
     auctionStart &&
@@ -81,11 +89,15 @@ function Sidebar(props: SidebarProps) {
     endingBid &&
     Date.now() / 1000 < auctionEnd.toNumber();
 
+  if (!show && delay) {
+    return null;
+  }
+
   return (
     <Col
       sm="3"
-      className="bg-dark px-4 text-light"
-      style={{ paddingTop: "120px", overflowY: "scroll", height: "100vh" }}
+      className="position-absolute left-0 top-0 overflow-scroll w-25 vh-100 bg-dark px-4 text-light"
+      style={{ zIndex: 1, paddingTop: "120px" }}
     >
       {!isPreFairLaunch &&
       isFairLaunch &&
@@ -136,9 +148,7 @@ function Sidebar(props: SidebarProps) {
         isPreFairLaunch &&
         startingBid &&
         endingBid ? (
-        <PreFairLaunchInfo
-          {...props}
-        />
+        <PreFairLaunchInfo {...props} />
       ) : null}
     </Col>
   );
