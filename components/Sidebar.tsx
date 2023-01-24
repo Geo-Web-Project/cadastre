@@ -96,7 +96,7 @@ function Sidebar(props: SidebarProps) {
   return (
     <Col
       sm="3"
-      className="position-absolute left-0 top-0 overflow-scroll w-25 vh-100 bg-dark px-4 text-light"
+      className="position-absolute left-0 top-0 overflow-auto w-25 vh-100 bg-dark px-4 text-light"
       style={{ zIndex: 1, paddingTop: "120px" }}
     >
       {!isPreFairLaunch &&

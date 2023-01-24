@@ -14,6 +14,7 @@ import {
 import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
+import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 
@@ -238,6 +239,7 @@ function Map(props: MapProps) {
   const [grid, setGrid] = useState<Grid | null>(null);
   const [parcelHoverId, setParcelHoverId] = useState("");
 
+  const [cellHoverCoord, setCellHoverCoord] = useState<Coord | null>(null);
   const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
@@ -476,7 +478,7 @@ function Map(props: MapProps) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
       setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
     } else if (interactionState === STATE.VIEWING) {
-      setClaimBase1Coord(null);
+      setCellHoverCoord(null);
     }
   }
 
@@ -513,9 +515,9 @@ function Map(props: MapProps) {
     switch (interactionState) {
       case STATE.VIEWING:
         if (_checkParcelHover(gwCoord)) {
-          setClaimBase1Coord(null);
+          setCellHoverCoord(null);
         } else if (isGridVisible) {
-          setClaimBase1Coord({
+          setCellHoverCoord({
             x: geoWebCoordinate.get_x(gwCoord),
             y: geoWebCoordinate.get_y(gwCoord),
           });
@@ -539,7 +541,7 @@ function Map(props: MapProps) {
 
   function _onMouseOut() {
     if (interactionState === STATE.VIEWING) {
-      setClaimBase1Coord(null);
+      setCellHoverCoord(null);
     }
   }
 
@@ -664,6 +666,7 @@ function Map(props: MapProps) {
 
           setClaimBase1Coord(coord);
           setClaimBase2Coord(coord);
+          setCellHoverCoord(null);
           setInteractionState(STATE.CLAIM_SELECTING);
         } else {
           flyToLocation({
@@ -838,6 +841,10 @@ function Map(props: MapProps) {
             parcelClaimSize={parcelClaimSize}
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
+          <CellHoverSource
+            geoWebCoordinate={geoWebCoordinate}
+            cellHoverCoord={cellHoverCoord}
+          ></CellHoverSource>
           <Geocoder
             mapboxAccessToken={
               process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""

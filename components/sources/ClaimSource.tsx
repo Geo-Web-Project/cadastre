@@ -65,22 +65,16 @@ function ClaimSource(props: Props) {
           _features.push(coordToFeature(gwCoord, coords, gwCoordX, gwCoordY));
         }
       }
-    } else if (claimBase1Coord && !claimBase2Coord) {
-      const gwCoord = geoWebCoordinate.make_gw_coord(
-        claimBase1Coord.x,
-        claimBase1Coord.y
-      );
-      const coords = geoWebCoordinate.to_gps(gwCoord, GW_MAX_LAT, GW_MAX_LON);
-      const gwCoordX = geoWebCoordinate.get_x(gwCoord);
-      const gwCoordY = geoWebCoordinate.get_y(gwCoord);
-
-      _features.push(coordToFeature(gwCoord, coords, gwCoordX, gwCoordY));
     }
 
     return { _features };
   }, [claimBase1Coord, claimBase2Coord]);
 
   useEffect(() => {
+    if (!claimBase1Coord || !claimBase2Coord) {
+      return;
+    }
+
     let _isValid = true;
 
     const bbox = turf.bbox({
@@ -100,18 +94,16 @@ function ClaimSource(props: Props) {
     if ((overlapX && overlapY) || parcelClaimSize > MAX_PARCEL_CLAIM) {
       _isValid = false;
     } else {
-      if (claimBase1Coord && claimBase2Coord) {
-        const swX = Math.min(claimBase1Coord.x, claimBase2Coord.x);
-        const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
-        const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
-        const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
+      const swX = Math.min(claimBase1Coord.x, claimBase2Coord.x);
+      const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
+      const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
+      const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
 
-        const lngDim = neX - swX + 1;
-        const latDim = neY - swY + 1;
+      const lngDim = neX - swX + 1;
+      const latDim = neY - swY + 1;
 
-        if (lngDim > MAX_PARCEL_DIM || latDim > MAX_PARCEL_DIM) {
-          _isValid = false;
-        }
+      if (lngDim > MAX_PARCEL_DIM || latDim > MAX_PARCEL_DIM) {
+        _isValid = false;
       }
     }
 

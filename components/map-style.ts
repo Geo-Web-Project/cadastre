@@ -31,6 +31,14 @@ export function claimLayer(isValid: boolean): LayerProps {
     },
   };
 }
+export const cellHoverLayer: LayerProps = {
+  id: "cell-hover-layer",
+  type: "fill",
+  paint: {
+    "fill-color": "#FFF",
+    "fill-opacity": 0.75,
+  },
+};
 export const parcelLayer: LayerProps = {
   id: "parcels-layer",
   type: "fill",
