@@ -58,10 +58,15 @@ $dropdown-dark-link-hover-bg: $purple;
 
 .mapboxgl-ctrl-group {
   position: absolute;
-  bottom: 90px;
+  bottom: 119px;
   right: 2vw;
   border: 1px solid map-get($theme-colors, "secondary");
-  border-radius: 6px !important;
+  border-radius: 6px 6px 0 0 !important;
+  box-shadow: none !important;
+}
+
+.mapboxgl-ctrl-group button:last-child {
+  border-radius: 0 !important;
 }
 
 .mapboxgl-ctrl-icon {
@@ -75,9 +80,19 @@ $dropdown-dark-link-hover-bg: $purple;
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon:first-child {
   background-image: url("./public/zoom-out.svg");
 }
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon {
+  border-bottom: 1px solid #ddd;
+}
 
-.mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon:first-child {
-  background-image: url("./public/compass.svg");
+.mapboxgl-ctrl-logo {
+    display: none !important;
+}
+
+.grid-switch.btn:hover,
+.grid-switch.btn:focus,
+.grid-switch.btn:active {
+  background: map-get($theme-colors, "dark");
+  box-shadow: none !important;
 }
 
 @import "~bootstrap/scss/bootstrap";

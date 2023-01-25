@@ -5,10 +5,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
 import ReactMapGL, { NavigationControl } from "react-map-gl";
 import type { ViewState, MapRef } from "react-map-gl";
-import { MapLayerMouseEvent, LngLatBounds, LngLat } from "mapbox-gl";
+import {
+  MapLayerMouseEvent,
+  LngLatBounds,
+  LngLat,
+  PaddingOptions,
+} from "mapbox-gl";
 import Geocoder from "../lib/Geocoder";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
+import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 
@@ -18,6 +24,7 @@ import { GeoWebContent } from "@geo-web/content";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
+import Alert from "react-bootstrap/Alert";
 
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -33,15 +40,14 @@ import type { Point, MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 
 export const ZOOM_GRID_LEVEL = 17;
-const GRID_DIM = 100;
+const GRID_DIM_LAT = 140;
+const GRID_DIM_LON = 80;
 export const GW_CELL_SIZE_LAT = 23;
 export const GW_CELL_SIZE_LON = 24;
 export const GW_MAX_LAT = (1 << (GW_CELL_SIZE_LAT - 1)) - 1;
 export const GW_MAX_LON = (1 << (GW_CELL_SIZE_LON - 1)) - 1;
 const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 0.025;
-const LON_OFFSET = 0.00065;
-const LAT_OFFSET = 0.0001;
 
 export enum STATE {
   VIEWING = 0,
@@ -178,7 +184,7 @@ enum MapStyleName {
 }
 
 const mapStyleUrlByName: Record<MapStyleName, string> = {
-  [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v11",
+  [MapStyleName.satellite]: "mapbox://styles/mapbox/satellite-streets-v12",
   [MapStyleName.street]: "mapbox://styles/codynhat/ckrwf327s69zk17mrdkej5fln",
 };
 
@@ -213,24 +219,27 @@ function Map(props: MapProps) {
     setMapStyleName(newStyle);
   };
 
+  const mapPadding = {
+    top: 120,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  };
+
   const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
     zoom: process.env.NEXT_PUBLIC_APP_ENV === "mainnet" ? 1 : 13,
     bearing: 0,
     pitch: 0,
-    padding: {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
+    padding: mapPadding,
   });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoord, setOldCoord] = useState<LngLat | null>(null);
   const [grid, setGrid] = useState<Grid | null>(null);
   const [parcelHoverId, setParcelHoverId] = useState("");
 
+  const [cellHoverCoord, setCellHoverCoord] = useState<Coord | null>(null);
   const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
@@ -257,8 +266,8 @@ function Map(props: MapProps) {
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
-    (interactionState == STATE.CLAIM_SELECTING ||
-      interactionState == STATE.CLAIM_SELECTED);
+    (interactionState === STATE.VIEWING ||
+      interactionState === STATE.CLAIM_SELECTING);
 
   // Fetch more until none left
   useEffect(() => {
@@ -294,16 +303,19 @@ function Map(props: MapProps) {
       latitude,
       duration,
       zoom,
+      padding,
     }: {
       longitude: number;
       latitude: number;
       duration: number;
       zoom: number;
+      padding: PaddingOptions;
     }) => {
       mapRef.current?.flyTo({
         center: [longitude, latitude],
         duration,
         zoom,
+        padding: padding,
       });
     },
     []
@@ -321,15 +333,15 @@ function Map(props: MapProps) {
 
     if (
       oldGrid != null &&
-      Math.abs(oldGrid.center.x - x) < GRID_DIM / 2 &&
-      Math.abs(oldGrid.center.y - y) < GRID_DIM / 2
+      Math.abs(oldGrid.center.x - x) < GRID_DIM_LAT / 4 &&
+      Math.abs(oldGrid.center.y - y) < GRID_DIM_LON / 4
     ) {
       return;
     }
 
     const features = [];
-    for (let _x = x - GRID_DIM; _x < x + GRID_DIM; _x++) {
-      for (let _y = y - GRID_DIM; _y < y + GRID_DIM; _y++) {
+    for (let _x = x - GRID_DIM_LAT; _x < x + GRID_DIM_LAT; _x++) {
+      for (let _y = y - GRID_DIM_LON; _y < y + GRID_DIM_LON; _y++) {
         const gwCoord = geoWebCoordinate.make_gw_coord(_x, _y);
         const coords = geoWebCoordinate.to_gps(gwCoord, GW_MAX_LAT, GW_MAX_LON);
         const gwCoordX = geoWebCoordinate.get_x(gwCoord);
@@ -401,10 +413,14 @@ function Map(props: MapProps) {
 
     if (query.longitude && query.latitude && query.id) {
       flyToLocation({
-        longitude: Number(query.longitude) + LON_OFFSET * 2,
-        latitude: Number(query.latitude) + LAT_OFFSET * 2,
+        longitude: Number(query.longitude),
+        latitude: Number(query.latitude),
         zoom: ZOOM_GRID_LEVEL,
         duration: 500,
+        padding: {
+          ...mapPadding,
+          left: document.body.offsetWidth * 0.25,
+        },
       });
 
       setSelectedParcelId(
@@ -423,15 +439,6 @@ function Map(props: MapProps) {
       return;
     }
     setViewport(nextViewport);
-
-    if (
-      (interactionState == STATE.CLAIM_SELECTING ||
-        interactionState == STATE.CLAIM_SELECTED) &&
-      nextViewport.zoom >= ZOOM_GRID_LEVEL + 1
-    ) {
-      updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
-      setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
-    }
 
     const mapBounds = mapRef.current.getBounds();
     const params = normalizeQueryVariables(mapBounds);
@@ -466,35 +473,55 @@ function Map(props: MapProps) {
     }
   }
 
+  function _onMoveEnd(viewState: ViewState) {
+    if (viewState.zoom >= ZOOM_GRID_LEVEL) {
+      updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
+      setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
+    } else if (interactionState === STATE.VIEWING) {
+      setCellHoverCoord(null);
+    }
+  }
+
   function _onMouseMove(event: MapLayerMouseEvent) {
     if (event.features == null || viewport.zoom < 5) {
       return;
     }
 
-    function _checkParcelHover() {
+    function _checkParcelHover(gwCoord: bigint) {
       const parcelFeature = event.features?.find(
         (f) => f.layer.id === "parcels-layer"
       );
+
       if (parcelFeature) {
         setParcelHoverId(parcelFeature.properties?.parcelId);
-      } else {
-        const gwCoord = geoWebCoordinate.from_gps(
-          event.lngLat.lng,
-          event.lngLat.lat,
-          GW_MAX_LAT
-        );
 
+        return true;
+      } else {
         if (!turf.intersect(existingMultiPoly, coordToPolygon(gwCoord))) {
           setParcelHoverId("");
         }
+
+        return false;
       }
     }
 
     const gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
+    const gwCoord = geoWebCoordinate.from_gps(
+      event.lngLat.lng,
+      event.lngLat.lat,
+      GW_MAX_LAT
+    );
 
     switch (interactionState) {
       case STATE.VIEWING:
-        _checkParcelHover();
+        if (_checkParcelHover(gwCoord)) {
+          setCellHoverCoord(null);
+        } else if (isGridVisible) {
+          setCellHoverCoord({
+            x: geoWebCoordinate.get_x(gwCoord),
+            y: geoWebCoordinate.get_y(gwCoord),
+          });
+        }
         break;
       case STATE.CLAIM_SELECTING:
         if (gridFeature) {
@@ -505,10 +532,16 @@ function Map(props: MapProps) {
         }
         break;
       case STATE.PARCEL_SELECTED:
-        _checkParcelHover();
+        _checkParcelHover(gwCoord);
         break;
       default:
         break;
+    }
+  }
+
+  function _onMouseOut() {
+    if (interactionState === STATE.VIEWING) {
+      setCellHoverCoord(null);
     }
   }
 
@@ -520,11 +553,11 @@ function Map(props: MapProps) {
     const gridFeature = event.features?.find(
       (f) => f.layer.id === "grid-layer"
     );
+    const parcelFeature = event.features?.find(
+      (f) => f.layer.id === "parcels-layer"
+    );
 
     function _checkParcelClick() {
-      const parcelFeature = event.features?.find(
-        (f) => f.layer.id === "parcels-layer"
-      );
       setSelectedParcelCoords({
         x: event.lngLat.lng,
         y: event.lngLat.lat,
@@ -551,37 +584,99 @@ function Map(props: MapProps) {
 
       return false;
     }
-    const gwCoord = geoWebCoordinate.from_gps(
-      event.lngLat.lng,
-      event.lngLat.lat,
-      GW_MAX_LAT
-    );
-    const coord = {
-      x: geoWebCoordinate.get_x(gwCoord),
-      y: geoWebCoordinate.get_y(gwCoord),
-    };
+
+    const sidebarPixelWidth = document.body.offsetWidth * 0.25;
 
     switch (interactionState) {
       case STATE.VIEWING:
         if (_checkParcelClick()) {
-          setViewport({
-            ...viewport,
-            longitude: event.lngLat.lng + LON_OFFSET,
-            latitude: event.lngLat.lat + LAT_OFFSET,
-          });
+          if (parcelFeature?.geometry.type === "Polygon") {
+            const parcelCoordSe = parcelFeature.geometry.coordinates[0][3];
+            const parcelCoordSw = parcelFeature.geometry.coordinates[0][0];
+            const parcelPointSe = mapRef.current?.project(
+              new LngLat(parcelCoordSe[0], parcelCoordSe[1])
+            );
+            const parcelPointSw = mapRef.current?.project(
+              new LngLat(parcelCoordSw[0], parcelCoordSw[1])
+            );
+            const parcelSizeX =
+              parcelPointSe && parcelPointSw
+                ? parcelPointSe.x - parcelPointSw.x
+                : 0;
+            const shouldOffsetSidebar =
+              parcelPointSw && parcelPointSw.x < sidebarPixelWidth;
+
+            mapRef.current?.panBy(
+              [
+                shouldOffsetSidebar
+                  ? sidebarPixelWidth * -1 - parcelSizeX + event.point.x
+                  : 0,
+                0,
+              ],
+              {
+                duration: 0,
+              }
+            );
+          }
+
           return;
         }
 
-        setClaimBase1Coord(coord);
-        setClaimBase2Coord(coord);
-        setInteractionState(STATE.CLAIM_SELECTING);
+        if (isGridVisible) {
+          const gwCoord = geoWebCoordinate.from_gps(
+            event.lngLat.lng,
+            event.lngLat.lat,
+            GW_MAX_LAT
+          );
+          const coord = {
+            x: geoWebCoordinate.get_x(gwCoord),
+            y: geoWebCoordinate.get_y(gwCoord),
+          };
+          const cellCoords = geoWebCoordinate.to_gps(
+            gwCoord,
+            GW_MAX_LAT,
+            GW_MAX_LON
+          );
+          const cellPointSw = mapRef.current?.project(
+            new LngLat(cellCoords[0][0], cellCoords[0][1])
+          );
+          const cellPointSe = mapRef.current?.project(
+            new LngLat(cellCoords[1][0], cellCoords[1][1])
+          );
+          const cellSizeX =
+            cellPointSe && cellPointSw ? cellPointSe.x - cellPointSw.x : 0;
+          const shouldOffsetSidebar =
+            cellPointSw && cellPointSw.x < sidebarPixelWidth;
 
-        flyToLocation({
-          longitude: event.lngLat.lng + LON_OFFSET,
-          latitude: event.lngLat.lat + LAT_OFFSET,
-          zoom: ZOOM_GRID_LEVEL + 1,
-          duration: 500,
-        });
+          setTimeout(
+            () =>
+              mapRef.current?.panBy(
+                [
+                  shouldOffsetSidebar
+                    ? sidebarPixelWidth * -1 - cellSizeX + event.point.x
+                    : 0,
+                  0,
+                ],
+                {
+                  duration: shouldOffsetSidebar ? 400 : 0,
+                }
+              ),
+            100
+          );
+
+          setClaimBase1Coord(coord);
+          setClaimBase2Coord(coord);
+          setCellHoverCoord(null);
+          setInteractionState(STATE.CLAIM_SELECTING);
+        } else {
+          flyToLocation({
+            longitude: event.lngLat.lng,
+            latitude: event.lngLat.lat,
+            zoom: ZOOM_GRID_LEVEL + 1,
+            duration: 500,
+            padding: mapPadding,
+          });
+        }
         break;
       case STATE.CLAIM_SELECTING:
         if (!isValidClaim) {
@@ -593,6 +688,7 @@ function Map(props: MapProps) {
             y: gridFeature.properties?.gwCoordY,
           });
         }
+
         setInteractionState(STATE.CLAIM_SELECTED);
         break;
       case STATE.CLAIM_SELECTED:
@@ -625,6 +721,9 @@ function Map(props: MapProps) {
       case STATE.CLAIM_SELECTING:
         break;
       default:
+        if (isGridVisible) {
+          setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
+        }
         break;
     }
   }, [interactionState]);
@@ -638,7 +737,6 @@ function Map(props: MapProps) {
     const listener = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setInteractionState(STATE.VIEWING);
-        setInteractiveLayerIds(["parcels-layer"]);
       }
     };
     window.addEventListener("keydown", listener);
@@ -651,10 +749,14 @@ function Map(props: MapProps) {
   useEffect(() => {
     if (portfolioParcelCenter) {
       flyToLocation({
-        longitude: portfolioParcelCenter.coordinates[0] + LON_OFFSET * 2,
-        latitude: portfolioParcelCenter.coordinates[1] + LAT_OFFSET * 2,
+        longitude: portfolioParcelCenter.coordinates[0],
+        latitude: portfolioParcelCenter.coordinates[1],
         zoom: ZOOM_GRID_LEVEL,
         duration: 500,
+        padding: {
+          ...mapPadding,
+          left: document.body.offsetWidth * 0.25,
+        },
       });
 
       setSelectedParcelCoords({
@@ -666,6 +768,20 @@ function Map(props: MapProps) {
 
   return (
     <>
+      {interactionState === STATE.CLAIM_SELECTING &&
+        viewport.zoom < ZOOM_GRID_LEVEL && (
+          <Alert
+            className="position-absolute top-50 start-50 text-center"
+            variant="warning"
+            style={{ zIndex: 1, width: "256px" }}
+          >
+            Zoom to Continue Your Claim
+            <br />
+            or
+            <br />
+            Hit Esc to Cancel
+          </Alert>
+        )}
       {interactionState != STATE.VIEWING ? (
         <Sidebar
           {...props}
@@ -681,13 +797,14 @@ function Map(props: MapProps) {
           setInvalidLicenseId={setInvalidLicenseId}
           setNewParcel={setNewParcel}
           selectedParcelCoords={selectedParcelCoords}
+          delay={interactionState === STATE.CLAIM_SELECTING}
         ></Sidebar>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <ReactMapGL
           style={{
-            width: interactionState != STATE.VIEWING ? "75vw" : "100vw",
-            height: interactionState != STATE.VIEWING ? "100vh" : "100vh",
+            width: "100vw",
+            height: "100vh",
           }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ref={mapRef as any}
@@ -701,7 +818,9 @@ function Map(props: MapProps) {
           touchZoomRotate={false}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
+          onMoveEnd={(e) => _onMoveEnd(e.viewState)}
           onMouseMove={_onMouseMove}
+          onMouseOut={_onMouseOut}
           onClick={_onClick}
         >
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
@@ -722,15 +841,47 @@ function Map(props: MapProps) {
             parcelClaimSize={parcelClaimSize}
             setParcelClaimSize={setParcelClaimSize}
           ></ClaimSource>
+          <CellHoverSource
+            geoWebCoordinate={geoWebCoordinate}
+            cellHoverCoord={cellHoverCoord}
+          ></CellHoverSource>
           <Geocoder
             mapboxAccessToken={
               process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
             }
             position="top-right"
           />
-          <NavigationControl position="bottom-right" />
+          <NavigationControl position="bottom-right" showCompass={false} />
         </ReactMapGL>
       </Col>
+      <Button
+        variant="dark"
+        className="border border-secondary border-top-0 grid-switch"
+        style={{
+          position: "absolute",
+          bottom: "90px",
+          right: "2vw",
+          width: "31px",
+          height: "29px",
+          borderRadius: "0 0 4px 4px",
+        }}
+        onClick={() =>
+          flyToLocation({
+            longitude: viewport.longitude,
+            latitude: viewport.latitude,
+            zoom: ZOOM_GRID_LEVEL + 1,
+            duration: 500,
+            padding: mapPadding,
+          })
+        }
+      >
+        <Image
+          alt="grid switch"
+          src="grid-light.svg"
+          width={30}
+          className="position-relative top-50 start-50 translate-middle"
+        />
+      </Button>
       <ButtonGroup
         style={{
           position: "absolute",
@@ -739,7 +890,6 @@ function Map(props: MapProps) {
           width: "123px",
           borderRadius: 12,
         }}
-        aria-label="Basic example"
       >
         <Button
           style={{
@@ -748,7 +898,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.street)}
         >
-          <Image src={"street_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"street_ic.png"} width={30} />
         </Button>
         <Button
           style={{
@@ -758,7 +908,7 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
-          <Image src={"satellite_ic.png"} style={{ height: 30, width: 30 }} />
+          <Image src={"satellite_ic.png"} width={30} />
         </Button>
       </ButtonGroup>
     </>

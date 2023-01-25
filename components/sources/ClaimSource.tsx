@@ -14,6 +14,8 @@ import { MAX_PARCEL_CLAIM } from "../../lib/constants";
 import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 
+const MAX_PARCEL_DIM = 200;
+
 type Props = {
   geoWebCoordinate: GeoWebCoordinate;
   existingMultiPoly: MultiPolygon | Polygon;
@@ -39,7 +41,8 @@ function ClaimSource(props: Props) {
 
   const geoJsonFeatures = useMemo(() => {
     const _features = [];
-    if (claimBase1Coord != null && claimBase2Coord != null) {
+
+    if (claimBase1Coord && claimBase2Coord) {
       for (
         let _x = Math.min(claimBase1Coord.x, claimBase2Coord.x);
         _x <= Math.max(claimBase1Coord.x, claimBase2Coord.x);
@@ -63,10 +66,15 @@ function ClaimSource(props: Props) {
         }
       }
     }
+
     return { _features };
   }, [claimBase1Coord, claimBase2Coord]);
 
   useEffect(() => {
+    if (!claimBase1Coord || !claimBase2Coord) {
+      return;
+    }
+
     let _isValid = true;
 
     const bbox = turf.bbox({
@@ -85,6 +93,18 @@ function ClaimSource(props: Props) {
 
     if ((overlapX && overlapY) || parcelClaimSize > MAX_PARCEL_CLAIM) {
       _isValid = false;
+    } else {
+      const swX = Math.min(claimBase1Coord.x, claimBase2Coord.x);
+      const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
+      const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
+      const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
+
+      const lngDim = neX - swX + 1;
+      const latDim = neY - swY + 1;
+
+      if (lngDim > MAX_PARCEL_DIM || latDim > MAX_PARCEL_DIM) {
+        _isValid = false;
+      }
     }
 
     setIsValidClaim(_isValid);
