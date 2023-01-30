@@ -2113,6 +2113,17 @@
     apg-js "^4.1.1"
     multiformats "^9.5.1"
 
+"@didtools/cacao@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@didtools/cacao/-/cacao-1.1.0.tgz#254f38cf4ba686398e895c98573375d3a2f7661d"
+  integrity sha512-7rTU6iUa5vXzwuNzC+awwnJ/4D15+AHV2ytQohL4t1QA/zNbHdkcPnF1Hq+6vRoMnVFlasSpsxlTatjOBqg1RA==
+  dependencies:
+    "@ipld/dag-cbor" "^7.0.1"
+    apg-js "^4.1.1"
+    caip "^1.1.0"
+    multiformats "^9.5.1"
+    uint8arrays "^4.0.2"
+
 "@didtools/pkh-ethereum@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@didtools/pkh-ethereum/-/pkh-ethereum-0.0.1.tgz#dc7a9b09b568d74a640ed53fe0cafeabba809aab"

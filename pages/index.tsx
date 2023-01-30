@@ -19,6 +19,7 @@ import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
+import { SiweMessage } from "@didtools/cacao";
 
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -42,10 +43,18 @@ import {
 } from "@rainbow-me/rainbowkit";
 import NavMenu from "../components/nav/NavMenu";
 
+import { SSXInit, SSXClientConfig, SSXClientSession } from "@spruceid/ssx";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider, "any");
 }
+
+const ssxConfig: SSXClientConfig = {
+  providers: {
+    server: { host: "http://localhost:3001" },
+  },
+};
 
 const { httpClient, jsIpfs } = providers;
 
@@ -128,9 +137,41 @@ function IndexPage() {
       !session.cacao.p.iss.includes(address.toLowerCase())
     ) {
       try {
+        // 1. Get nonce
+        const ssxInit = new SSXInit({
+          ...ssxConfig,
+          providers: {
+            ...ssxConfig.providers,
+            web3: {
+              driver: signer?.provider,
+            },
+          },
+        });
+        const ssxConnect = await ssxInit.connect();
+        const nonce = await ssxConnect.ssxServerNonce({});
+
+        // 2. Create DIDSession
         session = await DIDSession.authorize(authMethod, {
           resources: ["ceramic://*"],
+          nonce,
         });
+
+        // 3. Login to SSX
+        const sessionKey = ssxConnect.builder.jwk();
+        if (sessionKey === undefined) {
+          return Promise.reject(new Error("unable to retrieve session key"));
+        }
+        const ssxSession: SSXClientSession = {
+          address: address,
+          walletAddress: await signer!.getAddress(),
+          chainId: chain!.id,
+          sessionKey,
+          siwe: SiweMessage.fromCacao(session.cacao).toMessage(),
+          signature: session.cacao.s!.s,
+        };
+        await ssxConnect.ssxServerLogin(ssxSession);
+
+        // Save DIDSession
         localStorage.setItem("didsession", session.serialize());
       } catch (err) {
         console.error(err);
@@ -238,7 +279,7 @@ function IndexPage() {
       const ethereumAuthProvider = new EthereumAuthProvider(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (signer.provider as any).provider,
-        address.toLowerCase()
+        address
       );
       const session = await loadCeramicSession(ethereumAuthProvider, address);
 
