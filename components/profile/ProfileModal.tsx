@@ -16,6 +16,7 @@ import {
   Table,
   Image,
   Button,
+  Spinner,
 } from "react-bootstrap";
 import {
   // eslint-disable-next-line import/named
@@ -196,7 +197,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [unwrappingError, setUnwrappingError] = useState<string>("");
   const [isWrapping, setIsWrapping] = useState<boolean>(false);
   const [isUnWrapping, setIsUnwrapping] = useState<boolean>(false);
-  const [portfolio, setPortfolio] = useState<PortfolioParcel[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioParcel[] | null>(null);
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
@@ -250,7 +251,19 @@ function ProfileModal(props: ProfileModalProps) {
   }, [sfFramework, account]);
 
   useEffect(() => {
-    if (!data || !data.bidder) {
+    if (!data) {
+      return;
+    }
+
+    if (!data.bidder) {
+      setPortfolio([]);
+      setPortfolioTotal({
+        price: BigNumber.from(0),
+        fee: BigNumber.from(0),
+        buffer: BigNumber.from(0),
+      });
+      setPortfolioNeedActionCount(0);
+
       return;
     }
 
@@ -846,7 +859,11 @@ function ProfileModal(props: ProfileModalProps) {
         </Row>
         <Row className="mt-3 ps-3 fs-1">Portfolio</Row>
         <Row className="scrollable-table">
-          {portfolioTotal && portfolio.length > 0 ? (
+          {!portfolio || !portfolioTotal ? (
+            <span className="d-flex justify-content-center fs-4 my-4 py-4">
+              <Spinner animation="border" role="status"></Spinner>
+            </span>
+          ) : portfolio.length > 0 ? (
             <Table
               bordered
               className="m-3 text-light border border-purple flex-shrink-1"
@@ -999,15 +1016,7 @@ function ProfileModal(props: ProfileModalProps) {
               </tbody>
             </Table>
           ) : (
-            <span
-              style={{
-                height: "128px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.5rem",
-              }}
-            >
+            <span className="d-flex justify-content-center fs-4 my-4 py-4">
               No parcels or bids yet...
             </span>
           )}
