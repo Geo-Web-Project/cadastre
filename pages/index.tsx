@@ -50,16 +50,19 @@ function getLibrary(provider: any) {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] =
-    React.useState<Contracts["registryDiamondContract"] | null>(null);
+  const [registryContract, setRegistryContract] = React.useState<
+    Contracts["registryDiamondContract"] | null
+  >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] =
-    React.useState<NativeAssetSuperToken | undefined>(undefined);
-  const [sfFramework, setSfFramework] =
-    React.useState<Framework | undefined>(undefined);
+  const [paymentToken, setPaymentToken] = React.useState<
+    NativeAssetSuperToken | undefined
+  >(undefined);
+  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
+    undefined
+  );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -358,7 +361,7 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple border-opacity-25"
         >
-          <Col className="ms-4 ps-3">
+          <Col className="ms-1 ps-3 ms-sm-4 ps-sm-3">
             <div
               className="d-flex align-items-center text-light"
               style={{
@@ -370,11 +373,13 @@ function IndexPage() {
                 style={{ height: "1.1em", marginRight: "10px" }}
                 src="logo.png"
               />
-              <span className="fs-1">Cadastre</span>
-              <span className="fs-6 align-self-start">BETA</span>
+              <span className="d-none d-sm-block fs-1">Cadastre</span>
+              <span className="d-none d-sm-block fs-6 align-self-start">
+                BETA
+              </span>
             </div>
           </Col>
-          <Col>
+          <Col xs="6">
             {isPreFairLaunch ? (
               <FairLaunchCountdown
                 auctionStart={auctionStart}
@@ -394,7 +399,9 @@ function IndexPage() {
             )}
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
-            <Connector />
+            <div className="d-none d-sm-block">
+              <Connector />
+            </div>
             <NavMenu />
           </Col>
         </Navbar>
