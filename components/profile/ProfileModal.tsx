@@ -258,9 +258,9 @@ function ProfileModal(props: ProfileModalProps) {
     if (!data.bidder) {
       setPortfolio([]);
       setPortfolioTotal({
-        price: 0,
-        fee: 0,
-        buffer: 0,
+        price: BigNumber.from(0),
+        fee: BigNumber.from(0),
+        buffer: BigNumber.from(0),
       });
       setPortfolioNeedActionCount(0);
 
