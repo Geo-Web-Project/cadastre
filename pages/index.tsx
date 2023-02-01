@@ -18,8 +18,8 @@ import { GeoWebContent } from "@geo-web/content";
 import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
-import { SiweMessage } from "@didtools/cacao";
+import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
+import { SiweMessage, AuthMethod } from "@didtools/cacao";
 
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -121,7 +121,7 @@ function IndexPage() {
   };
 
   const loadCeramicSession = async (
-    authMethod: EthereumAuthProvider,
+    authMethod: AuthMethod,
     address: string
   ): Promise<DIDSession | undefined> => {
     const sessionStr = localStorage.getItem("didsession");
@@ -134,7 +134,7 @@ function IndexPage() {
     if (
       !session ||
       (session.hasSession && session.isExpired) ||
-      !session.cacao.p.iss.includes(address.toLowerCase())
+      !session.cacao.p.iss.includes(address)
     ) {
       try {
         // 1. Get nonce
@@ -276,12 +276,18 @@ function IndexPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
 
-      const ethereumAuthProvider = new EthereumAuthProvider(
+      const accountId = await getAccountId(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (signer.provider as any).provider,
         address
       );
-      const session = await loadCeramicSession(ethereumAuthProvider, address);
+      const authMethod = await EthereumWebAuth.getAuthMethod(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (signer.provider as any).provider,
+        accountId
+      );
+
+      const session = await loadCeramicSession(authMethod, address);
 
       if (!session) {
         return;

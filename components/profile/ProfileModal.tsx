@@ -531,11 +531,11 @@ function ProfileModal(props: ProfileModalProps) {
       });
       const ownerId = new AccountId({
         chainId: `eip155:${NETWORK_ID}`,
-        address: licenseOwner,
+        address: ethers.utils.getAddress(licenseOwner),
       });
       const parcelContent = await geoWebContent.raw.getPath("/basicProfile", {
         parcelId: assetId,
-        ownerId,
+        ownerDID: `did:pkh:${ownerId}`,
       });
 
       return parcelContent;

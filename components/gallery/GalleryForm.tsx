@@ -200,7 +200,7 @@ function GalleryForm(props: GalleryFormProps) {
   }
 
   async function commitNewRoot(mediaGalleryItem: MediaGalleryItem) {
-    if (!geoWebContent) {
+    if (!geoWebContent | !ceramic.did) {
       return;
     }
     const assetId = new AssetId({
@@ -211,11 +211,9 @@ function GalleryForm(props: GalleryFormProps) {
       },
       tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
-    const ownerId = new AccountId(
-      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-    );
+    const ownerDID = ceramic.did.parent;
     const rootCid = await geoWebContent.raw.resolveRoot({
-      ownerId,
+      ownerDID,
       parcelId: assetId,
     });
     const mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
@@ -237,7 +235,7 @@ function GalleryForm(props: GalleryFormProps) {
     );
 
     await geoWebContent.raw.commit(newRoot, {
-      ownerId,
+      ownerDID,
       parcelId: assetId,
     });
 

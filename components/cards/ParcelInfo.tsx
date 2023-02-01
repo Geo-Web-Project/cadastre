@@ -32,6 +32,7 @@ import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
+import { ethers } from "ethers";
 
 interface Bid {
   contributionRate: string;
@@ -122,9 +123,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     React.useState<Date | null>(null);
   const [licenseDiamondContract, setLicenseDiamondContract] =
     React.useState<IPCOLicenseDiamond | null>(null);
-  const [queryTimerId, setQueryTimerId] = React.useState<NodeJS.Timer | null>(
-    null
-  );
+  const [queryTimerId, setQueryTimerId] =
+    React.useState<NodeJS.Timer | null>(null);
 
   const { parcelContent, rootCid, setRootCid, setShouldParcelContentUpdate } =
     useBasicProfile(

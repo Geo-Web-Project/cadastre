@@ -4,6 +4,7 @@ import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import type { BasicProfile } from "@geo-web/types";
 import { NETWORK_ID } from "../constants";
+import { ethers } from "ethers";
 
 function useBasicProfile(
   geoWebContent: GeoWebContent | null,
@@ -43,7 +44,7 @@ function useBasicProfile(
 
         const ownerId = new AccountId({
           chainId: `eip155:${NETWORK_ID}`,
-          address: licenseOwner,
+          address: ethers.utils.getAddress(licenseOwner),
         });
         const _rootCid = await geoWebContent.raw.resolveRoot({
           parcelId: assetId,
@@ -52,7 +53,11 @@ function useBasicProfile(
         const _parcelContent = await geoWebContent.raw.get(
           _rootCid,
           "/basicProfile",
-          { schema: "BasicProfile" }
+          {
+            schema: "BasicProfile",
+            parcelId: assetId,
+            ownerDID: `did:pkh:${ownerId}`,
+          }
         );
         const root = await geoWebContent.raw.get(_rootCid, "/", {
           schema: "ParcelRoot",

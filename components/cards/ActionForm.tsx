@@ -208,9 +208,7 @@ export function ActionForm(props: ActionFormProps) {
         ? licenseId.toString()
         : new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
-    const ownerId = new AccountId(
-      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-    );
+    const ownerDID = ceramic.did!.parent;
 
     if (
       licenseId &&
@@ -218,10 +216,10 @@ export function ActionForm(props: ActionFormProps) {
         (interactionState === STATE.PARCEL_RECLAIMING &&
           account !== licenseOwner))
     ) {
-      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerId });
+      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
-        ownerId,
+        ownerDID,
       });
       const mediaGallery: MediaGallery = [];
       const newRoot = await geoWebContent.raw.putPath(
@@ -235,7 +233,7 @@ export function ActionForm(props: ActionFormProps) {
       );
 
       await geoWebContent.raw.commit(newRoot, {
-        ownerId,
+        ownerDID,
         parcelId: assetId,
       });
     }
@@ -243,7 +241,7 @@ export function ActionForm(props: ActionFormProps) {
     try {
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
-        ownerId,
+        ownerDID,
       });
 
       const newRoot = await geoWebContent.raw.putPath(
@@ -257,7 +255,7 @@ export function ActionForm(props: ActionFormProps) {
       );
 
       await geoWebContent.raw.commit(newRoot, {
-        ownerId,
+        ownerDID,
         parcelId: assetId,
       });
     } catch (err) {
@@ -267,6 +265,18 @@ export function ActionForm(props: ActionFormProps) {
     updateActionData({ isActing: false });
 
     if (setShouldParcelContentUpdate) {
+      const newRootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerDID,
+      });
+      const root = await geoWebContent.raw.getPath("/", {
+        parcelId: assetId,
+        ownerDID,
+      });
+
+      setRootCid(
+        root?.basicProfile || root?.mediaGallery ? newRootCid.toString() : null
+      );
       setShouldParcelContentUpdate(true);
     } else if (licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
