@@ -59,19 +59,16 @@ const ssxConfig: SSXClientConfig = {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -161,6 +158,7 @@ function IndexPage() {
         if (sessionKey === undefined) {
           return Promise.reject(new Error("unable to retrieve session key"));
         }
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
         const ssxSession: SSXClientSession = {
           address: address,
           walletAddress: await signer!.getAddress(),
@@ -170,6 +168,22 @@ function IndexPage() {
           signature: session.cacao.s!.s,
         };
         await ssxConnect.ssxServerLogin(ssxSession);
+
+        // Request delegation
+        const delegationResp = await ssxConnect.api!.request({
+          method: "post",
+          url: "/storage/delegation",
+          data: {
+            aud: session.did.id,
+          },
+        });
+        /* eslint-enable */
+
+        // Save delegation
+        if (delegationResp.status !== 200) {
+          throw new Error("Unknown status from /storage/delegation");
+        }
+        localStorage.setItem("storageDelegationCar", delegationResp.data);
 
         // Save DIDSession
         localStorage.setItem("didsession", session.serialize());
