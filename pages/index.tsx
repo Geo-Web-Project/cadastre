@@ -43,7 +43,20 @@ import {
 } from "@rainbow-me/rainbowkit";
 import NavMenu from "../components/nav/NavMenu";
 
-import { SSXInit, SSXClientConfig, SSXClientSession } from "@spruceid/ssx";
+import {
+  SSXInit,
+  SSXClientConfig,
+  SSXClientSession,
+  SSXConnected,
+} from "@spruceid/ssx";
+import {
+  create as createW3UpClient,
+  Client as W3UpClient,
+} from "@web3-storage/w3up-client";
+import { import as importDelegation } from "@ucanto/core/delegation";
+import { base32 } from "multiformats/bases/base32";
+import { CarReader } from "@ipld/car";
+import * as API from "@ucanto/interface";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
@@ -98,6 +111,9 @@ function IndexPage() {
     React.useState<GeoWebCoordinate>();
   const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
 
+  const [w3Client, setW3Client] = React.useState<W3UpClient>();
+  const [ssxConnect, setSSXConnect] = React.useState<SSXConnected>();
+
   const { chain } = useNetwork();
   const { address, status } = useAccount();
   const { data: signer } = useSigner();
@@ -128,23 +144,27 @@ function IndexPage() {
       session = await DIDSession.fromSession(sessionStr);
     }
 
+    const w3Client = await createW3UpClient();
+    const ssxInit = new SSXInit({
+      ...ssxConfig,
+      providers: {
+        ...ssxConfig.providers,
+        web3: {
+          driver: signer?.provider,
+        },
+      },
+    });
+    const ssxConnect = await ssxInit.connect();
+    let sessionKey = ssxConnect.builder.jwk();
+
     if (
       !session ||
       (session.hasSession && session.isExpired) ||
-      !session.cacao.p.iss.includes(address)
+      !session.cacao.p.iss.includes(address) ||
+      !sessionKey
     ) {
       try {
         // 1. Get nonce
-        const ssxInit = new SSXInit({
-          ...ssxConfig,
-          providers: {
-            ...ssxConfig.providers,
-            web3: {
-              driver: signer?.provider,
-            },
-          },
-        });
-        const ssxConnect = await ssxInit.connect();
         const nonce = await ssxConnect.ssxServerNonce({});
 
         // 2. Create DIDSession
@@ -154,7 +174,7 @@ function IndexPage() {
         });
 
         // 3. Login to SSX
-        const sessionKey = ssxConnect.builder.jwk();
+        sessionKey = ssxConnect.builder.jwk();
         if (sessionKey === undefined) {
           return Promise.reject(new Error("unable to retrieve session key"));
         }
@@ -169,22 +189,6 @@ function IndexPage() {
         };
         await ssxConnect.ssxServerLogin(ssxSession);
 
-        // Request delegation
-        const delegationResp = await ssxConnect.api!.request({
-          method: "post",
-          url: "/storage/delegation",
-          data: {
-            aud: session.did.id,
-          },
-        });
-        /* eslint-enable */
-
-        // Save delegation
-        if (delegationResp.status !== 200) {
-          throw new Error("Unknown status from /storage/delegation");
-        }
-        localStorage.setItem("storageDelegationCar", delegationResp.data);
-
         // Save DIDSession
         localStorage.setItem("didsession", session.serialize());
       } catch (err) {
@@ -193,8 +197,46 @@ function IndexPage() {
       }
     }
 
+    setW3Client(w3Client);
+    setSSXConnect(ssxConnect);
+
     return session;
   };
+
+  React.useEffect(() => {
+    const loadStorageDelegation = async () => {
+      if (!ssxConnect || !w3Client || w3Client.proofs().length > 0) return;
+
+      // Request delegation
+      const delegationResp = await ssxConnect.api!.request({
+        method: "post",
+        url: "/storage/delegation",
+        responseType: "blob",
+        data: {
+          aud: w3Client.agent().did(),
+        },
+      });
+      /* eslint-enable */
+
+      // Save delegation
+      if (delegationResp.status !== 200) {
+        throw new Error("Unknown status from /storage/delegation");
+      }
+      const delegationRespBuf = await delegationResp.data.arrayBuffer();
+      const delegationRespBytes = new Uint8Array(delegationRespBuf);
+      const carReader = await CarReader.fromBytes(delegationRespBytes);
+      const blocks: API.Block[] = [];
+      for await (const block of carReader.blocks()) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        blocks.push(block as any);
+      }
+
+      const delegation = importDelegation(blocks);
+      w3Client.addProof(delegation);
+    };
+
+    loadStorageDelegation();
+  }, [ssxConnect, w3Client]);
 
   React.useEffect(() => {
     async function start() {
