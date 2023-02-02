@@ -19,7 +19,6 @@ import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
-import { SiweMessage, AuthMethod } from "@didtools/cacao";
 
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -53,10 +52,18 @@ import {
   create as createW3UpClient,
   Client as W3UpClient,
 } from "@web3-storage/w3up-client";
-import { import as importDelegation } from "@ucanto/core/delegation";
-import { base32 } from "multiformats/bases/base32";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
+
 import { CarReader } from "@ipld/car";
 import * as API from "@ucanto/interface";
+
+// eslint-disable-next-line import/named
+import { SiweMessage, AuthMethod } from "@didtools/cacao";
+// eslint-disable-next-line import/no-unresolved
+import { import as importDelegation } from "@ucanto/core/delegation";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
@@ -112,6 +119,8 @@ function IndexPage() {
   const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
 
   const [w3Client, setW3Client] = React.useState<W3UpClient>();
+  const [w3InvocationConfig, setW3InvocationConfig] =
+    React.useState<InvocationConfig>();
   const [ssxConnect, setSSXConnect] = React.useState<SSXConnected>();
 
   const { chain } = useNetwork();
@@ -205,34 +214,51 @@ function IndexPage() {
 
   React.useEffect(() => {
     const loadStorageDelegation = async () => {
-      if (!ssxConnect || !w3Client || w3Client.proofs().length > 0) return;
+      if (!ssxConnect || !w3Client) return;
 
-      // Request delegation
-      const delegationResp = await ssxConnect.api!.request({
-        method: "post",
-        url: "/storage/delegation",
-        responseType: "blob",
-        data: {
-          aud: w3Client.agent().did(),
-        },
-      });
-      /* eslint-enable */
+      if (w3Client.proofs().length === 0) {
+        // Request delegation
+        const delegationResp = await ssxConnect.api!.request({
+          method: "post",
+          url: "/storage/delegation",
+          responseType: "blob",
+          data: {
+            aud: w3Client.agent().did(),
+          },
+        });
+        /* eslint-enable */
 
-      // Save delegation
-      if (delegationResp.status !== 200) {
-        throw new Error("Unknown status from /storage/delegation");
+        // Save delegation
+        if (delegationResp.status !== 200) {
+          throw new Error("Unknown status from /storage/delegation");
+        }
+        const delegationRespBuf = await delegationResp.data.arrayBuffer();
+        const delegationRespBytes = new Uint8Array(delegationRespBuf);
+        const carReader = await CarReader.fromBytes(delegationRespBytes);
+        const blocks: API.Block[] = [];
+        for await (const block of carReader.blocks()) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          blocks.push(block as any);
+        }
+
+        const delegation = importDelegation(blocks);
+        await w3Client.addProof(delegation);
       }
-      const delegationRespBuf = await delegationResp.data.arrayBuffer();
-      const delegationRespBytes = new Uint8Array(delegationRespBuf);
-      const carReader = await CarReader.fromBytes(delegationRespBytes);
-      const blocks: API.Block[] = [];
-      for await (const block of carReader.blocks()) {
+
+      const proofs = w3Client.proofs();
+      if (proofs.length === 0) {
+        throw new Error("Could not find any proofs");
+      }
+      if (proofs[0].capabilities.length === 0) {
+        throw new Error("Could not find any capabilities");
+      }
+      const space = proofs[0].capabilities[0].with;
+      setW3InvocationConfig({
+        issuer: w3Client.agent(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        blocks.push(block as any);
-      }
-
-      const delegation = importDelegation(blocks);
-      w3Client.addProof(delegation);
+        with: space as any,
+        proofs: proofs,
+      });
     };
 
     loadStorageDelegation();
@@ -529,7 +555,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               geoWebContent={geoWebContent}
-              web3Storage={web3Storage}
+              w3InvocationConfig={w3InvocationConfig}
               geoWebCoordinate={geoWebCoordinate}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}

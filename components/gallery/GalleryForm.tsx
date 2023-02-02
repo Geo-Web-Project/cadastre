@@ -7,7 +7,7 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
-import { AssetId, AccountId } from "caip";
+import { AssetId } from "caip";
 import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
@@ -17,6 +17,7 @@ import {
 } from "./GalleryFileFormat";
 import { useFirebase } from "../../lib/Firebase";
 import { NETWORK_ID } from "../../lib/constants";
+import { uploadFile } from "@web3-storage/upload-client";
 
 interface MediaGalleryItem {
   name?: string;
@@ -39,7 +40,7 @@ function GalleryForm(props: GalleryFormProps) {
     licenseAddress,
     selectedParcelId,
     geoWebContent,
-    web3Storage,
+    w3InvocationConfig,
     ceramic,
     mediaGalleryItems,
     selectedMediaGalleryItemIndex,
@@ -133,10 +134,10 @@ function GalleryForm(props: GalleryFormProps) {
     setFileFormat(encoding ?? null);
 
     // Upload to Web3 storage
-    const added = await web3Storage.put([file], { wrapWithDirectory: false });
+    const added = await uploadFile(w3InvocationConfig, file);
 
     updateMediaGalleryItem({
-      content: added,
+      content: added.toString(),
       encodingFormat: encoding,
     });
 
@@ -200,7 +201,7 @@ function GalleryForm(props: GalleryFormProps) {
   }
 
   async function commitNewRoot(mediaGalleryItem: MediaGalleryItem) {
-    if (!geoWebContent | !ceramic.did) {
+    if (!geoWebContent || !ceramic.did) {
       return;
     }
     const assetId = new AssetId({
@@ -222,6 +223,7 @@ function GalleryForm(props: GalleryFormProps) {
     const cidStr = mediaGalleryItem.content;
     const mediaObject: MediaObject = {
       name: mediaGalleryItem.name ?? "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       content: CID.parse(cidStr ?? ""),
       encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
     };
