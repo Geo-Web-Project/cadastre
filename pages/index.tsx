@@ -361,7 +361,7 @@ function IndexPage() {
           style={{ height: "100px" }}
           className="border-bottom border-purple border-opacity-25"
         >
-          <Col className="ms-1 ps-3 ms-sm-4 ps-sm-3">
+          <Col className="ms-1 ps-3 ms-sm-4">
             <div
               className="d-flex align-items-center text-light"
               style={{
@@ -379,7 +379,7 @@ function IndexPage() {
               </span>
             </div>
           </Col>
-          <Col xs="6">
+          <Col xs="6" sm="4">
             {isPreFairLaunch ? (
               <FairLaunchCountdown
                 auctionStart={auctionStart}
