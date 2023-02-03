@@ -11,9 +11,9 @@ import { AssetId, AccountId } from "caip";
 import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
-  galleryFileFormats3D,
+  galleryFileFormats,
   getFormat,
-  getFormatCS3D,
+  getFormatCS,
 } from "./GalleryFileFormat";
 import { useFirebase } from "../../lib/Firebase";
 import { NETWORK_ID } from "../../lib/constants";
@@ -282,7 +282,7 @@ function GalleryForm(props: GalleryFormProps) {
                 id="uploadCid"
                 style={{ backgroundColor: "#111320", border: "none" }}
                 className="mt-1"
-                accept={getFormatCS3D()}
+                accept={getFormatCS()}
                 disabled={isUploading || selectedMediaGalleryItemIndex !== null}
                 onChange={captureFile}
                 hidden
@@ -311,7 +311,7 @@ function GalleryForm(props: GalleryFormProps) {
               >
                 <option value="">Select a File Format</option>
 
-                {galleryFileFormats3D.map((_format, i) => (
+                {galleryFileFormats.map((_format, i) => (
                   <option key={i} value={_format.encoding}>
                     {_format.extension} ({_format.encoding})
                   </option>

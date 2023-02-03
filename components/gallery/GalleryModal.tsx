@@ -85,15 +85,15 @@ function GalleryModal(props: GalleryModalProps) {
         <>
           <Modal.Body className="bg-dark px-4 text-light">
             <p>
-              The Media Gallery is a simple carousel viewing experience for 3D
-              models on the{" "}
+              The Media Gallery is a simple carousel viewing experience for
+              media on the{" "}
               <a href="https://geoweb.app" target="_blank" rel="noreferrer">
                 Geo Web alpha spatial browser
               </a>
-              . Upload .glb and .usdz (iOS only) files here to link them to your
-              parcel (plus pin them on IPFS & back them up on Filecoin). When
-              your parcel is viewed on a compatible smart device, 3D models can
-              also be viewed in AR.
+              .
+              <br />
+              .glb and .usdz (iOS only) files can be viewed in AR through the
+              spatial browser on compatible devices.
             </p>
             <div className="border border-secondary rounded p-3 text-center">
               <GalleryForm
