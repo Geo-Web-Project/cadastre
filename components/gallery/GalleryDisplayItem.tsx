@@ -22,6 +22,7 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
   mediaGalleryItem: MediaObject;
   index: number;
   selectedMediaGalleryItemIndex: number | null;
+  shouldMediaGalleryUpdate: boolean;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>
   >;
@@ -38,6 +39,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     selectedParcelId,
     index,
     selectedMediaGalleryItemIndex,
+    shouldMediaGalleryUpdate,
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
     setRootCid,
@@ -67,7 +69,13 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     );
   }
 
-  const removeMediaGalleryItem = React.useCallback(async () => {
+  React.useEffect(() => {
+    if (isRemoving && !shouldMediaGalleryUpdate) {
+      setIsRemoving(false);
+    }
+  }, [shouldMediaGalleryUpdate]);
+
+  async function removeMediaGalleryItem() {
     if (!geoWebContent) {
       return;
     }
@@ -109,8 +117,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
 
     setRootCid(newRootCid.toString());
     setShouldMediaGalleryUpdate(true);
-    setIsRemoving(false);
-  }, [geoWebContent, index]);
+  }
 
   function handleEdit() {
     setSelectedMediaGalleryItemIndex(index);

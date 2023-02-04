@@ -8,6 +8,7 @@ import { GalleryModalProps } from "./GalleryModal";
 export type GalleryDisplayGridProps = GalleryModalProps & {
   mediaGalleryItems: MediaObject[];
   selectedMediaGalleryItemIndex: number | null;
+  shouldMediaGalleryUpdate: boolean;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>
   >;
@@ -20,7 +21,6 @@ function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
   const {
     mediaGalleryItems,
     selectedMediaGalleryItemIndex,
-    setSelectedMediaGalleryItemIndex,
   } = props;
 
   return (
@@ -32,7 +32,6 @@ function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
             mediaGalleryItem={mediaGalleryItem}
             index={i}
             selectedMediaGalleryItemIndex={selectedMediaGalleryItemIndex}
-            setSelectedMediaGalleryItemIndex={setSelectedMediaGalleryItemIndex}
           />
         </Col>
       ))}
