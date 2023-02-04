@@ -79,7 +79,7 @@ function GalleryForm(props: GalleryFormProps) {
   React.useEffect(() => {
     if (isSaving && !shouldMediaGalleryUpdate) {
       setIsSaving(false);
-      setSelectedMediaGalleryItemIndex(null);
+      clearForm();
     }
   }, [shouldMediaGalleryUpdate]);
 
@@ -150,8 +150,8 @@ function GalleryForm(props: GalleryFormProps) {
     setDetectedFileFormat(null);
     setFileFormat(null);
     setMediaGalleryItem({});
-    // setPinningService("buckets");
     setDidFail(false);
+    setSelectedMediaGalleryItemIndex(null);
   }
 
   async function addToGallery() {
@@ -166,7 +166,6 @@ function GalleryForm(props: GalleryFormProps) {
     trace?.start();
 
     await commitNewRoot(mediaGalleryItem);
-    clearForm();
 
     trace?.stop();
 
@@ -177,7 +176,6 @@ function GalleryForm(props: GalleryFormProps) {
     setIsSaving(true);
 
     await commitNewRoot(mediaGalleryItem);
-    clearForm();
 
     setShouldMediaGalleryUpdate(true);
   }
