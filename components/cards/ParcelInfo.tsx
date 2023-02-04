@@ -6,7 +6,6 @@ import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
-  NETWORK_ID,
   BLOCK_EXPLORER,
   SPATIAL_DOMAIN,
 } from "../../lib/constants";
@@ -29,7 +28,6 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
-import { AssetId, AccountId } from "caip";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
@@ -119,7 +117,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     },
   });
 
-  const [rootCid, setRootCid] = React.useState<string | null>("");
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
   const [auctionStartTimestamp, setAuctionStartTimestamp] =
     React.useState<Date | null>(null);
@@ -129,12 +126,13 @@ function ParcelInfo(props: ParcelInfoProps) {
     null
   );
 
-  const { parcelContent, setShouldParcelContentUpdate } = useBasicProfile(
-    geoWebContent,
-    licenseAddress,
-    data?.geoWebParcel?.licenseOwner,
-    selectedParcelId
-  );
+  const { parcelContent, rootCid, setRootCid, setShouldParcelContentUpdate } =
+    useBasicProfile(
+      geoWebContent,
+      licenseAddress,
+      data?.geoWebParcel?.licenseOwner,
+      selectedParcelId
+    );
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -225,43 +223,6 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     loadLicenseDiamond();
   }, [licenseDiamondAddress, sfFramework, paymentToken]);
-
-  React.useEffect(() => {
-    if (!licenseAddress || !licenseOwner || !selectedParcelId) {
-      return;
-    }
-
-    (async () => {
-      setRootCid("");
-
-      const assetId = new AssetId({
-        chainId: `eip155:${NETWORK_ID}`,
-        assetName: {
-          namespace: "erc721",
-          reference: registryContract.address.toLowerCase(),
-        },
-        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-      });
-      const ownerId = new AccountId({
-        chainId: `eip155:${NETWORK_ID}`,
-        address: licenseOwner,
-      });
-
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerId,
-      });
-      const root = await geoWebContent.raw.getPath("/", {
-        parcelId: assetId,
-        ownerId,
-      });
-
-      setRootCid(
-        root?.basicProfile || root?.mediaGallery ? rootCid.toString() : null
-      );
-      setShouldParcelContentUpdate(true);
-    })();
-  }, [licenseAddress, licenseOwner, selectedParcelId]);
 
   React.useEffect(() => {
     if (data?.geoWebParcel && parcelFieldsToUpdate && queryTimerId) {

@@ -12,6 +12,7 @@ function useBasicProfile(
   parcelId?: string
 ) {
   const [parcelContent, setParcelContent] = useState<BasicProfile | null>(null);
+  const [rootCid, setRootCid] = useState<string | null>("");
   const [shouldParcelContentUpdate, setShouldParcelContentUpdate] =
     useState<boolean>(true);
 
@@ -45,11 +46,23 @@ function useBasicProfile(
           "/basicProfile",
           { parcelId: assetId, ownerId }
         );
+        const _rootCid = await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerId,
+        });
+        const root = await geoWebContent.raw.getPath("/", {
+          parcelId: assetId,
+          ownerId,
+        });
 
         setParcelContent(_parcelContent);
+        setRootCid(
+          root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : null
+        );
         setShouldParcelContentUpdate(false);
       } catch (err) {
         setParcelContent({});
+        setRootCid(null);
         setShouldParcelContentUpdate(false);
         console.error(err);
       }
@@ -62,7 +75,7 @@ function useBasicProfile(
     shouldParcelContentUpdate,
   ]);
 
-  return { parcelContent, setShouldParcelContentUpdate };
+  return { parcelContent, rootCid, setRootCid, setShouldParcelContentUpdate };
 }
 
 export { useBasicProfile };
