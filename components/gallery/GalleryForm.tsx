@@ -214,13 +214,12 @@ function GalleryForm(props: GalleryFormProps) {
     const ownerId = new AccountId(
       AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
     );
-    const mediaGallery = await geoWebContent.raw.getPath("/mediaGallery", {
-      ownerId,
-      parcelId: assetId,
-    });
     const rootCid = await geoWebContent.raw.resolveRoot({
       ownerId,
       parcelId: assetId,
+    });
+    const mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
+      schema: "MediaGallery",
     });
     const cidStr = mediaGalleryItem.content;
     const mediaObject: MediaObject = {
@@ -241,12 +240,8 @@ function GalleryForm(props: GalleryFormProps) {
       ownerId,
       parcelId: assetId,
     });
-    const newRootCid = await geoWebContent.raw.resolveRoot({
-      parcelId: assetId,
-      ownerId,
-    });
 
-    setRootCid(newRootCid.toString());
+    setRootCid(newRoot.toString());
   }
 
   const isReadyToAdd =

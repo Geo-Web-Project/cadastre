@@ -39,24 +39,26 @@ function useMediaGallery(
         const ownerId = new AccountId(
           AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
         );
-        const root = await geoWebContent.raw.getPath("/", {
-          parcelId: assetId,
+        const rootCid = await geoWebContent.raw.resolveRoot({
           ownerId,
+          parcelId: assetId,
+        });
+        const root = await geoWebContent.raw.get(rootCid, "/", {
+          schema: "ParcelRoot",
         });
 
         if (root?.mediaGallery) {
-          const mediaGalleryPath = await geoWebContent.raw.getPath(
+          const mediaGalleryPath = await geoWebContent.raw.get(
+            rootCid,
             "/mediaGallery",
-            { parcelId: assetId, ownerId }
+            { schema: "MediaGallery" }
           );
 
           for (const i in mediaGalleryPath) {
-            const mediaGalleryItem = await geoWebContent.raw.getPath(
+            const mediaGalleryItem = await geoWebContent.raw.get(
+              rootCid,
               `/mediaGallery/${i}`,
-              {
-                parcelId: assetId,
-                ownerId,
-              }
+              {}
             );
             _mediaGalleryItems.push(mediaGalleryItem);
           }
@@ -64,10 +66,6 @@ function useMediaGallery(
           setMediaGalleryItems(_mediaGalleryItems);
         } else {
           const mediaGallery: MediaGallery = [];
-          const rootCid = await geoWebContent.raw.resolveRoot({
-            ownerId,
-            parcelId: assetId,
-          });
           const newRoot = await geoWebContent.raw.putPath(
             rootCid,
             "/mediaGallery",
@@ -83,13 +81,8 @@ function useMediaGallery(
             parcelId: assetId,
           });
 
-          const newRootCid = await geoWebContent.raw.resolveRoot({
-            ownerId,
-            parcelId: assetId,
-          });
-
           setMediaGalleryItems([]);
-          setRootCid(newRootCid.toString());
+          setRootCid(newRoot.toString());
         }
 
         setShouldMediaGalleryUpdate(false);
