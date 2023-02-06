@@ -32,7 +32,11 @@ function GalleryModal(props: GalleryModalProps) {
     setInteractionState(STATE.PARCEL_SELECTED);
   };
 
-  const { mediaGalleryItems, setShouldMediaGalleryUpdate } = useMediaGallery(
+  const {
+    mediaGalleryItems,
+    shouldMediaGalleryUpdate,
+    setShouldMediaGalleryUpdate,
+  } = useMediaGallery(
     geoWebContent,
     ceramic,
     licenseAddress,
@@ -102,6 +106,7 @@ function GalleryModal(props: GalleryModalProps) {
                 setSelectedMediaGalleryItemIndex={
                   setSelectedMediaGalleryItemIndex
                 }
+                shouldMediaGalleryUpdate={shouldMediaGalleryUpdate}
                 setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
@@ -111,6 +116,7 @@ function GalleryModal(props: GalleryModalProps) {
                 setSelectedMediaGalleryItemIndex={
                   setSelectedMediaGalleryItemIndex
                 }
+                shouldMediaGalleryUpdate={shouldMediaGalleryUpdate}
                 setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />

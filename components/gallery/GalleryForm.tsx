@@ -27,6 +27,7 @@ interface MediaGalleryItem {
 export type GalleryFormProps = GalleryModalProps & {
   mediaGalleryItems: MediaObject[];
   selectedMediaGalleryItemIndex: number | null;
+  shouldMediaGalleryUpdate: boolean;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>
   >;
@@ -42,18 +43,20 @@ function GalleryForm(props: GalleryFormProps) {
     ceramic,
     mediaGalleryItems,
     selectedMediaGalleryItemIndex,
+    shouldMediaGalleryUpdate,
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
     setRootCid,
   } = props;
+
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
-
   const [mediaGalleryItem, setMediaGalleryItem] =
     React.useState<MediaGalleryItem>({});
+
   const { firebasePerf } = useFirebase();
 
   React.useEffect(() => {
@@ -72,6 +75,13 @@ function GalleryForm(props: GalleryFormProps) {
         mediaGalleryItems[selectedMediaGalleryItemIndex].encodingFormat,
     });
   }, [selectedMediaGalleryItemIndex]);
+
+  React.useEffect(() => {
+    if (isSaving && !shouldMediaGalleryUpdate) {
+      setIsSaving(false);
+      clearForm();
+    }
+  }, [shouldMediaGalleryUpdate]);
 
   function updateMediaGalleryItem(updatedValues: MediaGalleryItem) {
     function _updateData(updatedValues: MediaGalleryItem) {
@@ -140,9 +150,7 @@ function GalleryForm(props: GalleryFormProps) {
     setDetectedFileFormat(null);
     setFileFormat(null);
     setMediaGalleryItem({});
-    // setPinningService("buckets");
     setDidFail(false);
-
     setSelectedMediaGalleryItemIndex(null);
   }
 
@@ -158,22 +166,17 @@ function GalleryForm(props: GalleryFormProps) {
     trace?.start();
 
     await commitNewRoot(mediaGalleryItem);
-    clearForm();
 
     trace?.stop();
 
     setShouldMediaGalleryUpdate(true);
-    setIsSaving(false);
   }
 
   async function saveChanges() {
     setIsSaving(true);
 
     await commitNewRoot(mediaGalleryItem);
-    clearForm();
 
-    setIsSaving(false);
-    setSelectedMediaGalleryItemIndex(null);
     setShouldMediaGalleryUpdate(true);
   }
 
@@ -196,58 +199,50 @@ function GalleryForm(props: GalleryFormProps) {
     // setPinningServiceAccessToken("");
   }
 
-  const commitNewRoot = React.useCallback(
-    async (mediaGalleryItem: MediaGalleryItem) => {
-      if (!geoWebContent) {
-        return;
-      }
-      const assetId = new AssetId({
-        chainId: `eip155:${NETWORK_ID}`,
-        assetName: {
-          namespace: "erc721",
-          reference: licenseAddress.toLowerCase(),
-        },
-        tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-      });
-      const ownerId = new AccountId(
-        AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-      );
-      const mediaGallery = await geoWebContent.raw.getPath("/mediaGallery", {
-        ownerId,
-        parcelId: assetId,
-      });
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        ownerId,
-        parcelId: assetId,
-      });
-      const cidStr = mediaGalleryItem.content;
-      const mediaObject: MediaObject = {
-        name: mediaGalleryItem.name ?? "",
-        content: CID.parse(cidStr ?? ""),
-        encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
-      };
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        selectedMediaGalleryItemIndex !== null
-          ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
-          : `/mediaGallery/${mediaGallery.length}`,
-        mediaObject,
-        { parentSchema: "MediaGallery", pin: true }
-      );
+  async function commitNewRoot(mediaGalleryItem: MediaGalleryItem) {
+    if (!geoWebContent) {
+      return;
+    }
+    const assetId = new AssetId({
+      chainId: `eip155:${NETWORK_ID}`,
+      assetName: {
+        namespace: "erc721",
+        reference: licenseAddress.toLowerCase(),
+      },
+      tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
+    });
+    const ownerId = new AccountId(
+      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
+    );
+    const rootCid = await geoWebContent.raw.resolveRoot({
+      ownerId,
+      parcelId: assetId,
+    });
+    const mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
+      schema: "MediaGallery",
+    });
+    const cidStr = mediaGalleryItem.content;
+    const mediaObject: MediaObject = {
+      name: mediaGalleryItem.name ?? "",
+      content: CID.parse(cidStr ?? ""),
+      encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
+    };
+    const newRoot = await geoWebContent.raw.putPath(
+      rootCid,
+      selectedMediaGalleryItemIndex !== null
+        ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
+        : `/mediaGallery/${mediaGallery.length}`,
+      mediaObject,
+      { parentSchema: "MediaGallery", pin: true }
+    );
 
-      await geoWebContent.raw.commit(newRoot, {
-        ownerId,
-        parcelId: assetId,
-      });
-      const newRootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerId,
-      });
+    await geoWebContent.raw.commit(newRoot, {
+      ownerId,
+      parcelId: assetId,
+    });
 
-      setRootCid(newRootCid.toString());
-    },
-    [geoWebContent, selectedMediaGalleryItemIndex]
-  );
+    setRootCid(newRoot.toString());
+  }
 
   const isReadyToAdd =
     mediaGalleryItem.content && mediaGalleryItem.name && !isSaving;
@@ -353,7 +348,7 @@ function GalleryForm(props: GalleryFormProps) {
         </Row>
         <Row className="px-3 text-end">
           <Col xs="auto" lg={{ offset: 6 }} className="mb-3">
-            <Button variant="danger" onClick={clearForm}>
+            <Button variant="danger" disabled={isSaving} onClick={clearForm}>
               Cancel
             </Button>
           </Col>
