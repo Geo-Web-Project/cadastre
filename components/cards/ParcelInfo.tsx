@@ -496,7 +496,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               </p>
               <p className="text-truncate">
                 <span className="fw-bold">Root CID: </span>{" "}
-                {rootCid === null ? (
+                {rootCid === "" ? (
                   "Not Available"
                 ) : !rootCid ? (
                   spinner
