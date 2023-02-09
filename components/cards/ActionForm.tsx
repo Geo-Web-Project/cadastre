@@ -265,18 +265,6 @@ export function ActionForm(props: ActionFormProps) {
     updateActionData({ isActing: false });
 
     if (setShouldParcelContentUpdate) {
-      const newRootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-      const root = await geoWebContent.raw.getPath("/", {
-        parcelId: assetId,
-        ownerDID,
-      });
-
-      setRootCid(
-        root?.basicProfile || root?.mediaGallery ? newRootCid.toString() : null
-      );
       setShouldParcelContentUpdate(true);
     } else if (licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
