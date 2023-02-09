@@ -48,15 +48,13 @@ function useBasicProfile(
         });
         const _rootCid = await geoWebContent.raw.resolveRoot({
           parcelId: assetId,
-          ownerId,
+          ownerDID: `did:pkh:${ownerId}`,
         });
         const _parcelContent = await geoWebContent.raw.get(
           _rootCid,
           "/basicProfile",
           {
             schema: "BasicProfile",
-            parcelId: assetId,
-            ownerDID: `did:pkh:${ownerId}`,
           }
         );
         const root = await geoWebContent.raw.get(_rootCid, "/", {

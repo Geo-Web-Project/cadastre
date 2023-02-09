@@ -48,7 +48,7 @@ function useMediaGallery(
           const mediaGalleryPath = await geoWebContent.raw.get(
             rootCid,
             "/mediaGallery",
-            { schema: "MediaGallery", parcelId: assetId, ownerDID }
+            { schema: "MediaGallery" }
           );
 
           for (const i in mediaGalleryPath) {
