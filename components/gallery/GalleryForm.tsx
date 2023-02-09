@@ -224,7 +224,7 @@ function GalleryForm(props: GalleryFormProps) {
     const mediaObject: MediaObject = {
       name: mediaGalleryItem.name ?? "",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      content: CID.parse(cidStr ?? ""),
+      content: CID.parse(cidStr ?? "") as any,
       encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
     };
     const newRoot = await geoWebContent.raw.putPath(

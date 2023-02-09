@@ -260,6 +260,11 @@ export function ActionForm(props: ActionFormProps) {
       });
     } catch (err) {
       console.error(err);
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: (err as Error).message,
+      });
     }
 
     updateActionData({ isActing: false });

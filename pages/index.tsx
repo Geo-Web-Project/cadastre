@@ -15,7 +15,6 @@ import Button from "react-bootstrap/Button";
 
 import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
-import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
@@ -112,7 +111,6 @@ function IndexPage() {
     BigNumber.from(0)
   );
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
-  const [web3Storage, setWeb3Storage] = React.useState<Web3Storage>();
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
@@ -384,25 +382,20 @@ function IndexPage() {
   }, [signer]);
 
   React.useEffect(() => {
-    if (!ceramic || !ipfs) {
+    if (!ceramic || !ipfs || !w3InvocationConfig) {
       return;
     }
 
-    const web3Storage = new Web3Storage({
-      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-      endpoint: new URL("https://api.web3.storage"),
-    });
     const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic: ceramic as any,
       ipfsGatewayHost: process.env.NEXT_PUBLIC_IPFS_GATEWAY,
       ipfs,
-      web3Storage,
+      w3InvocationConfig,
     });
 
     setGeoWebContent(geoWebContent);
-    setWeb3Storage(web3Storage);
-  }, [ceramic, ipfs]);
+  }, [ceramic, ipfs, w3InvocationConfig]);
 
   const Connector = () => {
     return (
@@ -543,7 +536,6 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         geoWebContent &&
-        web3Storage &&
         geoWebCoordinate &&
         firebasePerf &&
         sfFramework ? (

@@ -3336,10 +3336,10 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.5.1.tgz#a64d1af3c62e3bb89576ec58af880980a562bf4e"
   integrity sha512-dZMzN0uAjwJXWYYAcnxIwXqRTZw3o14hGe7O6uhwjD1ZQWPVYA5lASgnNskEBra0knVBsOXB4KXg+HnlKewN/A==
 
-"@geo-web/content@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.4.1.tgz#b5b4bce21314dbb88952a57e02b30a6306cfb787"
-  integrity sha512-78aetiQHnDkH/r2+tbZUxobUEPQtNcv9C28XZBaW10yyeMSbvTnZ0q4JbnethNU8KtbVrlkVu0565ZLPVOQZLg==
+"@geo-web/content@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.5.0.tgz#e9d4ad1d1132ba03d9a1669841fdadf68f2b64cb"
+  integrity sha512-DnnvYkBahaqLPJYvpWuBIeWVsa1F+urZBDcQu0xJqk0DiqM2HSUUUHAsjJ8W12P48k4K9G8VuBwehSifzXKyIg==
   dependencies:
     "@ceramicnetwork/common" "^2.13.0"
     "@ceramicnetwork/http-client" "^2.10.0"
@@ -3349,6 +3349,7 @@
     "@ipld/dag-cbor" "^8.0.0"
     "@ipld/schema" "^4.1.2"
     "@typescript-eslint/parser" "^4.33.0"
+    "@web3-storage/upload-client" "^5.4.0"
     axios "^1.2.1"
     caip "^1.1.0"
     eslint "^7.32.0"
@@ -3356,7 +3357,6 @@
     ipfs-core-types "^0.13.0"
     multiformats "^10.0.2"
     typescript "^4.9.3"
-    web3.storage "^4.4.0"
 
 "@geo-web/contracts@4.1.4":
   version "4.1.4"
@@ -8908,7 +8908,7 @@
   resolved "https://registry.yarnpkg.com/@web3-storage/parse-link-header/-/parse-link-header-3.1.0.tgz#4562724987649dd6d3e07c87be1826804d212ef7"
   integrity sha512-K1undnK70vLLauqdE8bq/l98isTF2FDhcP0UPpXVSjkSWe3xhAn5eRXk5jfA1E5ycNm84Ws/rQFUD7ue11nciw==
 
-"@web3-storage/upload-client@^5.3.0":
+"@web3-storage/upload-client@^5.3.0", "@web3-storage/upload-client@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@web3-storage/upload-client/-/upload-client-5.4.0.tgz#e859ad914e3adfb3c5856f10e2f5774d5016d4bf"
   integrity sha512-OMpP2UB3OEukiJvCdbBuK+HcdHyfDBs6+WWxeiVKDjP8YZXrNjBlpWQ7x+spFLxZLERsy8hDJ1i+L2K+enp4gw==
