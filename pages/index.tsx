@@ -13,7 +13,7 @@ import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 
-import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
+import { RPC_URLS, NETWORK_ID, CERAMIC_URL, SSX_HOST } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -71,7 +71,7 @@ function getLibrary(provider: any) {
 
 const ssxConfig: SSXClientConfig = {
   providers: {
-    server: { host: "http://localhost:3001" },
+    server: { host: SSX_HOST },
   },
 };
 
