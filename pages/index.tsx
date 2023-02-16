@@ -28,11 +28,14 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
-import * as IPFSCore from "ipfs-core";
 import { DIDSession } from "did-session";
 import type { Point } from "@turf/turf";
 import * as IPFSHttpClient from "ipfs-http-client";
+
+/* eslint-disable import/no-unresolved */
+import * as IPFSCore from "ipfs-core";
 import { webTransport } from "@libp2p/webtransport";
+/* eslint-enable */
 
 import { useDisconnect, useAccount, useSigner, useNetwork } from "wagmi";
 import {
