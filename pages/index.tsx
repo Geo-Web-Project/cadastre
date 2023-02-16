@@ -32,6 +32,7 @@ import * as IPFSCore from "ipfs-core";
 import { DIDSession } from "did-session";
 import type { Point } from "@turf/turf";
 import * as IPFSHttpClient from "ipfs-http-client";
+import { webTransport } from "@libp2p/webtransport";
 
 import { useDisconnect, useAccount, useSigner, useNetwork } from "wagmi";
 import {
@@ -322,6 +323,9 @@ function IndexPage() {
           jsIpfs({
             loadJsIpfsModule: () => IPFSCore,
             options: {
+              libp2p: {
+                transports: [webTransport()],
+              },
               preload: {
                 enabled: false,
               },
