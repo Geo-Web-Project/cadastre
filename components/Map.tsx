@@ -34,10 +34,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
-import { Web3Storage } from "web3.storage";
 
 import type { Point, MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -159,7 +162,7 @@ export type MapProps = {
   ceramic: CeramicClient;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
-  web3Storage: Web3Storage;
+  w3InvocationConfig: InvocationConfig;
   geoWebCoordinate: GeoWebCoordinate;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;

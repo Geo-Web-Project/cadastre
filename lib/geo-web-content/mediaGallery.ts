@@ -13,16 +13,15 @@ function useMediaGallery(
   parcelId: string,
   setRootCid: React.Dispatch<React.SetStateAction<string | null>>
 ) {
-  const [mediaGalleryItems, setMediaGalleryItems] = useState<
-    MediaObject[] | null
-  >(null);
+  const [mediaGalleryItems, setMediaGalleryItems] =
+    useState<MediaObject[] | null>(null);
   const [shouldMediaGalleryUpdate, setShouldMediaGalleryUpdate] =
     useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
       try {
-        if (!parcelId || !shouldMediaGalleryUpdate) {
+        if (!parcelId || !shouldMediaGalleryUpdate || !ceramic.did) {
           return;
         }
 
@@ -36,11 +35,9 @@ function useMediaGallery(
           tokenId: new BN(parcelId.slice(2), "hex").toString(10),
         });
 
-        const ownerId = new AccountId(
-          AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-        );
+        const ownerDID = ceramic.did.parent;
         const rootCid = await geoWebContent.raw.resolveRoot({
-          ownerId,
+          ownerDID,
           parcelId: assetId,
         });
         const root = await geoWebContent.raw.get(rootCid, "/", {
@@ -77,7 +74,7 @@ function useMediaGallery(
           );
 
           await geoWebContent.raw.commit(newRoot, {
-            ownerId,
+            ownerDID,
             parcelId: assetId,
           });
 

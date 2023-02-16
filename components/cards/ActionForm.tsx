@@ -208,9 +208,7 @@ export function ActionForm(props: ActionFormProps) {
         ? licenseId.toString()
         : new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
-    const ownerId = new AccountId(
-      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-    );
+    const ownerDID = ceramic.did!.parent;
 
     if (
       licenseId &&
@@ -218,10 +216,10 @@ export function ActionForm(props: ActionFormProps) {
         (interactionState === STATE.PARCEL_RECLAIMING &&
           account !== licenseOwner))
     ) {
-      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerId });
+      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
-        ownerId,
+        ownerDID,
       });
       const mediaGallery: MediaGallery = [];
       const newRoot = await geoWebContent.raw.putPath(
@@ -235,7 +233,7 @@ export function ActionForm(props: ActionFormProps) {
       );
 
       await geoWebContent.raw.commit(newRoot, {
-        ownerId,
+        ownerDID,
         parcelId: assetId,
       });
     }
@@ -243,7 +241,7 @@ export function ActionForm(props: ActionFormProps) {
     try {
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
-        ownerId,
+        ownerDID,
       });
 
       const newRoot = await geoWebContent.raw.putPath(
@@ -257,11 +255,16 @@ export function ActionForm(props: ActionFormProps) {
       );
 
       await geoWebContent.raw.commit(newRoot, {
-        ownerId,
+        ownerDID,
         parcelId: assetId,
       });
     } catch (err) {
       console.error(err);
+      updateActionData({
+        isActing: false,
+        didFail: true,
+        errorMessage: (err as Error).message,
+      });
     }
 
     updateActionData({ isActing: false });

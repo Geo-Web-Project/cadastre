@@ -13,12 +13,11 @@ import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 
-import { RPC_URLS, NETWORK_ID, CERAMIC_URL } from "../lib/constants";
+import { RPC_URLS, NETWORK_ID, CERAMIC_URL, SSX_HOST } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
-import { Web3Storage } from "web3.storage";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
+import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -42,27 +41,53 @@ import {
 } from "@rainbow-me/rainbowkit";
 import NavMenu from "../components/nav/NavMenu";
 
+import {
+  SSXInit,
+  SSXClientConfig,
+  SSXClientSession,
+  SSXConnected,
+} from "@spruceid/ssx";
+import {
+  create as createW3UpClient,
+  Client as W3UpClient,
+} from "@web3-storage/w3up-client";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
+
+import { CarReader } from "@ipld/car";
+import * as API from "@ucanto/interface";
+
+// eslint-disable-next-line import/named
+import { SiweMessage, AuthMethod } from "@didtools/cacao";
+// eslint-disable-next-line import/no-unresolved
+import { import as importDelegation } from "@ucanto/core/delegation";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLibrary(provider: any) {
   return new ethers.providers.Web3Provider(provider, "any");
 }
 
+const ssxConfig: SSXClientConfig = {
+  providers: {
+    server: { host: SSX_HOST },
+  },
+};
+
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -86,11 +111,15 @@ function IndexPage() {
     BigNumber.from(0)
   );
   const [isPreFairLaunch, setIsPreFairLaunch] = React.useState<boolean>(false);
-  const [web3Storage, setWeb3Storage] = React.useState<Web3Storage>();
   const [geoWebContent, setGeoWebContent] = React.useState<GeoWebContent>();
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
   const [isFairLaunch, setIsFairLaunch] = React.useState<boolean>(false);
+
+  const [w3Client, setW3Client] = React.useState<W3UpClient>();
+  const [w3InvocationConfig, setW3InvocationConfig] =
+    React.useState<InvocationConfig>();
+  const [ssxConnect, setSSXConnect] = React.useState<SSXConnected>();
 
   const { chain } = useNetwork();
   const { address, status } = useAccount();
@@ -112,7 +141,7 @@ function IndexPage() {
   };
 
   const loadCeramicSession = async (
-    authMethod: EthereumAuthProvider,
+    authMethod: AuthMethod,
     address: string
   ): Promise<DIDSession | undefined> => {
     const sessionStr = localStorage.getItem("didsession");
@@ -122,15 +151,52 @@ function IndexPage() {
       session = await DIDSession.fromSession(sessionStr);
     }
 
+    const w3Client = await createW3UpClient();
+    const ssxInit = new SSXInit({
+      ...ssxConfig,
+      providers: {
+        ...ssxConfig.providers,
+        web3: {
+          driver: signer?.provider,
+        },
+      },
+    });
+    const ssxConnect = await ssxInit.connect();
+    let sessionKey = ssxConnect.builder.jwk();
+
     if (
       !session ||
       (session.hasSession && session.isExpired) ||
-      !session.cacao.p.iss.includes(address.toLowerCase())
+      !session.cacao.p.iss.includes(address) ||
+      !sessionKey
     ) {
       try {
+        // 1. Get nonce
+        const nonce = await ssxConnect.ssxServerNonce({});
+
+        // 2. Create DIDSession
         session = await DIDSession.authorize(authMethod, {
           resources: ["ceramic://*"],
+          nonce,
         });
+
+        // 3. Login to SSX
+        sessionKey = ssxConnect.builder.jwk();
+        if (sessionKey === undefined) {
+          return Promise.reject(new Error("unable to retrieve session key"));
+        }
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        const ssxSession: SSXClientSession = {
+          address: address,
+          walletAddress: await signer!.getAddress(),
+          chainId: chain!.id,
+          sessionKey,
+          siwe: SiweMessage.fromCacao(session.cacao).toMessage(),
+          signature: session.cacao.s!.s,
+        };
+        await ssxConnect.ssxServerLogin(ssxSession);
+
+        // Save DIDSession
         localStorage.setItem("didsession", session.serialize());
       } catch (err) {
         console.error(err);
@@ -138,8 +204,63 @@ function IndexPage() {
       }
     }
 
+    setW3Client(w3Client);
+    setSSXConnect(ssxConnect);
+
     return session;
   };
+
+  React.useEffect(() => {
+    const loadStorageDelegation = async () => {
+      if (!ssxConnect || !w3Client) return;
+
+      if (w3Client.proofs().length === 0) {
+        // Request delegation
+        const delegationResp = await ssxConnect.api!.request({
+          method: "post",
+          url: "/storage/delegation",
+          responseType: "blob",
+          data: {
+            aud: w3Client.agent().did(),
+          },
+        });
+        /* eslint-enable */
+
+        // Save delegation
+        if (delegationResp.status !== 200) {
+          throw new Error("Unknown status from /storage/delegation");
+        }
+        const delegationRespBuf = await delegationResp.data.arrayBuffer();
+        const delegationRespBytes = new Uint8Array(delegationRespBuf);
+        const carReader = await CarReader.fromBytes(delegationRespBytes);
+        const blocks: API.Block[] = [];
+        for await (const block of carReader.blocks()) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          blocks.push(block as any);
+        }
+
+        const delegation = importDelegation(blocks);
+        await w3Client.addProof(delegation);
+      }
+
+      const proofs = w3Client.proofs();
+      if (proofs.length === 0) {
+        throw new Error("Could not find any proofs");
+      }
+      if (proofs[0].capabilities.length === 0) {
+        throw new Error("Could not find any capabilities");
+      }
+      const space = proofs[0].capabilities[0].with;
+      setW3InvocationConfig({
+        issuer: w3Client.agent(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        with: space as any,
+        proofs: proofs,
+      });
+    };
+
+    loadStorageDelegation();
+  }, [ssxConnect, w3Client]);
 
   React.useEffect(() => {
     async function start() {
@@ -235,12 +356,18 @@ function IndexPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
 
-      const ethereumAuthProvider = new EthereumAuthProvider(
+      const accountId = await getAccountId(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (signer.provider as any).provider,
-        address.toLowerCase()
+        address
       );
-      const session = await loadCeramicSession(ethereumAuthProvider, address);
+      const authMethod = await EthereumWebAuth.getAuthMethod(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (signer.provider as any).provider,
+        accountId
+      );
+
+      const session = await loadCeramicSession(authMethod, address);
 
       if (!session) {
         return;
@@ -255,25 +382,20 @@ function IndexPage() {
   }, [signer]);
 
   React.useEffect(() => {
-    if (!ceramic || !ipfs) {
+    if (!ceramic || !ipfs || !w3InvocationConfig) {
       return;
     }
 
-    const web3Storage = new Web3Storage({
-      token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN ?? "",
-      endpoint: new URL("https://api.web3.storage"),
-    });
     const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic: ceramic as any,
       ipfsGatewayHost: process.env.NEXT_PUBLIC_IPFS_GATEWAY,
       ipfs,
-      web3Storage,
+      w3InvocationConfig,
     });
 
     setGeoWebContent(geoWebContent);
-    setWeb3Storage(web3Storage);
-  }, [ceramic, ipfs]);
+  }, [ceramic, ipfs, w3InvocationConfig]);
 
   const Connector = () => {
     return (
@@ -414,7 +536,6 @@ function IndexPage() {
         ceramic &&
         ipfs &&
         geoWebContent &&
-        web3Storage &&
         geoWebCoordinate &&
         firebasePerf &&
         sfFramework ? (
@@ -426,7 +547,7 @@ function IndexPage() {
               ceramic={ceramic}
               ipfs={ipfs}
               geoWebContent={geoWebContent}
-              web3Storage={web3Storage}
+              w3InvocationConfig={w3InvocationConfig}
               geoWebCoordinate={geoWebCoordinate}
               firebasePerf={firebasePerf}
               paymentToken={paymentToken}

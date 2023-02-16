@@ -76,7 +76,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   }, [shouldMediaGalleryUpdate]);
 
   async function removeMediaGalleryItem() {
-    if (!geoWebContent) {
+    if (!geoWebContent || !ceramic.did) {
       return;
     }
 
@@ -90,11 +90,8 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       },
       tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
-    const ownerId = new AccountId(
-      AccountId.parse(ceramic.did?.parent.split("did:pkh:")[1] ?? "")
-    );
     const rootCid = await geoWebContent.raw.resolveRoot({
-      ownerId,
+      ownerDID: ceramic.did?.parent,
       parcelId: assetId,
     });
     const newRoot = await geoWebContent.raw.deletePath(
@@ -106,13 +103,13 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     );
 
     await geoWebContent.raw.commit(newRoot, {
-      ownerId,
+      ownerDID: ceramic.did?.parent,
       parcelId: assetId,
     });
 
     const newRootCid = await geoWebContent.raw.resolveRoot({
       parcelId: assetId,
-      ownerId,
+      ownerDID: ceramic.did?.parent,
     });
 
     setRootCid(newRootCid.toString());

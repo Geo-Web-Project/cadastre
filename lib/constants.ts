@@ -29,3 +29,5 @@ export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
 export const MAX_PARCEL_CLAIM = 3000;
+
+export const SSX_HOST = process.env.NEXT_SSX_HOST!;
