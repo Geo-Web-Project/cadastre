@@ -3456,10 +3456,10 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.5.1.tgz#a64d1af3c62e3bb89576ec58af880980a562bf4e"
   integrity sha512-dZMzN0uAjwJXWYYAcnxIwXqRTZw3o14hGe7O6uhwjD1ZQWPVYA5lASgnNskEBra0knVBsOXB4KXg+HnlKewN/A==
 
-"@geo-web/content@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.5.1.tgz#eb247b612a33be43ace5efade3f21969aa703a76"
-  integrity sha512-sKg5Z31PMb1ux27fRplXYQrEMhzVdMKb79ZKkJf40161m9HU1+12jVZt3nMMBnzXXkHjbePI0tTMc6vBf/1yvQ==
+"@geo-web/content@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.5.2.tgz#5cfaf3df1040da8062cfb84b6bb39c3322a8eef6"
+  integrity sha512-r2fRBa2Av6QhLZkV16gJjlDQVCIBQ+Y3L4rimkMQi6grblIqEFCjvEH/TAT0dab+dixlqUrut85uMZcuQoNdEA==
   dependencies:
     "@ceramicnetwork/common" "^2.18.0"
     "@ceramicnetwork/http-client" "^2.15.0"
