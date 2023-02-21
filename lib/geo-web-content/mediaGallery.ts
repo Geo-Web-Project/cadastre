@@ -13,8 +13,9 @@ function useMediaGallery(
   parcelId: string,
   setRootCid: React.Dispatch<React.SetStateAction<string | null>>
 ) {
-  const [mediaGalleryItems, setMediaGalleryItems] =
-    useState<MediaObject[] | null>(null);
+  const [mediaGalleryItems, setMediaGalleryItems] = useState<
+    MediaObject[] | null
+  >(null);
   const [shouldMediaGalleryUpdate, setShouldMediaGalleryUpdate] =
     useState<boolean>(true);
 

@@ -74,8 +74,9 @@ function ReclaimAction(props: ReclaimActionProps) {
       : null;
   const isOwner = account === licenseOwner;
 
-  const [requiredBuffer, setRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
 
   React.useEffect(() => {
     const run = async () => {
@@ -96,7 +97,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
-
     if (parcelContent && isOwner) {
       updateActionData({
         parcelName: parcelContent.name,
@@ -168,11 +168,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         summaryView={
           newAnnualNetworkFee ? (
             <TransactionSummaryView
-              claimPayment={
-                isOwner
-                  ? BigNumber.from("0")
-                  : requiredBid
-              }
+              claimPayment={isOwner ? BigNumber.from("0") : requiredBid}
               newAnnualNetworkFee={newAnnualNetworkFee}
               newNetworkFee={newNetworkFee}
               {...props}
@@ -182,9 +178,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           )
         }
         requiredPayment={
-          requiredBid &&
-          requiredBuffer &&
-          !isOwner
+          requiredBid && requiredBuffer && !isOwner
             ? requiredBid.add(requiredBuffer)
             : requiredBuffer
         }

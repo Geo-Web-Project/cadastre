@@ -12,16 +12,11 @@ export type GalleryDisplayGridProps = GalleryModalProps & {
   setSelectedMediaGalleryItemIndex: React.Dispatch<
     React.SetStateAction<number | null>
   >;
-  setShouldMediaGalleryUpdate: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
+  setShouldMediaGalleryUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
-  const {
-    mediaGalleryItems,
-    selectedMediaGalleryItemIndex,
-  } = props;
+  const { mediaGalleryItems, selectedMediaGalleryItemIndex } = props;
 
   return (
     <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>

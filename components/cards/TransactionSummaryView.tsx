@@ -53,8 +53,9 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
 
-  const [streamBuffer, setStreamBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
+    null
+  );
   const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {

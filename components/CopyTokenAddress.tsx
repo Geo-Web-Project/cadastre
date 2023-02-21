@@ -42,7 +42,12 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
           contentHover="Copy Address"
           target={
             <div className="d-flex flex-shrink-1 align-items-center">
-              <Image className="me-lg-1 me-xl-0" width={16} src="/eth.png" alt="eth" />
+              <Image
+                className="me-lg-1 me-xl-0"
+                width={16}
+                src="/eth.png"
+                alt="eth"
+              />
               <span
                 className={`d-none d-xl-block text-black text-break ${
                   options.size === "small" ? "px-1 small" : "px-2"

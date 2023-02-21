@@ -71,8 +71,9 @@ function ClaimAction(props: ClaimActionProps) {
         )
       : null;
 
-  const [requiredBuffer, setRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
 
   React.useEffect(() => {
     const run = async () => {
@@ -101,10 +102,7 @@ function ClaimAction(props: ClaimActionProps) {
     const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
     const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
     const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
-    const swCoord = geoWebCoordinate.make_gw_coord(
-      swX,
-      swY,
-    );
+    const swCoord = geoWebCoordinate.make_gw_coord(swX, swY);
 
     if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
       throw new Error(
@@ -170,9 +168,7 @@ function ClaimAction(props: ClaimActionProps) {
           )
         }
         requiredPayment={
-          requiredBid && requiredBuffer
-            ? requiredBid.add(requiredBuffer)
-            : null
+          requiredBid && requiredBuffer ? requiredBid.add(requiredBuffer) : null
         }
         requiredFlowPermissions={1}
         spender={registryContract.address}

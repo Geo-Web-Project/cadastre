@@ -88,7 +88,7 @@ function AuctionInfo(props: AuctionInfoProps) {
             calculateAuctionValue(
               forSalePrice,
               BigNumber.from(auctionStartTimestamp.getTime()).div(1000),
-              auctionLength,
+              auctionLength
             )
           );
         }, 1000);
@@ -105,7 +105,9 @@ function AuctionInfo(props: AuctionInfoProps) {
   }, [forSalePrice, auctionStartTimestamp, auctionLength]);
 
   const isLoading =
-    forSalePrice == null || auctionStartTimestamp == null || timeRemaining == null;
+    forSalePrice == null ||
+    auctionStartTimestamp == null ||
+    timeRemaining == null;
   const spinner = (
     <span className="spinner-border" role="status">
       <span className="visually-hidden">Loading...</span>

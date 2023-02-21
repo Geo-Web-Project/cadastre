@@ -47,8 +47,9 @@ export function ApproveButton(props: ApproveButtonProps) {
     setIsAllowed,
   } = props;
 
-  const [approvals, setApprovals] =
-    React.useState<(() => Promise<boolean>)[]>([]);
+  const [approvals, setApprovals] = React.useState<(() => Promise<boolean>)[]>(
+    []
+  );
   const [approvalStr, setApprovalStr] = React.useState<string>("");
   const [completedActions, setCompletedActions] = React.useState<number>(0);
   const [totalActions, setTotalActions] = React.useState<number>(0);

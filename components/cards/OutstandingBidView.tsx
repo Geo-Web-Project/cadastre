@@ -55,8 +55,9 @@ function OutstandingBidView({
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [shouldBidPeriodEndEarly, setShouldBidPeriodEndEarly] =
-    React.useState<boolean | null>(null);
+  const [shouldBidPeriodEndEarly, setShouldBidPeriodEndEarly] = React.useState<
+    boolean | null
+  >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
@@ -221,8 +222,9 @@ function OutstandingBidView({
     perSecondFeeDenominator
   );
 
-  const [existingBuffer, setExistingBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [existingBuffer, setExistingBuffer] = React.useState<BigNumber | null>(
+    null
+  );
 
   React.useEffect(() => {
     const run = async () => {

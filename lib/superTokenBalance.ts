@@ -14,8 +14,9 @@ function useSuperTokenBalance(account: string, token: string) {
     },
   });
 
-  const [superTokenBalance, setSuperTokenBalance] =
-    useState<BigNumber>(BigNumber.from(0));
+  const [superTokenBalance, setSuperTokenBalance] = useState<BigNumber>(
+    BigNumber.from(0)
+  );
 
   useEffect(() => {
     if (!data || isLoading) {
@@ -46,9 +47,7 @@ function useSuperTokenBalance(account: string, token: string) {
           return;
         }
 
-        const currentTimestampBigNumber = BigNumber.from(
-          new Date().getTime()
-        );
+        const currentTimestampBigNumber = BigNumber.from(new Date().getTime());
 
         setSuperTokenBalance(
           balanceBigNumber.add(

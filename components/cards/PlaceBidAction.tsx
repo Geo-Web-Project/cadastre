@@ -61,8 +61,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [displayNewForSalePrice, setDisplayNewForSalePrice] =
-    React.useState<string | null>(null);
+  const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
+    string | null
+  >(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
@@ -123,8 +124,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
 
-  const [requiredBuffer, setRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
 
   React.useEffect(() => {
     const run = async () => {
