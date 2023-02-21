@@ -215,32 +215,38 @@ function IndexPage() {
       if (!ssxConnect || !w3Client) return;
 
       if (w3Client.proofs().length === 0) {
-        // Request delegation
-        const delegationResp = await ssxConnect.api!.request({
-          method: "post",
-          url: "/storage/delegation",
-          responseType: "blob",
-          data: {
-            aud: w3Client.agent().did(),
-          },
-        });
-        /* eslint-enable */
+        try {
+          // Request delegation
+          const delegationResp = await ssxConnect.api!.request({
+            method: "post",
+            url: "/storage/delegation",
+            responseType: "blob",
+            data: {
+              aud: w3Client.agent().did(),
+            },
+          });
+          /* eslint-enable */
 
-        // Save delegation
-        if (delegationResp.status !== 200) {
-          throw new Error("Unknown status from /storage/delegation");
-        }
-        const delegationRespBuf = await delegationResp.data.arrayBuffer();
-        const delegationRespBytes = new Uint8Array(delegationRespBuf);
-        const carReader = await CarReader.fromBytes(delegationRespBytes);
-        const blocks: API.Block[] = [];
-        for await (const block of carReader.blocks()) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          blocks.push(block as any);
-        }
+          // Save delegation
+          if (delegationResp.status !== 200) {
+            throw new Error("Unknown status from /storage/delegation");
+          }
+          const delegationRespBuf = await delegationResp.data.arrayBuffer();
+          const delegationRespBytes = new Uint8Array(delegationRespBuf);
+          const carReader = await CarReader.fromBytes(delegationRespBytes);
+          const blocks: API.Block[] = [];
+          for await (const block of carReader.blocks()) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            blocks.push(block as any);
+          }
 
-        const delegation = importDelegation(blocks);
-        await w3Client.addProof(delegation);
+          const delegation = importDelegation(blocks);
+          await w3Client.addProof(delegation);
+        } catch (e) {
+          localStorage.removeItem("didsession");
+          initSession();
+          return;
+        }
       }
 
       const proofs = w3Client.proofs();
@@ -334,50 +340,50 @@ function IndexPage() {
     start();
   }, []);
 
-  React.useEffect(() => {
+  const initSession = async () => {
     if (!address || !signer || chain?.id !== NETWORK_ID) {
       return;
     }
 
-    const initSession = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lib = getLibrary((signer.provider as any).provider);
+    setLibrary(lib);
+
+    const framework = await Framework.create({
+      chainId: NETWORK_ID,
+      provider: lib,
+    });
+    setSfFramework(framework);
+
+    const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+    setPaymentToken(superToken);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
+
+    const accountId = await getAccountId(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const lib = getLibrary((signer.provider as any).provider);
-      setLibrary(lib);
-
-      const framework = await Framework.create({
-        chainId: NETWORK_ID,
-        provider: lib,
-      });
-      setSfFramework(framework);
-
-      const superToken = await framework.loadNativeAssetSuperToken("ETHx");
-      setPaymentToken(superToken);
-
+      (signer.provider as any).provider,
+      address
+    );
+    const authMethod = await EthereumWebAuth.getAuthMethod(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
+      (signer.provider as any).provider,
+      accountId
+    );
 
-      const accountId = await getAccountId(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (signer.provider as any).provider,
-        address
-      );
-      const authMethod = await EthereumWebAuth.getAuthMethod(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (signer.provider as any).provider,
-        accountId
-      );
+    const session = await loadCeramicSession(authMethod, address);
 
-      const session = await loadCeramicSession(authMethod, address);
+    if (!session) {
+      return;
+    }
+    // Create Ceramic and DID with resolvers
+    const ceramic = new CeramicClient(CERAMIC_URL);
+    ceramic.did = session.did;
+    setCeramic(ceramic);
+  };
 
-      if (!session) {
-        return;
-      }
-      // Create Ceramic and DID with resolvers
-      const ceramic = new CeramicClient(CERAMIC_URL);
-      ceramic.did = session.did;
-      setCeramic(ceramic);
-    };
-
+  React.useEffect(() => {
     initSession();
   }, [signer]);
 
