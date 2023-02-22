@@ -5,7 +5,8 @@ import { Card, Spinner } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelInfoProps } from "./ParcelInfo";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -21,7 +22,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
-type OutstandingBidViewProps = SidebarProps & {
+type OutstandingBidViewProps = ParcelInfoProps & {
   newForSalePrice: BigNumber;
   existingForSalePrice: BigNumber;
   bidTimestamp: BigNumber | null;
@@ -34,24 +35,26 @@ type OutstandingBidViewProps = SidebarProps & {
   >;
 };
 
-function OutstandingBidView({
-  newForSalePrice,
-  existingForSalePrice,
-  bidTimestamp,
-  licensorIsOwner,
-  registryContract,
-  licenseDiamondContract,
-  selectedParcelId,
-  perSecondFeeNumerator,
-  perSecondFeeDenominator,
-  setInteractionState,
-  setSelectedParcelId,
-  setIsPortfolioToUpdate,
-  setParcelFieldsToUpdate,
-  sfFramework,
-  paymentToken,
-  provider,
-}: OutstandingBidViewProps) {
+function OutstandingBidView(props: OutstandingBidViewProps) {
+  const {
+    newForSalePrice,
+    existingForSalePrice,
+    bidTimestamp,
+    licensorIsOwner,
+    registryContract,
+    licenseDiamondContract,
+    selectedParcelId,
+    perSecondFeeNumerator,
+    perSecondFeeDenominator,
+    setInteractionState,
+    setSelectedParcelId,
+    setIsPortfolioToUpdate,
+    setParcelFieldsToUpdate,
+    sfFramework,
+    paymentToken,
+    signer,
+  } = props;
+
   const [isActing, setIsActing] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -149,10 +152,12 @@ function OutstandingBidView({
       throw new Error("Could not find existingNetworkFee");
     }
 
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
     try {
-      const txn = await licenseDiamondContract
-        .connect(provider.getSigner())
-        .acceptBid();
+      const txn = await licenseDiamondContract.connect(signer).acceptBid();
       await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -190,9 +195,13 @@ function OutstandingBidView({
       throw new Error("Could not find licenseDiamondContract");
     }
 
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
     try {
       const txn = await licenseDiamondContract
-        .connect(provider.getSigner())
+        .connect(signer)
         .triggerTransfer();
 
       await txn.wait();
@@ -242,7 +251,7 @@ function OutstandingBidView({
     };
 
     run();
-  }, [sfFramework, paymentToken, provider, existingForSalePrice]);
+  }, [sfFramework, paymentToken, existingForSalePrice]);
 
   const [newBuffer, setNewBuffer] = React.useState<BigNumber | null>(null);
 

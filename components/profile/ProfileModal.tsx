@@ -6,6 +6,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import BN from "bn.js";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
+import { useDisconnect } from "wagmi";
 import type { CeramicClient } from "@ceramicnetwork/http-client";
 import {
   Modal,
@@ -52,6 +53,7 @@ dayjs.extend(advancedFormat);
 interface ProfileModalProps {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
+  signer: ethers.Signer;
   sfFramework: Framework;
   ceramic: CeramicClient;
   ipfs: IPFS;
@@ -59,10 +61,8 @@ interface ProfileModalProps {
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  provider: ethers.providers.Web3Provider;
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
-  disconnectWallet: () => void;
   handleCloseProfile: () => void;
   setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
@@ -175,14 +175,13 @@ function ProfileModal(props: ProfileModalProps) {
     accountTokenSnapshot,
     sfFramework,
     account,
+    signer,
     geoWebContent,
     registryContract,
     setSelectedParcelId,
     setInteractionState,
-    provider,
     paymentToken,
     showProfile,
-    disconnectWallet,
     handleCloseProfile,
     setPortfolioNeedActionCount,
     setPortfolioParcelCenter,
@@ -203,6 +202,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
+  const { disconnect } = useDisconnect();
   const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
       id: account,
@@ -290,7 +290,6 @@ function ProfileModal(props: ProfileModalProps) {
       const licenseOwner = bid.parcel.licenseOwner;
       const currentBid = bid.parcel.currentBid;
       const pendingBid = bid.parcel.pendingBid;
-      const signer = provider.getSigner();
       const licenseDiamondAddress = bid.parcel.licenseDiamond;
       const licenseDiamondContract = PCOLicenseDiamondFactory.connect(
         licenseDiamondAddress,
@@ -511,7 +510,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
 
   const deactivateProfile = (): void => {
-    disconnectWallet();
+    disconnect();
     handleCloseProfile();
   };
 
@@ -556,7 +555,7 @@ function ProfileModal(props: ProfileModalProps) {
           .upgrade({
             amount: ethers.utils.parseEther(amount).toString(),
           })
-          .exec(provider.getSigner());
+          .exec(signer);
 
         setIsWrapping(true);
       } else if (action === SuperTokenAction.UNWRAP) {
@@ -564,7 +563,7 @@ function ProfileModal(props: ProfileModalProps) {
           .downgrade({
             amount: ethers.utils.parseEther(amount).toString(),
           })
-          .exec(provider.getSigner());
+          .exec(signer);
 
         setIsUnwrapping(true);
       }

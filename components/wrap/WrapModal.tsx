@@ -1,6 +1,7 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
+import { useProvider } from "wagmi";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateEth } from "../../lib/truncate";
@@ -14,7 +15,6 @@ import { SidebarProps } from "../Sidebar";
 
 type WrapModalProps = SidebarProps & {
   account: string;
-  provider: ethers.providers.Web3Provider;
   show: boolean;
   handleClose: () => void;
   paymentToken: NativeAssetSuperToken;
@@ -22,7 +22,7 @@ type WrapModalProps = SidebarProps & {
 
 function WrapModal({
   account,
-  provider,
+  signer,
   show,
   handleClose,
   paymentToken,
@@ -31,6 +31,8 @@ function WrapModal({
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
   const [amount, setAmount] = React.useState<string>("");
   const [error, setError] = React.useState<string>("");
+
+  const provider = useProvider();
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
@@ -47,7 +49,7 @@ function WrapModal({
     let isMounted = true;
 
     (async () => {
-      if (provider && account) {
+      if (signer && account) {
         try {
           const ethBalance = await getETHBalance(provider, account);
 
@@ -63,7 +65,7 @@ function WrapModal({
     return () => {
       isMounted = false;
     };
-  }, [provider, account]);
+  }, [signer, account]);
 
   const wrapETH = async (amount: string) => {
     try {
@@ -71,7 +73,8 @@ function WrapModal({
         .upgrade({
           amount: ethers.utils.parseEther(amount).toString(),
         })
-        .exec(provider.getSigner());
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        .exec(signer!);
 
       setIsWrapping(true);
 

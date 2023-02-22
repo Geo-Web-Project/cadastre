@@ -5,8 +5,7 @@ import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps, Coord } from "./Map";
 import { BigNumber } from "ethers";
-import PreFairLaunchInfo from "./cards/PreFairLaunchInfo";
-import FairLaunchInfo from "./cards/FairLaunchInfo";
+import ConnectWallet from "./ConnectWallet";
 
 export type SidebarProps = MapProps & {
   claimBase1Coord: Coord | null;
@@ -31,17 +30,14 @@ export interface ParcelFieldsToUpdate {
 
 function Sidebar(props: SidebarProps) {
   const {
+    account,
+    signer,
     registryContract,
     interactionState,
     setInteractionState,
     parcelClaimSize,
     selectedParcelId,
     selectedParcelCoords,
-    auctionStart,
-    auctionEnd,
-    startingBid,
-    endingBid,
-    isPreFairLaunch,
     delay,
   } = props;
 
@@ -82,13 +78,6 @@ function Sidebar(props: SidebarProps) {
     setTimeout(() => setShow(true), 500);
   }, []);
 
-  const isFairLaunch =
-    auctionStart &&
-    auctionEnd &&
-    startingBid &&
-    endingBid &&
-    Date.now() / 1000 < auctionEnd.toNumber();
-
   if (!show && delay) {
     return null;
   }
@@ -99,18 +88,7 @@ function Sidebar(props: SidebarProps) {
       className="position-absolute left-0 top-0 overflow-auto w-25 vh-100 bg-dark px-4 text-light"
       style={{ zIndex: 1, paddingTop: "120px" }}
     >
-      {!isPreFairLaunch &&
-      isFairLaunch &&
-      interactionState == STATE.CLAIM_SELECTED ? (
-        <FairLaunchInfo
-          requiredBid={requiredBid}
-          setRequiredBid={setRequiredBid}
-          {...props}
-        />
-      ) : !isPreFairLaunch &&
-        perSecondFeeNumerator &&
-        perSecondFeeDenominator &&
-        minForSalePrice ? (
+      {perSecondFeeNumerator && perSecondFeeDenominator && minForSalePrice ? (
         <ParcelInfo
           {...props}
           perSecondFeeNumerator={perSecondFeeNumerator}
@@ -129,26 +107,24 @@ function Sidebar(props: SidebarProps) {
           parcelClaimSize={parcelClaimSize}
         />
       ) : null}
-      {interactionState == STATE.CLAIM_SELECTED &&
-      !isPreFairLaunch &&
-      perSecondFeeNumerator &&
-      perSecondFeeDenominator &&
-      minForSalePrice ? (
+      {interactionState === STATE.CLAIM_SELECTED && !account ? (
+        <ConnectWallet variant="claim" {...props} />
+      ) : interactionState === STATE.CLAIM_SELECTED &&
+        account &&
+        signer &&
+        perSecondFeeNumerator &&
+        perSecondFeeDenominator &&
+        minForSalePrice ? (
         <ClaimAction
           {...props}
+          signer={signer}
           licenseAddress={registryContract.address}
-          isFairLaunch={isFairLaunch ?? undefined}
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
           requiredBid={requiredBid}
           minForSalePrice={minForSalePrice}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
         ></ClaimAction>
-      ) : interactionState == STATE.CLAIM_SELECTED &&
-        isPreFairLaunch &&
-        startingBid &&
-        endingBid ? (
-        <PreFairLaunchInfo {...props} />
       ) : null}
     </Col>
   );

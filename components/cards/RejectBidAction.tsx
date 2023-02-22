@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -26,13 +26,14 @@ import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
-export type RejectBidActionProps = SidebarProps & {
+export type RejectBidActionProps = ParcelInfoProps & {
+  signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: GeoWebParcel;
@@ -69,7 +70,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
-    provider,
+    signer,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -263,9 +264,13 @@ function RejectBidAction(props: RejectBidActionProps) {
       throw new Error("Could not find penaltyPayment");
     }
 
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
     try {
       const txn = await licenseDiamondContract
-        .connect(provider.getSigner())
+        .connect(signer)
         .rejectBid(newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
