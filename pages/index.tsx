@@ -13,7 +13,13 @@ import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 
-import { RPC_URLS, NETWORK_ID, CERAMIC_URL, SSX_HOST } from "../lib/constants";
+import {
+  RPC_URLS,
+  NETWORK_ID,
+  CERAMIC_URL,
+  SSX_HOST,
+  IPFS_DELEGATE,
+} from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -78,19 +84,16 @@ const ssxConfig: SSXClientConfig = {
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
-  const [registryContract, setRegistryContract] = React.useState<
-    Contracts["registryDiamondContract"] | null
-  >(null);
+  const [registryContract, setRegistryContract] =
+    React.useState<Contracts["registryDiamondContract"] | null>(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
   const [library, setLibrary] = React.useState<ethers.providers.Web3Provider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
+  const [paymentToken, setPaymentToken] =
+    React.useState<NativeAssetSuperToken | undefined>(undefined);
+  const [sfFramework, setSfFramework] =
+    React.useState<Framework | undefined>(undefined);
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
   const [selectedParcelId, setSelectedParcelId] = React.useState("");
@@ -322,6 +325,11 @@ function IndexPage() {
           jsIpfs({
             loadJsIpfsModule: () => IPFSCore,
             options: {
+              config: {
+                Addresses: {
+                  Delegates: [IPFS_DELEGATE],
+                },
+              },
               preload: {
                 enabled: false,
               },

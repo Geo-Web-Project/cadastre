@@ -31,3 +31,5 @@ export const AUCTION_LENGTH = 1209600;
 export const MAX_PARCEL_CLAIM = 3000;
 
 export const SSX_HOST = process.env.NEXT_SSX_HOST!;
+
+export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
