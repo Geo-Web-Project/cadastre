@@ -3,6 +3,9 @@ import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
 import type { Point } from "@turf/turf";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
@@ -23,16 +26,18 @@ import { truncateStr, truncateEth } from "../../lib/truncate";
 type ProfileProps = {
   sfFramework: Framework;
   account: string;
+  signer: ethers.Signer;
   ceramic: CeramicClient;
+  setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
+  setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
+  setGeoWebContent: React.Dispatch<React.SetStateAction<GeoWebContent | null>>;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  disconnectWallet: () => void;
   paymentToken: NativeAssetSuperToken;
-  provider: ethers.providers.Web3Provider;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
@@ -43,6 +48,7 @@ type ProfileProps = {
 function Profile(props: ProfileProps) {
   const { account, paymentToken, portfolioNeedActionCount } = props;
   const [showProfile, setShowProfile] = React.useState(false);
+
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
 

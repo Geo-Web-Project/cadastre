@@ -27,12 +27,12 @@ import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
+import ConnectWallet from "../ConnectWallet";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import { ethers } from "ethers";
 
 interface Bid {
   contributionRate: string;
@@ -97,6 +97,7 @@ export type ParcelInfoProps = SidebarProps & {
 function ParcelInfo(props: ParcelInfoProps) {
   const {
     account,
+    signer,
     interactionState,
     licenseAddress,
     setInteractionState,
@@ -439,7 +440,14 @@ function ParcelInfo(props: ParcelInfoProps) {
   } else if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
-    if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
+    if (!account) {
+      buttons = (
+        <>
+          <ConnectWallet {...props} />
+          {!hasOutstandingBid && <AuctionInstructions />}
+        </>
+      );
+    } else if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
       buttons = (
         <>
           {editButton}
@@ -543,18 +551,23 @@ function ParcelInfo(props: ParcelInfoProps) {
           !parcelFieldsToUpdate ? (
             <>
               <OutstandingBidView
+                {...props}
                 newForSalePrice={outstandingBidForSalePrice}
                 existingForSalePrice={currentOwnerBidForSalePrice}
                 bidTimestamp={outstandingBidTimestamp ?? null}
                 licensorIsOwner={licenseOwner === account}
                 licenseDiamondContract={licenseDiamondContract}
-                {...props}
               />
               <AuctionInstructions />
             </>
           ) : null}
-          {interactionState == STATE.PARCEL_EDITING && data?.geoWebParcel ? (
+          {interactionState == STATE.PARCEL_EDITING &&
+          account &&
+          signer &&
+          data?.geoWebParcel ? (
             <EditAction
+              {...props}
+              signer={signer}
               parcelData={data.geoWebParcel}
               parcelContent={parcelContent}
               hasOutstandingBid={
@@ -563,33 +576,42 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseDiamondContract={licenseDiamondContract}
               setShouldParcelContentUpdate={setShouldParcelContentUpdate}
               setRootCid={setRootCid}
-              {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID &&
+          account &&
+          signer &&
           data?.geoWebParcel ? (
             <PlaceBidAction
+              {...props}
+              signer={signer}
               parcelData={data.geoWebParcel}
               licenseDiamondContract={licenseDiamondContract}
-              {...props}
             />
           ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
+          account &&
+          signer &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           data?.geoWebParcel &&
           !parcelFieldsToUpdate ? (
             <RejectBidAction
+              {...props}
+              signer={signer}
               parcelData={data.geoWebParcel}
               bidForSalePrice={outstandingBidForSalePrice}
               bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}
-              {...props}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_RECLAIMING && licenseOwner ? (
+          {interactionState == STATE.PARCEL_RECLAIMING &&
+          account &&
+          signer &&
+          licenseOwner ? (
             <ReclaimAction
               {...props}
+              signer={signer}
               parcelContent={parcelContent}
               licenseOwner={licenseOwner}
               licenseDiamondContract={licenseDiamondContract}

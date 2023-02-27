@@ -9,11 +9,10 @@ import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 
 export type ClaimActionProps = SidebarProps & {
+  signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseAddress: string;
-  /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
   requiredBid: BigNumber;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
@@ -25,16 +24,15 @@ function ClaimAction(props: ClaimActionProps) {
   const {
     geoWebCoordinate,
     account,
+    signer,
     claimBase1Coord,
     claimBase2Coord,
     registryContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
-    isFairLaunch,
     requiredBid,
     setNewParcel,
     setParcelFieldsToUpdate,
-    provider,
     sfFramework,
     paymentToken,
     minForSalePrice,
@@ -110,9 +108,6 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const signer = provider.getSigner() as any;
-
     const txn = await registryContract
       .connect(signer)
       .claim(newFlowRate, ethers.utils.parseEther(displayNewForSalePrice), {
@@ -158,7 +153,7 @@ function ClaimAction(props: ClaimActionProps) {
         summaryView={
           networkFeeRatePerYear ? (
             <TransactionSummaryView
-              claimPayment={isFairLaunch ? requiredBid : minForSalePrice}
+              claimPayment={minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
               {...props}

@@ -1,12 +1,36 @@
+import { useEffect } from "react";
+import { useSigner } from "wagmi";
+import { CeramicClient } from "@ceramicnetwork/http-client";
 import Image from "react-bootstrap/Image";
 import Button from "react-bootstrap/Button";
-import React from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Spinner from "react-bootstrap/Spinner";
 import BetaAgreementModal from "./BetaAgreementModal";
 
-function HomeContent() {
-  return (
+type HomeProps = {
+  ceramic: CeramicClient | null;
+  isFirstVisit: boolean;
+  setIsFirstVisit: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export default function Home(props: HomeProps) {
+  const { ceramic, isFirstVisit, setIsFirstVisit } = props;
+
+  const { data: signer } = useSigner();
+
+  const updateVisitStatus = () => {
+    localStorage.setItem("gwCadastreAlreadyVisited", "true");
+    setIsFirstVisit(false);
+  };
+
+  useEffect(() => {
+    if (signer && ceramic?.did) {
+      updateVisitStatus();
+    }
+  }, [signer, ceramic]);
+
+  const HomeContent = (
     <div style={{ color: "white", lineHeight: "160%" }} className="px-3">
       {/* only show warning on small screens(mobile) */}
       <div
@@ -64,7 +88,7 @@ function HomeContent() {
         </ol>
       </div>
 
-      <div className="mb-5">
+      <>
         <h3 className="mb-3">
           The Geo Web is a geospatial extension of the World Wide Web.
         </h3>
@@ -75,18 +99,10 @@ function HomeContent() {
           naturally discover content anchored to Geo Web parcels with Spatial
           Browsers that navigate with geolocation instead of URLs.
         </p>
-      </div>
+      </>
     </div>
   );
-}
 
-function Home({
-  connectWallet,
-  status,
-}: {
-  connectWallet: () => void;
-  status: string;
-}) {
   return (
     <div
       style={{
@@ -97,36 +113,43 @@ function Home({
         left: "0",
         top: "0",
         padding: "16px",
+        paddingTop: "128px",
         minHeight: "100vh",
+        minWidth: "100vw",
       }}
     >
-      <BetaAgreementModal />
-      <div
-        style={{ paddingTop: "128px", gap: "24px" }}
-        className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
-      >
-        <HomeContent />
-        <div className="px-3 mb-5 d-flex align-items-center flex-column">
-          <Image className="mb-2" src="/arMedia.gif" alt="arMedia" />
-          <span style={{ fontSize: "12px", color: "white" }}>
-            Browsing an AR Media Gallery on the Geo Web
-          </span>
+      {!isFirstVisit ? (
+        <div className="position-absolute top-50 start-50 translate-middle">
+          <Spinner animation="border" role="status" variant="light">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
         </div>
-      </div>
-      <div className="d-flex flex-column align-items-center">
-        <Button
-          variant="primary"
-          className="text-light fw-bold border-dark mx-auto fit-content"
-          style={{ padding: "16px 18px" }}
-          disabled={status === "connecting"}
-          onClick={connectWallet}
-        >
-          <Image src="vector.png" width="40" style={{ marginRight: 20 }} />
-          <span>Get Started</span>
-        </Button>
-      </div>
+      ) : (
+        <>
+          <BetaAgreementModal />
+          <div className="d-flex align-items-center">
+            <Button
+              variant="primary"
+              className="text-light fw-bold border-dark mx-auto fs-5 my-2 px-5 py-3"
+              onClick={updateVisitStatus}
+            >
+              <span>Launch App</span>
+            </Button>
+          </div>
+          <div
+            style={{ gap: "24px" }}
+            className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
+          >
+            {HomeContent}
+            <div className="px-3 mb-5 d-flex align-items-center flex-column">
+              <Image className="mb-2" src="/arMedia.gif" alt="arMedia" />
+              <span style={{ fontSize: "12px", color: "white" }}>
+                Browsing an AR Media Gallery on the Geo Web
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
-export default Home;

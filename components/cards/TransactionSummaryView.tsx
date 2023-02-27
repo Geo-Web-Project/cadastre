@@ -19,7 +19,6 @@ type TransactionSummaryViewProps = SidebarProps & {
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
   /** during the fair launch period (true) or after (false). */
-  isFairLaunch?: boolean;
 };
 
 function TransactionSummaryView({
@@ -30,7 +29,6 @@ function TransactionSummaryView({
   account,
   interactionState,
   licenseOwner,
-  isFairLaunch,
   claimPayment,
   collateralDeposit,
   currentForSalePrice,
@@ -94,10 +92,8 @@ function TransactionSummaryView({
   if (claimPayment) {
     paymentView = (
       <p>
-        {isFairLaunch
-          ? `Max Claim Payment (to Treasury): `
-          : interactionState == STATE.PARCEL_RECLAIMING &&
-            account.toLowerCase() != licenseOwner?.toLowerCase()
+        {interactionState == STATE.PARCEL_RECLAIMING &&
+        account.toLowerCase() != licenseOwner?.toLowerCase()
           ? "Max Claim Payment (to Licensor): "
           : "Claim Payment: "}
         <InfoTooltip
@@ -106,8 +102,6 @@ function TransactionSummaryView({
               {interactionState == STATE.PARCEL_RECLAIMING &&
               account.toLowerCase() === licenseOwner?.toLowerCase()
                 ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream."
-                : isFairLaunch || interactionState == STATE.PARCEL_RECLAIMING
-                ? "This is the amount you authorize for your claim payment. You'll only pay the Dutch auction price at the time of transaction confirmation."
                 : `Unclaimed parcels require a minimum one-time payment of ${truncateEth(
                     ethers.utils.formatEther(claimPayment),
                     8

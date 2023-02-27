@@ -157,12 +157,14 @@ export type MapProps = {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
-  provider: ethers.providers.Web3Provider;
-  disconnectWallet: () => void;
+  signer: ethers.Signer | null;
   ceramic: CeramicClient;
+  setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
+  setGeoWebContent: React.Dispatch<React.SetStateAction<GeoWebContent | null>>;
   w3InvocationConfig: InvocationConfig;
+  setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
   geoWebCoordinate: GeoWebCoordinate;
   firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
@@ -175,7 +177,6 @@ export type MapProps = {
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
-  isPreFairLaunch: boolean;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -882,7 +883,7 @@ function Map(props: MapProps) {
           alt="grid switch"
           src="grid-light.svg"
           width={30}
-          className="position-relative top-50 start-50 translate-middle"
+          className="position-absolute top-50 start-50 translate-middle"
         />
       </Button>
       <ButtonGroup

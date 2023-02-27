@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AssetId, AccountId } from "caip";
+import { AssetId } from "caip";
 import BN from "bn.js";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { GeoWebContent } from "@geo-web/content";

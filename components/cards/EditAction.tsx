@@ -4,14 +4,15 @@ import type { BasicProfile } from "@geo-web/types";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 
-export type EditActionProps = SidebarProps & {
+export type EditActionProps = ParcelInfoProps & {
+  signer: ethers.Signer;
   parcelContent: BasicProfile | null;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
@@ -28,16 +29,15 @@ export type EditActionProps = SidebarProps & {
 
 function EditAction(props: EditActionProps) {
   const {
+    signer,
     parcelData,
     parcelContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     hasOutstandingBid,
     licenseDiamondContract,
-    registryContract,
     sfFramework,
     paymentToken,
-    provider,
     setParcelFieldsToUpdate,
   } = props;
 
@@ -179,6 +179,10 @@ function EditAction(props: EditActionProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
+    if (!signer) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
     // Check for changes
     if (
       !displayNewForSalePrice ||
@@ -190,7 +194,7 @@ function EditAction(props: EditActionProps) {
     }
 
     const txn = await licenseDiamondContract
-      .connect(provider.getSigner())
+      .connect(signer)
       .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
     await txn.wait();
 
@@ -200,7 +204,6 @@ function EditAction(props: EditActionProps) {
   return (
     <>
       <ActionForm
-        licenseAddress={registryContract.address}
         loading={false}
         performAction={_edit}
         actionData={actionData}

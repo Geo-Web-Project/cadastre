@@ -21,13 +21,12 @@ import { STATE } from "../Map";
 type StreamingInfoProps = {
   sfFramework: Framework;
   account: string;
+  signer: ethers.Signer;
   ceramic: CeramicClient;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
-  provider: ethers.providers.Web3Provider;
-  disconnectWallet: () => void;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
