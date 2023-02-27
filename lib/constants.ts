@@ -16,6 +16,7 @@ export const RPC_URLS: Record<number, string> = {
 };
 export const SPATIAL_DOMAIN = process.env.NEXT_PUBLIC_SPATIAL_DOMAIN!;
 export const SSX_HOST = process.env.NEXT_SSX_HOST!;
+export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";
@@ -31,7 +32,3 @@ export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
 export const MAX_PARCEL_CLAIM = 3000;
-
-export const SSX_HOST = process.env.NEXT_SSX_HOST!;
-
-export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
