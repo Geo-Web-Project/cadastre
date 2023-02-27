@@ -682,6 +682,7 @@ function ProfileModal(props: ProfileModalProps) {
         break;
     }
 
+    handleCloseProfile();
     setSelectedParcelId(parcel.parcelId);
     setPortfolioParcelCenter(parcel.center);
   };
