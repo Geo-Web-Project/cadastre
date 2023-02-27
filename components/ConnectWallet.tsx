@@ -215,8 +215,8 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setCeramic({ ...ceramic, did: session.did } as any);
+    ceramic.did = session.did;
+    setCeramic(ceramic);
 
     const w3InvocationConfig = await loadStorageDelegation(
       ssxConnection,
