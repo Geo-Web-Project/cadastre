@@ -34,7 +34,7 @@ export function ApproveButton(props: ApproveButtonProps) {
     paymentToken,
     account,
     spender,
-    provider,
+    signer,
     requiredPayment,
     sfFramework,
     requiredFlowPermissions,
@@ -71,15 +71,14 @@ export function ApproveButton(props: ApproveButtonProps) {
     if (!spender || !requiredPayment) {
       return true;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const signer = provider.getSigner() as any;
 
     try {
       const op = paymentToken.approve({
         amount: requiredPayment.toString(),
         receiver: spender,
       });
-      const txn = await op.exec(signer);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const txn = await op.exec(signer!);
       await txn.wait();
     } catch (err) {
       console.error(err);
@@ -102,8 +101,6 @@ export function ApproveButton(props: ApproveButtonProps) {
     if (!flowOperator || !requiredFlowAmount) {
       return true;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const signer = provider.getSigner() as any;
 
     try {
       const op = sfFramework.cfaV1.updateFlowOperatorPermissions({
@@ -113,7 +110,8 @@ export function ApproveButton(props: ApproveButtonProps) {
         superToken: paymentToken.address,
       });
 
-      const txn = await op.exec(signer);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const txn = await op.exec(signer!);
       await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -199,7 +197,7 @@ export function ApproveButton(props: ApproveButtonProps) {
     account,
     spender,
     flowOperator,
-    provider,
+    signer,
     requiredPayment,
     completedActions,
   ]);

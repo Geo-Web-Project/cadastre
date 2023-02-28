@@ -18,7 +18,6 @@ dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 
 export type AuctionInfoProps = ParcelInfoProps & {
-  account: string;
   licenseOwner: string;
   forSalePrice: BigNumber;
   auctionStartTimestamp: Date;
@@ -122,7 +121,7 @@ function AuctionInfo(props: AuctionInfoProps) {
         setInteractionState(STATE.PARCEL_RECLAIMING);
       }}
     >
-      {account.toLowerCase() == licenseOwner?.toLowerCase()
+      {account?.toLowerCase() == licenseOwner?.toLowerCase()
         ? "Reclaim"
         : "Claim"}
     </Button>

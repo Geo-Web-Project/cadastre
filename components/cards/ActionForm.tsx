@@ -12,7 +12,7 @@ import {
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import BN from "bn.js";
-import { AssetId, AccountId } from "caip";
+import { AssetId } from "caip";
 import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
@@ -208,6 +208,7 @@ export function ActionForm(props: ActionFormProps) {
         ? licenseId.toString()
         : new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const ownerDID = ceramic.did!.parent;
 
     if (

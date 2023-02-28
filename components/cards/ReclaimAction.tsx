@@ -4,13 +4,15 @@ import BN from "bn.js";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import type { BasicProfile } from "@geo-web/types";
 import { ActionData, ActionForm } from "./ActionForm";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 
-export type ReclaimActionProps = SidebarProps & {
+export type ReclaimActionProps = ParcelInfoProps & {
+  signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   requiredBid?: BigNumber;
@@ -28,13 +30,12 @@ export type ReclaimActionProps = SidebarProps & {
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
-    provider,
+    signer,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     licenseDiamondContract,
-    registryContract,
     selectedParcelId,
     sfFramework,
     paymentToken,
@@ -128,18 +129,22 @@ function ReclaimAction(props: ReclaimActionProps) {
       );
     }
 
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
     let txn;
 
     if (isOwner) {
       txn = await licenseDiamondContract
-        .connect(provider.getSigner())
+        .connect(signer)
         .editBid(
           newNetworkFee,
           ethers.utils.parseEther(displayNewForSalePrice)
         );
     } else {
       txn = await licenseDiamondContract
-        .connect(provider.getSigner())
+        .connect(signer)
         .reclaim(
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
@@ -160,7 +165,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   return (
     <>
       <ActionForm
-        licenseAddress={registryContract.address}
         loading={false}
         performAction={_reclaim}
         actionData={actionData}

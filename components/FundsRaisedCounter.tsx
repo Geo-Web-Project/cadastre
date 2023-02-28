@@ -38,11 +38,11 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
       }
     >
       {isLoading || !data ? (
-        <div className="d-flex justify-content-center">
+        <div className="d-flex justify-content-center me-4">
           <Spinner animation="border" role="status" variant="light"></Spinner>
         </div>
       ) : (
-        <div className="fs-1 text-primary text-center">
+        <div className="me-4 fs-1 text-primary text-center">
           <FlowingBalance
             format={(x) =>
               truncateEth(ethers.utils.formatUnits(x), 4) + " ETHx"

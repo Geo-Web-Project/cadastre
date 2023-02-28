@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -20,9 +20,10 @@ import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
-import { GeoWebParcel } from "./ParcelInfo";
+import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 
-export type PlaceBidActionProps = SidebarProps & {
+export type PlaceBidActionProps = ParcelInfoProps & {
+  signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelData: GeoWebParcel;
@@ -44,6 +45,7 @@ const infoIcon = (
 
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
+    signer,
     account,
     parcelData,
     perSecondFeeNumerator,
@@ -54,7 +56,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
-    provider,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -173,9 +174,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       throw new Error("Could not find newNetworkFee");
     }
 
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
     try {
       const txn = await licenseDiamondContract
-        .connect(provider.getSigner())
+        .connect(signer)
         .placeBid(newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
