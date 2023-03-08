@@ -28,6 +28,7 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
+import ParcelChat from "../ParcelChat";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
@@ -127,6 +128,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [queryTimerId, setQueryTimerId] = React.useState<NodeJS.Timer | null>(
     null
   );
+  const [showParcelChat, setShowParcelChat] = React.useState<boolean>(false);
 
   const { parcelContent, rootCid, setRootCid, setShouldParcelContentUpdate } =
     useBasicProfile(
@@ -407,6 +409,20 @@ function ParcelInfo(props: ParcelInfoProps) {
               <OverlayTrigger
                 key="top"
                 placement="top"
+                overlay={<Tooltip id={`tooltip-key`}>Open Parcel Chat</Tooltip>}
+              >
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 mt-1 shadow-none"
+                  onClick={() => setShowParcelChat(true)}
+                >
+                  <Image width={32} src="chat.svg" />
+                </Button>
+              </OverlayTrigger>
+              <OverlayTrigger
+                key="top"
+                placement="top"
                 overlay={
                   <Tooltip id={`tooltip-key`}>Open in Spatial Browser</Tooltip>
                 }
@@ -629,6 +645,12 @@ function ParcelInfo(props: ParcelInfoProps) {
           {...props}
         ></GalleryModal>
       )}
+      <ParcelChat
+        show={showParcelChat}
+        parcelId={selectedParcelId}
+        licenseOwner={licenseOwner}
+        handleClose={() => setShowParcelChat(false)}
+      />
     </>
   );
 }

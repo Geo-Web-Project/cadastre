@@ -14,6 +14,7 @@
     "@geo-web/types": "^0.1.3",
     "@ipld/car": "^4.1.3",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "@orbisclub/components": "^0.1.60",
     "@popperjs/core": "^2.11.5",
     "@rainbow-me/rainbowkit": "^0.7.1",
     "@reduxjs/toolkit": "^1.8.1",
