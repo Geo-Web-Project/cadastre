@@ -64,7 +64,7 @@ function IndexPage() {
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [portfolioParcelCenter, setPortfolioParcelCenter] =
+  const [parcelNavigationCenter, setParcelNavigationCenter] =
     React.useState<Point | null>(null);
   const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
@@ -258,7 +258,7 @@ function IndexPage() {
                   setSelectedParcelId={setSelectedParcelId}
                   interactionState={interactionState}
                   setInteractionState={setInteractionState}
-                  setPortfolioParcelCenter={setPortfolioParcelCenter}
+                  setParcelNavigationCenter={setParcelNavigationCenter}
                   isPortfolioToUpdate={isPortfolioToUpdate}
                   setIsPortfolioToUpdate={setIsPortfolioToUpdate}
                 />
@@ -309,9 +309,9 @@ function IndexPage() {
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              portfolioParcelCenter={portfolioParcelCenter}
+              parcelNavigationCenter={parcelNavigationCenter}
               isPortfolioToUpdate={isPortfolioToUpdate}
-              setPortfolioParcelCenter={setPortfolioParcelCenter}
+              setParcelNavigationCenter={setParcelNavigationCenter}
               setIsPortfolioToUpdate={setIsPortfolioToUpdate}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}

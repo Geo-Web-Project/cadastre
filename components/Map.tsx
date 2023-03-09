@@ -41,6 +41,7 @@ import * as turf from "@turf/turf";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
+import ParcelList from "./parcels/ParcelList";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -170,8 +171,8 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  portfolioParcelCenter: Point | null;
-  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
+  parcelNavigationCenter: Point | null;
+  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
@@ -199,7 +200,7 @@ function Map(props: MapProps) {
     setSelectedParcelId,
     interactionState,
     setInteractionState,
-    portfolioParcelCenter,
+    parcelNavigationCenter,
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -260,11 +261,12 @@ function Map(props: MapProps) {
   const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
     string[]
   >([]);
-  const [invalidLicenseId, setInvalidLicenseId] = useState("");
+  const [invalidLicenseId, setInvalidLicenseId] = React.useState("");
   const [newParcel, setNewParcel] = React.useState<{
     id: string;
     timerId: number | null;
   }>({ id: "", timerId: null });
+  const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
 
   const router = useRouter();
 
@@ -751,10 +753,10 @@ function Map(props: MapProps) {
   }, [data]);
 
   useEffect(() => {
-    if (portfolioParcelCenter) {
+    if (parcelNavigationCenter) {
       flyToLocation({
-        longitude: portfolioParcelCenter.coordinates[0],
-        latitude: portfolioParcelCenter.coordinates[1],
+        longitude: parcelNavigationCenter.coordinates[0],
+        latitude: parcelNavigationCenter.coordinates[1],
         zoom: ZOOM_GRID_LEVEL,
         duration: 500,
         padding: {
@@ -764,11 +766,11 @@ function Map(props: MapProps) {
       });
 
       setSelectedParcelCoords({
-        x: portfolioParcelCenter.coordinates[0],
-        y: portfolioParcelCenter.coordinates[1],
+        x: parcelNavigationCenter.coordinates[0],
+        y: parcelNavigationCenter.coordinates[1],
       });
     }
-  }, [portfolioParcelCenter]);
+  }, [parcelNavigationCenter]);
 
   return (
     <>
@@ -915,6 +917,17 @@ function Map(props: MapProps) {
           <Image src={"satellite_ic.png"} width={30} />
         </Button>
       </ButtonGroup>
+      <Button
+        className="bg-purple p-0 border-0 parcel-list-btn"
+        onClick={() => setShowParcelList(true)}
+      >
+        <Image src="list.svg" alt="parcel list" width={38} />
+      </Button>
+      <ParcelList
+        showParcelList={showParcelList}
+        handleCloseModal={() => setShowParcelList(false)}
+        {...props}
+      />
     </>
   );
 }

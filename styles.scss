@@ -55,6 +55,10 @@ $dropdown-dark-link-hover-bg: $purple;
   position: absolute;
   top: 120px;
   right: 2vw;
+  width: 240px !important;
+  @media (min-width: 1800px) {
+    width: 350px !important;
+  }
 }
 
 .mapboxgl-ctrl-group {
@@ -86,7 +90,7 @@ $dropdown-dark-link-hover-bg: $purple;
 }
 
 .mapboxgl-ctrl-logo {
-    display: none !important;
+  display: none !important;
 }
 
 .grid-switch.btn:hover,
@@ -147,6 +151,21 @@ $dropdown-dark-link-hover-bg: $purple;
   cursor: pointer;
 }
 
+.parcel-list-btn {
+  position: absolute;
+  top: 120px;
+  right: calc(245px + 2vw);
+  width: 48px !important;
+  height: 37px;
+  @media (min-width: 1800px) {
+    right: 394px;
+  }
+  @media (max-width: 600px) {
+    right: 255px;
+    height: 50px;
+  }
+}
+
 .scrollable-table table {
   width: 100%;
 }
@@ -164,31 +183,18 @@ $dropdown-dark-link-hover-bg: $purple;
   text-overflow: ellipsis;
 }
 
-.scrollable-table thead tr {
-  cursor: pointer;
-}
-
 /* 
- * NOTE: To have a scrolling table with a sticky header the scrollbar needs
- * to overlay the body, otherwise it would shift the content.
- * Webkit does the thing we want by default and Chromium support an overlay
- * property, but Firefox does not (it is an experimental feature and
- * may be fully supported in the future), so for now we hide the scrollbar
- * on Firefox.
+ * NOTE: To have a scrolling table with a sticky header the scrollbar needs to
+ * overlay the body, otherwise it would shift the content.
+ * Only Chromium based browsers support an overflow overlay property so for now
+ * we hide the scrollbar on the others.
  */
-
 .scrollable-table tbody {
   display: block;
   overflow-y: auto;
   table-layout: fixed;
-  max-height: 256px;
   scrollbar-width: none; // Firefox
-}
-
-@supports (overflow: overlay) {
-  .scrollable-table tbody {
-    overflow-y: overlay;
-  }
+  max-height: 256px;
 }
 
 .scrollable-table tbody::-webkit-scrollbar-track {
@@ -206,11 +212,25 @@ $dropdown-dark-link-hover-bg: $purple;
   background-color: $secondary;
 }
 
+@supports (overflow: overlay) {
+  .scrollable-table tbody {
+    overflow-y: overlay;
+  }
+}
+
+/* Safari */
+@supports (background: -webkit-named-image(i)) {
+  .scrollable-table tbody::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .pulsate {
   animation: pulsate 2s ease-out;
   animation-iteration-count: infinite;
   opacity: 1;
 }
+
 @keyframes pulsate {
   50% {
     opacity: 0;

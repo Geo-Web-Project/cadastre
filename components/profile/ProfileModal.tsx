@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import BN from "bn.js";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { useDisconnect } from "wagmi";
@@ -25,7 +24,8 @@ import {
   NativeAssetSuperToken,
   Framework,
 } from "@superfluid-finance/sdk-core";
-import { AssetId, AccountId } from "caip";
+import type { Point } from "@turf/turf";
+import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
@@ -34,17 +34,18 @@ import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import {
   PAYMENT_TOKEN,
-  NETWORK_ID,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
-import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
+import {
+  calculateBufferNeeded,
+  calculateAuctionValue,
+  getParcelContent,
+} from "../../lib/utils";
 import { STATE } from "../Map";
-import type { Point } from "@turf/turf";
-import * as turf from "@turf/turf";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -64,7 +65,7 @@ interface ProfileModalProps {
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
   handleCloseProfile: () => void;
-  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
+  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   isPortfolioToUpdate: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
@@ -184,7 +185,7 @@ function ProfileModal(props: ProfileModalProps) {
     showProfile,
     handleCloseProfile,
     setPortfolioNeedActionCount,
-    setPortfolioParcelCenter,
+    setParcelNavigationCenter,
     isPortfolioToUpdate,
     setIsPortfolioToUpdate,
   } = props;
@@ -207,6 +208,7 @@ function ProfileModal(props: ProfileModalProps) {
     variables: {
       id: account,
     },
+    skip: !showProfile,
   });
 
   const { superTokenBalance } = useSuperTokenBalance(
@@ -410,7 +412,14 @@ function ProfileModal(props: ProfileModalProps) {
           }
         })
         .then(() => Promise.resolve(foreclosureInfoPromise))
-        .then(() => getParcelContent(geoWebContent, parcelId, licenseOwner))
+        .then(() =>
+          getParcelContent(
+            registryContract.address.toLowerCase(),
+            geoWebContent,
+            parcelId,
+            licenseOwner
+          )
+        )
         .then((parcelContent) => {
           const name =
             parcelContent && parcelContent.name
@@ -512,35 +521,6 @@ function ProfileModal(props: ProfileModalProps) {
   const deactivateProfile = (): void => {
     disconnect();
     handleCloseProfile();
-  };
-
-  const getParcelContent = async (
-    geoWebContent: GeoWebContent,
-    parcelId: string,
-    licenseOwner: string
-  ) => {
-    try {
-      const assetId = new AssetId({
-        chainId: `eip155:${NETWORK_ID}`,
-        assetName: {
-          namespace: "erc721",
-          reference: registryContract.address.toLowerCase(),
-        },
-        tokenId: new BN(parcelId.slice(2), "hex").toString(10),
-      });
-      const ownerId = new AccountId({
-        chainId: `eip155:${NETWORK_ID}`,
-        address: ethers.utils.getAddress(licenseOwner),
-      });
-      const parcelContent = await geoWebContent.raw.getPath("/basicProfile", {
-        parcelId: assetId,
-        ownerDID: `did:pkh:${ownerId}`,
-      });
-
-      return parcelContent;
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const executeSuperTokenTransaction = async (
@@ -684,7 +664,7 @@ function ProfileModal(props: ProfileModalProps) {
 
     handleCloseProfile();
     setSelectedParcelId(parcel.parcelId);
-    setPortfolioParcelCenter(parcel.center);
+    setParcelNavigationCenter(parcel.center);
   };
 
   return (
@@ -869,7 +849,7 @@ function ProfileModal(props: ProfileModalProps) {
               className="m-3 text-light border border-purple flex-shrink-1"
             >
               <thead>
-                <tr>
+                <tr className="cursor-pointer">
                   <th
                     onClick={() =>
                       setPortfolio(sortPortfolio(portfolio, "parcelId"))

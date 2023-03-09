@@ -2,7 +2,7 @@
   "name": "geo-web-cadastre",
   "version": "0.1.0",
   "dependencies": {
-    "@apollo/client": "^3.2.5",
+    "@apollo/client": "^3.7.9",
     "@ceramicnetwork/blockchain-utils-linking": "^2.0.12",
     "@ceramicnetwork/common": "^2.14.0",
     "@ceramicnetwork/http-client": "^2.11.0",
