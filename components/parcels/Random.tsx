@@ -8,11 +8,7 @@ import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import {
-  MAX_LIST_SIZE,
-  Parcel,
-  ParcelsQuery,
-} from "./ParcelList";
+import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
 import { STATE } from "../Map";
@@ -31,12 +27,11 @@ interface RandomProps {
 }
 
 const randomQuery = gql`
-  query Random($orderBy: String, $orderDirection: String, $skip: Int) {
+  query Random($orderBy: String, $orderDirection: String) {
     geoWebParcels(
       first: 1000
       orderBy: $orderBy
       orderDirection: $orderDirection
-      skip: $skip
     ) {
       id
       createdAtBlock
@@ -86,9 +81,8 @@ function Random(props: RandomProps) {
     ];
     const orderBy =
       orderByChoices[Math.floor(Math.random() * orderByChoices.length)];
-    const skip = 0 * MAX_LIST_SIZE;
 
-    return { orderBy, orderDirection, skip };
+    return { orderBy, orderDirection };
   };
 
   const handleAction = (parcel: Parcel): void => {
@@ -102,9 +96,7 @@ function Random(props: RandomProps) {
     variables: {
       orderBy: "createdAtBlock",
       orderDirection: "desc",
-      skip: 0 * MAX_LIST_SIZE,
     },
-    fetchPolicy: "network-only",
     notifyOnNetworkStatusChange: true,
   });
 
