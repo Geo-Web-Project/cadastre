@@ -64,9 +64,10 @@ function IndexPage() {
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [portfolioParcelCenter, setPortfolioParcelCenter] =
+  const [parcelNavigationCenter, setParcelNavigationCenter] =
     React.useState<Point | null>(null);
-  const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
+  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
+    React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -103,7 +104,7 @@ function IndexPage() {
         setGeoWebCoordinate(geoWebCoordinate);
       });
 
-      const lib = new ethers.providers.JsonRpcProvider(
+      const lib = new ethers.providers.JsonRpcBatchProvider(
         RPC_URLS[NETWORK_ID],
         NETWORK_ID
       );
@@ -258,9 +259,9 @@ function IndexPage() {
                   setSelectedParcelId={setSelectedParcelId}
                   interactionState={interactionState}
                   setInteractionState={setInteractionState}
-                  setPortfolioParcelCenter={setPortfolioParcelCenter}
-                  isPortfolioToUpdate={isPortfolioToUpdate}
-                  setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                  setParcelNavigationCenter={setParcelNavigationCenter}
+                  shouldRefetchParcelsData={shouldRefetchParcelsData}
+                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
                 />
               ) : (
                 <ConnectWallet
@@ -309,10 +310,10 @@ function IndexPage() {
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              portfolioParcelCenter={portfolioParcelCenter}
-              isPortfolioToUpdate={isPortfolioToUpdate}
-              setPortfolioParcelCenter={setPortfolioParcelCenter}
-              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+              parcelNavigationCenter={parcelNavigationCenter}
+              shouldRefetchParcelsData={shouldRefetchParcelsData}
+              setParcelNavigationCenter={setParcelNavigationCenter}
+              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}
               startingBid={startingBid}

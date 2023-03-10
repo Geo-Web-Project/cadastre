@@ -75,7 +75,7 @@ export function App({ Component, pageProps }: AppProps) {
         Query: {
           fields: {
             geoWebParcels: {
-              keyArgs: [],
+              keyArgs: ["skip", "orderBy"],
               merge(existing = [], incoming) {
                 return [...existing, ...incoming];
               },

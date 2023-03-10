@@ -40,9 +40,9 @@ type ProfileProps = {
   paymentToken: NativeAssetSuperToken;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setPortfolioParcelCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  isPortfolioToUpdate: boolean;
-  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Profile(props: ProfileProps) {

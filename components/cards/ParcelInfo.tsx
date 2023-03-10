@@ -407,7 +407,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             </Col>
             <Col className="d-flex justify-content-end gap-2 text-end pt-2 mx-2">
               <OverlayTrigger
-                key="top"
+                key="chat"
                 placement="top"
                 overlay={<Tooltip id={`tooltip-key`}>Open Parcel Chat</Tooltip>}
               >
@@ -421,7 +421,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 </Button>
               </OverlayTrigger>
               <OverlayTrigger
-                key="top"
+                key="browser"
                 placement="top"
                 overlay={
                   <Tooltip id={`tooltip-key`}>Open in Spatial Browser</Tooltip>

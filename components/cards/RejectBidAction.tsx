@@ -66,7 +66,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
-    setIsPortfolioToUpdate,
+    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -293,7 +293,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     setIsActing(false);
-    setIsPortfolioToUpdate(true);
+    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,

@@ -76,7 +76,7 @@ export function ActionForm(props: ActionFormProps) {
     requiredPayment,
     spender,
     hasOutstandingBid = false,
-    setIsPortfolioToUpdate,
+    setShouldRefetchParcelsData,
     minForSalePrice,
     paymentToken,
     setShouldParcelContentUpdate,
@@ -277,7 +277,7 @@ export function ActionForm(props: ActionFormProps) {
     }
 
     setInteractionState(STATE.PARCEL_SELECTED);
-    setIsPortfolioToUpdate(true);
+    setShouldRefetchParcelsData(true);
   }
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
