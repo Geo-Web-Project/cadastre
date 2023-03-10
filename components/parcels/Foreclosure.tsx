@@ -98,7 +98,7 @@ function Foreclosure(props: ForeclosureProps) {
 
     (async () => {
       const _parcels: Bid[] = [];
-      const promises = [];
+      let promises = [];
 
       for (const parcel of data.geoWebParcels) {
         const licenseDiamondAddress = parcel.licenseDiamond;
@@ -142,9 +142,10 @@ function Foreclosure(props: ForeclosureProps) {
       await Promise.allSettled(promises);
 
       const foreclosedParcels = _parcels.splice(0, MAX_LIST_SIZE);
+      promises = [];
 
       for (const foreclosedParcel of foreclosedParcels) {
-        Promise.allSettled([
+        promises.push(
           (async () => {
             const parcelContent = await getParcelContent(
               registryContract.address.toLowerCase(),
@@ -158,9 +159,11 @@ function Foreclosure(props: ForeclosureProps) {
                 : `Parcel ${foreclosedParcel.parcelId}`;
 
             foreclosedParcel.name = name;
-          })(),
-        ]);
+          })()
+        );
       }
+
+      await Promise.allSettled(promises);
 
       if (isMounted) {
         const sorted = sortParcels(foreclosedParcels);

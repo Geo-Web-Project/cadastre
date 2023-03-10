@@ -100,7 +100,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
 
     (async () => {
       const _parcels: Bid[] = [];
-      const promises = [];
+      let promises = [];
 
       for (const parcel of data.geoWebParcels) {
         const pendingBid = parcel.pendingBid;
@@ -151,9 +151,10 @@ function NeedsTransfer(props: NeedsTransferProps) {
       await Promise.allSettled(promises);
 
       const needsTransferParcels = _parcels.splice(0, MAX_LIST_SIZE);
+      promises = [];
 
       for (const needsTransferParcel of needsTransferParcels) {
-        Promise.allSettled([
+        promises.push(
           (async () => {
             const parcelContent = await getParcelContent(
               registryContract.address.toLowerCase(),
@@ -167,9 +168,11 @@ function NeedsTransfer(props: NeedsTransferProps) {
                 : `Parcel ${needsTransferParcel.parcelId}`;
 
             needsTransferParcel.name = name;
-          })(),
-        ]);
+          })()
+        );
       }
+
+      await Promise.allSettled(promises);
 
       if (isMounted) {
         const sorted = sortParcels(needsTransferParcels);
