@@ -174,7 +174,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
       if (isMounted) {
         const sorted = sortParcels(needsTransferParcels);
 
-        setParcels(sorted.splice(0, MAX_LIST_SIZE));
+        setParcels(sorted);
       }
     })();
 
