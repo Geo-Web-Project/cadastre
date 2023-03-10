@@ -108,10 +108,6 @@ function Foreclosure(props: ForeclosureProps) {
         );
 
         const promiseChain = (async () => {
-          if (_parcels.length === MAX_LIST_SIZE) {
-            return;
-          }
-
           const isPayerBidActive =
             await licenseDiamondContract.isPayerBidActive();
 
@@ -157,9 +153,9 @@ function Foreclosure(props: ForeclosureProps) {
       await Promise.allSettled(promises);
 
       if (isMounted) {
-        const sorted = sortParcels(_parcels.splice(0, MAX_LIST_SIZE));
+        const sorted = sortParcels(_parcels);
 
-        setParcels(sorted);
+        setParcels(sorted.splice(0, MAX_LIST_SIZE));
       }
     })();
 
@@ -212,7 +208,7 @@ function Foreclosure(props: ForeclosureProps) {
     const sorted = [...parcels].sort((a, b) => {
       let result = 0;
 
-      result = a.timestamp > b.timestamp ? -1 : 1;
+      result = a.price > b.price ? -1 : 1;
 
       return result;
     });

@@ -115,10 +115,6 @@ function NeedsTransfer(props: NeedsTransferProps) {
           sfFramework.settings.provider
         );
         const promiseChain = (async () => {
-          if (_parcels.length === MAX_LIST_SIZE) {
-            return;
-          }
-
           const shouldBidPeriodEndEarly =
             await licenseDiamondContract.shouldBidPeriodEndEarly();
           const deadline = Number(pendingBid.timestamp) + SECONDS_IN_WEEK;
@@ -165,9 +161,9 @@ function NeedsTransfer(props: NeedsTransferProps) {
       await Promise.allSettled(promises);
 
       if (isMounted) {
-        const sorted = sortParcels(_parcels.splice(0, MAX_LIST_SIZE));
+        const sorted = sortParcels(_parcels);
 
-        setParcels(sorted);
+        setParcels(sorted.splice(0, MAX_LIST_SIZE));
       }
     })();
 

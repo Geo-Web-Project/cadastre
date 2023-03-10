@@ -66,7 +66,8 @@ function IndexPage() {
   );
   const [parcelNavigationCenter, setParcelNavigationCenter] =
     React.useState<Point | null>(null);
-  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] = React.useState(false);
+  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
+    React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -103,7 +104,7 @@ function IndexPage() {
         setGeoWebCoordinate(geoWebCoordinate);
       });
 
-      const lib = new ethers.providers.JsonRpcProvider(
+      const lib = new ethers.providers.JsonRpcBatchProvider(
         RPC_URLS[NETWORK_ID],
         NETWORK_ID
       );
