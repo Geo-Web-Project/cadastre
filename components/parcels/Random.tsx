@@ -96,6 +96,7 @@ function Random(props: RandomProps) {
       orderBy: "createdAtBlock",
       orderDirection: "desc",
     },
+    fetchPolicy: "network-only",
     notifyOnNetworkStatusChange: true,
   });
 

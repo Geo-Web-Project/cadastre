@@ -70,10 +70,7 @@ export enum QuerySelection {
 }
 
 function ParcelList(props: ParcelListProps) {
-  const {
-    showParcelList,
-    handleCloseModal,
-  } = props;
+  const { showParcelList, handleCloseModal } = props;
 
   const [querySelected, setQuerySelected] = useState<QuerySelection>(
     QuerySelection.HIGHEST_VALUE
