@@ -124,22 +124,11 @@ function Foreclosure(props: ForeclosureProps) {
               parcel.bboxN,
             ]);
             const center = turf.center(poly);
-            const parcelContent = await getParcelContent(
-              registryContract.address.toLowerCase(),
-              geoWebContent,
-              parcel.id,
-              parcel.licenseOwner
-            );
-            const name =
-              parcelContent && parcelContent.name
-                ? parcelContent.name
-                : `Parcel ${parcel.id}`;
-
             _parcels.push({
               parcelId: parcelId,
               status: "In Foreclosure",
               createdAtBlock: createdAtBlock,
-              name: name,
+              name: `Parcel ${parcelId}`,
               timestamp: timestamp,
               price: forSalePrice,
               center: center.geometry,
@@ -152,10 +141,31 @@ function Foreclosure(props: ForeclosureProps) {
 
       await Promise.allSettled(promises);
 
-      if (isMounted) {
-        const sorted = sortParcels(_parcels);
+      const foreclosedParcels = _parcels.splice(0, MAX_LIST_SIZE);
 
-        setParcels(sorted.splice(0, MAX_LIST_SIZE));
+      for (const foreclosedParcel of foreclosedParcels) {
+        Promise.allSettled([
+          (async () => {
+            const parcelContent = await getParcelContent(
+              registryContract.address.toLowerCase(),
+              geoWebContent,
+              foreclosedParcel.parcelId,
+              foreclosedParcel.licenseOwner
+            );
+            const name =
+              parcelContent && parcelContent.name
+                ? parcelContent.name
+                : `Parcel ${foreclosedParcel.parcelId}`;
+
+            foreclosedParcel.name = name;
+          })(),
+        ]);
+      }
+
+      if (isMounted) {
+        const sorted = sortParcels(foreclosedParcels);
+
+        setParcels(sorted);
       }
     })();
 

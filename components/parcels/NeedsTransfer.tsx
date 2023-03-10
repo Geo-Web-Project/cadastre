@@ -132,22 +132,12 @@ function NeedsTransfer(props: NeedsTransferProps) {
               parcel.bboxN,
             ]);
             const center = turf.center(poly);
-            const parcelContent = await getParcelContent(
-              registryContract.address.toLowerCase(),
-              geoWebContent,
-              parcel.id,
-              parcel.licenseOwner
-            );
-            const name =
-              parcelContent && parcelContent.name
-                ? parcelContent.name
-                : `Parcel ${parcel.id}`;
 
             _parcels.push({
               parcelId: parcelId,
               status: "Needs Transfer",
               createdAtBlock: createdAtBlock,
-              name: name,
+              name: `Parcel ${parcelId}`,
               timestamp: timestamp,
               price: forSalePrice,
               center: center.geometry,
@@ -160,8 +150,29 @@ function NeedsTransfer(props: NeedsTransferProps) {
 
       await Promise.allSettled(promises);
 
+      const needsTransferParcels = _parcels.splice(0, MAX_LIST_SIZE);
+
+      for (const needsTransferParcel of needsTransferParcels) {
+        Promise.allSettled([
+          (async () => {
+            const parcelContent = await getParcelContent(
+              registryContract.address.toLowerCase(),
+              geoWebContent,
+              needsTransferParcel.parcelId,
+              needsTransferParcel.licenseOwner
+            );
+            const name =
+              parcelContent && parcelContent.name
+                ? parcelContent.name
+                : `Parcel ${needsTransferParcel.parcelId}`;
+
+            needsTransferParcel.name = name;
+          })(),
+        ]);
+      }
+
       if (isMounted) {
-        const sorted = sortParcels(_parcels);
+        const sorted = sortParcels(needsTransferParcels);
 
         setParcels(sorted.splice(0, MAX_LIST_SIZE));
       }
