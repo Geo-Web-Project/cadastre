@@ -48,7 +48,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     perSecondFeeDenominator,
     setInteractionState,
     setSelectedParcelId,
-    setIsPortfolioToUpdate,
+    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -179,7 +179,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     setIsActing(false);
-    setIsPortfolioToUpdate(true);
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
       licenseOwner: true,
@@ -220,7 +220,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     setInteractionState(STATE.PARCEL_SELECTED);
 
     setSelectedParcelId("");
-    setIsPortfolioToUpdate(true);
+    setShouldRefetchParcelsData(true);
     setSelectedParcelId(selectedParcelId);
   }
 

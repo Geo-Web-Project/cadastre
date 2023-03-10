@@ -52,7 +52,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     perSecondFeeDenominator,
     licenseDiamondContract,
     setInteractionState,
-    setIsPortfolioToUpdate,
+    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -203,7 +203,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     setIsActing(false);
-    setIsPortfolioToUpdate(true);
+    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,

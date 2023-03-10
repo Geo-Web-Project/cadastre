@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
-import { Container } from "react-bootstrap";
 import { Framework } from "@superfluid-finance/sdk-core";
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
@@ -22,8 +21,8 @@ interface RandomProps {
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   handleCloseModal: () => void;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  shouldRefetch: boolean;
-  setShouldRefetch: React.Dispatch<React.SetStateAction<boolean>>;
+  hasRefreshed: boolean;
+  setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const randomQuery = gql`
@@ -64,8 +63,8 @@ function Random(props: RandomProps) {
     setInteractionState,
     handleCloseModal,
     setParcelNavigationCenter,
-    shouldRefetch,
-    setShouldRefetch,
+    hasRefreshed,
+    setHasRefreshed,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
@@ -213,7 +212,7 @@ function Random(props: RandomProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!shouldRefetch) {
+    if (!hasRefreshed) {
       return;
     }
 
@@ -222,17 +221,15 @@ function Random(props: RandomProps) {
 
     setOrderDirection(orderDirection === "asc" ? "desc" : "asc");
     setParcels(null);
-    setShouldRefetch(false);
-  }, [shouldRefetch]);
+    setHasRefreshed(false);
+  }, [hasRefreshed]);
 
   return (
-    <Container>
-      <ParcelTable
-        parcels={parcels}
-        networkStatus={networkStatus}
-        handleAction={handleAction}
-      />
-    </Container>
+    <ParcelTable
+      parcels={parcels}
+      networkStatus={networkStatus}
+      handleAction={handleAction}
+    />
   );
 }
 

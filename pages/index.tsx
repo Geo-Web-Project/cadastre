@@ -66,7 +66,7 @@ function IndexPage() {
   );
   const [parcelNavigationCenter, setParcelNavigationCenter] =
     React.useState<Point | null>(null);
-  const [isPortfolioToUpdate, setIsPortfolioToUpdate] = React.useState(false);
+  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -259,8 +259,8 @@ function IndexPage() {
                   interactionState={interactionState}
                   setInteractionState={setInteractionState}
                   setParcelNavigationCenter={setParcelNavigationCenter}
-                  isPortfolioToUpdate={isPortfolioToUpdate}
-                  setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+                  shouldRefetchParcelsData={shouldRefetchParcelsData}
+                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
                 />
               ) : (
                 <ConnectWallet
@@ -310,9 +310,9 @@ function IndexPage() {
               interactionState={interactionState}
               setInteractionState={setInteractionState}
               parcelNavigationCenter={parcelNavigationCenter}
-              isPortfolioToUpdate={isPortfolioToUpdate}
+              shouldRefetchParcelsData={shouldRefetchParcelsData}
               setParcelNavigationCenter={setParcelNavigationCenter}
-              setIsPortfolioToUpdate={setIsPortfolioToUpdate}
+              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}
               startingBid={startingBid}

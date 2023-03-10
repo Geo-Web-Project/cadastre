@@ -173,12 +173,12 @@ export type MapProps = {
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   parcelNavigationCenter: Point | null;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  isPortfolioToUpdate: boolean;
+  shouldRefetchParcelsData: boolean;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
-  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
@@ -918,7 +918,8 @@ function Map(props: MapProps) {
         </Button>
       </ButtonGroup>
       <Button
-        className="bg-purple p-0 border-0 parcel-list-btn"
+        variant="primary"
+        className="p-0 border-0 parcel-list-btn"
         onClick={() => setShowParcelList(true)}
       >
         <Image src="list.svg" alt="parcel list" width={38} />

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
-import { Container } from "react-bootstrap";
 import { Framework } from "@superfluid-finance/sdk-core";
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
@@ -22,15 +21,17 @@ interface HighestValueProps {
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   handleCloseModal: () => void;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  shouldRefetch: boolean;
-  setShouldRefetch: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+  hasRefreshed: boolean;
+  setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const highestValueQuery = gql`
-  query HighestValue($orderBy: String, $skip: Int) {
+  query HighestValue($skip: Int) {
     geoWebParcels(
       first: 25
-      orderBy: $orderBy
+      orderBy: currentBid__forSalePrice
       orderDirection: desc
       skip: $skip
     ) {
@@ -65,17 +66,19 @@ function HighestValue(props: HighestValueProps) {
     setInteractionState,
     handleCloseModal,
     setParcelNavigationCenter,
-    shouldRefetch,
-    setShouldRefetch,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
+    hasRefreshed,
+    setHasRefreshed,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(
     highestValueQuery,
     {
       variables: {
-        orderBy: "currentBid__forSalePrice",
         skip: 0 * MAX_LIST_SIZE,
       },
       notifyOnNetworkStatusChange: true,
@@ -190,17 +193,44 @@ function HighestValue(props: HighestValueProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!shouldRefetch) {
+    if (!shouldRefetchParcelsData) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({
+        skip: 0,
+      });
+    }, 4000);
+
+    setParcels(null);
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data]);
+
+  useEffect(() => {
+    if (!hasRefreshed) {
       return;
     }
 
     refetch({
-      orderBy: "currentBid__forSalePrice",
       skip: 0,
     });
 
-    setShouldRefetch(false);
-  }, [shouldRefetch]);
+    setHasRefreshed(false);
+  }, [hasRefreshed]);
 
   const sortParcels = (parcels: Parcel[]): Parcel[] => {
     const sorted = [...parcels].sort((a, b) => {
@@ -222,13 +252,11 @@ function HighestValue(props: HighestValueProps) {
   };
 
   return (
-    <Container>
-      <ParcelTable
-        parcels={parcels}
-        networkStatus={networkStatus}
-        handleAction={handleAction}
-      />
-    </Container>
+    <ParcelTable
+      parcels={parcels}
+      networkStatus={networkStatus}
+      handleAction={handleAction}
+    />
   );
 }
 

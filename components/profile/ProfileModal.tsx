@@ -66,9 +66,9 @@ interface ProfileModalProps {
   showProfile: boolean;
   handleCloseProfile: () => void;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  isPortfolioToUpdate: boolean;
+  shouldRefetchParcelsData: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface PortfolioParcel {
@@ -186,8 +186,8 @@ function ProfileModal(props: ProfileModalProps) {
     handleCloseProfile,
     setPortfolioNeedActionCount,
     setParcelNavigationCenter,
-    isPortfolioToUpdate,
-    setIsPortfolioToUpdate,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string>("");
@@ -208,7 +208,7 @@ function ProfileModal(props: ProfileModalProps) {
     variables: {
       id: account,
     },
-    skip: !showProfile,
+    skip: !showProfile && !shouldRefetchParcelsData,
   });
 
   const { superTokenBalance } = useSuperTokenBalance(
@@ -483,14 +483,14 @@ function ProfileModal(props: ProfileModalProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!isPortfolioToUpdate) {
+    if (!shouldRefetchParcelsData || !showProfile) {
       return;
     }
 
     if (timerId) {
       clearInterval(timerId);
       setTimerId(null);
-      setIsPortfolioToUpdate(false);
+      setShouldRefetchParcelsData(false);
       return;
     }
 
@@ -505,7 +505,7 @@ function ProfileModal(props: ProfileModalProps) {
         clearInterval(timerId);
       }
     };
-  }, [isPortfolioToUpdate, data]);
+  }, [shouldRefetchParcelsData, data]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({

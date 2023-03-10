@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
-import { Container } from "react-bootstrap";
 import { Framework } from "@superfluid-finance/sdk-core";
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
@@ -22,8 +21,10 @@ interface NeedsTransferProps {
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   handleCloseModal: () => void;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  shouldRefetch: boolean;
-  setShouldRefetch: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+  hasRefreshed: boolean;
+  setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 type Bid = Parcel & {
@@ -66,11 +67,14 @@ function NeedsTransfer(props: NeedsTransferProps) {
     setInteractionState,
     handleCloseModal,
     setParcelNavigationCenter,
-    shouldRefetch,
-    setShouldRefetch,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
+    hasRefreshed,
+    setHasRefreshed,
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(
     needsTransferQuery,
@@ -173,7 +177,35 @@ function NeedsTransfer(props: NeedsTransferProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!shouldRefetch) {
+    if (!shouldRefetchParcelsData) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({
+        skip: 0,
+      });
+    }, 4000);
+
+    setParcels(null);
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data]);
+
+  useEffect(() => {
+    if (!hasRefreshed) {
       return;
     }
 
@@ -181,8 +213,8 @@ function NeedsTransfer(props: NeedsTransferProps) {
       skip: 0,
     });
 
-    setShouldRefetch(false);
-  }, [shouldRefetch]);
+    setHasRefreshed(false);
+  }, [hasRefreshed]);
 
   const sortParcels = (parcels: Bid[]): Bid[] => {
     const sorted = [...parcels].sort((a, b) => {
@@ -204,13 +236,11 @@ function NeedsTransfer(props: NeedsTransferProps) {
   };
 
   return (
-    <Container>
-      <ParcelTable
-        parcels={parcels}
-        networkStatus={networkStatus}
-        handleAction={handleAction}
-      />
-    </Container>
+    <ParcelTable
+      parcels={parcels}
+      networkStatus={networkStatus}
+      handleAction={handleAction}
+    />
   );
 }
 

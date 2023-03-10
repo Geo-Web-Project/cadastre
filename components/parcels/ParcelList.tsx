@@ -22,9 +22,10 @@ interface ParcelListProps {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   showParcelList: boolean;
-  handleCloseModal: () => void;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  isPortfolioToUpdate: boolean;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+  handleCloseModal: () => void;
 }
 
 export interface Parcel {
@@ -69,16 +70,19 @@ export enum QuerySelection {
 }
 
 function ParcelList(props: ParcelListProps) {
-  const { showParcelList, handleCloseModal } = props;
+  const {
+    showParcelList,
+    handleCloseModal,
+  } = props;
 
   const [querySelected, setQuerySelected] = useState<QuerySelection>(
     QuerySelection.HIGHEST_VALUE
   );
-  const [shouldRefetch, setShouldRefetch] = useState<boolean>(false);
+  const [hasRefreshed, setHasRefreshed] = useState<boolean>(false);
 
   const handleQuerySelection = (selection: QuerySelection) => {
     if (querySelected === selection) {
-      setShouldRefetch(true);
+      setHasRefreshed(true);
       return;
     }
 
@@ -138,38 +142,38 @@ function ParcelList(props: ParcelListProps) {
       <Modal.Body className="bg-dark text-light text-start">
         {querySelected === QuerySelection.HIGHEST_VALUE ? (
           <HighestValue
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : querySelected === QuerySelection.RECENT ? (
           <Recent
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : querySelected === QuerySelection.RANDOM ? (
           <Random
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : querySelected === QuerySelection.NEEDS_TRASFER ? (
           <NeedsTransfer
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : querySelected === QuerySelection.FORECLOSURE ? (
           <Foreclosure
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : querySelected === QuerySelection.OUTSTANDING_BID ? (
           <OutstandingBid
-            shouldRefetch={shouldRefetch}
-            setShouldRefetch={setShouldRefetch}
+            hasRefreshed={hasRefreshed}
+            setHasRefreshed={setHasRefreshed}
             {...props}
           />
         ) : null}

@@ -41,8 +41,8 @@ type ProfileProps = {
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
-  isPortfolioToUpdate: boolean;
-  setIsPortfolioToUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Profile(props: ProfileProps) {
