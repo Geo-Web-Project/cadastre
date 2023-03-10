@@ -208,7 +208,6 @@ function ProfileModal(props: ProfileModalProps) {
     variables: {
       id: account,
     },
-    skip: !showProfile && !shouldRefetchParcelsData,
   });
 
   const { superTokenBalance } = useSuperTokenBalance(

@@ -35,7 +35,7 @@ const foreclosureQuery = gql`
   query Foreclosure($skip: Int) {
     geoWebParcels(
       first: 1000
-      orderBy: currentBid__timestamp
+      orderBy: currentBid__contributionRate
       orderDirection: desc
       skip: $skip
     ) {
@@ -157,7 +157,7 @@ function Foreclosure(props: ForeclosureProps) {
       await Promise.allSettled(promises);
 
       if (isMounted) {
-        const sorted = sortParcels(_parcels);
+        const sorted = sortParcels(_parcels.splice(0, MAX_LIST_SIZE));
 
         setParcels(sorted);
       }

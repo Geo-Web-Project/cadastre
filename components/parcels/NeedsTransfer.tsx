@@ -165,7 +165,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
       await Promise.allSettled(promises);
 
       if (isMounted) {
-        const sorted = sortParcels(_parcels);
+        const sorted = sortParcels(_parcels.splice(0, MAX_LIST_SIZE));
 
         setParcels(sorted);
       }
