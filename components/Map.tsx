@@ -26,13 +26,13 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Image from "react-bootstrap/Image";
 import Alert from "react-bootstrap/Alert";
 
+import { SafeAuthKit } from "@safe-global/auth-kit";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { ethers, BigNumber } from "ethers";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
 
 import type { Point, MultiPolygon, Polygon } from "@turf/turf";
@@ -157,6 +157,8 @@ export type MapProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+  safeAuthKit: SafeAuthKit | null;
+  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
   account: string;
   signer: ethers.Signer | null;
   ceramic: CeramicClient;
@@ -167,7 +169,6 @@ export type MapProps = {
   w3InvocationConfig: InvocationConfig;
   setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
   geoWebCoordinate: GeoWebCoordinate;
-  firebasePerf: firebase.performance.Performance;
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;

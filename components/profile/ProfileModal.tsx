@@ -5,8 +5,8 @@ import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
-import { useDisconnect } from "wagmi";
 import type { CeramicClient } from "@ceramicnetwork/http-client";
+import { SafeAuthKit } from "@safe-global/auth-kit";
 import {
   Modal,
   Container,
@@ -57,6 +57,7 @@ interface ProfileModalProps {
   signer: ethers.Signer;
   sfFramework: Framework;
   ceramic: CeramicClient;
+  safeAuthKit: SafeAuthKit | null;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
@@ -175,6 +176,7 @@ function ProfileModal(props: ProfileModalProps) {
   const {
     accountTokenSnapshot,
     sfFramework,
+    safeAuthKit,
     account,
     signer,
     geoWebContent,
@@ -203,7 +205,6 @@ function ProfileModal(props: ProfileModalProps) {
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
-  const { disconnect } = useDisconnect();
   const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
       id: account,
@@ -509,6 +510,7 @@ function ProfileModal(props: ProfileModalProps) {
   const tokenOptions: TokenOptions = useMemo(
     () => ({
       address: paymentToken.address,
+      signer,
       symbol: PAYMENT_TOKEN,
       decimals: 18,
       image: "",
@@ -518,7 +520,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
 
   const deactivateProfile = (): void => {
-    disconnect();
+    safeAuthKit?.signOut();
     handleCloseProfile();
   };
 

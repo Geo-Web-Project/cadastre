@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSigner } from "wagmi";
+import { ethers } from "ethers";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import Image from "react-bootstrap/Image";
 import Button from "react-bootstrap/Button";
@@ -10,14 +10,13 @@ import BetaAgreementModal from "./BetaAgreementModal";
 
 type HomeProps = {
   ceramic: CeramicClient | null;
+  signer: ethers.Signer | null;
   isFirstVisit: boolean;
   setIsFirstVisit: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export default function Home(props: HomeProps) {
-  const { ceramic, isFirstVisit, setIsFirstVisit } = props;
-
-  const { data: signer } = useSigner();
+  const { ceramic, signer, isFirstVisit, setIsFirstVisit } = props;
 
   const updateVisitStatus = () => {
     localStorage.setItem("gwCadastreAlreadyVisited", "true");

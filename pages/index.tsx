@@ -2,6 +2,7 @@ import Home from "../components/Home";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";
 import Profile from "../components/profile/Profile";
 import FundsRaisedCounter from "../components/FundsRaisedCounter";
+import { SafeAuthKit } from "@safe-global/auth-kit";
 
 import React from "react";
 import Container from "react-bootstrap/Container";
@@ -22,8 +23,6 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 
 import { ethers, BigNumber } from "ethers";
-import { useFirebase } from "../lib/Firebase";
-
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -37,9 +36,9 @@ import * as IPFSHttpClient from "ipfs-http-client";
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
 
-import { useAccount, useSigner, useNetwork } from "wagmi";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
+import { getSigner } from "../lib/getSigner";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -49,14 +48,14 @@ function IndexPage() {
   >(null);
   const [ceramic, setCeramic] = React.useState<CeramicClient | null>(null);
   const [ipfs, setIpfs] = React.useState<IPFS | null>(null);
-  const [library, setLibrary] =
-    React.useState<ethers.providers.JsonRpcProvider>();
-  const { firebasePerf } = useFirebase();
   const [paymentToken, setPaymentToken] = React.useState<
     NativeAssetSuperToken | undefined
   >(undefined);
   const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
     undefined
+  );
+  const [safeAuthKit, setSafeAuthKit] = React.useState<SafeAuthKit | null>(
+    null
   );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
     React.useState(0);
@@ -89,10 +88,6 @@ function IndexPage() {
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
 
-  const { chain } = useNetwork();
-  const { address } = useAccount();
-  const { data: signer } = useSigner();
-
   React.useEffect(() => {
     const start = async () => {
       const isFirstVisit = localStorage.getItem("gwCadastreAlreadyVisited")
@@ -108,7 +103,6 @@ function IndexPage() {
         RPC_URLS[NETWORK_ID],
         NETWORK_ID
       );
-      setLibrary(lib);
 
       const { registryDiamondContract } = getContractsForChainOrThrow(
         NETWORK_ID,
@@ -231,20 +225,19 @@ function IndexPage() {
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
             <div className="d-none d-sm-block">
-              {address &&
-              signer &&
+              {safeAuthKit?.safeAuthData &&
               sfFramework &&
               ceramic &&
               ipfs &&
               ceramic.did &&
               geoWebContent &&
               registryContract &&
-              paymentToken &&
-              chain?.id === NETWORK_ID &&
-              library ? (
+              paymentToken ? (
                 <Profile
-                  account={address.toLowerCase()}
-                  signer={signer}
+                  safeAuthKit={safeAuthKit}
+                  setSafeAuthKit={setSafeAuthKit}
+                  account={safeAuthKit.safeAuthData.eoa ?? ""}
+                  signer={getSigner(safeAuthKit)}
                   sfFramework={sfFramework}
                   ceramic={ceramic}
                   setCeramic={setCeramic}
@@ -269,6 +262,8 @@ function IndexPage() {
                   ipfs={ipfs}
                   ceramic={ceramic}
                   setCeramic={setCeramic}
+                  safeAuthKit={safeAuthKit}
+                  setSafeAuthKit={setSafeAuthKit}
                   setGeoWebContent={setGeoWebContent}
                   setW3InvocationConfig={setW3InvocationConfig}
                 />
@@ -282,18 +277,18 @@ function IndexPage() {
         {!isFirstVisit &&
         registryContract &&
         paymentToken &&
-        library &&
         ceramic &&
         ipfs &&
         geoWebContent &&
         geoWebCoordinate &&
-        firebasePerf &&
         sfFramework ? (
           <Row>
             <Map
               registryContract={registryContract}
-              signer={signer ?? null}
-              account={address?.toLowerCase() ?? ""}
+              safeAuthKit={safeAuthKit}
+              setSafeAuthKit={setSafeAuthKit}
+              account={safeAuthKit?.safeAuthData?.eoa ?? ""}
+              signer={safeAuthKit?.safeAuthData ? getSigner(safeAuthKit) : null}
               ceramic={ceramic}
               setCeramic={setCeramic}
               ipfs={ipfs}
@@ -302,7 +297,6 @@ function IndexPage() {
               w3InvocationConfig={w3InvocationConfig}
               setW3InvocationConfig={setW3InvocationConfig}
               geoWebCoordinate={geoWebCoordinate}
-              firebasePerf={firebasePerf}
               paymentToken={paymentToken}
               sfFramework={sfFramework}
               setPortfolioNeedActionCount={setPortfolioNeedActionCount}
@@ -322,6 +316,7 @@ function IndexPage() {
           </Row>
         ) : (
           <Home
+            signer={safeAuthKit?.safeAuthData ? getSigner(safeAuthKit) : null}
             ceramic={ceramic}
             isFirstVisit={isFirstVisit}
             setIsFirstVisit={setIsFirstVisit}
