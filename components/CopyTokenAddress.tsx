@@ -1,13 +1,14 @@
 import { useCallback } from "react";
+import { ethers } from "ethers";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Card from "react-bootstrap/Card";
-import { useSigner } from "wagmi";
 import CopyTooltip from "./CopyTooltip";
 import { truncateStr } from "../lib/truncate";
 
 export type TokenOptions = {
   address: string;
+  signer: ethers.Signer | null;
   symbol: string;
   decimals: number;
   image: string;
@@ -15,17 +16,15 @@ export type TokenOptions = {
 };
 
 export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
-  const { data: signer } = useSigner();
-
   const copyAddress = useCallback(() => {
     navigator.clipboard.writeText(options.address);
   }, [options.address]);
 
   const addToMetaMask = useCallback(() => {
-    if (!options.address) return;
+    if (!options.address || !options.signer) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (signer?.provider as any).provider.request({
+    (options.signer?.provider as any).provider.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20",

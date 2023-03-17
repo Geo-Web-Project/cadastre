@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
 import { CeramicClient } from "@ceramicnetwork/http-client";
+import { SafeAuthKit } from "@safe-global/auth-kit";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
@@ -25,6 +26,8 @@ import { truncateStr, truncateEth } from "../../lib/truncate";
 
 type ProfileProps = {
   sfFramework: Framework;
+  safeAuthKit: SafeAuthKit | null;
+  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
   account: string;
   signer: ethers.Signer;
   ceramic: CeramicClient;

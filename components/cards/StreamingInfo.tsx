@@ -1,4 +1,5 @@
 import * as React from "react";
+import { SafeAuthKit } from "@safe-global/auth-kit";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
@@ -20,6 +21,8 @@ import { STATE } from "../Map";
 
 type StreamingInfoProps = {
   sfFramework: Framework;
+  safeAuthKit: SafeAuthKit | null;
+  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
   account: string;
   signer: ethers.Signer;
   ceramic: CeramicClient;

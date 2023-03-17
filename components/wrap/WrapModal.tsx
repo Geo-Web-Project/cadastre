@@ -1,7 +1,6 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import { ethers } from "ethers";
-import { useProvider } from "wagmi";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateEth } from "../../lib/truncate";
@@ -24,6 +23,7 @@ function WrapModal({
   account,
   signer,
   show,
+  sfFramework,
   handleClose,
   paymentToken,
 }: WrapModalProps) {
@@ -31,8 +31,6 @@ function WrapModal({
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
   const [amount, setAmount] = React.useState<string>("");
   const [error, setError] = React.useState<string>("");
-
-  const provider = useProvider();
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
@@ -51,7 +49,10 @@ function WrapModal({
     (async () => {
       if (signer && account) {
         try {
-          const ethBalance = await getETHBalance(provider, account);
+          const ethBalance = await getETHBalance(
+            sfFramework.settings.provider,
+            account
+          );
 
           if (isMounted) {
             setETHBalance(ethBalance);
@@ -80,7 +81,10 @@ function WrapModal({
 
       await txn.wait();
       // Wrap ETHx successfully!
-      const ethBalance = await getETHBalance(provider, account);
+      const ethBalance = await getETHBalance(
+        sfFramework.settings.provider,
+        account
+      );
       // Update balances
       setETHBalance(ethBalance);
       setAmount("");
@@ -123,6 +127,7 @@ function WrapModal({
   const tokenOptions: TokenOptions = React.useMemo(
     () => ({
       address: paymentToken.address,
+      signer,
       symbol: "ETHx",
       decimals: 18,
       image: "",
