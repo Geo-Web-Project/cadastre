@@ -701,7 +701,7 @@ function ProfileModal(props: ProfileModalProps) {
               <Button
                 onClick={deactivateProfile}
                 variant="info"
-                className="ms-4"
+                className="ms-5"
               >
                 Disconnect
               </Button>
