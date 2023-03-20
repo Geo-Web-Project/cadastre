@@ -54,7 +54,7 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
               >
                 {truncateStr(options.address, 16)}
               </span>
-              <Image width={16} src="/copy.svg" alt="copy" />
+              <Image width={18} src="/copy-dark.svg" alt="copy" />
             </div>
           }
           handleCopy={copyAddress}
