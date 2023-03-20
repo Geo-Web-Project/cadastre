@@ -32,6 +32,7 @@ import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPFS } from "ipfs-core-types";
 import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
+import CopyTooltip from "../CopyTooltip";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
@@ -684,6 +685,19 @@ function ProfileModal(props: ProfileModalProps) {
           <Row>
             <Col className="text-light fs-1 d-flex align-items-center" sm="10">
               Account: {truncateStr(account, 14)}
+              <CopyTooltip
+                contentClick="Address Copied"
+                contentHover="Copy Address"
+                target={
+                  <Image
+                    src="copy-light.svg"
+                    alt="copy"
+                    width={34}
+                    className="ms-2"
+                  />
+                }
+                handleCopy={() => navigator.clipboard.writeText(account)}
+              />
               <Button
                 onClick={deactivateProfile}
                 variant="info"
