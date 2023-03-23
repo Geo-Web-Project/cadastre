@@ -106,6 +106,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
     const w3Client = await createW3UpClient();
     let sessionKey = ssxConnection.builder.jwk();
 
+    let ssxSession: SSXClientSession;
     try {
       // Login to SSX
       sessionKey = ssxConnection.builder.jwk();
@@ -113,7 +114,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
         return Promise.reject(new Error("unable to retrieve session key"));
       }
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const ssxSession: SSXClientSession = {
+      ssxSession = {
         address: address!,
         walletAddress: await signer!.getAddress(),
         chainId: chain!.id,
@@ -134,6 +135,11 @@ export default function ConnectWallet(props: ConnectWalletProps) {
           url: "/storage/delegation",
           responseType: "blob",
           data: {
+            siwe: ssxSession!.siwe,
+            signature: ssxSession!.signature,
+            daoLogin: false,
+            resolveEns: false,
+            resolveLens: false,
             aud: w3Client.agent().did(),
           },
         });
@@ -156,7 +162,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
         await w3Client.addProof(delegation);
       } catch (err) {
         localStorage.removeItem("didsession");
-        initSession();
+        // initSession();
         return;
       }
     }
