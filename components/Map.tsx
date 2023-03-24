@@ -1,47 +1,40 @@
-import { gql, useQuery } from "@apollo/client";
-import * as React from "react";
-import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Col from "react-bootstrap/Col";
-import ReactMapGL, { NavigationControl } from "react-map-gl";
-import type { ViewState, MapRef } from "react-map-gl";
+import { useRouter } from "next/router";
+import { ethers, BigNumber } from "ethers";
+import { gql, useQuery } from "@apollo/client";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import type { IPFS } from "ipfs-core-types";
+import type { Point, MultiPolygon, Polygon } from "@turf/turf";
+import * as turf from "@turf/turf";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
 import {
   MapLayerMouseEvent,
   LngLatBounds,
   LngLat,
   PaddingOptions,
 } from "mapbox-gl";
-import Geocoder from "../lib/Geocoder";
+import ReactMapGL, { NavigationControl } from "react-map-gl";
+import type { ViewState, MapRef } from "react-map-gl";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { GeoWebContent } from "@geo-web/content";
+import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Image from "react-bootstrap/Image";
+import Alert from "react-bootstrap/Alert";
 import Sidebar from "./Sidebar";
 import ClaimSource from "./sources/ClaimSource";
 import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
-
-import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { GeoWebContent } from "@geo-web/content";
-
-import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
-import Image from "react-bootstrap/Image";
-import Alert from "react-bootstrap/Alert";
-
-import { SafeAuthKit } from "@safe-global/auth-kit";
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import { ethers, BigNumber } from "ethers";
-import "mapbox-gl/dist/mapbox-gl.css";
-
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import type { IPFS } from "ipfs-core-types";
-
-import type { Point, MultiPolygon, Polygon } from "@turf/turf";
-import * as turf from "@turf/turf";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import type { InvocationConfig } from "@web3-storage/upload-client";
+import Geocoder from "../lib/Geocoder";
 import ParcelList from "./parcels/ParcelList";
+import { SmartAccount } from "../pages/index";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -157,8 +150,8 @@ export type MapProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  safeAuthKit: SafeAuthKit | null;
-  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   account: string;
   signer: ethers.Signer | null;
   ceramic: CeramicClient;
@@ -215,7 +208,7 @@ function Map(props: MapProps) {
 
   const mapRef = useRef<MapRef>();
 
-  const [mapStyleName, setMapStyleName] = React.useState(
+  const [mapStyleName, setMapStyleName] = useState(
     (localStorage.getItem(MAP_STYLE_KEY) as MapStyleName) ||
       MapStyleName.satellite
   );
@@ -256,18 +249,18 @@ function Map(props: MapProps) {
     MultiPolygon | Polygon
   >(turf.multiPolygon([]).geometry);
 
-  const [isValidClaim, setIsValidClaim] = React.useState(true);
-  const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
-  const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
-  const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
+  const [isValidClaim, setIsValidClaim] = useState(true);
+  const [isParcelAvailable, setIsParcelAvailable] = useState(true);
+  const [parcelClaimSize, setParcelClaimSize] = useState(0);
+  const [interactiveLayerIds, setInteractiveLayerIds] = useState<
     string[]
   >([]);
-  const [invalidLicenseId, setInvalidLicenseId] = React.useState("");
-  const [newParcel, setNewParcel] = React.useState<{
+  const [invalidLicenseId, setInvalidLicenseId] = useState("");
+  const [newParcel, setNewParcel] = useState<{
     id: string;
     timerId: number | null;
   }>({ id: "", timerId: null });
-  const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
+  const [showParcelList, setShowParcelList] = useState<boolean>(false);
 
   const router = useRouter();
 

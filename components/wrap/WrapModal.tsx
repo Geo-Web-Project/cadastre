@@ -11,9 +11,11 @@ import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import Button from "react-bootstrap/Button";
 import { SidebarProps } from "../Sidebar";
+import { SmartAccount } from "../../pages/index";
 
 type WrapModalProps = SidebarProps & {
   account: string;
+  smartAccount: SmartAccount | null;
   show: boolean;
   handleClose: () => void;
   paymentToken: NativeAssetSuperToken;
@@ -21,6 +23,7 @@ type WrapModalProps = SidebarProps & {
 
 function WrapModal({
   account,
+  smartAccount,
   signer,
   show,
   sfFramework,
@@ -69,18 +72,37 @@ function WrapModal({
   }, [signer, account]);
 
   const wrapETH = async (amount: string) => {
+    if (!smartAccount?.safe) {
+      return;
+    }
+
     try {
-      const txn = await paymentToken
-        .upgrade({
-          amount: ethers.utils.parseEther(amount).toString(),
-        })
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        .exec(signer!);
+      const weiAmount = ethers.utils.parseEther(amount).toString();
+      const populatedTransaction = await paymentToken.upgrade({
+        amount: weiAmount,
+      }).populateTransactionPromise;
+
+      if (!populatedTransaction.data || !populatedTransaction.to) {
+        return;
+      }
+
+      const safeTransactionData = {
+        data: populatedTransaction.data,
+        to: populatedTransaction.to,
+        value: weiAmount,
+      };
 
       setIsWrapping(true);
 
-      await txn.wait();
-      // Wrap ETHx successfully!
+      const safeTransaction = await smartAccount.safe.createTransaction({
+        safeTransactionData,
+      });
+      const executeTxResponse = await smartAccount.safe.executeTransaction(
+        safeTransaction
+      );
+
+      await executeTxResponse.transactionResponse?.wait();
+
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,
         account

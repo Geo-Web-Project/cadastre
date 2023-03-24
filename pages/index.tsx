@@ -35,10 +35,18 @@ import * as IPFSHttpClient from "ipfs-http-client";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
-
+import AddFundsModal from "../components/profile/AddFundsModal";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
 import { getSigner } from "../lib/getSigner";
+import Safe from "@safe-global/safe-core-sdk";
+
+export interface SmartAccount {
+  safeAuthKit: SafeAuthKit;
+  eoaAddress?: string;
+  safe?: Safe;
+  safeAddress?: string;
+}
 
 const { httpClient, jsIpfs } = providers;
 
@@ -54,7 +62,7 @@ function IndexPage() {
   const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
     undefined
   );
-  const [safeAuthKit, setSafeAuthKit] = React.useState<SafeAuthKit | null>(
+  const [smartAccount, setSmartAccount] = React.useState<SmartAccount | null>(
     null
   );
   const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
@@ -87,6 +95,8 @@ function IndexPage() {
   const [isFirstVisit, setIsFirstVisit] = React.useState<boolean>(false);
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
+  const [showAddFundsModal, setShowAddFundsModal] =
+    React.useState<boolean>(true);
 
   React.useEffect(() => {
     const start = async () => {
@@ -225,7 +235,7 @@ function IndexPage() {
           </Col>
           <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
             <div className="d-none d-sm-block">
-              {safeAuthKit?.safeAuthData &&
+              {smartAccount?.safeAddress &&
               sfFramework &&
               ceramic &&
               ipfs &&
@@ -234,10 +244,10 @@ function IndexPage() {
               registryContract &&
               paymentToken ? (
                 <Profile
-                  safeAuthKit={safeAuthKit}
-                  setSafeAuthKit={setSafeAuthKit}
-                  account={safeAuthKit.safeAuthData.eoa ?? ""}
-                  signer={getSigner(safeAuthKit)}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                  account={smartAccount.safeAddress ?? ""}
+                  signer={getSigner(smartAccount.safeAuthKit)}
                   sfFramework={sfFramework}
                   ceramic={ceramic}
                   setCeramic={setCeramic}
@@ -262,8 +272,8 @@ function IndexPage() {
                   ipfs={ipfs}
                   ceramic={ceramic}
                   setCeramic={setCeramic}
-                  safeAuthKit={safeAuthKit}
-                  setSafeAuthKit={setSafeAuthKit}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
                   setGeoWebContent={setGeoWebContent}
                   setW3InvocationConfig={setW3InvocationConfig}
                 />
@@ -285,10 +295,14 @@ function IndexPage() {
           <Row>
             <Map
               registryContract={registryContract}
-              safeAuthKit={safeAuthKit}
-              setSafeAuthKit={setSafeAuthKit}
-              account={safeAuthKit?.safeAuthData?.eoa ?? ""}
-              signer={safeAuthKit?.safeAuthData ? getSigner(safeAuthKit) : null}
+              smartAccount={smartAccount}
+              setSmartAccount={setSmartAccount}
+              account={smartAccount?.safeAddress ?? ""}
+              signer={
+                smartAccount?.eoaAddress
+                  ? getSigner(smartAccount.safeAuthKit)
+                  : null
+              }
               ceramic={ceramic}
               setCeramic={setCeramic}
               ipfs={ipfs}
@@ -316,10 +330,23 @@ function IndexPage() {
           </Row>
         ) : (
           <Home
-            signer={safeAuthKit?.safeAuthData ? getSigner(safeAuthKit) : null}
+            signer={
+              smartAccount?.eoaAddress
+                ? getSigner(smartAccount.safeAuthKit)
+                : null
+            }
             ceramic={ceramic}
             isFirstVisit={isFirstVisit}
             setIsFirstVisit={setIsFirstVisit}
+          />
+        )}
+        {smartAccount?.safeAddress && !smartAccount.safe && paymentToken && (
+          <AddFundsModal
+            show={showAddFundsModal}
+            handleClose={() => setShowAddFundsModal(false)}
+            paymentToken={paymentToken}
+            smartAccount={smartAccount}
+            setSmartAccount={setSmartAccount}
           />
         )}
       </Container>

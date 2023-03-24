@@ -6,7 +6,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import type { CeramicClient } from "@ceramicnetwork/http-client";
-import { SafeAuthKit } from "@safe-global/auth-kit";
+import { SafeTransactionDataPartial } from "@safe-global/safe-core-sdk-types";
 import {
   Modal,
   Container,
@@ -46,6 +46,7 @@ import {
   calculateAuctionValue,
   getParcelContent,
 } from "../../lib/utils";
+import { SmartAccount } from "../../pages/index";
 import { STATE } from "../Map";
 
 dayjs.extend(utc);
@@ -58,7 +59,7 @@ interface ProfileModalProps {
   signer: ethers.Signer;
   sfFramework: Framework;
   ceramic: CeramicClient;
-  safeAuthKit: SafeAuthKit | null;
+  smartAccount: SmartAccount | null;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
@@ -177,7 +178,7 @@ function ProfileModal(props: ProfileModalProps) {
   const {
     accountTokenSnapshot,
     sfFramework,
-    safeAuthKit,
+    smartAccount,
     account,
     signer,
     geoWebContent,
@@ -226,6 +227,7 @@ function ProfileModal(props: ProfileModalProps) {
     unwrappingAmount !== "" &&
     paymentTokenBalance !== "" &&
     Number(unwrappingAmount) > Number(paymentTokenBalance);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -521,7 +523,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
 
   const deactivateProfile = (): void => {
-    safeAuthKit?.signOut();
+    smartAccount?.safeAuthKit?.signOut();
     handleCloseProfile();
   };
 
@@ -529,32 +531,58 @@ function ProfileModal(props: ProfileModalProps) {
     amount: string,
     action: SuperTokenAction
   ): Promise<void> => {
-    let txn: ethers.providers.TransactionResponse | null = null;
+    if (!smartAccount?.safe) {
+      return;
+    }
+
+    let safeTransactionData: SafeTransactionDataPartial | null = null;
+
+    const weiAmount = ethers.utils.parseEther(amount).toString();
 
     try {
       if (action === SuperTokenAction.WRAP) {
-        txn = await paymentToken
-          .upgrade({
-            amount: ethers.utils.parseEther(amount).toString(),
-          })
-          .exec(signer);
+        const populatedTransaction = await paymentToken.upgrade({
+          amount: weiAmount,
+        }).populateTransactionPromise;
+        const { data, to } = populatedTransaction;
 
-        setIsWrapping(true);
+        if (data && to) {
+          safeTransactionData = {
+            data,
+            to,
+            value: weiAmount,
+          };
+
+          setIsWrapping(true);
+        }
       } else if (action === SuperTokenAction.UNWRAP) {
-        txn = await paymentToken
-          .downgrade({
-            amount: ethers.utils.parseEther(amount).toString(),
-          })
-          .exec(signer);
+        const populatedTransaction = await paymentToken.downgrade({
+          amount: weiAmount,
+        }).populateTransactionPromise;
+        const { data, to } = populatedTransaction;
 
-        setIsUnwrapping(true);
+        if (data && to) {
+          safeTransactionData = {
+            data,
+            to,
+            value: "0",
+          };
+
+          setIsUnwrapping(true);
+        }
       }
 
-      if (txn === null) {
+      if (safeTransactionData === null) {
         return;
       }
 
-      await txn.wait();
+      const safeTransaction = await smartAccount.safe.createTransaction({
+        safeTransactionData,
+      });
+      const executeTxResponse = await smartAccount.safe.executeTransaction(
+        safeTransaction
+      );
+      await executeTxResponse.transactionResponse?.wait();
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,

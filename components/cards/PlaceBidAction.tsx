@@ -20,6 +20,7 @@ import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
+import AddFundsButton from "../profile/AddFundsButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
@@ -47,6 +48,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     signer,
     account,
+    smartAccount,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -148,14 +150,21 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
-    const requiredPayment =
-      newForSalePrice && requiredBuffer
-        ? newForSalePrice.add(requiredBuffer)
-        : null;
+    (async () => {
+      const ethBalance = await smartAccount?.safe?.getBalance();
+      const requiredPayment =
+        newForSalePrice && requiredBuffer
+          ? newForSalePrice.add(requiredBuffer)
+          : null;
 
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
-    );
+      setIsBalanceInsufficient(
+        requiredPayment
+          ? requiredPayment.gt(
+              ethBalance ? superTokenBalance.add(ethBalance) : superTokenBalance
+            )
+          : false
+      );
+    })();
   }, [superTokenBalance]);
 
   async function placeBid() {
@@ -311,6 +320,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             ) : null}
 
             <br />
+            <AddFundsButton {...props} />
             <Button
               variant="secondary"
               className="w-100 mb-3"

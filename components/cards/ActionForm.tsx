@@ -22,6 +22,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import TransactionError from "./TransactionError";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
+import AddFundsButton from "../profile/AddFundsButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 
 export type ActionFormProps = SidebarProps & {
@@ -56,6 +57,7 @@ export type ActionData = {
 
 export function ActionForm(props: ActionFormProps) {
   const {
+    smartAccount,
     account,
     licenseOwner,
     geoWebContent,
@@ -291,9 +293,17 @@ export function ActionForm(props: ActionFormProps) {
   }, [displayCurrentForSalePrice, displayNewForSalePrice, updateActionData]);
 
   React.useEffect(() => {
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
-    );
+    (async () => {
+      const ethBalance = await smartAccount?.safe?.getBalance();
+
+      setIsBalanceInsufficient(
+        requiredPayment
+          ? requiredPayment.gt(
+              ethBalance ? superTokenBalance.add(ethBalance) : superTokenBalance
+            )
+          : false
+      );
+    })();
   }, [superTokenBalance]);
 
   return (
@@ -461,6 +471,8 @@ export function ActionForm(props: ActionFormProps) {
             <br />
             {summaryView}
             <br />
+            <AddFundsButton {...props} />
+            {/* TODO: We can merge the next three button into one with Safe's multisend call */}
             <Button
               variant="secondary"
               className="w-100 mb-3"
@@ -507,9 +519,9 @@ export function ActionForm(props: ActionFormProps) {
           <br />
           {isBalanceInsufficient && displayNewForSalePrice ? (
             <Alert key="warning" variant="warning">
-              <Alert.Heading>Insufficient ETHx</Alert.Heading>
-              Please wrap enough ETH to ETHx to complete this transaction with
-              the button above.
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              Click Add Funds above and send ETH to your account to complete
+              your transaction.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError

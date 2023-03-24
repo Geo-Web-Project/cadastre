@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
-import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/Image";
-import { GeoWebContent } from "@geo-web/content";
-import { CeramicClient } from "@ceramicnetwork/http-client";
+import Safe, { SafeFactory } from "@safe-global/safe-core-sdk";
+import EthersAdapter from "@tnrdd/safe-ethers-lib";
+import {
+  SafeAuthKit,
+  SafeAuthEvents,
+  SafeAuthProviderType,
+} from "@safe-global/auth-kit";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 import { DIDSession } from "did-session";
 // eslint-disable-next-line import/named
@@ -23,19 +26,20 @@ import { import as importDelegation } from "@ucanto/core/delegation";
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
 import type { IPFS } from "ipfs-core-types";
-import {
-  SafeAuthKit,
-  SafeAuthEvents,
-  SafeAuthProviderType,
-} from "@safe-global/auth-kit";
+import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
+import { GeoWebContent } from "@geo-web/content";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import { SmartAccount } from "../pages/index";
+import { getSigner } from "../lib/getSigner";
 import {
   RPC_URLS,
   NETWORK_ID,
   SSX_HOST,
   IPFS_GATEWAY,
   WEB3AUTH_CLIENT_ID,
+  GW_SAFE_SALT_NONCE,
 } from "../lib/constants";
-import { getSigner } from "../lib/getSigner";
 
 const ssxConfig: SSXClientConfig = {
   providers: {
@@ -47,8 +51,8 @@ type ConnectWalletProps = {
   variant?: string;
   ipfs: IPFS | null;
   ceramic: CeramicClient | null;
-  safeAuthKit: SafeAuthKit | null;
-  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
   setGeoWebContent: React.Dispatch<React.SetStateAction<GeoWebContent | null>>;
   setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
@@ -60,8 +64,8 @@ export default function ConnectWallet(props: ConnectWalletProps) {
     ipfs,
     ceramic,
     setCeramic,
-    safeAuthKit,
-    setSafeAuthKit,
+    smartAccount,
+    setSmartAccount,
     setGeoWebContent,
     setW3InvocationConfig,
   } = props;
@@ -96,7 +100,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
         localStorage.setItem("didsession", session.serialize());
       } catch (err) {
         console.error(err);
-        safeAuthKit?.signOut();
+        smartAccount?.safeAuthKit?.signOut();
       }
     }
 
@@ -192,18 +196,21 @@ export default function ConnectWallet(props: ConnectWalletProps) {
   };
 
   const initSession = async () => {
-    if (!ipfs || !ceramic || !safeAuthKit) {
+    if (!ipfs || !ceramic || !smartAccount?.safeAuthKit) {
       return;
     }
 
-    const response = await safeAuthKit?.signIn();
+    let safe: Safe | undefined = undefined;
+
+    const { safeAuthKit } = smartAccount;
+    const response = await safeAuthKit.signIn();
 
     if (safeAuthKit && response?.eoa) {
-      const address = response.eoa;
+      const eoaAddress = response.eoa;
       const signer = getSigner(safeAuthKit);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const provider = (signer as any).provider.provider;
-      const accountId = await getAccountId(provider, address);
+      const accountId = await getAccountId(provider, eoaAddress);
       const authMethod = await EthereumWebAuth.getAuthMethod(
         provider,
         accountId
@@ -221,7 +228,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       const session = await loadCeramicSession(
         ssxConnection,
         authMethod,
-        address
+        eoaAddress
       );
 
       if (!session) {
@@ -231,7 +238,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       ceramic.did = session.did;
 
       const w3InvocationConfig = await loadStorageDelegation(
-        address,
+        eoaAddress,
         signer,
         ssxConnection,
         session
@@ -248,9 +255,33 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       setW3InvocationConfig(w3InvocationConfig);
       setGeoWebContent(geoWebContent);
 
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+      const safeFactory = await SafeFactory.create({ ethAdapter });
+      const safeOpts = {
+        safeAccountConfig: {
+          threshold: 1,
+          owners: [eoaAddress],
+        },
+        safeDeploymentConfig: {
+          saltNonce: GW_SAFE_SALT_NONCE,
+        },
+      };
+      const safeAddress = await safeFactory.predictSafeAddress(safeOpts);
+
+      try {
+        safe = await Safe.create({ ethAdapter, safeAddress });
+      } catch (err) {
+        console.info((err as Error).message);
+      }
+
+      setSmartAccount({ ...smartAccount, eoaAddress, safeAddress, safe });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       safeAuthKit.subscribe(SafeAuthEvents.SIGNED_OUT as any, () => {
-        setSafeAuthKit(null);
+        setSmartAccount({ safeAuthKit });
       });
     }
   };
@@ -270,7 +301,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
         }
       );
 
-      setSafeAuthKit(safeAuthKit ?? null);
+      setSmartAccount(safeAuthKit ? { safeAuthKit } : null);
     })();
   }, []);
 

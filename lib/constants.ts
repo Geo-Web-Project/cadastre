@@ -19,6 +19,7 @@ export const SPATIAL_DOMAIN = process.env.NEXT_PUBLIC_SPATIAL_DOMAIN!;
 export const SSX_HOST = process.env.NEXT_PUBLIC_SSX_HOST!;
 export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
+export const GW_SAFE_SALT_NONCE = "3191131181814056";
 
 export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";

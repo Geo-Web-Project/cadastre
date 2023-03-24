@@ -1,5 +1,6 @@
 import * as React from "react";
-import { SafeAuthKit } from "@safe-global/auth-kit";
+import { ethers } from "ethers";
+import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
@@ -15,14 +16,13 @@ import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { truncateEth } from "../../lib/truncate";
-import { ethers } from "ethers";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { SmartAccount } from "../../pages/index";
 import { STATE } from "../Map";
 
 type StreamingInfoProps = {
   sfFramework: Framework;
-  safeAuthKit: SafeAuthKit | null;
-  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   account: string;
   signer: ethers.Signer;
   ceramic: CeramicClient;

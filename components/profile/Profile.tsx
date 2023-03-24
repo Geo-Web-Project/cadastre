@@ -1,9 +1,8 @@
-import React from "react";
+import { useState } from "react";
 import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { SafeAuthKit } from "@safe-global/auth-kit";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
@@ -21,13 +20,15 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import type { IPFS } from "ipfs-core-types";
+import AddFundsModal from "./AddFundsModal";
+import { SmartAccount } from "../../pages/index";
 import { STATE } from "../Map";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 
 type ProfileProps = {
   sfFramework: Framework;
-  safeAuthKit: SafeAuthKit | null;
-  setSafeAuthKit: React.Dispatch<React.SetStateAction<SafeAuthKit | null>>;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   account: string;
   signer: ethers.Signer;
   ceramic: CeramicClient;
@@ -49,11 +50,16 @@ type ProfileProps = {
 };
 
 function Profile(props: ProfileProps) {
-  const { account, paymentToken, portfolioNeedActionCount } = props;
-  const [showProfile, setShowProfile] = React.useState(false);
+  const {
+    account,
+    paymentToken,
+    portfolioNeedActionCount,
+    smartAccount,
+    setSmartAccount,
+  } = props;
 
-  const handleCloseProfile = () => setShowProfile(false);
-  const handleShowProfile = () => setShowProfile(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] = useState(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery(
     {
@@ -66,45 +72,57 @@ function Profile(props: ProfileProps) {
     { pollingInterval: 5000, skip: paymentToken == null }
   );
 
+  const handleShowProfile = () => setShowProfile(true);
+  const handleCloseProfile = () => setShowProfile(false);
+  const handleShowAddFundsModal = () => setShowAddFundsModal(true);
+  const handleCloseAddFundsModal = () => setShowAddFundsModal(false);
+
   return (
     <div className="d-flex flex-column ms-auto align-items-center fit-content">
-      {/* <Badge
-        pill
-        bg="info"
-        className="me-4 py-2 px-3 text-light"
-      >
-        <span style={{ fontWeight: 600 }}>{NETWORK_NAME}</span>
-      </Badge> */}
       <ButtonGroup className="bg-dark border-secondary">
         <Button
           variant="secondary"
-          disabled={showProfile}
-          onClick={handleShowProfile}
+          disabled={showProfile || showAddFundsModal}
+          onClick={
+            smartAccount?.safe ? handleShowProfile : handleShowAddFundsModal
+          }
           className="text-light"
         >
           {isLoading || data == null ? (
             <Spinner animation="border" role="status"></Spinner>
           ) : (
             <>
+              {smartAccount && !smartAccount?.safe ? (
+                <AddFundsModal
+                  show={showAddFundsModal}
+                  handleClose={handleCloseAddFundsModal}
+                  paymentToken={paymentToken}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                />
+              ) : (
+                <ProfileModal
+                  accountTokenSnapshot={data.items[0]}
+                  showProfile={showProfile}
+                  handleCloseProfile={handleCloseProfile}
+                  {...props}
+                />
+              )}
               <FlowingBalance
                 format={(x) =>
                   truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
                 }
                 accountTokenSnapshot={data.items[0]}
               />
-              <ProfileModal
-                accountTokenSnapshot={data.items[0]}
-                showProfile={showProfile}
-                handleCloseProfile={handleCloseProfile}
-                {...props}
-              />
             </>
           )}
         </Button>
         <Button
           variant="outline-secondary"
-          disabled={showProfile}
-          onClick={handleShowProfile}
+          disabled={showProfile || showAddFundsModal}
+          onClick={
+            smartAccount?.safe ? handleShowProfile : handleShowAddFundsModal
+          }
           className="text-light bg-dark"
         >
           {truncateStr(account, 14)}{" "}
