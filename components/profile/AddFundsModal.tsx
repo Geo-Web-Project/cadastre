@@ -11,9 +11,14 @@ import CopyTooltip from "../CopyTooltip";
 import InfoTooltip from "../InfoTooltip";
 import { SmartAccount } from "../../pages/index";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
-import { getETHBalance } from "../../lib/getBalance";
 import { truncateEth } from "../../lib/truncate";
-import { RPC_URLS, NETWORK_ID, GW_SAFE_SALT_NONCE } from "../../lib/constants";
+import { getETHBalance } from "../../lib/getBalance";
+import {
+  RPC_URLS,
+  NETWORK_ID,
+  GW_SAFE_SALT_NONCE,
+  RELAY_APP_API_KEY,
+} from "../../lib/constants";
 import { getSigner } from "../../lib/getSigner";
 import { GelatoRelayAdapter } from "@safe-global/relay-kit";
 import {
@@ -71,11 +76,7 @@ function AddFundsModal(props: AddFundsModal) {
       threshold: 1,
       owners: [eoaAddress],
     };
-
-    const relayAdapter = new GelatoRelayAdapter(
-      "CBnuvCHhO6HrJqwcGWoIlK_9mrGHUrF6XTXZAyvEC_0_"
-    );
-
+    const relayAdapter = new GelatoRelayAdapter(RELAY_APP_API_KEY);
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     const options = { isSponsored: true } as any;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -131,7 +132,7 @@ function AddFundsModal(props: AddFundsModal) {
   };
 
   useEffect(() => {
-    const timerId = setInterval(async () => {
+    const updateBalance = async () => {
       if (!smartAccount?.safeAddress) {
         return;
       }
@@ -139,7 +140,13 @@ function AddFundsModal(props: AddFundsModal) {
       const balance = await getETHBalance(provider, smartAccount.safeAddress);
 
       setSafeBalance(balance);
-    }, 10000);
+    };
+
+    (async () => {
+      await updateBalance();
+    })();
+
+    const timerId = setInterval(updateBalance, 10000);
 
     return () => clearTimeout(timerId);
   }, []);
@@ -168,8 +175,8 @@ function AddFundsModal(props: AddFundsModal) {
                 >
                   Safe's account abstraction setup.
                 </a>{" "}
-                This separate your signing account from your asset-holding smart
-                account. It enables numerous UX improvements.
+                This separates your signing account from your asset-holding
+                smart account. It enables numerous UX improvements.
               </span>
             }
             target={

@@ -252,9 +252,7 @@ function Map(props: MapProps) {
   const [isValidClaim, setIsValidClaim] = useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = useState(true);
   const [parcelClaimSize, setParcelClaimSize] = useState(0);
-  const [interactiveLayerIds, setInteractiveLayerIds] = useState<
-    string[]
-  >([]);
+  const [interactiveLayerIds, setInteractiveLayerIds] = useState<string[]>([]);
   const [invalidLicenseId, setInvalidLicenseId] = useState("");
   const [newParcel, setNewParcel] = useState<{
     id: string;

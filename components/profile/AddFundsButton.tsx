@@ -15,7 +15,13 @@ function AddFundsButton(props: AddFundsButton) {
 
   return (
     <>
-      <Button variant="secondary" className="w-100 mb-3" onClick={() => setShowModal(true)}>Add Funds</Button>
+      <Button
+        variant="secondary"
+        className="w-100 mb-3"
+        onClick={() => setShowModal(true)}
+      >
+        Add Funds
+      </Button>
       <AddFundsModal
         show={showModal}
         handleClose={() => setShowModal(false)}
