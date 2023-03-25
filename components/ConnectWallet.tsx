@@ -1,12 +1,7 @@
-import { useEffect } from "react";
 import { ethers } from "ethers";
 import Safe, { SafeFactory } from "@safe-global/safe-core-sdk";
 import EthersAdapter from "@tnrdd/safe-ethers-lib";
-import {
-  SafeAuthKit,
-  SafeAuthEvents,
-  SafeAuthProviderType,
-} from "@safe-global/auth-kit";
+import { SafeAuthEvents } from "@safe-global/auth-kit";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 import { DIDSession } from "did-session";
 // eslint-disable-next-line import/named
@@ -33,11 +28,9 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { SmartAccount } from "../pages/index";
 import { getSigner } from "../lib/getSigner";
 import {
-  RPC_URLS,
   NETWORK_ID,
   SSX_HOST,
   IPFS_GATEWAY,
-  WEB3AUTH_CLIENT_ID,
   GW_SAFE_SALT_NONCE,
 } from "../lib/constants";
 
@@ -202,7 +195,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
 
     let safe: Safe | undefined = undefined;
 
-    const { safeAuthKit } = smartAccount;
+    const { safeAuthKit, relayAdapter } = smartAccount;
     const response = await safeAuthKit.signIn();
 
     if (safeAuthKit && response?.eoa) {
@@ -281,29 +274,10 @@ export default function ConnectWallet(props: ConnectWalletProps) {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       safeAuthKit.subscribe(SafeAuthEvents.SIGNED_OUT as any, () => {
-        setSmartAccount({ safeAuthKit });
+        setSmartAccount({ safeAuthKit, relayAdapter });
       });
     }
   };
-
-  useEffect(() => {
-    (async () => {
-      const safeAuthKit = await SafeAuthKit.init(
-        SafeAuthProviderType.Web3Auth,
-        {
-          chainId: `0x${NETWORK_ID.toString(16)}`,
-          authProviderConfig: {
-            rpcTarget: RPC_URLS[NETWORK_ID],
-            clientId: WEB3AUTH_CLIENT_ID,
-            network: process.env.APP_ENV === "mainnet" ? "mainnet" : "testnet",
-            theme: "dark",
-          },
-        }
-      );
-
-      setSmartAccount(safeAuthKit ? { safeAuthKit } : null);
-    })();
-  }, []);
 
   return (
     <Button

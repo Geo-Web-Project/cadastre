@@ -12,6 +12,10 @@ import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import Button from "react-bootstrap/Button";
 import { SidebarProps } from "../Sidebar";
 import { SmartAccount } from "../../pages/index";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
 
 type WrapModalProps = SidebarProps & {
   account: string;
@@ -43,6 +47,8 @@ function WrapModal({
     },
   });
 
+  const { provider } = sfFramework.settings;
+
   const isOutOfBalance =
     amount !== "" && ETHBalance !== "" && Number(amount) > Number(ETHBalance);
 
@@ -52,10 +58,7 @@ function WrapModal({
     (async () => {
       if (signer && account) {
         try {
-          const ethBalance = await getETHBalance(
-            sfFramework.settings.provider,
-            account
-          );
+          const ethBalance = await getETHBalance(provider, account);
 
           if (isMounted) {
             setETHBalance(ethBalance);
@@ -72,9 +75,11 @@ function WrapModal({
   }, [signer, account]);
 
   const wrapETH = async (amount: string) => {
-    if (!smartAccount?.safe) {
+    if (!smartAccount?.relayAdapter || !smartAccount?.safeAddress) {
       return;
     }
+
+    const { relayAdapter, safeAddress } = smartAccount;
 
     try {
       const weiAmount = ethers.utils.parseEther(amount).toString();
@@ -94,19 +99,24 @@ function WrapModal({
 
       setIsWrapping(true);
 
-      const safeTransaction = await smartAccount.safe.createTransaction({
-        safeTransactionData,
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+
+      const res = await relayAdapter.relayTransaction({
+        target: safeAddress,
+        encodedTransaction: encodedSafeTransaction?.data ?? "0x",
+        chainId: NETWORK_ID,
+        options: {
+          isSponsored: true,
+          gasLimit: ethers.BigNumber.from("300000"),
+        },
       });
-      const executeTxResponse = await smartAccount.safe.executeTransaction(
-        safeTransaction
-      );
 
-      await executeTxResponse.transactionResponse?.wait();
+      await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
 
-      const ethBalance = await getETHBalance(
-        sfFramework.settings.provider,
-        account
-      );
+      const ethBalance = await getETHBalance(provider, account);
       // Update balances
       setETHBalance(ethBalance);
       setAmount("");

@@ -30,24 +30,29 @@ import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPFS } from "ipfs-core-types";
+import { SmartAccount } from "../../pages/index";
+import { STATE } from "../Map";
 import { FlowingBalance } from "./FlowingBalance";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import CopyTooltip from "../CopyTooltip";
 import {
+  NETWORK_ID,
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
 import { truncateStr, truncateEth } from "../../lib/truncate";
 import {
   calculateBufferNeeded,
   calculateAuctionValue,
   getParcelContent,
 } from "../../lib/utils";
-import { SmartAccount } from "../../pages/index";
-import { STATE } from "../Map";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -531,19 +536,20 @@ function ProfileModal(props: ProfileModalProps) {
     amount: string,
     action: SuperTokenAction
   ): Promise<void> => {
-    if (!smartAccount?.safe) {
+    if (!smartAccount?.safeAddress) {
       return;
     }
 
-    let safeTransactionData: SafeTransactionDataPartial | null = null;
-
     const weiAmount = ethers.utils.parseEther(amount).toString();
+
+    let safeTransactionData: SafeTransactionDataPartial | null = null;
 
     try {
       if (action === SuperTokenAction.WRAP) {
         const populatedTransaction = await paymentToken.upgrade({
           amount: weiAmount,
         }).populateTransactionPromise;
+
         const { data, to } = populatedTransaction;
 
         if (data && to) {
@@ -559,6 +565,7 @@ function ProfileModal(props: ProfileModalProps) {
         const populatedTransaction = await paymentToken.downgrade({
           amount: weiAmount,
         }).populateTransactionPromise;
+
         const { data, to } = populatedTransaction;
 
         if (data && to) {
@@ -576,13 +583,26 @@ function ProfileModal(props: ProfileModalProps) {
         return;
       }
 
-      const safeTransaction = await smartAccount.safe.createTransaction({
-        safeTransactionData,
-      });
-      const executeTxResponse = await smartAccount.safe.executeTransaction(
-        safeTransaction
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
       );
-      await executeTxResponse.transactionResponse?.wait();
+
+      const res = await smartAccount.relayAdapter.relayTransaction({
+        target: smartAccount.safeAddress,
+        encodedTransaction: encodedSafeTransaction?.data ?? "0x",
+        chainId: NETWORK_ID,
+        options: {
+          isSponsored: true,
+          gasLimit: ethers.BigNumber.from("300000"),
+        },
+      });
+
+      await waitRelayedTxConfirmation(
+        smartAccount,
+        sfFramework.settings.provider,
+        res.taskId
+      );
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,

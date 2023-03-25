@@ -2,8 +2,9 @@ import Home from "../components/Home";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";
 import Profile from "../components/profile/Profile";
 import FundsRaisedCounter from "../components/FundsRaisedCounter";
-import { SafeAuthKit } from "@safe-global/auth-kit";
-
+import { SafeAuthKit, SafeAuthProviderType } from "@safe-global/auth-kit";
+import Safe from "@safe-global/safe-core-sdk";
+import { GelatoRelayAdapter } from "@safe-global/relay-kit";
 import React from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -17,6 +18,8 @@ import {
   CERAMIC_URL,
   IPFS_GATEWAY,
   IPFS_DELEGATE,
+  WEB3AUTH_CLIENT_ID,
+  RELAY_APP_API_KEY,
 } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
@@ -39,10 +42,10 @@ import AddFundsModal from "../components/profile/AddFundsModal";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
 import { getSigner } from "../lib/getSigner";
-import Safe from "@safe-global/safe-core-sdk";
 
 export interface SmartAccount {
   safeAuthKit: SafeAuthKit;
+  relayAdapter: GelatoRelayAdapter;
   eoaAddress?: string;
   safe?: Safe;
   safeAddress?: string;
@@ -197,6 +200,24 @@ function IndexPage() {
       });
 
       setGeoWebContent(geoWebContent);
+
+      const relayAdapter = new GelatoRelayAdapter(RELAY_APP_API_KEY);
+      const safeAuthKit = await SafeAuthKit.init(
+        SafeAuthProviderType.Web3Auth,
+        {
+          chainId: `0x${NETWORK_ID.toString(16)}`,
+          authProviderConfig: {
+            rpcTarget: RPC_URLS[NETWORK_ID],
+            clientId: WEB3AUTH_CLIENT_ID,
+            network: process.env.APP_ENV === "mainnet" ? "mainnet" : "testnet",
+            theme: "dark",
+          },
+        }
+      );
+
+      if (safeAuthKit && relayAdapter) {
+        setSmartAccount({ safeAuthKit, relayAdapter });
+      }
     };
 
     start();

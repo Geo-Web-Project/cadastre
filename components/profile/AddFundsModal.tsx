@@ -13,14 +13,8 @@ import { SmartAccount } from "../../pages/index";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { truncateEth } from "../../lib/truncate";
 import { getETHBalance } from "../../lib/getBalance";
-import {
-  RPC_URLS,
-  NETWORK_ID,
-  GW_SAFE_SALT_NONCE,
-  RELAY_APP_API_KEY,
-} from "../../lib/constants";
+import { RPC_URLS, NETWORK_ID, GW_SAFE_SALT_NONCE } from "../../lib/constants";
 import { getSigner } from "../../lib/getSigner";
-import { GelatoRelayAdapter } from "@safe-global/relay-kit";
 import {
   getProxyFactoryDeployment,
   getSafeL2SingletonDeployment,
@@ -63,7 +57,7 @@ function AddFundsModal(props: AddFundsModal) {
       return;
     }
 
-    const { safeAuthKit, eoaAddress, safeAddress } = smartAccount;
+    const { safeAuthKit, relayAdapter, eoaAddress, safeAddress } = smartAccount;
 
     setIsInitializing(true);
 
@@ -76,7 +70,6 @@ function AddFundsModal(props: AddFundsModal) {
       threshold: 1,
       owners: [eoaAddress],
     };
-    const relayAdapter = new GelatoRelayAdapter(RELAY_APP_API_KEY);
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     const options = { isSponsored: true } as any;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -126,7 +119,13 @@ function AddFundsModal(props: AddFundsModal) {
       safeAddress: safeAddress,
     });
 
-    setSmartAccount({ safeAuthKit, eoaAddress, safeAddress, safe });
+    setSmartAccount({
+      safeAuthKit,
+      relayAdapter,
+      eoaAddress,
+      safeAddress,
+      safe,
+    });
     setIsInitializing(false);
     handleClose();
   };
