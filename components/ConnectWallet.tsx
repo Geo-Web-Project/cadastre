@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import Safe, { SafeFactory } from "@safe-global/safe-core-sdk";
-import EthersAdapter from "@tnrdd/safe-ethers-lib";
+import EthersAdapter from "@safe-global/safe-ethers-lib";
 import { SafeAuthEvents } from "@safe-global/auth-kit";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
 import { DIDSession } from "did-session";
@@ -16,7 +16,7 @@ import {
 import { CarReader } from "@ipld/car";
 import * as API from "@ucanto/interface";
 // eslint-disable-next-line import/no-unresolved
-import { import as importDelegation } from "@ucanto/core/delegation";
+import { importDAG as importDelegation } from "@ucanto/core/delegation";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";

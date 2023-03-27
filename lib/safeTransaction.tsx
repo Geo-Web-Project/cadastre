@@ -68,7 +68,7 @@ export async function waitRelayedTxConfirmation(
         throw new Error(task.lastCheckMessage);
       }
     } else {
-      throw new Error(`Network Eror: ${res.status}`);
+      throw new Error(`Network Error: ${res.status}`);
     }
   }
 }

@@ -829,7 +829,7 @@ function ProfileModal(props: ProfileModalProps) {
               </Button>
             </Form>
             {wrappingError ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
+              <span className="d-inline-block text-danger text-break m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
             ) : !isOutOfBalanceWrap &&
               wrappingAmount !== "" &&
               Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
@@ -896,7 +896,7 @@ function ProfileModal(props: ProfileModalProps) {
               </Button>
             </Form>
             {unwrappingError && (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
+              <span className="d-inline-block text-danger text-break m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
             )}
           </Col>
         </Row>

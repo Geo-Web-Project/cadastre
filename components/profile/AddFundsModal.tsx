@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import Safe, { SafeFactory } from "@safe-global/safe-core-sdk";
-import EthersAdapter from "@tnrdd/safe-ethers-lib";
+import EthersAdapter from "@safe-global/safe-ethers-lib";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
