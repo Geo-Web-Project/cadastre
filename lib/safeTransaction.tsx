@@ -7,7 +7,7 @@ export async function getEncodedSafeTransaction(
   smartAccount: SmartAccount,
   safeTransactionData: SafeTransactionDataPartial
 ) {
-  if (!smartAccount.safe) {
+  if (!smartAccount.safe || !smartAccount?.safeAddress) {
     return;
   }
 
@@ -18,7 +18,7 @@ export async function getEncodedSafeTransaction(
     safeTransaction
   );
   const contract = new ethers.Contract(
-    signedSafeTransaction.data.to,
+    smartAccount.safeAddress,
     [
       "function execTransaction(address, uint256, bytes, uint8, uint256, uint256, uint256, address, address, bytes)",
     ],

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import Safe, { SafeFactory } from "@safe-global/safe-core-sdk";
 import EthersAdapter from "@safe-global/safe-ethers-lib";
@@ -12,7 +12,6 @@ import InfoTooltip from "../InfoTooltip";
 import { SmartAccount } from "../../pages/index";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { truncateEth } from "../../lib/truncate";
-import { getETHBalance } from "../../lib/getBalance";
 import { RPC_URLS, NETWORK_ID, GW_SAFE_SALT_NONCE } from "../../lib/constants";
 import { getSigner } from "../../lib/getSigner";
 import {
@@ -34,7 +33,7 @@ function AddFundsModal(props: AddFundsModal) {
   const { show, handleClose, paymentToken, smartAccount, setSmartAccount } =
     props;
 
-  const [safeBalance, setSafeBalance] = useState<string>("");
+  const [safeBalance, setSafeBalance] = useState<BigNumber>();
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
 
   const { superTokenBalance } = useSuperTokenBalance(
@@ -136,7 +135,7 @@ function AddFundsModal(props: AddFundsModal) {
         return;
       }
 
-      const balance = await getETHBalance(provider, smartAccount.safeAddress);
+      const balance = await provider.getBalance(smartAccount.safeAddress);
 
       setSafeBalance(balance);
     };
@@ -231,9 +230,11 @@ function AddFundsModal(props: AddFundsModal) {
               <span>
                 Your Balance:{" "}
                 {truncateEth(
-                  smartAccount?.safe
-                    ? ethers.utils.formatEther(superTokenBalance) + safeBalance
-                    : safeBalance,
+                  ethers.utils.formatEther(
+                    smartAccount?.safeAddress
+                      ? superTokenBalance.add(safeBalance)
+                      : safeBalance
+                  ),
                   3
                 )}{" "}
                 ETH

@@ -6,7 +6,10 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import type { CeramicClient } from "@ceramicnetwork/http-client";
-import { SafeTransactionDataPartial } from "@safe-global/safe-core-sdk-types";
+import {
+  SafeTransactionDataPartial,
+  OperationType,
+} from "@safe-global/safe-core-sdk-types";
 import {
   Modal,
   Container,
@@ -541,6 +544,11 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     const weiAmount = ethers.utils.parseEther(amount).toString();
+    const gasLimit = BigNumber.from("300000");
+    const estimate = await smartAccount.relayAdapter.getEstimateFee(
+      NETWORK_ID,
+      gasLimit
+    );
 
     let safeTransactionData: SafeTransactionDataPartial | null = null;
 
@@ -557,6 +565,9 @@ function ProfileModal(props: ProfileModalProps) {
             data,
             to,
             value: weiAmount,
+            baseGas: estimate.toNumber(),
+            gasPrice: 1,
+            refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
           };
 
           setIsWrapping(true);
@@ -573,6 +584,10 @@ function ProfileModal(props: ProfileModalProps) {
             data,
             to,
             value: "0",
+            baseGas: estimate.toNumber(),
+            gasPrice: 1,
+            refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
+            operation: OperationType.DelegateCall,
           };
 
           setIsUnwrapping(true);
@@ -587,14 +602,13 @@ function ProfileModal(props: ProfileModalProps) {
         smartAccount,
         safeTransactionData
       );
-
       const res = await smartAccount.relayAdapter.relayTransaction({
         target: smartAccount.safeAddress,
         encodedTransaction: encodedSafeTransaction?.data ?? "0x",
         chainId: NETWORK_ID,
         options: {
-          isSponsored: true,
-          gasLimit: ethers.BigNumber.from("300000"),
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
         },
       });
 
@@ -603,7 +617,6 @@ function ProfileModal(props: ProfileModalProps) {
         sfFramework.settings.provider,
         res.taskId
       );
-
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,
         account

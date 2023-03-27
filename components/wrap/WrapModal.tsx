@@ -1,6 +1,6 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { truncateEth } from "../../lib/truncate";
@@ -80,6 +80,11 @@ function WrapModal({
     }
 
     const { relayAdapter, safeAddress } = smartAccount;
+    const gasLimit = BigNumber.from("300000");
+    const estimate = await smartAccount.relayAdapter.getEstimateFee(
+      NETWORK_ID,
+      gasLimit
+    );
 
     try {
       const weiAmount = ethers.utils.parseEther(amount).toString();
@@ -95,6 +100,9 @@ function WrapModal({
         data: populatedTransaction.data,
         to: populatedTransaction.to,
         value: weiAmount,
+        baseGas: estimate.toNumber(),
+        gasPrice: 1,
+        refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
       };
 
       setIsWrapping(true);
@@ -109,8 +117,8 @@ function WrapModal({
         encodedTransaction: encodedSafeTransaction?.data ?? "0x",
         chainId: NETWORK_ID,
         options: {
-          isSponsored: true,
-          gasLimit: ethers.BigNumber.from("300000"),
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
         },
       });
 
