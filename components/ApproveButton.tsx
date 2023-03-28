@@ -123,6 +123,7 @@ export function ApproveButton(props: ApproveButtonProps) {
       );
       setIsActing(false);
       setDidFail(true);
+
       return false;
     }
 
@@ -170,20 +171,16 @@ export function ApproveButton(props: ApproveButtonProps) {
       await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
-      if (
-        (err as any)?.code !== "TRANSACTION_REPLACED" ||
-        (err as any).cancelled
-      ) {
-        console.error(err);
-        setErrorMessage(
-          (err as any).reason
-            ? (err as any).reason.replace("execution reverted: ", "")
-            : (err as Error).message
-        );
-        setIsActing(false);
-        setDidFail(true);
-        return false;
-      }
+      console.error(err);
+      setErrorMessage(
+        (err as any).reason
+          ? (err as any).reason.replace("execution reverted: ", "")
+          : (err as Error).message
+      );
+      setIsActing(false);
+      setDidFail(true);
+
+      return false;
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 

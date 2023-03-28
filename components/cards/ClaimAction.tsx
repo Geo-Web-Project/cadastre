@@ -126,7 +126,7 @@ function ClaimAction(props: ClaimActionProps) {
         latDim: neY - swY + 1,
       },
     ]);
-    const gasLimit = BigNumber.from("10000000");
+    const gasLimit = BigNumber.from("20000000");
     const safeTransactionData = {
       data: claimTxData,
       to: registryContract.address,

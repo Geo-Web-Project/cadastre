@@ -24,8 +24,7 @@ export async function getEncodedSafeTransaction(
     data: metaTransaction.data,
     to: metaTransaction.to,
     value: metaTransaction.value,
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    baseGas: estimate.toString() as any, // It's typed as a number but can overflow
+    baseGas: estimate.toNumber(),
     gasPrice: 1,
     refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
     operation: metaTransaction.operation ?? OperationType.Call,
