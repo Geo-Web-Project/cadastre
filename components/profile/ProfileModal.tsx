@@ -7,7 +7,7 @@ import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import type { CeramicClient } from "@ceramicnetwork/http-client";
 import {
-  SafeTransactionDataPartial,
+  MetaTransactionData,
   OperationType,
 } from "@safe-global/safe-core-sdk-types";
 import {
@@ -544,13 +544,9 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     const weiAmount = ethers.utils.parseEther(amount).toString();
-    const gasLimit = BigNumber.from("300000");
-    const estimate = await smartAccount.relayAdapter.getEstimateFee(
-      NETWORK_ID,
-      gasLimit
-    );
+    const gasLimit = BigNumber.from("10000000");
 
-    let safeTransactionData: SafeTransactionDataPartial | null = null;
+    let safeTransactionData: MetaTransactionData | null = null;
 
     try {
       if (action === SuperTokenAction.WRAP) {
@@ -565,9 +561,6 @@ function ProfileModal(props: ProfileModalProps) {
             data,
             to,
             value: weiAmount,
-            baseGas: estimate.toNumber(),
-            gasPrice: 1,
-            refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
           };
 
           setIsWrapping(true);
@@ -584,9 +577,6 @@ function ProfileModal(props: ProfileModalProps) {
             data,
             to,
             value: "0",
-            baseGas: estimate.toNumber(),
-            gasPrice: 1,
-            refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
             operation: OperationType.DelegateCall,
           };
 
@@ -604,7 +594,7 @@ function ProfileModal(props: ProfileModalProps) {
       );
       const res = await smartAccount.relayAdapter.relayTransaction({
         target: smartAccount.safeAddress,
-        encodedTransaction: encodedSafeTransaction?.data ?? "0x",
+        encodedTransaction: encodedSafeTransaction,
         chainId: NETWORK_ID,
         options: {
           gasToken: ethers.constants.AddressZero,

@@ -81,7 +81,7 @@ function TransactionSummaryView({
     };
 
     run();
-  }, [sfFramework, paymentToken, newNetworkFee, existingNetworkFee]);
+  }, [sfFramework, paymentToken, newNetworkFee]);
 
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 18)

@@ -1,16 +1,35 @@
 import { ethers } from "ethers";
-import { SafeTransactionDataPartial } from "@safe-global/safe-core-sdk-types";
+import {
+  MetaTransactionData,
+  OperationType,
+} from "@safe-global/safe-core-sdk-types";
 import { SmartAccount } from "../pages/index";
 import { getSigner } from "./getSigner";
+import { NETWORK_ID } from "./constants";
 
 export async function getEncodedSafeTransaction(
   smartAccount: SmartAccount,
-  safeTransactionData: SafeTransactionDataPartial
-) {
+  metaTransaction: MetaTransactionData
+): Promise<string> {
   if (!smartAccount.safe || !smartAccount?.safeAddress) {
-    return;
+    throw new Error("Safe is uninitialized");
   }
 
+  const gasLimit = ethers.BigNumber.from("10000000");
+  const estimate = await smartAccount.relayAdapter.getEstimateFee(
+    NETWORK_ID,
+    gasLimit
+  );
+  const safeTransactionData = {
+    data: metaTransaction.data,
+    to: metaTransaction.to,
+    value: metaTransaction.value,
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    baseGas: estimate.toString() as any, // It's typed as a number but can overflow
+    gasPrice: 1,
+    refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
+    operation: metaTransaction.operation ?? OperationType.Call,
+  };
   const safeTransaction = await smartAccount.safe.createTransaction({
     safeTransactionData,
   });
@@ -37,7 +56,7 @@ export async function getEncodedSafeTransaction(
     signedSafeTransaction.encodedSignatures()
   );
 
-  return encodedTransaction;
+  return encodedTransaction.data ?? "0x";
 }
 
 export async function waitRelayedTxConfirmation(
@@ -59,8 +78,9 @@ export async function waitRelayedTxConfirmation(
         task.taskState === "ExecSuccess" ||
         task.taskState === "WaitingForConfirmation"
       ) {
-        await provider.waitForTransaction(task.transactionHash);
-        break;
+        const receipt = await provider.waitForTransaction(task.transactionHash);
+
+        return receipt;
       } else if (
         task.taskState === "Cancelled" ||
         task.taskState === "ExecReverted"

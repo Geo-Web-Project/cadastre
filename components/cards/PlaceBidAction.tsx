@@ -4,7 +4,11 @@ import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -22,6 +26,10 @@ import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import AddFundsButton from "../profile/AddFundsButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -46,7 +54,6 @@ const infoIcon = (
 
 function PlaceBidAction(props: PlaceBidActionProps) {
   const {
-    signer,
     account,
     smartAccount,
     parcelData,
@@ -75,6 +82,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     paymentToken.address
   );
+  const { provider } = sfFramework.settings;
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -183,15 +191,42 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       throw new Error("Could not find newNetworkFee");
     }
 
-    if (!signer) {
-      throw new Error("Could not find signer");
+    if (!smartAccount?.safeAddress) {
+      throw new Error("Safe is uninitialized");
     }
 
     try {
-      const txn = await licenseDiamondContract
-        .connect(signer)
-        .placeBid(newNetworkFee, newForSalePrice);
-      await txn.wait();
+      const placeBidTxData =
+        await licenseDiamondContract.interface.encodeFunctionData("placeBid", [
+          newNetworkFee,
+          newForSalePrice,
+        ]);
+      const gasLimit = BigNumber.from("10000000");
+      const safeTransactionData = {
+        data: placeBidTxData,
+        to: licenseDiamondContract.address,
+        value: "0",
+      };
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+      const relayTransactionResponse =
+        await smartAccount.relayAdapter.relayTransaction({
+          target: smartAccount.safeAddress,
+          encodedTransaction: encodedSafeTransaction,
+          chainId: NETWORK_ID,
+          options: {
+            gasToken: ethers.constants.AddressZero,
+            gasLimit,
+          },
+        });
+
+      await waitRelayedTxConfirmation(
+        smartAccount,
+        provider,
+        relayTransactionResponse.taskId
+      );
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (

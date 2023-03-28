@@ -4,7 +4,11 @@ import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 
@@ -23,8 +27,8 @@ export type ClaimActionProps = SidebarProps & {
 function ClaimAction(props: ClaimActionProps) {
   const {
     geoWebCoordinate,
+    smartAccount,
     account,
-    signer,
     claimBase1Coord,
     claimBase2Coord,
     registryContract,
@@ -45,6 +49,7 @@ function ClaimAction(props: ClaimActionProps) {
   const [flowOperator, setFlowOperator] = React.useState<string>("");
 
   const { displayNewForSalePrice } = actionData;
+  const { provider } = sfFramework.settings;
 
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
@@ -108,14 +113,45 @@ function ClaimAction(props: ClaimActionProps) {
       );
     }
 
-    const txn = await registryContract
-      .connect(signer)
-      .claim(newFlowRate, ethers.utils.parseEther(displayNewForSalePrice), {
+    if (!smartAccount?.safeAddress) {
+      throw new Error(`Uninitialized safe`);
+    }
+
+    const claimTxData = registryContract.interface.encodeFunctionData("claim", [
+      newFlowRate,
+      ethers.utils.parseEther(displayNewForSalePrice),
+      {
         swCoordinate: BigNumber.from(swCoord.toString()),
         lngDim: neX - swX + 1,
         latDim: neY - swY + 1,
+      },
+    ]);
+    const gasLimit = BigNumber.from("10000000");
+    const safeTransactionData = {
+      data: claimTxData,
+      to: registryContract.address,
+      value: "0",
+    };
+    const encodedSafeTransaction = await getEncodedSafeTransaction(
+      smartAccount,
+      safeTransactionData
+    );
+    const relayTransactionResponse =
+      await smartAccount.relayAdapter.relayTransaction({
+        target: smartAccount.safeAddress,
+        encodedTransaction: encodedSafeTransaction,
+        chainId: NETWORK_ID,
+        options: {
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
+        },
       });
-    const receipt = await txn.wait();
+
+    const receipt = await waitRelayedTxConfirmation(
+      smartAccount,
+      provider,
+      relayTransactionResponse.taskId
+    );
 
     const filter = registryContract.filters.ParcelClaimedV2(null, null);
 

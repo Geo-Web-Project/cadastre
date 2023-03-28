@@ -4,7 +4,11 @@ import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
+import {
+  PAYMENT_TOKEN,
+  SECONDS_IN_YEAR,
+  NETWORK_ID,
+} from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -27,6 +31,10 @@ import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -57,6 +65,7 @@ const infoIcon = (
 
 function RejectBidAction(props: RejectBidActionProps) {
   const {
+    smartAccount,
     account,
     parcelData,
     perSecondFeeNumerator,
@@ -70,7 +79,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
-    signer,
   } = props;
 
   const bidForSalePriceDisplay = truncateEth(
@@ -92,6 +100,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     account,
     paymentToken.address
   );
+  const { provider } = sfFramework.settings;
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -264,15 +273,42 @@ function RejectBidAction(props: RejectBidActionProps) {
       throw new Error("Could not find penaltyPayment");
     }
 
-    if (!signer) {
-      throw new Error("Could not find signer");
+    if (!smartAccount?.safeAddress) {
+      throw new Error("Safe is uninitialized");
     }
 
     try {
-      const txn = await licenseDiamondContract
-        .connect(signer)
-        .rejectBid(newNetworkFee, newForSalePrice);
-      await txn.wait();
+      const rejectBidTxData =
+        await licenseDiamondContract.interface.encodeFunctionData("rejectBid", [
+          newNetworkFee,
+          newForSalePrice,
+        ]);
+      const gasLimit = BigNumber.from("10000000");
+      const safeTransactionData = {
+        data: rejectBidTxData,
+        to: licenseDiamondContract.address,
+        value: "0",
+      };
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+      const relayTransactionResponse =
+        await smartAccount.relayAdapter.relayTransaction({
+          target: smartAccount.safeAddress,
+          encodedTransaction: encodedSafeTransaction,
+          chainId: NETWORK_ID,
+          options: {
+            gasToken: ethers.constants.AddressZero,
+            gasLimit,
+          },
+        });
+
+      await waitRelayedTxConfirmation(
+        smartAccount,
+        provider,
+        relayTransactionResponse.taskId
+      );
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (

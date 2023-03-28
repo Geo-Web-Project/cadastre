@@ -1,10 +1,14 @@
 import * as React from "react";
+import { ethers, BigNumber } from "ethers";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Image from "react-bootstrap/Image";
-import { BigNumber } from "ethers";
 import { SidebarProps } from "./Sidebar";
-import { PAYMENT_TOKEN } from "../lib/constants";
+import { PAYMENT_TOKEN, NETWORK_ID } from "../lib/constants";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../lib/safeTransaction";
 
 export type ApproveButtonProps = SidebarProps & {
   isDisabled: boolean;
@@ -32,6 +36,7 @@ export function ApproveButton(props: ApproveButtonProps) {
   const {
     isDisabled,
     paymentToken,
+    smartAccount,
     account,
     spender,
     signer,
@@ -54,6 +59,8 @@ export function ApproveButton(props: ApproveButtonProps) {
   const [completedActions, setCompletedActions] = React.useState<number>(0);
   const [totalActions, setTotalActions] = React.useState<number>(0);
 
+  const { provider } = sfFramework.settings;
+
   const isReady =
     requiredPayment &&
     requiredFlowAmount &&
@@ -68,18 +75,43 @@ export function ApproveButton(props: ApproveButtonProps) {
   );
 
   const approvePayment = React.useCallback(async () => {
-    if (!spender || !requiredPayment) {
+    if (!spender || !requiredPayment || !smartAccount?.safeAddress) {
       return true;
     }
 
     try {
-      const op = paymentToken.approve({
+      const gasLimit = BigNumber.from("10000000");
+      const populatedTransaction = await paymentToken.approve({
         amount: requiredPayment.toString(),
         receiver: spender,
+      }).populateTransactionPromise;
+
+      if (!populatedTransaction.data || !populatedTransaction.to) {
+        return false;
+      }
+
+      const safeTransactionData = {
+        data: populatedTransaction.data,
+        to: populatedTransaction.to,
+        value: "0",
+      };
+
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+
+      const res = await smartAccount.relayAdapter.relayTransaction({
+        target: smartAccount.safeAddress,
+        encodedTransaction: encodedSafeTransaction,
+        chainId: NETWORK_ID,
+        options: {
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
+        },
       });
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const txn = await op.exec(signer!);
-      await txn.wait();
+
+      await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
     } catch (err) {
       console.error(err);
       setErrorMessage(
@@ -98,21 +130,44 @@ export function ApproveButton(props: ApproveButtonProps) {
   }, [spender, requiredPayment]);
 
   const approveFlowAllowance = React.useCallback(async () => {
-    if (!flowOperator || !requiredFlowAmount) {
+    if (!flowOperator || !requiredFlowAmount || !smartAccount?.safeAddress) {
       return true;
     }
 
     try {
-      const op = sfFramework.cfaV1.updateFlowOperatorPermissions({
-        flowOperator: flowOperator,
-        permissions: 3, // Create or update
-        flowRateAllowance: requiredFlowAmount.toString(),
-        superToken: paymentToken.address,
+      const populatedTransaction =
+        await sfFramework.cfaV1.updateFlowOperatorPermissions({
+          flowOperator: flowOperator,
+          permissions: 3, // Create or update
+          flowRateAllowance: requiredFlowAmount.toString(),
+          superToken: paymentToken.address,
+        }).populateTransactionPromise;
+
+      if (!populatedTransaction.data || !populatedTransaction.to) {
+        return false;
+      }
+
+      const gasLimit = BigNumber.from("10000000");
+      const safeTransactionData = {
+        data: populatedTransaction.data,
+        to: populatedTransaction.to,
+        value: "0",
+      };
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+      const res = await smartAccount.relayAdapter.relayTransaction({
+        target: smartAccount.safeAddress,
+        encodedTransaction: encodedSafeTransaction,
+        chainId: NETWORK_ID,
+        options: {
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
+        },
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const txn = await op.exec(signer!);
-      await txn.wait();
+      await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -150,7 +205,7 @@ export function ApproveButton(props: ApproveButtonProps) {
       const allowance = await paymentToken.allowance({
         owner: account,
         spender: spender,
-        providerOrSigner: sfFramework.settings.provider,
+        providerOrSigner: provider,
       });
 
       if (requiredPayment && BigNumber.from(allowance).lt(requiredPayment)) {
@@ -163,7 +218,7 @@ export function ApproveButton(props: ApproveButtonProps) {
         superToken: paymentToken.address,
         flowOperator: flowOperator,
         sender: account,
-        providerOrSigner: sfFramework.settings.provider,
+        providerOrSigner: provider,
       });
 
       if (

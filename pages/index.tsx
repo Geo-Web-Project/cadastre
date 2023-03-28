@@ -267,7 +267,7 @@ function IndexPage() {
                 <Profile
                   smartAccount={smartAccount}
                   setSmartAccount={setSmartAccount}
-                  account={smartAccount.safeAddress ?? ""}
+                  account={smartAccount.safeAddress.toLowerCase() ?? ""}
                   signer={getSigner(smartAccount.safeAuthKit)}
                   sfFramework={sfFramework}
                   ceramic={ceramic}

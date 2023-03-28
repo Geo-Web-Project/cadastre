@@ -5,6 +5,10 @@ import { Card, Spinner } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
 import { ParcelFieldsToUpdate } from "../Sidebar";
 import { ParcelInfoProps } from "./ParcelInfo";
 import utc from "dayjs/plugin/utc";
@@ -40,6 +44,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     newForSalePrice,
     existingForSalePrice,
     bidTimestamp,
+    smartAccount,
     licensorIsOwner,
     registryContract,
     licenseDiamondContract,
@@ -52,7 +57,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
-    signer,
   } = props;
 
   const [isActing, setIsActing] = React.useState(false);
@@ -70,6 +74,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       token: paymentToken.address,
     },
   });
+  const { provider } = sfFramework.settings;
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -152,13 +157,39 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
-    if (!signer) {
-      throw new Error("Could not find signer");
+    if (!smartAccount?.safeAddress) {
+      throw new Error("Safe is uninitialized");
     }
 
     try {
-      const txn = await licenseDiamondContract.connect(signer).acceptBid();
-      await txn.wait();
+      const acceptBidTxData =
+        await licenseDiamondContract.interface.encodeFunctionData("acceptBid");
+      const gasLimit = BigNumber.from("10000000");
+      const safeTransactionData = {
+        data: acceptBidTxData,
+        to: licenseDiamondContract.address,
+        value: "0",
+      };
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+      const relayTransactionResponse =
+        await smartAccount.relayAdapter.relayTransaction({
+          target: smartAccount.safeAddress,
+          encodedTransaction: encodedSafeTransaction,
+          chainId: NETWORK_ID,
+          options: {
+            gasToken: ethers.constants.AddressZero,
+            gasLimit,
+          },
+        });
+
+      await waitRelayedTxConfirmation(
+        smartAccount,
+        provider,
+        relayTransactionResponse.taskId
+      );
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -195,16 +226,41 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       throw new Error("Could not find licenseDiamondContract");
     }
 
-    if (!signer) {
-      throw new Error("Could not find signer");
+    if (!smartAccount?.safeAddress) {
+      throw new Error("Safe is uninitialized");
     }
 
     try {
-      const txn = await licenseDiamondContract
-        .connect(signer)
-        .triggerTransfer();
+      const triggerTransaferTxData =
+        await licenseDiamondContract.interface.encodeFunctionData(
+          "triggerTransfer"
+        );
+      const gasLimit = BigNumber.from("10000000");
+      const safeTransactionData = {
+        data: triggerTransaferTxData,
+        to: licenseDiamondContract.address,
+        value: "0",
+      };
+      const encodedSafeTransaction = await getEncodedSafeTransaction(
+        smartAccount,
+        safeTransactionData
+      );
+      const relayTransactionResponse =
+        await smartAccount.relayAdapter.relayTransaction({
+          target: smartAccount.safeAddress,
+          encodedTransaction: encodedSafeTransaction,
+          chainId: NETWORK_ID,
+          options: {
+            gasToken: ethers.constants.AddressZero,
+            gasLimit,
+          },
+        });
 
-      await txn.wait();
+      await waitRelayedTxConfirmation(
+        smartAccount,
+        provider,
+        relayTransactionResponse.taskId
+      );
     } catch (err) {
       console.error(err);
       setErrorMessage(

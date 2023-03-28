@@ -80,14 +80,10 @@ function WrapModal({
     }
 
     const { relayAdapter, safeAddress } = smartAccount;
-    const gasLimit = BigNumber.from("300000");
-    const estimate = await smartAccount.relayAdapter.getEstimateFee(
-      NETWORK_ID,
-      gasLimit
-    );
 
     try {
       const weiAmount = ethers.utils.parseEther(amount).toString();
+      const gasLimit = BigNumber.from("10000000");
       const populatedTransaction = await paymentToken.upgrade({
         amount: weiAmount,
       }).populateTransactionPromise;
@@ -100,9 +96,6 @@ function WrapModal({
         data: populatedTransaction.data,
         to: populatedTransaction.to,
         value: weiAmount,
-        baseGas: estimate.toNumber(),
-        gasPrice: 1,
-        refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
       };
 
       setIsWrapping(true);
@@ -114,7 +107,7 @@ function WrapModal({
 
       const res = await relayAdapter.relayTransaction({
         target: safeAddress,
-        encodedTransaction: encodedSafeTransaction?.data ?? "0x",
+        encodedTransaction: encodedSafeTransaction,
         chainId: NETWORK_ID,
         options: {
           gasToken: ethers.constants.AddressZero,

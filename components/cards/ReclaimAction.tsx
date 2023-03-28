@@ -9,7 +9,11 @@ import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import {
+  getEncodedSafeTransaction,
+  waitRelayedTxConfirmation,
+} from "../../lib/safeTransaction";
+import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
 
 export type ReclaimActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -30,7 +34,7 @@ export type ReclaimActionProps = ParcelInfoProps & {
 function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
-    signer,
+    smartAccount,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
@@ -50,6 +54,7 @@ function ReclaimAction(props: ReclaimActionProps) {
   });
 
   const { displayNewForSalePrice } = actionData;
+  const { provider } = sfFramework.settings;
 
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
@@ -129,30 +134,51 @@ function ReclaimAction(props: ReclaimActionProps) {
       );
     }
 
-    if (!signer) {
-      throw new Error("Could not find signer");
+    if (!smartAccount?.safeAddress) {
+      throw new Error("Safe is uninitialized");
     }
 
-    let txn;
+    let reclaimTxData;
 
     if (isOwner) {
-      txn = await licenseDiamondContract
-        .connect(signer)
-        .editBid(
-          newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice)
-        );
+      reclaimTxData = await licenseDiamondContract.interface.encodeFunctionData("editBid", [
+        newNetworkFee,
+        ethers.utils.parseEther(displayNewForSalePrice),
+      ]);
     } else {
-      txn = await licenseDiamondContract
-        .connect(signer)
-        .reclaim(
-          ethers.utils.parseEther(displayNewForSalePrice),
-          newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice)
-        );
+      reclaimTxData = await licenseDiamondContract.interface.encodeFunctionData("reclaim", [
+        ethers.utils.parseEther(displayNewForSalePrice),
+        newNetworkFee,
+        ethers.utils.parseEther(displayNewForSalePrice),
+      ]);
     }
 
-    await txn.wait();
+    const gasLimit = BigNumber.from("10000000");
+    const safeTransactionData = {
+      data: reclaimTxData,
+      to: licenseDiamondContract.address,
+      value: "0",
+    };
+    const encodedSafeTransaction = await getEncodedSafeTransaction(
+      smartAccount,
+      safeTransactionData
+    );
+    const relayTransactionResponse =
+      await smartAccount.relayAdapter.relayTransaction({
+        target: smartAccount.safeAddress,
+        encodedTransaction: encodedSafeTransaction,
+        chainId: NETWORK_ID,
+        options: {
+          gasToken: ethers.constants.AddressZero,
+          gasLimit,
+        },
+      });
+
+    await waitRelayedTxConfirmation(
+      smartAccount,
+      provider,
+      relayTransactionResponse.taskId
+    );
 
     setParcelFieldsToUpdate({
       forSalePrice: true,
