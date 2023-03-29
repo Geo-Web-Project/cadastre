@@ -168,7 +168,7 @@ function EditAction(props: EditActionProps) {
     }
   }, [parcelContent]);
 
-  async function _edit() {
+  function _edit() {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -193,12 +193,12 @@ function EditAction(props: EditActionProps) {
       return;
     }
 
-    const txn = await licenseDiamondContract
-      .connect(signer)
-      .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
-    await txn.wait();
+    const encodedTxData = licenseDiamondContract.interface.encodeFunctionData(
+      "editBid",
+      [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice)]
+    );
 
-    setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: false });
+    return encodedTxData;
   }
 
   return (
@@ -222,6 +222,9 @@ function EditAction(props: EditActionProps) {
           ) : (
             <></>
           )
+        }
+        callback={async () =>
+          setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: false })
         }
         requiredPayment={
           requiredNewBuffer && requiredExistingBuffer

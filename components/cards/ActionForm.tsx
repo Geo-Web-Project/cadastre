@@ -1,5 +1,4 @@
 import * as React from "react";
-import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
@@ -17,10 +16,8 @@ import { SidebarProps } from "../Sidebar";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
-import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
 import TransactionError from "./TransactionError";
-import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import AddFundsButton from "../profile/AddFundsButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
@@ -31,7 +28,8 @@ export type ActionFormProps = SidebarProps & {
   licenseAddress: string;
   licenseOwner?: string;
   loading: boolean;
-  performAction: () => Promise<string | void>;
+  performAction: () => string | undefined;
+  callback: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
@@ -65,6 +63,7 @@ export function ActionForm(props: ActionFormProps) {
     perSecondFeeDenominator,
     loading,
     performAction,
+    callback,
     actionData,
     setActionData,
     interactionState,
@@ -93,8 +92,6 @@ export function ActionForm(props: ActionFormProps) {
     isActing,
     errorMessage,
   } = actionData;
-  const [showWrapModal, setShowWrapModal] = React.useState(false);
-  const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
 
@@ -102,9 +99,6 @@ export function ActionForm(props: ActionFormProps) {
     account,
     paymentToken.address
   );
-
-  const handleWrapModalOpen = () => setShowWrapModal(true);
-  const handleWrapModalClose = () => setShowWrapModal(false);
 
   const infoIcon = (
     <Image
@@ -172,7 +166,7 @@ export function ActionForm(props: ActionFormProps) {
     let licenseId: string | void;
     try {
       // Perform action
-      licenseId = await performAction();
+      licenseId = await callback();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -295,12 +289,11 @@ export function ActionForm(props: ActionFormProps) {
   React.useEffect(() => {
     (async () => {
       const ethBalance = await smartAccount?.safe?.getBalance();
+      const gasBuffer = ethers.utils.parseEther("0.002");
 
       setIsBalanceInsufficient(
-        requiredPayment
-          ? requiredPayment.gt(
-              ethBalance ? superTokenBalance.add(ethBalance) : superTokenBalance
-            )
+        requiredPayment && ethBalance
+          ? requiredPayment.gt(ethBalance.sub(gasBuffer))
           : false
       );
     })();
@@ -472,17 +465,8 @@ export function ActionForm(props: ActionFormProps) {
             {summaryView}
             <br />
             <AddFundsButton {...props} />
-            {/* TODO: We can merge the next three button into one with Safe's multisend call */}
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
+            <PerformButton
               {...props}
-              isDisabled={isActing ?? false}
               requiredFlowAmount={requiredFlowAmount ?? null}
               requiredPayment={requiredPayment ?? null}
               spender={spender ?? null}
@@ -495,10 +479,6 @@ export function ActionForm(props: ActionFormProps) {
               setDidFail={(v) => {
                 updateActionData({ didFail: v });
               }}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
               isDisabled={
                 isActing || isLoading || isInvalid || isBalanceInsufficient
               }
@@ -511,8 +491,8 @@ export function ActionForm(props: ActionFormProps) {
                   ? "Reclaim"
                   : "Claim"
               }
-              performAction={submit}
-              isAllowed={isAllowed}
+              encodeFunctionData={performAction}
+              callback={submit}
             />
           </Form>
 
@@ -531,14 +511,6 @@ export function ActionForm(props: ActionFormProps) {
           ) : null}
         </Card.Body>
       </Card>
-
-      {showWrapModal && (
-        <WrapModal
-          show={showWrapModal}
-          handleClose={handleWrapModalClose}
-          {...props}
-        />
-      )}
     </>
   );
 }

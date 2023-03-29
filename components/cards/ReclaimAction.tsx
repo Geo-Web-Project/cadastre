@@ -9,11 +9,7 @@ import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import {
-  getEncodedSafeTransaction,
-  waitRelayedTxConfirmation,
-} from "../../lib/safeTransaction";
-import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 
 export type ReclaimActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -54,7 +50,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   });
 
   const { displayNewForSalePrice } = actionData;
-  const { provider } = sfFramework.settings;
 
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
@@ -121,7 +116,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  async function _reclaim() {
+  function _reclaim() {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -141,58 +136,39 @@ function ReclaimAction(props: ReclaimActionProps) {
     let reclaimTxData;
 
     if (isOwner) {
-      reclaimTxData = await licenseDiamondContract.interface.encodeFunctionData("editBid", [
-        newNetworkFee,
-        ethers.utils.parseEther(displayNewForSalePrice),
-      ]);
+      reclaimTxData = licenseDiamondContract.interface.encodeFunctionData(
+        "editBid",
+        [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice)]
+      );
     } else {
-      reclaimTxData = await licenseDiamondContract.interface.encodeFunctionData("reclaim", [
-        ethers.utils.parseEther(displayNewForSalePrice),
-        newNetworkFee,
-        ethers.utils.parseEther(displayNewForSalePrice),
-      ]);
+      reclaimTxData = licenseDiamondContract.interface.encodeFunctionData(
+        "reclaim",
+        [
+          ethers.utils.parseEther(displayNewForSalePrice),
+          newNetworkFee,
+          ethers.utils.parseEther(displayNewForSalePrice),
+        ]
+      );
     }
 
-    const gasLimit = BigNumber.from("10000000");
-    const safeTransactionData = {
-      data: reclaimTxData,
-      to: licenseDiamondContract.address,
-      value: "0",
-    };
-    const encodedSafeTransaction = await getEncodedSafeTransaction(
-      smartAccount,
-      safeTransactionData
-    );
-    const relayTransactionResponse =
-      await smartAccount.relayAdapter.relayTransaction({
-        target: smartAccount.safeAddress,
-        encodedTransaction: encodedSafeTransaction,
-        chainId: NETWORK_ID,
-        options: {
-          gasToken: ethers.constants.AddressZero,
-          gasLimit,
-        },
-      });
+    return reclaimTxData;
+  }
 
-    await waitRelayedTxConfirmation(
-      smartAccount,
-      provider,
-      relayTransactionResponse.taskId
-    );
-
+  const callback = async () => {
     setParcelFieldsToUpdate({
       forSalePrice: true,
       licenseOwner: !isOwner,
     });
 
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
-  }
+  };
 
   return (
     <>
       <ActionForm
         loading={false}
         performAction={_reclaim}
+        callback={callback}
         actionData={actionData}
         setActionData={setActionData}
         summaryView={

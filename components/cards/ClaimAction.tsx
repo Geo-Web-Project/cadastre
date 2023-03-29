@@ -4,11 +4,7 @@ import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import {
-  getEncodedSafeTransaction,
-  waitRelayedTxConfirmation,
-} from "../../lib/safeTransaction";
-import { SECONDS_IN_YEAR, NETWORK_ID } from "../../lib/constants";
+import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 
@@ -96,7 +92,7 @@ function ClaimAction(props: ClaimActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
-  async function _claim() {
+  function _claim() {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
@@ -126,39 +122,17 @@ function ClaimAction(props: ClaimActionProps) {
         latDim: neY - swY + 1,
       },
     ]);
-    const gasLimit = BigNumber.from("20000000");
-    const safeTransactionData = {
-      data: claimTxData,
-      to: registryContract.address,
-      value: "0",
-    };
-    const encodedSafeTransaction = await getEncodedSafeTransaction(
-      smartAccount,
-      safeTransactionData
-    );
-    const relayTransactionResponse =
-      await smartAccount.relayAdapter.relayTransaction({
-        target: smartAccount.safeAddress,
-        encodedTransaction: encodedSafeTransaction,
-        chainId: NETWORK_ID,
-        options: {
-          gasToken: ethers.constants.AddressZero,
-          gasLimit,
-        },
-      });
 
-    const receipt = await waitRelayedTxConfirmation(
-      smartAccount,
-      provider,
-      relayTransactionResponse.taskId
-    );
+    return claimTxData;
+  }
 
+  const parcelClaimedCallback = async () => {
     const filter = registryContract.filters.ParcelClaimedV2(null, null);
-
+    const blockNumber = await provider.getBlockNumber();
     const res = await registryContract.queryFilter(
       filter,
-      receipt.blockNumber,
-      receipt.blockNumber
+      blockNumber - 1000,
+      blockNumber
     );
     const licenseId = res[0].args[0].toString();
     setNewParcel((prev) => {
@@ -168,7 +142,7 @@ function ClaimAction(props: ClaimActionProps) {
     setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: true });
 
     return licenseId;
-  }
+  };
 
   React.useEffect(() => {
     const _fetchFlowOperator = async () => {
@@ -186,6 +160,7 @@ function ClaimAction(props: ClaimActionProps) {
         performAction={_claim}
         actionData={actionData}
         setActionData={setActionData}
+        callback={parcelClaimedCallback}
         summaryView={
           networkFeeRatePerYear ? (
             <TransactionSummaryView

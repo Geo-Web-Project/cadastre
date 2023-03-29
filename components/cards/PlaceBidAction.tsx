@@ -4,32 +4,21 @@ import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import {
-  PAYMENT_TOKEN,
-  SECONDS_IN_YEAR,
-  NETWORK_ID,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
-import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import AddFundsButton from "../profile/AddFundsButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
-import {
-  getEncodedSafeTransaction,
-  waitRelayedTxConfirmation,
-} from "../../lib/safeTransaction";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -67,14 +56,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     paymentToken,
   } = props;
 
-  const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] = React.useState<
     string | null
   >(null);
-  const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
 
@@ -82,10 +69,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     account,
     paymentToken.address
   );
-  const { provider } = sfFramework.settings;
-
-  const handleWrapModalOpen = () => setShowWrapModal(true);
-  const handleWrapModalClose = () => setShowWrapModal(false);
 
   const displayCurrentForSalePrice = formatBalance(
     parcelData.currentBid.forSalePrice
@@ -175,7 +158,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     })();
   }, [superTokenBalance]);
 
-  async function placeBid() {
+  function placeBid() {
     setIsActing(true);
     setDidFail(false);
 
@@ -195,57 +178,15 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       throw new Error("Safe is uninitialized");
     }
 
-    try {
-      const placeBidTxData =
-        await licenseDiamondContract.interface.encodeFunctionData("placeBid", [
-          newNetworkFee,
-          newForSalePrice,
-        ]);
-      const gasLimit = BigNumber.from("10000000");
-      const safeTransactionData = {
-        data: placeBidTxData,
-        to: licenseDiamondContract.address,
-        value: "0",
-      };
-      const encodedSafeTransaction = await getEncodedSafeTransaction(
-        smartAccount,
-        safeTransactionData
-      );
-      const relayTransactionResponse =
-        await smartAccount.relayAdapter.relayTransaction({
-          target: smartAccount.safeAddress,
-          encodedTransaction: encodedSafeTransaction,
-          chainId: NETWORK_ID,
-          options: {
-            gasToken: ethers.constants.AddressZero,
-            gasLimit,
-          },
-        });
+    const placeBidTxData = licenseDiamondContract.interface.encodeFunctionData(
+      "placeBid",
+      [newNetworkFee, newForSalePrice]
+    );
 
-      await waitRelayedTxConfirmation(
-        smartAccount,
-        provider,
-        relayTransactionResponse.taskId
-      );
-    } catch (err) {
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      if (
-        (err as any)?.code !== "TRANSACTION_REPLACED" ||
-        (err as any).cancelled
-      ) {
-        console.error(err);
-        setErrorMessage(
-          (err as any).reason
-            ? (err as any).reason.replace("execution reverted: ", "")
-            : (err as Error).message
-        );
-        setDidFail(true);
-        setIsActing(false);
-        return;
-      }
-      /* eslint-enable @typescript-eslint/no-explicit-any */
-    }
+    return placeBidTxData;
+  }
 
+  const callback = async () => {
     setIsActing(false);
     setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
@@ -253,7 +194,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
       licenseOwner: false,
     });
-  }
+  };
 
   return (
     <>
@@ -356,16 +297,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
             <br />
             <AddFundsButton {...props} />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
+            <PerformButton
               {...props}
-              isDisabled={isActing}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 newForSalePrice && requiredBuffer
@@ -378,24 +311,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               setErrorMessage={setErrorMessage}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
               isDisabled={isActing || isInvalid || isBalanceInsufficient}
               isActing={isActing}
               buttonText={"Place Bid"}
-              performAction={placeBid}
-              isAllowed={isAllowed}
+              encodeFunctionData={placeBid}
+              callback={callback}
             />
           </Form>
 
           <br />
           {isBalanceInsufficient && displayNewForSalePrice ? (
             <Alert key="warning" variant="warning">
-              <Alert.Heading>Insufficient ETHx</Alert.Heading>
-              Please wrap enough ETH to ETHx to complete this transaction with
-              the button above.
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              Click Add Funds above and send ETH to your account to complete
+              your transaction.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError
@@ -405,14 +334,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           ) : null}
         </Card.Body>
       </Card>
-
-      {showWrapModal && (
-        <WrapModal
-          show={showWrapModal}
-          handleClose={handleWrapModalClose}
-          {...props}
-        />
-      )}
       <StreamingInfo {...props} />
     </>
   );

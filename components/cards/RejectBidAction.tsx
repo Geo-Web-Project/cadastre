@@ -4,11 +4,7 @@ import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../Sidebar";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import {
-  PAYMENT_TOKEN,
-  SECONDS_IN_YEAR,
-  NETWORK_ID,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
@@ -16,9 +12,7 @@ import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
-import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import WrapModal from "../wrap/WrapModal";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -28,13 +22,8 @@ import { STATE } from "../Map";
 import InfoTooltip from "../InfoTooltip";
 import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
-import {
-  getEncodedSafeTransaction,
-  waitRelayedTxConfirmation,
-} from "../../lib/safeTransaction";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -86,13 +75,11 @@ function RejectBidAction(props: RejectBidActionProps) {
     18
   );
 
-  const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
-  const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
 
@@ -100,10 +87,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     account,
     paymentToken.address
   );
-  const { provider } = sfFramework.settings;
-
-  const handleWrapModalOpen = () => setShowWrapModal(true);
-  const handleWrapModalClose = () => setShowWrapModal(false);
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -253,7 +236,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
-  async function rejectBid() {
+  function rejectBid() {
     setIsActing(true);
     setDidFail(false);
 
@@ -277,57 +260,15 @@ function RejectBidAction(props: RejectBidActionProps) {
       throw new Error("Safe is uninitialized");
     }
 
-    try {
-      const rejectBidTxData =
-        await licenseDiamondContract.interface.encodeFunctionData("rejectBid", [
-          newNetworkFee,
-          newForSalePrice,
-        ]);
-      const gasLimit = BigNumber.from("10000000");
-      const safeTransactionData = {
-        data: rejectBidTxData,
-        to: licenseDiamondContract.address,
-        value: "0",
-      };
-      const encodedSafeTransaction = await getEncodedSafeTransaction(
-        smartAccount,
-        safeTransactionData
-      );
-      const relayTransactionResponse =
-        await smartAccount.relayAdapter.relayTransaction({
-          target: smartAccount.safeAddress,
-          encodedTransaction: encodedSafeTransaction,
-          chainId: NETWORK_ID,
-          options: {
-            gasToken: ethers.constants.AddressZero,
-            gasLimit,
-          },
-        });
+    const rejectBidTxData = licenseDiamondContract.interface.encodeFunctionData(
+      "rejectBid",
+      [newNetworkFee, newForSalePrice]
+    );
 
-      await waitRelayedTxConfirmation(
-        smartAccount,
-        provider,
-        relayTransactionResponse.taskId
-      );
-    } catch (err) {
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      if (
-        (err as any)?.code !== "TRANSACTION_REPLACED" ||
-        (err as any).cancelled
-      ) {
-        console.error(err);
-        setErrorMessage(
-          (err as any).reason
-            ? (err as any).reason.replace("execution reverted: ", "")
-            : (err as Error).message
-        );
-        setDidFail(true);
-        setIsActing(false);
-        return;
-      }
-      /* eslint-enable @typescript-eslint/no-explicit-any */
-    }
+    return rejectBidTxData;
+  }
 
+  const callback = async () => {
     setIsActing(false);
     setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
@@ -335,7 +276,7 @@ function RejectBidAction(props: RejectBidActionProps) {
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
       licenseOwner: false,
     });
-  }
+  };
 
   return (
     <>
@@ -451,16 +392,8 @@ function RejectBidAction(props: RejectBidActionProps) {
             ) : null}
 
             <br />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
+            <PerformButton
               {...props}
-              isDisabled={isActing}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 penaltyPayment && newRequiredBuffer && oldRequiredBuffer
@@ -473,15 +406,11 @@ function RejectBidAction(props: RejectBidActionProps) {
               setErrorMessage={setErrorMessage}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
               isDisabled={isActing || isInvalid || isBalanceInsufficient}
               isActing={isActing}
               buttonText={"Reject Bid"}
-              performAction={rejectBid}
-              isAllowed={isAllowed}
+              encodeFunctionData={rejectBid}
+              callback={callback}
             />
           </Form>
 
@@ -500,14 +429,6 @@ function RejectBidAction(props: RejectBidActionProps) {
           ) : null}
         </Card.Body>
       </Card>
-
-      {showWrapModal && (
-        <WrapModal
-          show={showWrapModal}
-          handleClose={handleWrapModalClose}
-          {...props}
-        />
-      )}
       <StreamingInfo {...props} />
     </>
   );
