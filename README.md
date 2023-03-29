@@ -1,6 +1,6 @@
 # Geo Web Cadastre
 
-## Getting Started
+### Getting Started
 
 Start by setting up the local environment variables. 
 
@@ -63,3 +63,12 @@ To run locally
 ```
 yarn dev
 ```
+
+### Testing
+
+During development cycles you will need Optimism Goerli ETH. There are two ways to obtain OP Goerli ETH.
+1. Faucet
+    Head over to the [Paradigm Faucet](https://faucet.paradigm.xyz/) and enter the address of the wallet you would like to fund.
+    
+2. Bridge
+    If you already have Goerli ETH you can use the [Optimism Bridge](https://app.optimism.io/bridge/deposit). Connect you wallet, select the Goerli Test net and the amount you would like to bridge.
