@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import {
   MetaTransactionData,
   OperationType,
@@ -15,7 +15,7 @@ export async function getEncodedSafeTransaction(
     throw new Error("Safe is uninitialized");
   }
 
-  const gasLimit = ethers.BigNumber.from("10000000");
+  const gasLimit = BigNumber.from("10000000");
   const estimate = await smartAccount.relayAdapter.getEstimateFee(
     NETWORK_ID,
     gasLimit
@@ -24,7 +24,8 @@ export async function getEncodedSafeTransaction(
     data: metaTransaction.data,
     to: metaTransaction.to,
     value: metaTransaction.value,
-    baseGas: estimate.toNumber(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    baseGas: estimate.toString() as any, // Typed as a number but it could overflow
     gasPrice: 1,
     refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
     operation: metaTransaction.operation ?? OperationType.Call,
@@ -56,6 +57,45 @@ export async function getEncodedSafeTransaction(
   );
 
   return encodedTransaction.data ?? "0x";
+}
+
+function encodeMultiSendData(txs: MetaTransactionData[]): string {
+  return "0x" + txs.map((tx) => encodeMetaTransaction(tx)).join("");
+}
+
+function encodeMetaTransaction(tx: MetaTransactionData): string {
+  const encoded = ethers.utils.solidityPack(
+    ["uint8", "address", "uint256", "uint256", "bytes"],
+    [
+      tx.operation || OperationType.Call,
+      tx.to,
+      tx.value,
+      ethers.utils.hexDataLength(tx.data),
+      tx.data,
+    ]
+  );
+
+  return encoded.slice(2);
+}
+
+export function getMultiSendTransactionData(
+  smartAccount: SmartAccount,
+  metaTransactions: MetaTransactionData[]
+): MetaTransactionData {
+  if (!smartAccount?.safe || !smartAccount?.safeAddress) {
+    throw new Error("Safe is uninitialized");
+  }
+
+  const multiSendContract =
+    smartAccount.safe.getContractManager().multiSendCallOnlyContract;
+  const multiSendData = encodeMultiSendData(metaTransactions);
+
+  return {
+    data: multiSendContract.encode("multiSend", [multiSendData]),
+    to: smartAccount.safe.getMultiSendCallOnlyAddress(),
+    value: "0",
+    operation: OperationType.DelegateCall,
+  };
 }
 
 export async function waitRelayedTxConfirmation(

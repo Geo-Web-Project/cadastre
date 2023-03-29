@@ -213,35 +213,35 @@ export function ActionForm(props: ActionFormProps) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const ownerDID = ceramic.did!.parent;
 
-    if (
-      licenseId &&
-      (interactionState === STATE.CLAIM_SELECTED ||
-        (interactionState === STATE.PARCEL_RECLAIMING &&
-          account !== licenseOwner))
-    ) {
-      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-      const mediaGallery: MediaGallery = [];
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        "/mediaGallery",
-        mediaGallery,
-        {
-          parentSchema: "ParcelRoot",
-          pin: true,
-        }
-      );
-
-      await geoWebContent.raw.commit(newRoot, {
-        ownerDID,
-        parcelId: assetId,
-      });
-    }
-
     try {
+      if (
+        licenseId &&
+        (interactionState === STATE.CLAIM_SELECTED ||
+          (interactionState === STATE.PARCEL_RECLAIMING &&
+            account !== licenseOwner))
+      ) {
+        await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
+        const rootCid = await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerDID,
+        });
+        const mediaGallery: MediaGallery = [];
+        const newRoot = await geoWebContent.raw.putPath(
+          rootCid,
+          "/mediaGallery",
+          mediaGallery,
+          {
+            parentSchema: "ParcelRoot",
+            pin: true,
+          }
+        );
+
+        await geoWebContent.raw.commit(newRoot, {
+          ownerDID,
+          parcelId: assetId,
+        });
+      }
+
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
         ownerDID,
