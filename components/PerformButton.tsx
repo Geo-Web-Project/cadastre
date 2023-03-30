@@ -12,6 +12,7 @@ import {
 
 export type PerformButtonProps = SidebarProps & {
   isDisabled: boolean;
+  wrapAmount: BigNumber | null;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;
   requiredFlowPermissions: number | null;
@@ -32,6 +33,7 @@ export function PerformButton(props: PerformButtonProps) {
     paymentToken,
     smartAccount,
     spender,
+    wrapAmount,
     requiredPayment,
     sfFramework,
     requiredFlowPermissions,
@@ -70,6 +72,7 @@ export function PerformButton(props: PerformButtonProps) {
         !requiredFlowAmount ||
         !spender ||
         !requiredPayment ||
+        !wrapAmount ||
         !smartAccount?.safe ||
         !smartAccount?.safeAddress
       ) {
@@ -79,9 +82,8 @@ export function PerformButton(props: PerformButtonProps) {
       setIsActing(true);
 
       const gasLimit = BigNumber.from("10000000");
-      const wrapAmount = requiredPayment.add(requiredFlowAmount).toString();
       const wrap = await paymentToken.upgrade({
-        amount: wrapAmount,
+        amount: wrapAmount.toString(),
       }).populateTransactionPromise;
       const approveSpending = await paymentToken.approve({
         amount: requiredPayment.toString(),
@@ -155,7 +157,6 @@ export function PerformButton(props: PerformButtonProps) {
           gasLimit,
         },
       });
-
       await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
       callback();
 
