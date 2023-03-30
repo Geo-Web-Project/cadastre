@@ -9,13 +9,13 @@ import { NETWORK_ID } from "./constants";
 
 export async function getEncodedSafeTransaction(
   smartAccount: SmartAccount,
-  metaTransaction: MetaTransactionData
+  metaTransaction: MetaTransactionData,
+  gasLimit: BigNumber
 ): Promise<string> {
   if (!smartAccount.safe || !smartAccount?.safeAddress) {
     throw new Error("Safe is uninitialized");
   }
 
-  const gasLimit = BigNumber.from("10000000");
   const estimate = await smartAccount.relayAdapter.getEstimateFee(
     NETWORK_ID,
     gasLimit
@@ -25,7 +25,8 @@ export async function getEncodedSafeTransaction(
     to: metaTransaction.to,
     value: metaTransaction.value,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    baseGas: estimate.toString() as any, // Typed as a number but it could overflow
+    baseGas: estimate as any, // Typed as a number but it could overflow
+    safeTxGas: gasLimit.toNumber(),
     gasPrice: 1,
     refundReceiver: smartAccount.relayAdapter.getFeeCollector(),
     operation: metaTransaction.operation ?? OperationType.Call,
