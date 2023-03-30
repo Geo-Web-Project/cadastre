@@ -83,7 +83,6 @@ export function PerformButton(props: PerformButtonProps) {
 
       const safeGasLimit = BigNumber.from("12000000");
       const relayGasLimit = BigNumber.from("15000000");
-      // const wrapAmount = requiredPayment.add(requiredFlowAmount).toString();
       const wrap = await paymentToken.upgrade({
         amount: wrapAmount.toString(),
       }).populateTransactionPromise;
@@ -121,7 +120,7 @@ export function PerformButton(props: PerformButtonProps) {
       const wrapTransactionData = {
         data: wrap.data,
         to: wrap.to,
-        value: wrapAmount,
+        value: wrapAmount.toString(),
       };
       const approveSpendingTransactionData = {
         data: approveSpending.data,
