@@ -69,8 +69,6 @@ function AddFundsModal(props: AddFundsModal) {
       threshold: 1,
       owners: [eoaAddress],
     };
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const options = { isSponsored: true } as any;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     const encodedSetupCallData = await safeFactory.encodeSetupCallData(
@@ -80,14 +78,14 @@ function AddFundsModal(props: AddFundsModal) {
       getProxyFactoryDeployment()?.networkAddresses[NETWORK_ID];
     const safeSingletonDeployment =
       getSafeL2SingletonDeployment()?.networkAddresses[NETWORK_ID];
-    const contract = new ethers.Contract(
+    const safeProxyFactoryContract = new ethers.Contract(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       safeproxyFactoryAddress!,
       ["function createProxyWithNonce(address, bytes, uint256)"],
       getSigner(safeAuthKit)
     );
     const encodedTransaction =
-      await contract.populateTransaction.createProxyWithNonce(
+      await safeProxyFactoryContract.populateTransaction.createProxyWithNonce(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         safeSingletonDeployment!,
         encodedSetupCallData,
@@ -99,7 +97,10 @@ function AddFundsModal(props: AddFundsModal) {
       target: safeproxyFactoryAddress!,
       encodedTransaction: encodedTransaction.data ?? "0x",
       chainId: NETWORK_ID,
-      options,
+      options: {
+        isSponsored: true,
+        gasLimit: BigNumber.from("1000000"),
+      },
     });
 
     /* eslint no-constant-condition: ["error", { "checkLoops": false }] */
@@ -107,24 +108,28 @@ function AddFundsModal(props: AddFundsModal) {
       const isDeployed = await ethAdapter.isContractDeployed(safeAddress);
 
       if (isDeployed) {
-        break;
+        try {
+          const safe = await Safe.create({
+            ethAdapter,
+            safeAddress,
+          });
+          setSmartAccount({
+            safeAuthKit,
+            relayAdapter,
+            eoaAddress,
+            safeAddress,
+            safe,
+          });
+
+          break;
+        } catch (err) {
+          console.warn((err as Error).message);
+        }
       }
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    const safe = await Safe.create({
-      ethAdapter,
-      safeAddress: safeAddress,
-    });
-
-    setSmartAccount({
-      safeAuthKit,
-      relayAdapter,
-      eoaAddress,
-      safeAddress,
-      safe,
-    });
     setIsInitializing(false);
     handleClose();
   };
