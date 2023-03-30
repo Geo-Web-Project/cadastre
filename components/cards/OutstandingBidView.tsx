@@ -164,7 +164,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     try {
       const acceptBidTxData =
         await licenseDiamondContract.interface.encodeFunctionData("acceptBid");
-      const gasLimit = BigNumber.from("10000000");
+      const safeGasLimit = BigNumber.from("10000000");
+      const relayGasLimit = BigNumber.from("15000000");
       const safeTransactionData = {
         data: acceptBidTxData,
         to: licenseDiamondContract.address,
@@ -172,7 +173,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       };
       const encodedSafeTransaction = await getEncodedSafeTransaction(
         smartAccount,
-        safeTransactionData
+        safeTransactionData,
+        safeGasLimit
       );
       const relayTransactionResponse =
         await smartAccount.relayAdapter.relayTransaction({
@@ -181,7 +183,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
           chainId: NETWORK_ID,
           options: {
             gasToken: ethers.constants.AddressZero,
-            gasLimit,
+            gasLimit: relayGasLimit,
           },
         });
 
@@ -235,7 +237,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         await licenseDiamondContract.interface.encodeFunctionData(
           "triggerTransfer"
         );
-      const gasLimit = BigNumber.from("10000000");
+      const safeGasLimit = BigNumber.from("10000000");
+      const relayGasLimit = BigNumber.from("15000000");
       const safeTransactionData = {
         data: triggerTransaferTxData,
         to: licenseDiamondContract.address,
@@ -243,7 +246,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       };
       const encodedSafeTransaction = await getEncodedSafeTransaction(
         smartAccount,
-        safeTransactionData
+        safeTransactionData,
+        safeGasLimit
       );
       const relayTransactionResponse =
         await smartAccount.relayAdapter.relayTransaction({
@@ -252,7 +256,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
           chainId: NETWORK_ID,
           options: {
             gasToken: ethers.constants.AddressZero,
-            gasLimit,
+            gasLimit: relayGasLimit,
           },
         });
 

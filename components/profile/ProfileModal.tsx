@@ -544,7 +544,8 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     const weiAmount = ethers.utils.parseEther(amount).toString();
-    const gasLimit = BigNumber.from("10000000");
+    const safeGasLimit = BigNumber.from("1000000");
+    const relayGasLimit = BigNumber.from("1500000");
 
     let safeTransactionData: MetaTransactionData | null = null;
 
@@ -590,7 +591,8 @@ function ProfileModal(props: ProfileModalProps) {
 
       const encodedSafeTransaction = await getEncodedSafeTransaction(
         smartAccount,
-        safeTransactionData
+        safeTransactionData,
+        safeGasLimit
       );
       const res = await smartAccount.relayAdapter.relayTransaction({
         target: smartAccount.safeAddress,
@@ -598,7 +600,7 @@ function ProfileModal(props: ProfileModalProps) {
         chainId: NETWORK_ID,
         options: {
           gasToken: ethers.constants.AddressZero,
-          gasLimit,
+          gasLimit: relayGasLimit,
         },
       });
 

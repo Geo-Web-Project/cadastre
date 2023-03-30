@@ -81,7 +81,9 @@ export function PerformButton(props: PerformButtonProps) {
 
       setIsActing(true);
 
-      const gasLimit = BigNumber.from("10000000");
+      const safeGasLimit = BigNumber.from("12000000");
+      const relayGasLimit = BigNumber.from("15000000");
+      // const wrapAmount = requiredPayment.add(requiredFlowAmount).toString();
       const wrap = await paymentToken.upgrade({
         amount: wrapAmount.toString(),
       }).populateTransactionPromise;
@@ -111,10 +113,16 @@ export function PerformButton(props: PerformButtonProps) {
 
       const encodedGwContractFunctionData = encodeFunctionData();
 
+      /* Offchain content change only */
       if (!encodedGwContractFunctionData) {
         return;
       }
 
+      const wrapTransactionData = {
+        data: wrap.data,
+        to: wrap.to,
+        value: wrapAmount,
+      };
       const approveSpendingTransactionData = {
         data: approveSpending.data,
         to: approveSpending.to,
@@ -124,11 +132,6 @@ export function PerformButton(props: PerformButtonProps) {
         data: approveFlow.data,
         to: approveFlow.to,
         value: "0",
-      };
-      const wrapTransactionData = {
-        data: wrap.data,
-        to: wrap.to,
-        value: wrapAmount,
       };
       const gwContractTransactionData = {
         data: encodedGwContractFunctionData,
@@ -146,7 +149,8 @@ export function PerformButton(props: PerformButtonProps) {
       );
       const encodedMultiSendData = await getEncodedSafeTransaction(
         smartAccount,
-        encodedMultiSendTransaction
+        encodedMultiSendTransaction,
+        safeGasLimit
       );
       const res = await smartAccount.relayAdapter.relayTransaction({
         target: smartAccount.safeAddress,
@@ -154,11 +158,11 @@ export function PerformButton(props: PerformButtonProps) {
         chainId: NETWORK_ID,
         options: {
           gasToken: ethers.constants.AddressZero,
-          gasLimit,
+          gasLimit: relayGasLimit,
         },
       });
       await waitRelayedTxConfirmation(smartAccount, provider, res.taskId);
-      callback();
+      await callback();
 
       setIsActing(false);
     } catch (err) {
