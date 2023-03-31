@@ -31,15 +31,6 @@ Update the .env file in the Cadastre folder with this line of code:
 NEXT_PUBLIC_WEB3_STORAGE_TOKEN=your_web3storage_api_token
 ```
 
-#### Gelato Relay
-If you don't already have an account, create one at [Gelato](https://www.gelato.network/relay).
-*TODO: ADD ANY GELATO SPECIFIC INSTRUCTIONS*
-Once you have an account, create a new API Key and copy it.
-Update the .env file in the Cadastre folder with this line of code:
-```
-NEXT_PUBLIC_RELAY_APP_API_KEY=your_gelato_relay_api_key
-```
-
 #### Install Dependencies
 
 Install *Node Version 16* if you don't have it but stay within LTS.
