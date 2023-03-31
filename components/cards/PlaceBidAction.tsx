@@ -64,6 +64,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   >(null);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
+  const [ethBalanceSubGasBuffer, setEthBalanceSubGasBuffer] =
+    React.useState<BigNumber>(BigNumber.from(0));
 
   const { superTokenBalance } = useSuperTokenBalance(
     account,
@@ -143,11 +145,18 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   React.useEffect(() => {
     (async () => {
       const ethBalance = await smartAccount?.safe?.getBalance();
+      const gasBuffer = ethers.utils.parseEther("0.002");
+
+      setEthBalanceSubGasBuffer(
+        ethBalance ? ethBalance.sub(gasBuffer) : BigNumber.from(0)
+      );
+
       const requiredPayment =
         newForSalePrice && requiredBuffer
           ? newForSalePrice.add(requiredBuffer)
           : null;
 
+      // TODO: is the correct way to check for insufficient balance?
       setIsBalanceInsufficient(
         requiredPayment
           ? requiredPayment.gt(
@@ -299,6 +308,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             <AddFundsButton {...props} />
             <PerformButton
               {...props}
+              ethBalanceSubGasBuffer={ethBalanceSubGasBuffer ?? null}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 newForSalePrice && requiredBuffer

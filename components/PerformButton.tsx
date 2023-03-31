@@ -12,7 +12,7 @@ import {
 
 export type PerformButtonProps = SidebarProps & {
   isDisabled: boolean;
-  wrapAmount: BigNumber | null;
+  ethBalanceSubGasBuffer: BigNumber | null;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;
   requiredFlowPermissions: number | null;
@@ -33,7 +33,7 @@ export function PerformButton(props: PerformButtonProps) {
     paymentToken,
     smartAccount,
     spender,
-    wrapAmount,
+    ethBalanceSubGasBuffer,
     requiredPayment,
     sfFramework,
     requiredFlowPermissions,
@@ -72,7 +72,7 @@ export function PerformButton(props: PerformButtonProps) {
         !requiredFlowAmount ||
         !spender ||
         !requiredPayment ||
-        !wrapAmount ||
+        !ethBalanceSubGasBuffer ||
         !smartAccount?.safe ||
         !smartAccount?.safeAddress
       ) {
@@ -83,6 +83,10 @@ export function PerformButton(props: PerformButtonProps) {
 
       const safeGasLimit = BigNumber.from("12000000");
       const relayGasLimit = BigNumber.from("15000000");
+      const minimumEthXForTransfer = requiredPayment.add(requiredFlowAmount);
+      const wrapAmount = ethBalanceSubGasBuffer.lt(minimumEthXForTransfer)
+        ? ethBalanceSubGasBuffer
+        : minimumEthXForTransfer;
       const wrap = await paymentToken.upgrade({
         amount: wrapAmount.toString(),
       }).populateTransactionPromise;

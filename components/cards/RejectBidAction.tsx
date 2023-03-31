@@ -82,6 +82,8 @@ function RejectBidAction(props: RejectBidActionProps) {
     React.useState<string>(bidForSalePriceDisplay);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
+  const [ethBalanceSubGasBuffer, setEthBalanceSubGasBuffer] =
+    React.useState<BigNumber>(BigNumber.from(0));
 
   const { superTokenBalance } = useSuperTokenBalance(
     account,
@@ -220,14 +222,24 @@ function RejectBidAction(props: RejectBidActionProps) {
   }, [registryContract]);
 
   React.useEffect(() => {
-    const requiredPayment =
-      penaltyPayment && newRequiredBuffer && oldRequiredBuffer
-        ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
-        : null;
+    (async () => {
+      const ethBalance = await smartAccount?.safe?.getBalance();
+      const gasBuffer = ethers.utils.parseEther("0.002");
 
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment?.gt(superTokenBalance) : false
-    );
+      setEthBalanceSubGasBuffer(
+        ethBalance ? ethBalance.sub(gasBuffer) : BigNumber.from(0)
+      );
+
+      const requiredPayment =
+        penaltyPayment && newRequiredBuffer && oldRequiredBuffer
+          ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
+          : null;
+
+      // TODO: is the correct way to check for insufficient balance?
+      setIsBalanceInsufficient(
+        requiredPayment ? requiredPayment?.gt(superTokenBalance) : false
+      );
+    })();
   }, [superTokenBalance]);
 
   const bidDeadline =
@@ -394,6 +406,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             <br />
             <PerformButton
               {...props}
+              ethBalanceSubGasBuffer={ethBalanceSubGasBuffer}
               requiredFlowAmount={annualNetworkFeeRate ?? null}
               requiredPayment={
                 penaltyPayment && newRequiredBuffer && oldRequiredBuffer
