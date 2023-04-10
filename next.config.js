@@ -4,7 +4,7 @@ const { parsed: myEnv } = require("dotenv").config({
 });
 
 module.exports = {
-  output: 'standalone',
+  output: "standalone",
   webpack(config, { isServer, dev }) {
     if (process.env.APP_ENV !== undefined) {
       console.log(`Loading env from .env.${process.env.APP_ENV}`);
