@@ -25,3 +25,11 @@ To run locally
 ```
 yarn dev
 ```
+
+## Deploying
+
+To deploy to production, you will need to install docker and run
+```
+docker build -t cadastre .
+docker run -p 3000:3000 cadastre
+```
