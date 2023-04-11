@@ -55,6 +55,14 @@ To run locally
 yarn dev
 ```
 
+## Docker Deployment
+
+To deploy to production, you will need to install docker and run
+```
+docker build -t cadastre .
+docker run -p 3000:3000 cadastre
+```
+
 ### Testing
 
 During development cycles you will need Optimism Goerli ETH. There are two ways to obtain OP Goerli ETH.
