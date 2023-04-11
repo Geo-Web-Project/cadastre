@@ -55,7 +55,7 @@ To run locally
 yarn dev
 ```
 
-## Deploying
+## Docker Deployment
 
 To deploy to production, you will need to install docker and run
 ```
