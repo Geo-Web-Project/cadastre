@@ -11,11 +11,11 @@ import {
   LngLat,
   PaddingOptions,
 } from "mapbox-gl";
-import Geocoder from "../lib/Geocoder";
-import Sidebar from "./Sidebar";
+import OffCanvasPanel from "./OffCanvasPanel";
 import ClaimSource from "./sources/ClaimSource";
 import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
+import Geocoder from "../lib/Geocoder";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 import OpRewardAlert from "./OpRewardAlert";
 
@@ -43,6 +43,7 @@ import * as turf from "@turf/turf";
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
 import ParcelList from "./parcels/ParcelList";
+import { useMediaQuery } from "../lib/mediaQuery";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -268,7 +269,9 @@ function Map(props: MapProps) {
     timerId: number | null;
   }>({ id: "", timerId: null });
   const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
+  const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
 
+  const { isMobile, isTablet } = useMediaQuery();
   const router = useRouter();
 
   const isGridVisible =
@@ -610,12 +613,12 @@ function Map(props: MapProps) {
               parcelPointSe && parcelPointSw
                 ? parcelPointSe.x - parcelPointSw.x
                 : 0;
-            const shouldOffsetSidebar =
+            const shouldOffsetOffCanvasPanel =
               parcelPointSw && parcelPointSw.x < sidebarPixelWidth;
 
             mapRef.current?.panBy(
               [
-                shouldOffsetSidebar
+                shouldOffsetOffCanvasPanel
                   ? sidebarPixelWidth * -1 - parcelSizeX + event.point.x
                   : 0,
                 0,
@@ -652,20 +655,20 @@ function Map(props: MapProps) {
           );
           const cellSizeX =
             cellPointSe && cellPointSw ? cellPointSe.x - cellPointSw.x : 0;
-          const shouldOffsetSidebar =
+          const shouldOffsetOffCanvasPanel =
             cellPointSw && cellPointSw.x < sidebarPixelWidth;
 
           setTimeout(
             () =>
               mapRef.current?.panBy(
                 [
-                  shouldOffsetSidebar
+                  shouldOffsetOffCanvasPanel
                     ? sidebarPixelWidth * -1 - cellSizeX + event.point.x
                     : 0,
                   0,
                 ],
                 {
-                  duration: shouldOffsetSidebar ? 400 : 0,
+                  duration: shouldOffsetOffCanvasPanel ? 400 : 0,
                 }
               ),
             100
@@ -773,6 +776,40 @@ function Map(props: MapProps) {
     }
   }, [parcelNavigationCenter]);
 
+  useEffect(() => {
+    if (!showSearchBar) {
+      return;
+    }
+
+    const searchInput: HTMLInputElement | null = document.querySelector(
+      ".mapboxgl-ctrl-geocoder--input"
+    );
+
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.addEventListener("focusout", (e) => {
+        const { relatedTarget } = e;
+
+        if (
+          relatedTarget instanceof HTMLElement &&
+          relatedTarget.className.includes("parcel-list-btn")
+        ) {
+          setShowParcelList(true);
+        }
+
+        setShowSearchBar(false);
+      });
+    }
+
+    return () => {
+      if (searchInput) {
+        searchInput.removeEventListener("onfocusout", () =>
+          setShowSearchBar(false)
+        );
+      }
+    };
+  }, [showSearchBar]);
+
   return (
     <>
       <OpRewardAlert />
@@ -781,17 +818,24 @@ function Map(props: MapProps) {
           <Alert
             className="position-absolute top-50 start-50 text-center"
             variant="warning"
-            style={{ zIndex: 1, width: "256px" }}
+            style={{
+              zIndex: 1,
+              width: "256px",
+              transform:
+                isMobile || isTablet ? "translateX(-50%)" : "translateX(0)",
+            }}
           >
             Zoom to Continue Your Claim
-            <br />
-            or
-            <br />
-            Hit Esc to Cancel
+            <div className="d-none d-lg-block">
+              <br />
+              or
+              <br />
+              Hit Esc to Cancel
+            </div>
           </Alert>
         )}
       {interactionState != STATE.VIEWING ? (
-        <Sidebar
+        <OffCanvasPanel
           {...props}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
@@ -806,7 +850,7 @@ function Map(props: MapProps) {
           setNewParcel={setNewParcel}
           selectedParcelCoords={selectedParcelCoords}
           delay={interactionState === STATE.CLAIM_SELECTING}
-        ></Sidebar>
+        ></OffCanvasPanel>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <ReactMapGL
@@ -823,7 +867,7 @@ function Map(props: MapProps) {
           projection="globe"
           fog={{}}
           dragRotate={false}
-          touchZoomRotate={false}
+          touchZoomRotate={true}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
           onMoveEnd={(e) => _onMoveEnd(e.viewState)}
@@ -853,13 +897,36 @@ function Map(props: MapProps) {
             geoWebCoordinate={geoWebCoordinate}
             cellHoverCoord={cellHoverCoord}
           ></CellHoverSource>
-          <Geocoder
-            mapboxAccessToken={
-              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
-            }
-            position="top-right"
+          {!isMobile || showSearchBar ? (
+            <Geocoder
+              mapboxAccessToken={
+                process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
+              }
+              position="top-right"
+              hideSearchBar={() => setShowSearchBar(false)}
+            />
+          ) : (
+            <Button
+              variant="light"
+              className="search-map-btn"
+              onClick={() => setShowSearchBar(true)}
+            >
+              <Image src="search.svg" alt="search" width={24} />
+            </Button>
+          )}
+
+          <NavigationControl
+            position="bottom-right"
+            showCompass={false}
+            style={{
+              bottom:
+                (isMobile || isTablet) && interactionState !== STATE.VIEWING
+                  ? `calc(89px + 33vh)`
+                  : isMobile || isTablet
+                  ? "109px"
+                  : "119px",
+            }}
           />
-          <NavigationControl position="bottom-right" showCompass={false} />
         </ReactMapGL>
       </Col>
       <Button
@@ -867,7 +934,12 @@ function Map(props: MapProps) {
         className="border border-secondary border-top-0 grid-switch"
         style={{
           position: "absolute",
-          bottom: "90px",
+          bottom:
+            (isMobile || isTablet) && interactionState !== STATE.VIEWING
+              ? `calc(60px + 33vh)`
+              : isMobile || isTablet
+              ? "80px"
+              : "90px",
           right: "2vw",
           width: "31px",
           height: "29px",
@@ -891,24 +963,30 @@ function Map(props: MapProps) {
         />
       </Button>
       <ButtonGroup
+        className={isMobile || isTablet ? "px-0 justify-content-end" : ""}
         style={{
           position: "absolute",
-          bottom: "4%",
+          bottom:
+            (isMobile || isTablet) && interactionState !== STATE.VIEWING
+              ? `calc(2% + 33vh)`
+              : "4%",
           right: "2%",
           width: "123px",
           borderRadius: 12,
         }}
       >
         <Button
+          className={isMobile || isTablet ? "map-style-btn" : ""}
           style={{
             backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.street)}
         >
-          <Image src={"street_ic.png"} width={30} />
+          <Image src={"street_ic.png"} width={isMobile || isTablet ? 25 : 30} />
         </Button>
         <Button
+          className={isMobile || isTablet ? "map-style-btn" : ""}
           style={{
             backgroundColor:
               mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
@@ -916,12 +994,17 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
-          <Image src={"satellite_ic.png"} width={30} />
+          <Image
+            src={"satellite_ic.png"}
+            width={isMobile || isTablet ? 25 : 30}
+          />
         </Button>
       </ButtonGroup>
       <Button
         variant="primary"
-        className="p-0 border-0 parcel-list-btn"
+        className={`p-0 border-0 parcel-list-btn ${
+          isMobile && !showSearchBar ? "mobile" : ""
+        }`}
         onClick={() => setShowParcelList(true)}
       >
         <Image src="list.svg" alt="parcel list" width={38} />

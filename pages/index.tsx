@@ -369,10 +369,9 @@ function IndexPage({
           bg="dark"
           variant="dark"
           fixed="top"
-          style={{ height: "100px" }}
           className="border-bottom border-purple border-opacity-25"
         >
-          <Col className="ms-1 ps-3 ms-sm-4">
+          <Col sm="3" lg="3" className="d-none d-lg-block ps-5">
             <div
               className="d-flex align-items-center text-light"
               style={{
@@ -384,53 +383,73 @@ function IndexPage({
                 style={{ height: "1.1em", marginRight: "10px" }}
                 src="logo.png"
               />
-              <span className="d-none d-sm-block fs-1">Cadastre</span>
-              <span className="d-none d-sm-block fs-6 align-self-start">
+              <span className="d-none d-lg-block fs-1">Cadastre</span>
+              <span className="d-none d-lg-block fs-6 align-self-start">
                 BETA
               </span>
             </div>
           </Col>
-          <Col xs="6" sm="4">
+          <Col lg="5" className="d-none d-lg-block ms-lg-5">
             <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
           </Col>
-          <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
-            <div className="d-none d-sm-block">
-              {address &&
-              signer &&
-              sfFramework &&
-              ceramic &&
-              ipfs &&
-              ceramic.did &&
-              geoWebContent &&
-              registryContract &&
-              paymentToken &&
-              chain?.id === NETWORK_ID &&
-              library ? (
-                <Profile
-                  account={address.toLowerCase()}
-                  signer={signer}
-                  sfFramework={sfFramework}
-                  ceramic={ceramic}
-                  setCeramic={setCeramic}
-                  ipfs={ipfs}
-                  setW3InvocationConfig={setW3InvocationConfig}
-                  geoWebContent={geoWebContent}
-                  setGeoWebContent={setGeoWebContent}
-                  registryContract={registryContract}
-                  paymentToken={paymentToken}
-                  portfolioNeedActionCount={portfolioNeedActionCount}
-                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                  setSelectedParcelId={setSelectedParcelId}
-                  interactionState={interactionState}
-                  setInteractionState={setInteractionState}
-                  setParcelNavigationCenter={setParcelNavigationCenter}
-                  shouldRefetchParcelsData={shouldRefetchParcelsData}
-                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-                />
-              ) : (
-                <ConnectWallet variant="header" />
-              )}
-            </div>
+          <Col
+            xs="3"
+            sm="4"
+            lg="3"
+            className="d-flex justify-content-sm-start justify-content-lg-end pe-lg-3"
+          >
+            {address &&
+            signer &&
+            sfFramework &&
+            ceramic &&
+            ipfs &&
+            ceramic.did &&
+            geoWebContent &&
+            registryContract &&
+            paymentToken &&
+            chain?.id === NETWORK_ID &&
+            library ? (
+              <Profile
+                account={address.toLowerCase()}
+                signer={signer}
+                sfFramework={sfFramework}
+                ceramic={ceramic}
+                setCeramic={setCeramic}
+                ipfs={ipfs}
+                setW3InvocationConfig={setW3InvocationConfig}
+                geoWebContent={geoWebContent}
+                setGeoWebContent={setGeoWebContent}
+                registryContract={registryContract}
+                paymentToken={paymentToken}
+                portfolioNeedActionCount={portfolioNeedActionCount}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                setSelectedParcelId={setSelectedParcelId}
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+                setParcelNavigationCenter={setParcelNavigationCenter}
+                shouldRefetchParcelsData={shouldRefetchParcelsData}
+                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+              />
+            ) : (
+              <ConnectWallet
+                variant="header"
+                ipfs={ipfs}
+                ceramic={ceramic}
+                setCeramic={setCeramic}
+                setGeoWebContent={setGeoWebContent}
+                setW3InvocationConfig={setW3InvocationConfig}
+              />
+            )}
+          </Col>
+          <Col xs="7" sm="5" className="d-lg-none pe-4">
+            <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
+          </Col>
+          <Col
+            xs="2"
+            sm="3"
+            lg="1"
+            className="d-flex justify-content-end justify-content-lg-start"
+          >
             <NavMenu />
           </Col>
         </Navbar>

@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { useSigner } from "wagmi";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import Image from "react-bootstrap/Image";
 import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
 import BetaAgreementModal from "./BetaAgreementModal";
 
@@ -32,23 +29,6 @@ export default function Home(props: HomeProps) {
 
   const HomeContent = (
     <div style={{ color: "white", lineHeight: "160%" }} className="px-3">
-      {/* only show warning on small screens(mobile) */}
-      <div
-        className="d-sm-none bg-warning mb-3"
-        style={{ borderRadius: "20px" }}
-      >
-        <Row className="py-3 align-items-center">
-          <Col xs={2} className={"text-center ps-3"}>
-            <Image src="warning.svg" />
-          </Col>
-          <Col xs={10} className={"pe-4"}>
-            <div className="text-black fs-6">
-              The Geo Web Cadastre is not mobile-friendly yet. Please switch to
-              your desktop.
-            </div>
-          </Col>
-        </Row>
-      </div>
       <div className="mb-5">
         <h3 className="mb-3">What is the Geo Web?</h3>
         <p>
@@ -141,12 +121,6 @@ export default function Home(props: HomeProps) {
             className="d-flex flex-column flex-md-row justify-content-between align-items-center px-2"
           >
             {HomeContent}
-            <div className="px-3 mb-5 d-flex align-items-center flex-column">
-              <Image className="mb-2" src="/arMedia.gif" alt="arMedia" />
-              <span style={{ fontSize: "12px", color: "white" }}>
-                Browsing an AR Media Gallery on the Geo Web
-              </span>
-            </div>
           </div>
         </>
       )}

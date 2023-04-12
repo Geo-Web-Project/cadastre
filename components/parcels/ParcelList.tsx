@@ -12,8 +12,7 @@ import Foreclosure from "./Foreclosure";
 import OutstandingBid from "./OutstandingBid";
 import { STATE } from "../Map";
 import type { Point } from "@turf/turf";
-
-export const MAX_LIST_SIZE = 25;
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 interface ParcelListProps {
   sfFramework: Framework;
@@ -71,11 +70,14 @@ export enum QuerySelection {
 
 function ParcelList(props: ParcelListProps) {
   const { showParcelList, handleCloseModal } = props;
+  const { isMobile } = useMediaQuery();
 
   const [querySelected, setQuerySelected] = useState<QuerySelection>(
     QuerySelection.HIGHEST_VALUE
   );
   const [hasRefreshed, setHasRefreshed] = useState<boolean>(false);
+
+  const maxListSize = isMobile ? 10 : 25;
 
   const handleQuerySelection = (selection: QuerySelection) => {
     if (querySelected === selection) {
@@ -95,30 +97,35 @@ function ParcelList(props: ParcelListProps) {
       size="xl"
       contentClassName="bg-dark"
     >
-      <Modal.Header className="bg-dark border-0 pb-0">
+      <Modal.Header className="bg-dark border-0 p-2 p-sm-4 pb-0">
         <Container>
           <Row>
-            <Col className="text-center ps-5 text-light fs-1" sm="11">
+            <Col
+              className="text-sm-center ps-0 ps-sm-5 text-light fs-1"
+              xs="9"
+              sm="11"
+            >
               Geo Web Parcels
             </Col>
-            <Col sm="1" className="text-end">
+            <Col xs="3" sm="1" className="p-0 text-end">
               <Button
                 variant="link"
                 size="sm"
+                className="p-0"
                 onClick={() => handleCloseModal()}
               >
-                <Image style={{ width: "36px" }} src="close.svg" />
+                <Image width={36} src="close.svg" />
               </Button>
             </Col>
           </Row>
           <Row className="mt-4 p-0">
             {Object.values(QuerySelection).map((selection, i) => (
-              <Col className="p-1" key={i}>
+              <Col xs="6" xl="2" className="p-1" key={i}>
                 <Button
                   variant={`${
                     querySelected === selection ? "primary" : "outline-info"
                   }`}
-                  className="w-100"
+                  className="px-1 w-100"
                   onClick={() => handleQuerySelection(selection)}
                 >
                   {selection}
@@ -136,41 +143,47 @@ function ParcelList(props: ParcelListProps) {
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light text-start">
+      <Modal.Body className="p-1 pt-3 p-sm-3 bg-dark text-light text-start">
         {querySelected === QuerySelection.HIGHEST_VALUE ? (
           <HighestValue
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : querySelected === QuerySelection.RECENT ? (
           <Recent
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : querySelected === QuerySelection.RANDOM ? (
           <Random
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : querySelected === QuerySelection.NEEDS_TRASFER ? (
           <NeedsTransfer
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : querySelected === QuerySelection.FORECLOSURE ? (
           <Foreclosure
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : querySelected === QuerySelection.OUTSTANDING_BID ? (
           <OutstandingBid
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
+            maxListSize={maxListSize}
             {...props}
           />
         ) : null}

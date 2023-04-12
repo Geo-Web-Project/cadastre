@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
-import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -21,6 +21,7 @@ import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types
 import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -57,6 +58,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     sfFramework,
     paymentToken,
   } = props;
+  const { isMobile, isTablet } = useMediaQuery();
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
@@ -213,16 +215,20 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   return (
     <>
-      <Card border="secondary" className="bg-dark mt-5">
-        <Card.Header>
+      <Card
+        border={isMobile || isTablet ? "dark" : "secondary"}
+        className="bg-dark"
+      >
+        <Card.Header className="d-none d-lg-block">
           <h3>Place Bid</h3>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
               <Form.Text className="text-primary mb-1">
                 New For Sale Price ({PAYMENT_TOKEN}, Fully Collateralized)
                 <InfoTooltip
+                  top={isMobile}
                   content={
                     <div style={{ textAlign: "left" }}>
                       The current licensor will have 7 days to respond to your
@@ -289,7 +295,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 8)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"
@@ -297,8 +303,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               />
             </Form.Group>
             <br />
-            <hr className="action-form_divider" />
-            <br />
+            <div className="d-none d-lg-block">
+              <hr className="action-form_divider" />
+              <br />
+            </div>
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}

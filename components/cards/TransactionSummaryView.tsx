@@ -1,14 +1,15 @@
-import { BigNumber, ethers } from "ethers";
 import * as React from "react";
+import { BigNumber, ethers } from "ethers";
+import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import InfoTooltip from "../InfoTooltip";
+import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded } from "../../lib/utils";
-import { SidebarProps } from "../Sidebar";
-import InfoTooltip from "../InfoTooltip";
-import { STATE } from "../Map";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
-type TransactionSummaryViewProps = SidebarProps & {
+type TransactionSummaryViewProps = OffCanvasPanelProps & {
   existingNetworkFee?: BigNumber;
   newNetworkFee: BigNumber | null;
   existingAnnualNetworkFee?: BigNumber;
@@ -36,6 +37,8 @@ function TransactionSummaryView({
   sfFramework,
   paymentToken,
 }: TransactionSummaryViewProps) {
+  const { isMobile } = useMediaQuery();
+
   const txnReady = newAnnualNetworkFee != null;
 
   const isDeltaPayment = !collateralDeposit && !claimPayment;
@@ -84,7 +87,7 @@ function TransactionSummaryView({
   }, [sfFramework, paymentToken, newNetworkFee, existingNetworkFee]);
 
   const streamBufferDisplay = streamBuffer
-    ? truncateEth(formatBalance(streamBuffer), 18)
+    ? truncateEth(formatBalance(streamBuffer), 8)
     : "";
 
   let paymentView;
@@ -97,6 +100,7 @@ function TransactionSummaryView({
           ? "Max Claim Payment (to Licensor): "
           : "Claim Payment: "}
         <InfoTooltip
+          top={isMobile}
           content={
             <div style={{ textAlign: "left" }}>
               {interactionState == STATE.PARCEL_RECLAIMING &&
@@ -142,7 +146,7 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          &emsp;Purchase Payment:{" "}
+          Purchase Payment:{" "}
           <InfoTooltip
             content={
               <div style={{ textAlign: "left" }}>
@@ -158,7 +162,7 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          &emsp;Refundable Collateral:{" "}
+          Refundable Collateral:{" "}
           <InfoTooltip
             content={
               <div style={{ textAlign: "left" }}>

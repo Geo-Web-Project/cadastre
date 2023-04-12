@@ -7,7 +7,7 @@ import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
+import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
 import { SECONDS_IN_WEEK } from "../../lib/constants";
@@ -25,12 +25,13 @@ interface HighestValueProps {
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  maxListSize: number;
 }
 
 const highestValueQuery = gql`
-  query HighestValue($skip: Int) {
+  query HighestValue($first: Int, $skip: Int) {
     geoWebParcels(
-      first: 25
+      first: $first
       orderBy: currentBid__forSalePrice
       orderDirection: desc
       skip: $skip
@@ -70,6 +71,7 @@ function HighestValue(props: HighestValueProps) {
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    maxListSize,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
@@ -79,7 +81,8 @@ function HighestValue(props: HighestValueProps) {
     highestValueQuery,
     {
       variables: {
-        skip: 0 * MAX_LIST_SIZE,
+        first: maxListSize,
+        skip: 0 * maxListSize,
       },
       notifyOnNetworkStatusChange: true,
     }

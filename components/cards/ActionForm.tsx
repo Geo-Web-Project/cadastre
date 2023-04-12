@@ -13,7 +13,7 @@ import {
 } from "../../lib/constants";
 import BN from "bn.js";
 import { AssetId } from "caip";
-import { SidebarProps } from "../Sidebar";
+import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
@@ -23,8 +23,9 @@ import TransactionError from "./TransactionError";
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
-export type ActionFormProps = SidebarProps & {
+export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   licenseAddress: string;
@@ -100,6 +101,7 @@ export function ActionForm(props: ActionFormProps) {
     account,
     paymentToken.address
   );
+  const { isMobile, isTablet } = useMediaQuery();
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -298,8 +300,11 @@ export function ActionForm(props: ActionFormProps) {
 
   return (
     <>
-      <Card border="secondary" className="bg-dark mt-5">
-        <Card.Header>
+      <Card
+        border={isMobile || isTablet ? "dark" : "secondary"}
+        className="bg-dark"
+      >
+        <Card.Header className="d-none d-lg-block">
           <h3>
             {interactionState === STATE.PARCEL_EDITING
               ? "Edit"
@@ -311,7 +316,7 @@ export function ActionForm(props: ActionFormProps) {
               : null}
           </h3>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
               {interactionState == STATE.PARCEL_RECLAIMING &&
@@ -368,6 +373,7 @@ export function ActionForm(props: ActionFormProps) {
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
+                  top={isMobile}
                   content={
                     <div style={{ textAlign: "left" }}>
                       Be honest about your personal valuation! A{" "}
@@ -449,7 +455,7 @@ export function ActionForm(props: ActionFormProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 8)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"
@@ -457,8 +463,10 @@ export function ActionForm(props: ActionFormProps) {
               />
             </Form.Group>
             <br />
-            <hr className="action-form_divider" />
-            <br />
+            <div className="d-none d-lg-block">
+              <hr className="action-form_divider" />
+              <br />
+            </div>
             {summaryView}
             <br />
             <Button

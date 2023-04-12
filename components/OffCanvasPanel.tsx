@@ -1,13 +1,14 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
+import { BigNumber } from "ethers";
 import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
 import { STATE, MapProps, Coord } from "./Map";
-import { BigNumber } from "ethers";
 import ConnectWallet from "./ConnectWallet";
+import { useMediaQuery } from "../lib/mediaQuery";
 
-export type SidebarProps = MapProps & {
+export type OffCanvasPanelProps = MapProps & {
   claimBase1Coord: Coord | null;
   claimBase2Coord: Coord | null;
   selectedParcelId: string;
@@ -28,7 +29,7 @@ export interface ParcelFieldsToUpdate {
   licenseOwner: boolean;
 }
 
-function Sidebar(props: SidebarProps) {
+function OffCanvasPanel(props: OffCanvasPanelProps) {
   const {
     account,
     signer,
@@ -41,14 +42,21 @@ function Sidebar(props: SidebarProps) {
     delay,
   } = props;
 
-  const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
-    React.useState<BigNumber | null>(null);
-  const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
-    React.useState<BigNumber | null>(null);
-  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
-    React.useState<ParcelFieldsToUpdate | null>(null);
+  const { isMobile, isTablet } = useMediaQuery();
 
-  React.useEffect(() => {
+  const [perSecondFeeNumerator, setPerSecondFeeNumerator] =
+    useState<BigNumber | null>(null);
+  const [perSecondFeeDenominator, setPerSecondFeeDenominator] =
+    useState<BigNumber | null>(null);
+  const [parcelFieldsToUpdate, setParcelFieldsToUpdate] =
+    useState<ParcelFieldsToUpdate | null>(null);
+  const [requiredBid, setRequiredBid] = useState<BigNumber>(BigNumber.from(0));
+  const [minForSalePrice, setMinForSalePrice] = useState<BigNumber | null>(
+    null
+  );
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
     registryContract
       .getPerSecondFeeNumerator()
       .then((_perSecondFeeNumerator) => {
@@ -67,26 +75,27 @@ function Sidebar(props: SidebarProps) {
     });
   }, [registryContract]);
 
-  const [requiredBid, setRequiredBid] = React.useState<BigNumber>(
-    BigNumber.from(0)
-  );
-  const [minForSalePrice, setMinForSalePrice] =
-    React.useState<BigNumber | null>(null);
-  const [show, setShow] = React.useState(false);
-
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => setShow(true), 500);
   }, []);
 
-  if (!show && delay) {
+  if ((!isMobile || !isTablet) && !show && delay) {
     return null;
   }
 
   return (
     <Col
       sm="3"
-      className="position-absolute left-0 top-0 overflow-auto w-25 vh-100 bg-dark px-4 text-light"
-      style={{ zIndex: 1, paddingTop: "120px" }}
+      className={`position-absolute left-0 ${
+        isMobile || isTablet ? "bottom-0" : "top-0"
+      } overflow-auto ${isMobile || isTablet ? "w-100" : "w-25"} ${
+        isMobile || isTablet ? "" : "vh-100"
+      } bg-dark text-light px-3 pb-3`}
+      style={{
+        zIndex: 1,
+        paddingTop: isMobile || isTablet ? "6px" : "115px",
+        maxHeight: isMobile || isTablet ? "33%" : "100%",
+      }}
     >
       {perSecondFeeNumerator && perSecondFeeDenominator && minForSalePrice ? (
         <ParcelInfo
@@ -130,4 +139,4 @@ function Sidebar(props: SidebarProps) {
   );
 }
 
-export default Sidebar;
+export default OffCanvasPanel;

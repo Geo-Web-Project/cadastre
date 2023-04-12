@@ -55,7 +55,7 @@ function StreamingInfo(props: StreamingInfoProps) {
   }
 
   return (
-    <Card border="secondary" className="bg-dark my-5">
+    <Card border="secondary" className="d-none d-lg-block bg-dark my-5">
       <Card.Header>
         <h5 className="font-weight-bold">Important Note on Streaming Funds</h5>
       </Card.Header>

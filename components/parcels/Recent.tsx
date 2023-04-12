@@ -7,7 +7,7 @@ import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
+import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { STATE } from "../Map";
 import { getParcelContent } from "../../lib/utils";
@@ -25,12 +25,13 @@ interface RecentProps {
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  maxListSize: number;
 }
 
 const recentQuery = gql`
-  query Recent($skip: Int) {
+  query Recent($first: Int, $skip: Int) {
     geoWebParcels(
-      first: 25
+      first: $first
       orderBy: createdAtBlock
       orderDirection: desc
       skip: $skip
@@ -70,6 +71,7 @@ function Recent(props: RecentProps) {
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    maxListSize,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
@@ -77,7 +79,8 @@ function Recent(props: RecentProps) {
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(recentQuery, {
     variables: {
-      skip: 0 * MAX_LIST_SIZE,
+      first: maxListSize,
+      skip: 0 * maxListSize,
     },
     notifyOnNetworkStatusChange: true,
   });
