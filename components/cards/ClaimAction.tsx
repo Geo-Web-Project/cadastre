@@ -7,6 +7,7 @@ import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import axios from "axios";
 
 export type ClaimActionProps = SidebarProps & {
   signer: ethers.Signer;
@@ -116,6 +117,15 @@ function ClaimAction(props: ClaimActionProps) {
         latDim: neY - swY + 1,
       });
     const receipt = await txn.wait();
+
+    if (process.env.APP_ENV == "mainnet") {
+      await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
+        body: {
+          txHash: receipt.transactionHash,
+          referralId: "None"
+        }
+      })
+    }
 
     const filter = registryContract.filters.ParcelClaimedV2(null, null);
 
