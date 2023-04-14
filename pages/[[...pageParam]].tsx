@@ -40,10 +40,12 @@ import type { InvocationConfig } from "@web3-storage/upload-client";
 import { useAccount, useSigner, useNetwork } from "wagmi";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
+import { useRouter } from "next/router";
 
 const { httpClient, jsIpfs } = providers;
 
 function IndexPage() {
+  const router = useRouter();
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
   >(null);
@@ -197,6 +199,15 @@ function IndexPage() {
 
     start();
   }, []);
+
+    // Redirect to home if page param is longer than 1
+  React.useEffect(() => {
+    const { pageParam } = router.query;
+    console.log(pageParam);
+    if (pageParam && pageParam.length > 1) {
+      router.push("/");
+    }
+  }, [router.query]);
 
   return (
     <>
