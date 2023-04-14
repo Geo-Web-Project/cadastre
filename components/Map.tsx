@@ -17,6 +17,7 @@ import ClaimSource from "./sources/ClaimSource";
 import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
+import OpRewardAlert from "./OpRewardAlert";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
@@ -774,6 +775,7 @@ function Map(props: MapProps) {
 
   return (
     <>
+      <OpRewardAlert />
       {interactionState === STATE.CLAIM_SELECTING &&
         viewport.zoom < ZOOM_GRID_LEVEL && (
           <Alert
