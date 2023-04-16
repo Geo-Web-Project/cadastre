@@ -9,6 +9,7 @@ import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import axios from "axios";
 import { useRouter } from "next/router";
+import { DIDSession } from "did-session";
 
 export type ClaimActionProps = SidebarProps & {
   signer: ethers.Signer;
@@ -119,15 +120,26 @@ function ClaimAction(props: ClaimActionProps) {
       });
     const receipt = await txn.wait();
 
-    if (process.env.APP_ENV == "mainnet") {
-      const router = useRouter();
-      const { routeParam } = router.query;
+    const router = useRouter();
+    const { routeParam } = router.query;
+    if (process.env.APP_ENV == "mainnet" && routeParam && routeParam[0]) {
+      const sessionStr = localStorage.getItem("didsession");
+      let session;
 
+      if (sessionStr) {
+        session = await DIDSession.fromSession(sessionStr);
+      }
+
+      const jws = session?.did.createJWS({
+        txHash: receipt.transactionHash,
+        referralId: routeParam[0],
+      });
+
+      // TODO - add in the error the UCAN
       if (routeParam) {
         await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
-          body: {
-            txHash: receipt.transactionHash,
-            referralId: routeParam[0]
+          headers: {
+            jws,
           }
         });
       }
