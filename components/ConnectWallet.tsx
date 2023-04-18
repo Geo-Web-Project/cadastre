@@ -10,31 +10,28 @@ import {
 import { GeoWebContent } from "@geo-web/content";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { EthereumWebAuth, getAccountId } from "@didtools/pkh-ethereum";
-import { DIDSession } from "did-session";
+import { DIDSession, createDIDKey } from "did-session";
+import { ed25519 as EdSigner } from "@ucanto/principal";
+
 // eslint-disable-next-line import/named
 import { SiweMessage, AuthMethod } from "@didtools/cacao";
-import { create as createW3UpClient } from "@web3-storage/w3up-client";
-import {
-  SSXInit,
-  SSXClientConfig,
-  SSXClientSession,
-  SSXConnected,
-} from "@spruceid/ssx";
 import { CarReader } from "@ipld/car";
 import * as API from "@ucanto/interface";
-// eslint-disable-next-line import/no-unresolved
+import { Client } from "@web3-storage/w3up-client";
+
+/* eslint-disable import/no-unresolved */
+import { AgentData } from "@web3-storage/access/agent";
+import { StoreIndexedDB } from "@web3-storage/access/stores/store-indexeddb";
 import { import as importDelegation } from "@ucanto/core/delegation";
+/* eslint-enable */
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
 import type { IPFS } from "ipfs-core-types";
 import { NETWORK_ID, SSX_HOST, IPFS_GATEWAY } from "../lib/constants";
-
-const ssxConfig: SSXClientConfig = {
-  providers: {
-    server: { host: SSX_HOST },
-  },
-};
+import axios from "axios";
+import { randomBytes } from "@stablelib/random";
 
 type ConnectWalletProps = {
   variant?: string;
@@ -44,6 +41,18 @@ type ConnectWalletProps = {
   setGeoWebContent: React.Dispatch<React.SetStateAction<GeoWebContent | null>>;
   setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
 };
+
+async function createW3UpClient(keySeed?: Uint8Array) {
+  const store = new StoreIndexedDB("w3up-client");
+
+  if (keySeed) {
+    const principal = await EdSigner.derive(keySeed!);
+    const data = await AgentData.create({ principal }, { store });
+    return new Client(data as any);
+  }
+  const raw = await store.load();
+  if (raw) return new Client(AgentData.fromExport(raw, { store }) as any);
+}
 
 export default function ConnectWallet(props: ConnectWalletProps) {
   const {
@@ -62,16 +71,14 @@ export default function ConnectWallet(props: ConnectWalletProps) {
   const { openChainModal } = useChainModal();
   const { disconnect } = useDisconnect();
 
-  const loadCeramicSession = async (
-    ssxConnection: SSXConnected,
-    authMethod: AuthMethod,
-    address: string
-  ): Promise<DIDSession | undefined> => {
+  const loadSIWESession = async (authMethod: AuthMethod, address: string) => {
     const sessionStr = localStorage.getItem("didsession");
     let session;
+    let w3Client: Client | undefined = undefined;
 
     if (sessionStr) {
       session = await DIDSession.fromSession(sessionStr);
+      w3Client = await createW3UpClient();
     }
 
     if (
@@ -80,13 +87,23 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       !session.cacao.p.iss.includes(address)
     ) {
       try {
-        // Get nonce
-        const nonce = await ssxConnection.ssxServerNonce({});
         // Create DIDSession
-        session = await DIDSession.authorize(authMethod, {
+        const keySeed = randomBytes(32);
+        const didKey = await createDIDKey(keySeed);
+        console.log(didKey.id);
+        const cacao = await authMethod({
           resources: ["ceramic://*"],
-          nonce,
+          uri: didKey.id,
         });
+        const didCacao = await DIDSession.initDID(didKey, cacao);
+        session = new DIDSession({
+          cacao,
+          keySeed,
+          did: didCacao,
+        });
+
+        // Create W3Client
+        w3Client = await createW3UpClient(keySeed);
 
         // Save DIDSession
         localStorage.setItem("didsession", session.serialize());
@@ -96,61 +113,34 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       }
     }
 
-    return session;
+    return { session, w3Client };
   };
 
   const loadStorageDelegation = async (
-    ssxConnection: SSXConnected,
-    session: DIDSession
+    session: DIDSession,
+    w3Client: Client
   ) => {
-    const w3Client = await createW3UpClient();
-    let sessionKey = ssxConnection.builder.jwk();
-
-    let ssxSession: SSXClientSession;
-    try {
-      // Login to SSX
-      sessionKey = ssxConnection.builder.jwk();
-      if (sessionKey === undefined) {
-        return Promise.reject(new Error("unable to retrieve session key"));
-      }
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      ssxSession = {
-        address: address!,
-        walletAddress: await signer!.getAddress(),
-        chainId: chain!.id,
-        sessionKey,
-        siwe: SiweMessage.fromCacao(session.cacao).toMessage(),
-        signature: session.cacao.s!.s,
-      };
-      await ssxConnection.ssxServerLogin(ssxSession);
-    } catch (err) {
-      console.error(err);
-    }
-
     if (w3Client.proofs().length === 0) {
       try {
         // Request delegation
-        const delegationResp = await ssxConnection.api!.request({
-          method: "post",
-          url: "/storage/delegation",
-          responseType: "blob",
-          data: {
-            siwe: ssxSession!.siwe,
-            signature: ssxSession!.signature,
-            daoLogin: false,
-            resolveEns: false,
-            resolveLens: false,
-            aud: w3Client.agent().did(),
+        const delegationResp = await axios.post(
+          `${SSX_HOST}/delegations/storage`,
+          {
+            siwe: SiweMessage.fromCacao(session.cacao),
           },
-        });
-        /* eslint-enable */
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            responseType: "arraybuffer",
+          }
+        );
 
         // Save delegation
         if (delegationResp.status !== 200) {
-          throw new Error("Unknown status from /storage/delegation");
+          throw new Error("Unknown status from storage delegations");
         }
-        const delegationRespBuf = await delegationResp.data.arrayBuffer();
-        const delegationRespBytes = new Uint8Array(delegationRespBuf);
+        const delegationRespBytes = new Uint8Array(delegationResp.data);
         const carReader = await CarReader.fromBytes(delegationRespBytes);
         const blocks: API.Block[] = [];
         for await (const block of carReader.blocks()) {
@@ -161,6 +151,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
         const delegation = importDelegation(blocks);
         await w3Client.addProof(delegation);
       } catch (err) {
+        console.error(err);
         localStorage.removeItem("didsession");
         // initSession();
         return;
@@ -200,34 +191,17 @@ export default function ConnectWallet(props: ConnectWalletProps) {
       (signer.provider as any).provider,
       accountId
     );
-    const ssxInit = new SSXInit({
-      ...ssxConfig,
-      providers: {
-        ...ssxConfig.providers,
-        web3: {
-          driver: signer?.provider,
-        },
-      },
-    });
-    const ssxConnection = await ssxInit.connect();
 
-    const session = await loadCeramicSession(
-      ssxConnection,
-      authMethod,
-      address
-    );
+    const { session, w3Client } = await loadSIWESession(authMethod, address);
 
-    if (!session) {
+    if (!session || !w3Client) {
       return;
     }
 
     ceramic.did = session.did;
     setCeramic(ceramic);
 
-    const w3InvocationConfig = await loadStorageDelegation(
-      ssxConnection,
-      session
-    );
+    const w3InvocationConfig = await loadStorageDelegation(session, w3Client);
     const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic: ceramic as any,
