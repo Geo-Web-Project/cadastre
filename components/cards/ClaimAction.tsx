@@ -122,7 +122,7 @@ function ClaimAction(props: ClaimActionProps) {
 
     const router = useRouter();
     const { routeParam } = router.query;
-    if (process.env.APP_ENV == "mainnet" && routeParam && routeParam[0]) {
+    if (routeParam && routeParam[0]) {
       const sessionStr = localStorage.getItem("didsession");
       let session;
 
@@ -130,16 +130,16 @@ function ClaimAction(props: ClaimActionProps) {
         session = await DIDSession.fromSession(sessionStr);
       }
 
-      const jws = session?.did.createJWS({
+      const jwt = await session?.did.createJWS({
         txHash: receipt.transactionHash,
         referralId: routeParam[0],
       });
 
-      // TODO - add in the error the UCAN
+      // TODO - add in the header the UCAN
       if (routeParam) {
         await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
           headers: {
-            jws,
+            jwt: JSON.stringify(jwt),
           }
         });
       }
