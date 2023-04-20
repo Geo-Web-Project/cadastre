@@ -200,15 +200,6 @@ function IndexPage() {
     start();
   }, []);
 
-    // Redirect to home if page param is longer than 1
-  React.useEffect(() => {
-    const { pageParam } = router.query;
-    console.log(pageParam);
-    if (pageParam && pageParam.length > 1) {
-      router.push("/");
-    }
-  }, [router.query]);
-
   return (
     <>
       <Container fluid>
