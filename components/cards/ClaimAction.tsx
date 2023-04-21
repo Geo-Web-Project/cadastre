@@ -125,7 +125,6 @@ function ClaimAction(props: ClaimActionProps) {
       });
     const receipt = await txn.wait();
 
-
     const { pageParam } = router.query;
     if (pageParam && pageParam[0]) {
       const sessionStr = localStorage.getItem("didsession");
@@ -134,34 +133,36 @@ function ClaimAction(props: ClaimActionProps) {
       if (sessionStr) {
         session = await DIDSession.fromSession(sessionStr);
 
-      const jwt = await session?.did.createJWS({
-        txHash: receipt.transactionHash,
-        referralId: pageParam[0],
-      });
+        const jwt = await session?.did.createJWS({
+          txHash: receipt.transactionHash,
+          referralId: pageParam[0],
+        });
 
-      const delegationResp = await axios.post(
-        `${SSX_HOST}/delegations/claim-referral`,
-        {
-          siwe: SiweMessage.fromCacao(session.cacao),
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
+        const delegationResp = await axios.post(
+          `${SSX_HOST}/delegations/claim-referral`,
+          {
+            siwe: SiweMessage.fromCacao(session.cacao),
           },
-          responseType: "arraybuffer",
-        }
-      );
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            responseType: "arraybuffer",
+          }
+        );
 
-      const carReader = await CarReader.fromBytes(new Uint8Array(delegationResp.data));
-      const block = (await (carReader.blocks().next())).value;
-      const ucan = UCAN.decode(block.bytes);
+        const carReader = await CarReader.fromBytes(
+          new Uint8Array(delegationResp.data)
+        );
+        const block = (await carReader.blocks().next()).value;
+        const ucan = UCAN.decode(block.bytes);
 
-      await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
-        headers: {
-          jwt: JSON.stringify(jwt),
-          ucan: UCAN.format(ucan)
-        }
-      });
+        await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
+          headers: {
+            jwt: JSON.stringify(jwt),
+            ucan: UCAN.format(ucan),
+          },
+        });
       }
     }
 
