@@ -52,6 +52,8 @@ function ClaimAction(props: ClaimActionProps) {
 
   const { displayNewForSalePrice } = actionData;
 
+  const router = useRouter();
+
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
@@ -123,9 +125,9 @@ function ClaimAction(props: ClaimActionProps) {
       });
     const receipt = await txn.wait();
 
-    const router = useRouter();
-    const { routeParam } = router.query;
-    if (routeParam && routeParam[0]) {
+
+    const { pageParam } = router.query;
+    if (pageParam && pageParam[0]) {
       const sessionStr = localStorage.getItem("didsession");
       let session;
 
@@ -134,7 +136,7 @@ function ClaimAction(props: ClaimActionProps) {
 
       const jwt = await session?.did.createJWS({
         txHash: receipt.transactionHash,
-        referralId: routeParam[0],
+        referralId: pageParam[0],
       });
 
       const delegationResp = await axios.post(
