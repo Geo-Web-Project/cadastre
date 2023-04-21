@@ -4,12 +4,15 @@ import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { DIDSession } from "did-session";
+import { SiweMessage } from "@didtools/cacao";
+import * as UCAN from "@ipld/dag-ucan";
+import { CarReader } from "@ipld/car/reader";
 
 export type ClaimActionProps = SidebarProps & {
   signer: ethers.Signer;
@@ -128,20 +131,35 @@ function ClaimAction(props: ClaimActionProps) {
 
       if (sessionStr) {
         session = await DIDSession.fromSession(sessionStr);
-      }
 
       const jwt = await session?.did.createJWS({
         txHash: receipt.transactionHash,
         referralId: routeParam[0],
       });
 
-      // TODO - add in the header the UCAN
-      if (routeParam) {
-        await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
+      const delegationResp = await axios.post(
+        `${SSX_HOST}/delegations/claim-referral`,
+        {
+          siwe: SiweMessage.fromCacao(session.cacao),
+        },
+        {
           headers: {
-            jwt: JSON.stringify(jwt),
-          }
-        });
+            "Content-Type": "application/json",
+          },
+          responseType: "arraybuffer",
+        }
+      );
+
+      const carReader = await CarReader.fromBytes(new Uint8Array(delegationResp.data));
+      const block = (await (carReader.blocks().next())).value;
+      const ucan = UCAN.decode(block.bytes);
+
+      await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
+        headers: {
+          jwt: JSON.stringify(jwt),
+          ucan: UCAN.format(ucan)
+        }
+      });
       }
     }
 
