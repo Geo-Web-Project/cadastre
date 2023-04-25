@@ -16,11 +16,11 @@ import {
   CERAMIC_URL,
   IPFS_GATEWAY,
   IPFS_DELEGATE,
+  SSX_HOST,
 } from "../lib/constants";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 
@@ -41,9 +41,51 @@ import { useAccount, useSigner, useNetwork } from "wagmi";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
 
+import { Client as W3Client } from "@web3-storage/w3up-client";
+import { DIDSession } from "did-session";
+import { ed25519 as EdSigner } from "@ucanto/principal";
+import { CarReader } from "@ipld/car";
+import * as API from "@ucanto/interface";
+
+/* eslint-disable import/no-unresolved */
+import { AgentData } from "@web3-storage/access/agent";
+import { StoreIndexedDB } from "@web3-storage/access/stores/store-indexeddb";
+import { import as importDelegation } from "@ucanto/core/delegation";
+/* eslint-enable */
+
+// eslint-disable-next-line import/named
+import { SiweMessage } from "@didtools/cacao";
+import axios from "axios";
+import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
+import * as u8a from "uint8arrays";
+
 const { httpClient, jsIpfs } = providers;
 
-function IndexPage() {
+async function createW3UpClient(didSession: DIDSession) {
+  const store = new StoreIndexedDB("w3up-client");
+
+  try {
+    const sessionJson = JSON.parse(
+      u8a.toString(u8a.fromString(didSession.serialize(), "base64url"))
+    );
+    const principal = await EdSigner.derive(
+      u8a.fromString(sessionJson["sessionKeySeed"], "base64pad")
+    );
+    const data = await AgentData.create({ principal }, { store });
+    return new W3Client(data as any);
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+}
+
+function IndexPage({
+  authStatus,
+  setAuthStatus,
+}: {
+  authStatus: AuthenticationStatus;
+  setAuthStatus: (_: AuthenticationStatus) => void;
+}) {
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
   >(null);
@@ -92,6 +134,128 @@ function IndexPage() {
   const { chain } = useNetwork();
   const { address } = useAccount();
   const { data: signer } = useSigner();
+
+  async function resetSession() {
+    const store = new StoreIndexedDB("w3up-client");
+    await store.reset();
+
+    localStorage.removeItem("didsession");
+
+    console.debug("Reset SIWE session");
+
+    setAuthStatus("unauthenticated");
+  }
+
+  const loadSIWESession = async (address: string) => {
+    const sessionStr = localStorage.getItem("didsession");
+    let session;
+    let w3Client: W3Client | undefined = undefined;
+
+    if (sessionStr) {
+      session = await DIDSession.fromSession(sessionStr);
+      w3Client = await createW3UpClient(session);
+    }
+
+    if (
+      !session ||
+      (session.hasSession && session.isExpired) ||
+      !session.cacao.p.iss.includes(address)
+    ) {
+      await resetSession();
+    }
+
+    return { session, w3Client };
+  };
+
+  const loadStorageDelegation = async (
+    session: DIDSession,
+    w3Client: W3Client
+  ) => {
+    if (w3Client.proofs().length === 0) {
+      try {
+        // Request delegation
+        const delegationResp = await axios.post(
+          `${SSX_HOST}/delegations/storage`,
+          {
+            siwe: SiweMessage.fromCacao(session.cacao),
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            responseType: "arraybuffer",
+          }
+        );
+
+        // Save delegation
+        if (delegationResp.status !== 200) {
+          throw new Error("Unknown status from storage delegations");
+        }
+        const delegationRespBytes = new Uint8Array(delegationResp.data);
+        const carReader = await CarReader.fromBytes(delegationRespBytes);
+        const blocks: API.Block[] = [];
+        for await (const block of carReader.blocks()) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          blocks.push(block as any);
+        }
+
+        const delegation = importDelegation(blocks);
+        await w3Client.addProof(delegation);
+      } catch (err) {
+        console.error(err);
+        await resetSession();
+        return;
+      }
+    }
+
+    const proofs = w3Client.proofs();
+    if (proofs.length === 0) {
+      throw new Error("Could not find any proofs");
+    }
+    if (proofs[0].capabilities.length === 0) {
+      throw new Error("Could not find any capabilities");
+    }
+    const space = proofs[0].capabilities[0].with;
+    const w3InvocationConfig = {
+      issuer: w3Client.agent(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      with: space as any,
+      proofs: proofs,
+    };
+
+    return w3InvocationConfig;
+  };
+
+  const initSession = async () => {
+    if (!address || !signer || !ipfs || !ceramic || chain?.id !== NETWORK_ID) {
+      return;
+    }
+
+    const { session, w3Client } = await loadSIWESession(address);
+
+    if (!session || !w3Client) {
+      return;
+    }
+
+    ceramic.did = session.did;
+    setCeramic(ceramic);
+
+    const w3InvocationConfig = await loadStorageDelegation(session, w3Client);
+    const geoWebContent = new GeoWebContent({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceramic: ceramic as any,
+      ipfsGatewayHost: IPFS_GATEWAY,
+      ipfs,
+      w3InvocationConfig,
+    });
+
+    setW3InvocationConfig(w3InvocationConfig);
+    setGeoWebContent(geoWebContent);
+  };
+
+  React.useEffect(() => {
+    initSession();
+  }, [authStatus, signer, address, ipfs, ceramic]);
 
   React.useEffect(() => {
     const start = async () => {
@@ -264,14 +428,7 @@ function IndexPage() {
                   setShouldRefetchParcelsData={setShouldRefetchParcelsData}
                 />
               ) : (
-                <ConnectWallet
-                  variant="header"
-                  ipfs={ipfs}
-                  ceramic={ceramic}
-                  setCeramic={setCeramic}
-                  setGeoWebContent={setGeoWebContent}
-                  setW3InvocationConfig={setW3InvocationConfig}
-                />
+                <ConnectWallet variant="header" />
               )}
             </div>
             <NavMenu />
