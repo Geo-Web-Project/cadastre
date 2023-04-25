@@ -20,9 +20,11 @@ export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";
+
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
 
+export const BETA_AGREEMENT_KEY = "storedBetaAgreement";
 export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
@@ -31,4 +33,8 @@ export const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
 export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;
+export const MAX_PARCEL_SIDE_DIM = 200;
 export const MAX_PARCEL_CLAIM = 3000;
+export const DRAWER_PREVIEW_HEIGHT_PARCEL = 162;
+export const DRAWER_CLAIM_HEIGHT = 280;
+export const DRAWER_PREVIEW_HEIGHT_TRANSACTION = 84;

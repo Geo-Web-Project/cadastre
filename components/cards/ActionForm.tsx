@@ -407,7 +407,7 @@ export function ActionForm(props: ActionFormProps) {
                     ? "bg-dark text-info mt-1"
                     : "bg-dark text-light mt-1"
                 }
-                type="text"
+                type="number"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"

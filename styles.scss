@@ -38,6 +38,22 @@ $dropdown-dark-bg: $dark;
 $dropdown-dark-link-hover-color: $light;
 $dropdown-dark-link-hover-bg: $purple;
 
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .dropdown-menu {
   top: 68px !important;
 }
@@ -59,12 +75,12 @@ $dropdown-dark-link-hover-bg: $purple;
   @media (min-width: 1800px) {
     width: 350px !important;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 1200px) {
     height: 42px !important;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1200px) {
   .mapboxgl-ctrl-geocoder--input {
     height: 42px !important;
   }
@@ -86,6 +102,14 @@ $dropdown-dark-link-hover-bg: $purple;
   border-radius: 0 !important;
 }
 
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out,
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in {
+  @media (max-width: 1200px) {
+    width: 36px !important;
+    height: 34px !important;
+  }
+}
+
 .mapboxgl-ctrl-icon {
   background: map-get($theme-colors, "dark");
 }
@@ -100,14 +124,13 @@ $dropdown-dark-link-hover-bg: $purple;
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon {
   border-bottom: 1px solid #ddd;
 }
-
-.mapboxgl-ctrl-logo {
+.mapbox-improve-map {
   display: none !important;
 }
 
 .map-style-btn {
-  padding: 3px !important;
-  max-width: 36px !important;
+  padding: 6px !important;
+  max-width: 46px !important;
 }
 
 .grid-switch.btn:hover,
@@ -176,9 +199,12 @@ $dropdown-dark-link-hover-bg: $purple;
   @media (min-width: 1800px) {
     right: 394px;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 576px) {
     right: 255px;
     width: 42px !important;
+    height: 42px !important;
+  }
+  @media (max-width: 1200px) {
     height: 42px !important;
   }
 }
@@ -224,7 +250,6 @@ $dropdown-dark-link-hover-bg: $purple;
   overflow-y: auto;
   table-layout: fixed;
   scrollbar-width: none; // Firefox
-  max-height: 256px;
 }
 
 .scrollable-table tbody::-webkit-scrollbar-track {

@@ -37,7 +37,7 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
   }, []);
 
   return (
-    <Card className="bg-gray rounded me-lg-3 me-xl-0">
+    <Card className="bg-gray rounded me-xl-0">
       <Card.Body className="d-flex justify-content-around flex-wrap p-0">
         <CopyTooltip
           contentClick="Copied"
@@ -58,8 +58,10 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
                 <span
                   style={{
                     fontSize:
-                      (isMobile || isTablet) && options.size === "small"
+                      isMobile && options.size === "small"
                         ? "0.8rem"
+                        : isTablet && options.size === "small"
+                        ? "0.9rem"
                         : "1rem",
                   }}
                 >

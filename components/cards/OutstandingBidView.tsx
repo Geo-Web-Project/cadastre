@@ -298,7 +298,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   };
 
   return (
-    <Card className="bg-purple bg-opacity-25">
+    <Card className="bg-purple bg-opacity-25 mt-4 mt-sm-5 mt-lg-0">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
@@ -399,7 +399,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
             </Button>
           </>
         ) : null}
-        {shouldAllowTrigger ? (
+        {shouldAllowTrigger && signer ? (
           <Button
             variant="primary"
             className="w-100 mb-2"

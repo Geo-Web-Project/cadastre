@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
-import { NETWORK_ID } from "./constants";
+import React from "react";
+
+if (!process.browser) React.useLayoutEffect = () => void 0;
 
 function useMediaQuery() {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isTablet, setIsTablet] = useState<boolean>(false);
-  const [isDesktop, setIsDesktop] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
+  const [isTablet, setIsTablet] = React.useState<boolean>(false);
+  const [isDesktop, setIsDesktop] = React.useState<boolean>(false);
 
-  useEffect(() => {
+  React.useLayoutEffect(() => {
     let remove: (() => void) | null = null;
 
     const updateMediaScreen = () => {
@@ -34,17 +35,15 @@ function useMediaQuery() {
         setIsDesktop(true);
       }
 
-      if (NETWORK_ID !== 10) {
-        mobileQuery.addEventListener("change", updateMediaScreen);
-        tabletQuery.addEventListener("change", updateMediaScreen);
-        desktopQuery.addEventListener("change", updateMediaScreen);
+      mobileQuery.addEventListener("change", updateMediaScreen);
+      tabletQuery.addEventListener("change", updateMediaScreen);
+      desktopQuery.addEventListener("change", updateMediaScreen);
 
-        remove = () => {
-          mobileQuery.removeEventListener("change", updateMediaScreen);
-          tabletQuery.removeEventListener("change", updateMediaScreen);
-          desktopQuery.removeEventListener("change", updateMediaScreen);
-        };
-      }
+      remove = () => {
+        mobileQuery.removeEventListener("change", updateMediaScreen);
+        tabletQuery.removeEventListener("change", updateMediaScreen);
+        desktopQuery.removeEventListener("change", updateMediaScreen);
+      };
     };
 
     updateMediaScreen();

@@ -13,7 +13,6 @@ export const gridLayer: LayerProps = {
 export const gridHighlightLayer: LayerProps = {
   id: "grid-highlight-layer",
   type: "fill",
-  source: "grid-layer",
   paint: {
     "fill-color": "#FFFFFF",
     "fill-outline-color": "#000000",
@@ -24,13 +23,28 @@ export function claimLayer(isValid: boolean): LayerProps {
   return {
     id: "claim-layer",
     type: "fill",
-    source: "grid-layer",
     paint: {
       "fill-color": isValid ? "#FAFF00" : "#E11515",
       "fill-opacity": 0.75,
     },
   };
 }
+export const claimPointLayer: LayerProps = {
+  id: "claim-point-layer",
+  type: "circle",
+  paint: {
+    "circle-radius": {
+      stops: [
+        [0, 0],
+        [17, 10],
+        [22, 50],
+      ],
+      base: 2,
+    },
+    "circle-color": "#2fc1c1",
+  },
+  filter: ["==", "$type", "Point"],
+};
 export const cellHoverLayer: LayerProps = {
   id: "cell-hover-layer",
   type: "fill",

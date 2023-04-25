@@ -9,10 +9,12 @@ export type InfoTooltipProps = {
 
 function InfoTooltip(props: InfoTooltipProps) {
   const { content, target } = props;
+
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const handleOnMouseEnter = () => setShowTooltip(true);
-  const handleOnMouseLeave = () => setShowTooltip(false);
+  const handleMouseEnter = () => setShowTooltip(true);
+  const handleMouseLeave = () => setShowTooltip(false);
+  const handleTouchEnd = () => setShowTooltip(!showTooltip);
 
   return (
     <OverlayTrigger
@@ -21,14 +23,18 @@ function InfoTooltip(props: InfoTooltipProps) {
       placement={top ? "top" : "right-end"}
       overlay={
         <Tooltip
-          onMouseEnter={handleOnMouseEnter}
-          onMouseLeave={handleOnMouseLeave}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           {content}
         </Tooltip>
       }
     >
-      <span onMouseEnter={handleOnMouseEnter} onMouseLeave={handleOnMouseLeave}>
+      <span
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onTouchEnd={handleTouchEnd}
+      >
         {target}
       </span>
     </OverlayTrigger>

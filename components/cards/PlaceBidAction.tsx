@@ -255,7 +255,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light mt-1"
-                type="text"
+                type="number"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"

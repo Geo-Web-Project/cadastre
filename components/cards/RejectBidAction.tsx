@@ -356,7 +356,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light mt-1"
-                type="text"
+                type="number"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 defaultValue={bidForSalePriceDisplay}
                 aria-label="For Sale Price"

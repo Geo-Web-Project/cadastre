@@ -40,7 +40,7 @@ function ParcelTable(props: ParcelTableProps) {
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody style={{ maxHeight: 512 }}>
+            <tbody style={{ maxHeight: "50svh" }}>
               {parcels.map((parcel, i) => {
                 return (
                   <tr key={i}>

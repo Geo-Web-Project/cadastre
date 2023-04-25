@@ -59,8 +59,9 @@ function GalleryModal(props: GalleryModalProps) {
     <Modal
       show={show}
       backdrop="static"
-      keyboard={false}
       centered
+      scrollable
+      keyboard={false}
       size="xl"
       onHide={handleClose}
       contentClassName="bg-dark"
@@ -93,10 +94,8 @@ function GalleryModal(props: GalleryModalProps) {
               <a href="https://geoweb.app" target="_blank" rel="noreferrer">
                 spatial browser
               </a>
-              .
-              <br />
-              .glb and .usdz (iOS only) files can be viewed in AR on compatible
-              devices.
+              . GLB and USDZ (iOS only) files can be viewed in AR on
+              compatible devices.
             </p>
             <div className="border border-secondary rounded p-2 p-sm-3 text-center">
               <GalleryForm

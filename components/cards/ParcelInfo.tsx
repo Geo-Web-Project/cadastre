@@ -99,6 +99,8 @@ export type ParcelInfoProps = OffCanvasPanelProps & {
   minForSalePrice: BigNumber;
   licenseAddress: string;
   geoWebContent: GeoWebContent;
+  isFullSize: boolean;
+  setIsFullSize: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -119,6 +121,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
+    isFullSize,
+    setIsFullSize,
   } = props;
   const { isMobile, isTablet } = useMediaQuery();
   const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
@@ -297,6 +301,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100"
       onClick={() => {
         setInteractionState(STATE.PARCEL_SELECTED);
+        setIsFullSize(true);
       }}
     >
       Cancel
@@ -309,6 +314,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100 mb-2"
       onClick={() => {
         setInteractionState(STATE.PARCEL_EDITING);
+        setIsFullSize(true);
       }}
     >
       Edit Parcel
@@ -321,6 +327,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100"
       onClick={() => {
         setInteractionState(STATE.EDITING_GALLERY);
+        setIsFullSize(true);
       }}
     >
       Edit Media Gallery
@@ -334,6 +341,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         className="w-100"
         onClick={() => {
           setInteractionState(STATE.PARCEL_PLACING_BID);
+          setIsFullSize(true);
         }}
       >
         Place Bid
@@ -346,7 +354,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   if (
     interactionState === STATE.CLAIM_SELECTING ||
     interactionState === STATE.CLAIM_SELECTED ||
-    (interactionState !== STATE.PARCEL_SELECTED && isMobile && isTablet)
+    (interactionState !== STATE.PARCEL_SELECTED && (isMobile || isTablet))
   ) {
     const headerText =
       interactionState === STATE.PARCEL_PLACING_BID
@@ -363,29 +371,24 @@ function ParcelInfo(props: ParcelInfoProps) {
         : "Claim a Parcel";
     header = (
       <>
-        <Row className="mw-100 pt-1 pb-0 p-sm-0">
+        <Row
+          className={`${
+            (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
+          } p-sm-0`}
+        >
           <Col sm="10" className="w-75">
             <span className="fs-4 fw-bold">{headerText}</span>
           </Col>
-          <Col xs="3" className="p-0">
-            <Button
-              variant="link"
-              size="sm"
-              className="text-end float-end px-0"
-              onClick={() => setInteractionState(STATE.VIEWING)}
-            >
-              <Image width={28} src="close.svg" />
-            </Button>
-          </Col>
         </Row>
-        {interactionState !== STATE.CLAIM_SELECTING && (
-          <Row className="m-0 p-0 pb-3 pb-lg-4">
-            <BackButton
-              interactionState={interactionState}
-              setInteractionState={setInteractionState}
-            />
-          </Row>
-        )}
+        {((!isMobile && !isTablet) || isFullSize) &&
+          interactionState !== STATE.CLAIM_SELECTING && (
+            <Row className="m-0 p-0 pb-3 pb-lg-4">
+              <BackButton
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+              />
+            </Row>
+          )}
       </>
     );
   } else {
@@ -394,45 +397,34 @@ function ParcelInfo(props: ParcelInfoProps) {
       interactionState === STATE.PARCEL_SELECTED || (!isMobile && !isTablet) ? (
         <>
           <div
-            className="rounded-3 mt-2 mt-sm-0"
+            className="d-flex flex-column justify-content-between rounded-3 p-0 pt-2 m-0 mt-sm-0"
             style={{
               backgroundImage: "url(Contour_Lines.png)",
+              backgroundSize: "cover",
+              height: isMobile || isTablet ? "116px" : "auto",
             }}
           >
-            <div className="text-end">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setInteractionState(STATE.VIEWING)}
-              >
-                <Image src="close.svg" />
-              </Button>
-            </div>
             <Row className="m-0">
-              <Col>
-                <h1 className="fs-3 fw-bold">
-                  {parcelContent === null
-                    ? spinner
-                    : parcelContent?.name
-                    ? parcelContent.name
-                    : data?.geoWebParcel?.id
-                    ? `Parcel ${data.geoWebParcel.id}`
-                    : spinner}
-                </h1>
-              </Col>
+              <h1 className="fs-3 fw-bold">
+                {parcelContent === null
+                  ? spinner
+                  : parcelContent?.name
+                  ? parcelContent.name
+                  : data?.geoWebParcel?.id
+                  ? `Parcel ${data.geoWebParcel.id}`
+                  : spinner}
+              </h1>
             </Row>
             <Row className="m-0">
-              <Col>
-                {!parcelContent ? null : hrefWebContent ? (
-                  <a
-                    href={hrefWebContent}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="d-block text-light fw-bold text-truncate"
-                  >{`${hrefWebContent}`}</a>
-                ) : null}
-              </Col>
-              <Col className="d-flex justify-content-end gap-1 gap-sm-2 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
+              {!parcelContent ? null : hrefWebContent ? (
+                <a
+                  href={hrefWebContent}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="d-block text-light fw-bold text-truncate"
+                >{`${hrefWebContent}`}</a>
+              ) : null}
+              <div className="d-flex justify-content-end gap-1 gap-sm-2 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
                 <OverlayTrigger
                   key="chat"
                   placement="top"
@@ -483,7 +475,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                   }
                   handleCopy={copyParcelLink}
                 />
-              </Col>
+              </div>
             </Row>
           </div>
         </>
@@ -519,13 +511,13 @@ function ParcelInfo(props: ParcelInfoProps) {
     <>
       {header}
       {interactionState == STATE.PARCEL_SELECTED ||
-      ((interactionState == STATE.PARCEL_EDITING ||
-        interactionState == STATE.PARCEL_PLACING_BID ||
-        interactionState == STATE.PARCEL_REJECTING_BID ||
-        interactionState == STATE.EDITING_GALLERY) &&
-        !isMobile &&
-        !isTablet) ? (
-        <Row className="m-0 mt-1 mt-sm-3 pb-1 pb-lg-5">
+      (!isMobile &&
+        !isTablet &&
+        (interactionState == STATE.PARCEL_EDITING ||
+          interactionState == STATE.PARCEL_PLACING_BID ||
+          interactionState == STATE.PARCEL_REJECTING_BID ||
+          interactionState == STATE.EDITING_GALLERY)) ? (
+        <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
           <Col className="p-0">
             <div className="d-flex flex-column gap-1 gap-sm-3">
               <div>

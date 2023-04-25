@@ -128,8 +128,8 @@ export function App({ Component, pageProps }: AppProps) {
           siweMessage.signature = signature;
           const cacao = Cacao.fromSiweMessage(siweMessage);
           try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await Cacao.verify(cacao, {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               verifiers: getEIP191Verifier() as any,
             });
           } catch (e) {

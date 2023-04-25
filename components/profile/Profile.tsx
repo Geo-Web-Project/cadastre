@@ -64,12 +64,12 @@ function Profile(props: ProfileProps) {
   );
 
   return (
-    <ButtonGroup className="d-flex align-items-center fit-content bg-dark border-secondary">
+    <ButtonGroup className="d-flex align-items-center bg-dark border-secondary">
       <Button
         variant="secondary"
         disabled={showProfile}
         onClick={handleShowProfile}
-        className="d-none d-lg-block text-light"
+        className="d-none d-xl-block text-light rounded-start"
       >
         {isLoading || data == null ? (
           <Spinner animation="border" role="status"></Spinner>
@@ -94,9 +94,9 @@ function Profile(props: ProfileProps) {
         variant="outline-secondary"
         disabled={showProfile}
         onClick={handleShowProfile}
-        className="d-none d-lg-block text-light bg-dark"
+        className="d-none d-xl-flex align-items-center gap-1 text-light bg-dark rounded-end"
       >
-        {truncateStr(account, 14)}{" "}
+        <span>{truncateStr(account, 14)} </span>
         {portfolioNeedActionCount ? (
           <OverlayTrigger
             trigger={["hover", "focus"]}
@@ -111,14 +111,14 @@ function Profile(props: ProfileProps) {
             </Badge>
           </OverlayTrigger>
         ) : (
-          <Image src="./ProfileIcon.png" />
+          <Image src="./account-circle.svg" width={24} />
         )}
       </Button>
       <Button
         variant="link"
         disabled={showProfile}
         onClick={handleShowProfile}
-        className="ms-3 d-lg-none"
+        className="ms-3 d-xl-none"
       >
         {portfolioNeedActionCount ? (
           <OverlayTrigger
@@ -134,7 +134,7 @@ function Profile(props: ProfileProps) {
             </Badge>
           </OverlayTrigger>
         ) : (
-          <Image width={36} src="./ProfileIcon.png" />
+          <Image width={48} src="./account-circle.svg" />
         )}
       </Button>
     </ButtonGroup>
