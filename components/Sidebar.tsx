@@ -108,7 +108,7 @@ function Sidebar(props: SidebarProps) {
         />
       ) : null}
       {interactionState === STATE.CLAIM_SELECTED && !account ? (
-        <ConnectWallet variant="claim" {...props} />
+        <ConnectWallet variant="claim" />
       ) : interactionState === STATE.CLAIM_SELECTED &&
         account &&
         signer &&
