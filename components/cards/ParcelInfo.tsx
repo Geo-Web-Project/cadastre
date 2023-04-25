@@ -463,7 +463,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     if (!account) {
       buttons = (
         <>
-          <ConnectWallet {...props} />
+          <ConnectWallet />
           {!hasOutstandingBid && <AuctionInstructions />}
         </>
       );
