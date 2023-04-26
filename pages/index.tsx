@@ -72,6 +72,7 @@ async function createW3UpClient(didSession: DIDSession) {
       u8a.fromString(sessionJson["sessionKeySeed"], "base64pad")
     );
     const data = await AgentData.create({ principal }, { store });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new W3Client(data as any);
   } catch (e) {
     console.error(e);
@@ -127,7 +128,7 @@ function IndexPage({
     React.useState<GeoWebContent | null>(null);
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
-  const [isFirstVisit, setIsFirstVisit] = React.useState<boolean>(false);
+  const [isFirstVisit, setIsFirstVisit] = React.useState<boolean>(true);
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
 
@@ -259,10 +260,6 @@ function IndexPage({
 
   React.useEffect(() => {
     const start = async () => {
-      const isFirstVisit = localStorage.getItem("gwCadastreAlreadyVisited")
-        ? false
-        : true;
-      setIsFirstVisit(isFirstVisit);
       // eslint-disable-next-line import/no-unresolved
       import("as-geo-web-coordinate").then((geoWebCoordinate) => {
         setGeoWebCoordinate(geoWebCoordinate);
@@ -369,10 +366,9 @@ function IndexPage({
           bg="dark"
           variant="dark"
           fixed="top"
-          style={{ height: "100px" }}
           className="border-bottom border-purple border-opacity-25"
         >
-          <Col className="ms-1 ps-3 ms-sm-4">
+          <Col xl="3" className="d-none d-xl-block ps-5">
             <div
               className="d-flex align-items-center text-light"
               style={{
@@ -384,53 +380,65 @@ function IndexPage({
                 style={{ height: "1.1em", marginRight: "10px" }}
                 src="logo.png"
               />
-              <span className="d-none d-sm-block fs-1">Cadastre</span>
-              <span className="d-none d-sm-block fs-6 align-self-start">
-                BETA
-              </span>
+              <span className="fs-1">Cadastre</span>
+              <span className="fs-6 align-self-start">BETA</span>
             </div>
           </Col>
-          <Col xs="6" sm="4">
+          <Col xl="5" className="d-none d-xl-block ms-5">
             <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
           </Col>
-          <Col className="d-flex justify-content-end align-items-center gap-3 pe-1 text-end">
-            <div className="d-none d-sm-block">
-              {address &&
-              signer &&
-              sfFramework &&
-              ceramic &&
-              ipfs &&
-              ceramic.did &&
-              geoWebContent &&
-              registryContract &&
-              paymentToken &&
-              chain?.id === NETWORK_ID &&
-              library ? (
-                <Profile
-                  account={address.toLowerCase()}
-                  signer={signer}
-                  sfFramework={sfFramework}
-                  ceramic={ceramic}
-                  setCeramic={setCeramic}
-                  ipfs={ipfs}
-                  setW3InvocationConfig={setW3InvocationConfig}
-                  geoWebContent={geoWebContent}
-                  setGeoWebContent={setGeoWebContent}
-                  registryContract={registryContract}
-                  paymentToken={paymentToken}
-                  portfolioNeedActionCount={portfolioNeedActionCount}
-                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                  setSelectedParcelId={setSelectedParcelId}
-                  interactionState={interactionState}
-                  setInteractionState={setInteractionState}
-                  setParcelNavigationCenter={setParcelNavigationCenter}
-                  shouldRefetchParcelsData={shouldRefetchParcelsData}
-                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-                />
-              ) : (
-                <ConnectWallet variant="header" />
-              )}
-            </div>
+          <Col
+            xs="3"
+            sm="4"
+            xl="3"
+            className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-3"
+          >
+            {address &&
+            signer &&
+            sfFramework &&
+            ceramic &&
+            ipfs &&
+            ceramic.did &&
+            geoWebContent &&
+            registryContract &&
+            paymentToken &&
+            chain?.id === NETWORK_ID &&
+            library ? (
+              <Profile
+                account={address.toLowerCase()}
+                signer={signer}
+                sfFramework={sfFramework}
+                ceramic={ceramic}
+                setCeramic={setCeramic}
+                ipfs={ipfs}
+                setW3InvocationConfig={setW3InvocationConfig}
+                geoWebContent={geoWebContent}
+                setGeoWebContent={setGeoWebContent}
+                registryContract={registryContract}
+                paymentToken={paymentToken}
+                portfolioNeedActionCount={portfolioNeedActionCount}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                setSelectedParcelId={setSelectedParcelId}
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+                setParcelNavigationCenter={setParcelNavigationCenter}
+                shouldRefetchParcelsData={shouldRefetchParcelsData}
+                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+              />
+            ) : (
+              <ConnectWallet variant="header" />
+            )}
+          </Col>
+          <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
+            <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
+          </Col>
+          <Col
+            xs="2"
+            sm="3"
+            lg="4"
+            xl="1"
+            className="d-flex justify-content-end justify-content-xl-start"
+          >
             <NavMenu />
           </Col>
         </Navbar>
@@ -478,11 +486,7 @@ function IndexPage({
             ></Map>
           </Row>
         ) : (
-          <Home
-            ceramic={ceramic}
-            isFirstVisit={isFirstVisit}
-            setIsFirstVisit={setIsFirstVisit}
-          />
+          <Home setIsFirstVisit={setIsFirstVisit} />
         )}
       </Container>
     </>

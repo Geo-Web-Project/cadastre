@@ -2,13 +2,13 @@ import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 
-export type ClaimActionProps = SidebarProps & {
+export type ClaimActionProps = OffCanvasPanelProps & {
   signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;

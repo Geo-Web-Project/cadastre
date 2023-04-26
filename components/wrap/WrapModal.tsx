@@ -1,5 +1,6 @@
 import * as React from "react";
 import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 import { ethers } from "ethers";
 import { useProvider } from "wagmi";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
@@ -11,9 +12,9 @@ import Spinner from "react-bootstrap/Spinner";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import Button from "react-bootstrap/Button";
-import { SidebarProps } from "../Sidebar";
+import { OffCanvasPanelProps } from "../OffCanvasPanel";
 
-type WrapModalProps = SidebarProps & {
+type WrapModalProps = OffCanvasPanelProps & {
   account: string;
   show: boolean;
   handleClose: () => void;
@@ -151,50 +152,38 @@ function WrapModal({
         />
       </Modal.Header>
       <Modal.Body className="bg-dark text-light position-relative">
-        <p>Current Balances</p>
-        <div style={{ padding: "0 16px" }}>
-          <p>ETH: {ETHBalance ? truncateEth(ETHBalance, 8) : "---"}</p>
-          <p className="mb-0 me-3">
-            ETHx:{" "}
-            {isLoading || data == null ? (
-              <Spinner animation="border" role="status"></Spinner>
-            ) : (
-              <FlowingBalance
-                format={(x) => truncateEth(ethers.utils.formatUnits(x), 8)}
-                accountTokenSnapshot={data.items[0]}
-              />
-            )}
-          </p>
-          <div
-            className="position-absolute"
-            style={{ bottom: "16px", right: "16px" }}
-          >
-            <CopyTokenAddress options={tokenOptions} />
-          </div>
+        <p className="fw-bold">Current Balances</p>
+        <p>ETH: {ETHBalance ? truncateEth(ETHBalance, 8) : "---"}</p>
+        <p className="mb-0 me-3">
+          ETHx:{" "}
+          {isLoading || data == null ? (
+            <Spinner animation="border" role="status"></Spinner>
+          ) : (
+            <FlowingBalance
+              format={(x) => truncateEth(ethers.utils.formatUnits(x), 8)}
+              accountTokenSnapshot={data.items[0]}
+            />
+          )}
+        </p>
+        <div
+          className="position-absolute"
+          style={{ bottom: "16px", right: "16px" }}
+        >
+          <CopyTokenAddress options={tokenOptions} />
         </div>
       </Modal.Body>
-      <Modal.Footer
-        className="bg-dark text-light"
-        style={{ position: "relative" }}
-      >
-        <form
-          className="form-inline d-flex align-items-center"
+      <Modal.Footer className="bg-dark text-light">
+        <Form
+          className="d-flex justify-content-between align-items-center w-100"
           noValidate
           onSubmit={onSubmit}
         >
-          <label className="visually-hidden">Amount</label>
-          <input
+          <Form.Label className="visually-hidden">Amount</Form.Label>
+          <Form.Control
             required
             autoFocus
             type="text"
-            className="form-control mb-2 me-sm-6 text-white"
-            style={{
-              backgroundColor: "#111320",
-              border: "none",
-              position: "absolute",
-              left: "16px",
-              width: "auto",
-            }}
+            className="w-50 mb-2 me-sm-6 border-0 bg-black text-white"
             placeholder="0.00"
             value={amount}
             onChange={(e) => {
@@ -214,7 +203,7 @@ function WrapModal({
               ? "Insufficient ETH"
               : `Wrap ETH to ${PAYMENT_TOKEN}`}
           </Button>
-        </form>
+        </Form>
         {error ? (
           <span className="d-inline-block w-100 px-1 me-0 text-danger">{`Error: ${error}`}</span>
         ) : !isOutOfBalance &&

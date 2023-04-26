@@ -38,11 +38,11 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
       }
     >
       {isLoading || !data ? (
-        <div className="d-flex justify-content-center me-4">
+        <div className="d-flex justify-content-center p-3">
           <Spinner animation="border" role="status" variant="light"></Spinner>
         </div>
       ) : (
-        <div className="me-4 fs-1 text-primary text-center">
+        <div className="fs-1 text-primary text-center">
           <FlowingBalance
             format={(x) =>
               truncateEth(ethers.utils.formatUnits(x), 4) + " ETHx"
@@ -50,7 +50,12 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
             accountTokenSnapshot={data.items[0]}
           />
           <div className="fs-6 text-light text-center">
-            Public Goods Funding Raised
+            <span className="d-none d-sm-block">
+              Public Goods Funding Raised
+            </span>
+            <span className="d-sm-none" style={{ fontSize: "0.8rem" }}>
+              Public Goods Funding Raised
+            </span>
           </div>
         </div>
       )}

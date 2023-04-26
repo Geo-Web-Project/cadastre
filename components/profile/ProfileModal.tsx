@@ -47,6 +47,7 @@ import {
   getParcelContent,
 } from "../../lib/utils";
 import { STATE } from "../Map";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -215,6 +216,7 @@ function ProfileModal(props: ProfileModalProps) {
     account,
     paymentToken.address
   );
+  const { isMobile, isTablet } = useMediaQuery();
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -656,7 +658,9 @@ function ProfileModal(props: ProfileModalProps) {
         setInteractionState(STATE.PARCEL_SELECTED);
         break;
       case PortfolioAction.RECLAIM:
-        setInteractionState(STATE.PARCEL_RECLAIMING);
+        setInteractionState(
+          isMobile || isTablet ? STATE.PARCEL_SELECTED : STATE.PARCEL_RECLAIMING
+        );
         break;
       default:
         break;
@@ -681,10 +685,17 @@ function ProfileModal(props: ProfileModalProps) {
       contentClassName="bg-dark"
     >
       <Modal.Header className="bg-dark border-0">
-        <Container>
+        <Container className="ps-1 pe-0">
           <Row>
-            <Col className="text-light fs-1 d-flex align-items-center" sm="10">
-              Account: {truncateStr(account, 14)}
+            <Col
+              className="px-0 px-sm-2 text-light fs-1 d-flex align-items-center"
+              xs="9"
+              lg="10"
+            >
+              <span className="d-none d-sm-block">
+                {truncateStr(account, 14)}
+              </span>
+              <span className="fs-1 d-sm-none">{truncateStr(account, 12)}</span>
               <CopyTooltip
                 contentClick="Address Copied"
                 contentHover="Copy Address"
@@ -692,8 +703,8 @@ function ProfileModal(props: ProfileModalProps) {
                   <Image
                     src="copy-light.svg"
                     alt="copy"
-                    width={34}
-                    className="ms-2"
+                    width={isMobile ? 28 : 34}
+                    className="ms-1 ms-lg-2"
                   />
                 }
                 handleCopy={() => navigator.clipboard.writeText(account)}
@@ -701,51 +712,75 @@ function ProfileModal(props: ProfileModalProps) {
               <Button
                 onClick={deactivateProfile}
                 variant="info"
-                className="ms-5"
+                className="ms-2 ms-lg-4 p-1 px-lg-3 py-lg-2"
               >
                 Disconnect
               </Button>
             </Col>
-            <Col sm="2" className="text-end">
+            <Col xs="3" lg="2" className="p-0 text-end align-self-start">
               <Button
                 variant="link"
                 size="sm"
+                className="p-0 px-1 px-lg-2"
                 onClick={() => handleCloseProfile()}
               >
-                <Image style={{ width: "36px" }} src="close.svg" />
+                <Image width={isMobile ? 28 : 36} src="close.svg" />
               </Button>
             </Col>
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light text-start">
+      <Modal.Body className="px-1 px-lg-3 bg-dark text-light text-start">
         <Row>
-          <Col className="mx-2 fs-6">
-            {accountTokenSnapshot &&
+          <Col className="d-inline-flex mx-2 fs-6 h-100">
+            {!isMobile &&
+              !isTablet &&
+              accountTokenSnapshot &&
               accountTokenSnapshot.totalNumberOfActiveStreams > 0 && (
-                <Image src="notice.svg" className="me-2" />
+                <Image
+                  src="notice.svg"
+                  width={20}
+                  className="flex-start me-2"
+                />
               )}
             {!accountTokenSnapshot ||
-            accountTokenSnapshot.totalNumberOfActiveStreams === 0
-              ? null
-              : accountTokenSnapshot.maybeCriticalAtTimestamp &&
-                Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
-                  Date.now() / 1000
-              ? `At the current rate, your ETHx balance will reach 0 on ${dayjs
+            accountTokenSnapshot.totalNumberOfActiveStreams ===
+              0 ? null : accountTokenSnapshot.maybeCriticalAtTimestamp &&
+              Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
+                Date.now() / 1000 ? (
+              <p className="mb-0" style={{ fontSize: "0.9rem" }}>
+                <span>{isMobile ? "Your " : "At the current rate, your "}</span>
+                {PAYMENT_TOKEN} balance will reach 0 on{" "}
+                {dayjs
                   .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format("MMM D, YYYY HH:mm z")}`
-              : "Your ETHx balance is 0. Any Geo Web parcels you previously licensed have been put in foreclosure."}
+                  .format(
+                    `MMM D, YYYY ${!isMobile && !isTablet ? "HH:MM z" : ""}`
+                  )}
+              </p>
+            ) : (
+              <span
+                style={{ fontSize: isMobile || isTablet ? "0.9rem" : "1rem" }}
+              >
+                Your ETHx balance is 0. Any Geo Web parcels you previously
+                licensed have been put in foreclosure.
+              </span>
+            )}
           </Col>
         </Row>
         <Row className="mt-3 align-items-start">
-          <Col className="p-3 ms-3 fs-6 border border-purple rounded" sm="3">
-            <span style={{ marginLeft: "15px" }}>{`ETH: ${truncateEth(
+          <Col
+            className="p-2 p-lg-3 ms-3 fs-6 border border-purple rounded"
+            xs="5"
+            lg="4"
+            xl="3"
+          >
+            <span className="ms-sm-3">{`ETH: ${truncateEth(
               ETHBalance,
-              8
+              isMobile ? 6 : 8
             )}`}</span>
             <Form
               id="wrapForm"
-              className="form-inline mt-5 ms-3 me-3"
+              className="form-inline mt-5 px-0 px-sm-3"
               noValidate
               onSubmit={(e) =>
                 handleSubmit(e, wrappingAmount, SuperTokenAction.WRAP)
@@ -753,7 +788,6 @@ function ProfileModal(props: ProfileModalProps) {
             >
               <Form.Control
                 required
-                autoFocus
                 type="text"
                 className="mb-2"
                 placeholder="0.00"
@@ -789,16 +823,24 @@ function ProfileModal(props: ProfileModalProps) {
             ) : null}
           </Col>
           <Col
+            xs="1"
             sm="1"
             className="p-0 mt-auto mb-auto d-flex justify-content-center"
           >
-            <Image src="exchange.svg" />
+            <Image src="exchange.svg" width={isMobile ? 36 : 64} />
           </Col>
-          <Col className="p-3 fs-6 border border-purple rounded" sm="3">
-            <div style={{ marginLeft: "15px" }}>
+          <Col
+            className="p-2 p-lg-3 fs-6 border border-purple rounded"
+            xs="5"
+            lg="4"
+            xl="3"
+          >
+            <div className="ms-0 ms-sm-3">
               {`${PAYMENT_TOKEN}: `}
               <FlowingBalance
-                format={(x) => truncateEth(ethers.utils.formatUnits(x), 8)}
+                format={(x) =>
+                  truncateEth(ethers.utils.formatUnits(x), isMobile ? 6 : 8)
+                }
                 accountTokenSnapshot={accountTokenSnapshot}
               />
             </div>
@@ -806,7 +848,11 @@ function ProfileModal(props: ProfileModalProps) {
               style={{
                 maxWidth: "220px",
                 height: "auto",
-                margin: "5px 0px 8px 15px",
+                margin: isMobile
+                  ? "4px 0px 14px 0px"
+                  : isTablet
+                  ? "4px 15px 14px 16px"
+                  : "5px 15px 8px 15px",
               }}
             >
               <CopyTokenAddress options={tokenOptions} />
@@ -816,11 +862,10 @@ function ProfileModal(props: ProfileModalProps) {
               onSubmit={(e) =>
                 handleSubmit(e, unwrappingAmount, SuperTokenAction.UNWRAP)
               }
-              className="form-inline ms-3 me-3"
+              className="form-inline px-0 px-sm-3"
             >
               <Form.Control
                 required
-                autoFocus
                 type="text"
                 className="mb-2"
                 placeholder="0.00"
@@ -863,27 +908,31 @@ function ProfileModal(props: ProfileModalProps) {
             >
               <thead>
                 <tr className="cursor-pointer">
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "parcelId"))
-                    }
-                  >
-                    Parcel ID
-                  </th>
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "status"))
-                    }
-                  >
-                    Status
-                  </th>
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "actionDate"))
-                    }
-                  >
-                    Action Date
-                  </th>
+                  {!isMobile && !isTablet && (
+                    <>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "parcelId"))
+                        }
+                      >
+                        Parcel ID
+                      </th>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "status"))
+                        }
+                      >
+                        Status
+                      </th>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "actionDate"))
+                        }
+                      >
+                        Action Date
+                      </th>
+                    </>
+                  )}
                   <th
                     onClick={() =>
                       setPortfolio(sortPortfolio(portfolio, "name"))
@@ -896,22 +945,26 @@ function ProfileModal(props: ProfileModalProps) {
                       setPortfolio(sortPortfolio(portfolio, "price"))
                     }
                   >
-                    Price|Bid
+                    Price
                   </th>
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "fee"))
-                    }
-                  >
-                    Fee/Yr
-                  </th>
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "buffer"))
-                    }
-                  >
-                    Buffer Deposit
-                  </th>
+                  {!isMobile && !isTablet && (
+                    <>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "fee"))
+                        }
+                      >
+                        Fee/Yr
+                      </th>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "buffer"))
+                        }
+                      >
+                        Buffer Deposit
+                      </th>
+                    </>
+                  )}
                   <th
                     onClick={() =>
                       setPortfolio(sortPortfolio(portfolio, "action"))
@@ -921,51 +974,59 @@ function ProfileModal(props: ProfileModalProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ maxHeight: 260 }}>
                 {portfolio.map((parcel, i) => {
                   return (
                     <tr key={i}>
-                      <td>{parcel.parcelId}</td>
-                      <td
-                        className={
-                          parcel.status === "Valid" ||
-                          parcel.status === "Outgoing Bid"
-                            ? ""
-                            : "text-danger"
-                        }
-                      >
-                        {parcel.status}
-                      </td>
-                      <td
-                        className={
-                          parcel.status === "Valid" ||
-                          parcel.status === "Outgoing Bid"
-                            ? ""
-                            : "text-danger"
-                        }
-                      >
-                        {parcel.actionDate}
-                      </td>
+                      {!isMobile && !isTablet && (
+                        <>
+                          <td>{parcel.parcelId}</td>
+                          <td
+                            className={
+                              parcel.status === "Valid" ||
+                              parcel.status === "Outgoing Bid"
+                                ? ""
+                                : "text-danger"
+                            }
+                          >
+                            {parcel.status}
+                          </td>
+                          <td
+                            className={
+                              parcel.status === "Valid" ||
+                              parcel.status === "Outgoing Bid"
+                                ? ""
+                                : "text-danger"
+                            }
+                          >
+                            {parcel.actionDate}
+                          </td>
+                        </>
+                      )}
                       <td>{parcel.name}</td>
                       <td>
                         {truncateEth(ethers.utils.formatEther(parcel.price), 8)}
                       </td>
-                      <td>
-                        {parcel.action === PortfolioAction.RECLAIM
-                          ? ""
-                          : truncateEth(
-                              ethers.utils.formatEther(parcel.fee),
-                              8
-                            )}
-                      </td>
-                      <td>
-                        {parcel.action === PortfolioAction.RECLAIM
-                          ? ""
-                          : truncateEth(
-                              ethers.utils.formatEther(parcel.buffer),
-                              8
-                            )}
-                      </td>
+                      {!isMobile && !isTablet && (
+                        <>
+                          <td>
+                            {parcel.action === PortfolioAction.RECLAIM
+                              ? ""
+                              : truncateEth(
+                                  ethers.utils.formatEther(parcel.fee),
+                                  8
+                                )}
+                          </td>
+                          <td>
+                            {parcel.action === PortfolioAction.RECLAIM
+                              ? ""
+                              : truncateEth(
+                                  ethers.utils.formatEther(parcel.buffer),
+                                  8
+                                )}
+                          </td>
+                        </>
+                      )}
                       <td>
                         <Button
                           variant={
@@ -983,27 +1044,29 @@ function ProfileModal(props: ProfileModalProps) {
                   );
                 })}
                 <tr>
-                  <td className="text-center" colSpan={4}>
-                    Total
-                  </td>
+                  <td colSpan={isMobile || isTablet ? 0 : 4}>Total</td>
                   <td>
                     {truncateEth(
                       ethers.utils.formatEther(portfolioTotal.price),
                       8
                     )}
                   </td>
-                  <td>
-                    {truncateEth(
-                      ethers.utils.formatEther(portfolioTotal.fee),
-                      8
-                    )}
-                  </td>
-                  <td>
-                    {truncateEth(
-                      ethers.utils.formatEther(portfolioTotal.buffer),
-                      8
-                    )}
-                  </td>
+                  {!isMobile && !isTablet && (
+                    <>
+                      <td>
+                        {truncateEth(
+                          ethers.utils.formatEther(portfolioTotal.fee),
+                          8
+                        )}
+                      </td>
+                      <td>
+                        {truncateEth(
+                          ethers.utils.formatEther(portfolioTotal.buffer),
+                          8
+                        )}
+                      </td>
+                    </>
+                  )}
                   <td></td>
                 </tr>
               </tbody>

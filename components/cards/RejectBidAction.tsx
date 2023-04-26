@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
-import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
@@ -27,6 +27,7 @@ import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types
 import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -72,6 +73,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     paymentToken,
     signer,
   } = props;
+  const { isMobile, isTablet } = useMediaQuery();
 
   const bidForSalePriceDisplay = truncateEth(
     formatBalance(bidForSalePrice),
@@ -303,11 +305,14 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   return (
     <>
-      <Card border="secondary" className="bg-dark mt-5">
-        <Card.Header>
+      <Card
+        border={isMobile || isTablet ? "dark" : "secondary"}
+        className="bg-dark"
+      >
+        <Card.Header className="d-none d-lg-block">
           <h3>Reject Bid</h3>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className="p-1 p-lg-3">
           <p>
             For Sale Price (Bid): {bidForSalePriceDisplay} {PAYMENT_TOKEN}
           </p>
@@ -320,6 +325,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               <Form.Text className="text-primary mb-1">
                 New For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
+                  top={isMobile}
                   content={
                     <div style={{ textAlign: "left" }}>
                       You’re rejecting a bid that is higher than your previous
@@ -350,7 +356,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 required
                 isInvalid={isForSalePriceInvalid}
                 className="bg-dark text-light mt-1"
-                type="text"
+                type="number"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 defaultValue={bidForSalePriceDisplay}
                 aria-label="For Sale Price"
@@ -391,7 +397,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 disabled
                 value={`${
                   annualNetworkFeeRate
-                    ? truncateEth(formatBalance(annualNetworkFeeRate), 10)
+                    ? truncateEth(formatBalance(annualNetworkFeeRate), 8)
                     : "0"
                 } ${PAYMENT_TOKEN}/year`}
                 aria-label="Network Fee"
@@ -400,8 +406,10 @@ function RejectBidAction(props: RejectBidActionProps) {
             </Form.Group>
             <AuctionInstructions />
             <br />
-            <hr className="action-form_divider" />
-            <br />
+            <div className="d-none d-lg-block">
+              <hr className="action-form_divider" />
+              <br />
+            </div>
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
                 existingAnnualNetworkFee={existingAnnualNetworkFee}

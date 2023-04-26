@@ -4,7 +4,7 @@ import type { BasicProfile } from "@geo-web/types";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
-import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";

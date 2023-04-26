@@ -38,6 +38,22 @@ $dropdown-dark-bg: $dark;
 $dropdown-dark-link-hover-color: $light;
 $dropdown-dark-link-hover-bg: $purple;
 
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .dropdown-menu {
   top: 68px !important;
 }
@@ -59,6 +75,18 @@ $dropdown-dark-link-hover-bg: $purple;
   @media (min-width: 1800px) {
     width: 350px !important;
   }
+  @media (max-width: 1200px) {
+    height: 42px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .mapboxgl-ctrl-geocoder--input {
+    height: 42px !important;
+  }
+  .mapboxgl-ctrl-geocoder--icon-search {
+    top: 10px !important;
+  }
 }
 
 .mapboxgl-ctrl-group {
@@ -72,6 +100,14 @@ $dropdown-dark-link-hover-bg: $purple;
 
 .mapboxgl-ctrl-group button:last-child {
   border-radius: 0 !important;
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out,
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in {
+  @media (max-width: 1200px) {
+    width: 36px !important;
+    height: 34px !important;
+  }
 }
 
 .mapboxgl-ctrl-icon {
@@ -88,9 +124,13 @@ $dropdown-dark-link-hover-bg: $purple;
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon {
   border-bottom: 1px solid #ddd;
 }
-
-.mapboxgl-ctrl-logo {
+.mapbox-improve-map {
   display: none !important;
+}
+
+.map-style-btn {
+  padding: 6px !important;
+  max-width: 46px !important;
 }
 
 .grid-switch.btn:hover,
@@ -155,15 +195,31 @@ $dropdown-dark-link-hover-bg: $purple;
   position: absolute;
   top: 120px;
   right: calc(245px + 2vw);
-  width: 48px !important;
-  height: 37px;
+  width: 50px !important;
   @media (min-width: 1800px) {
     right: 394px;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 576px) {
     right: 255px;
-    height: 50px;
+    width: 42px !important;
+    height: 42px !important;
   }
+  @media (max-width: 1200px) {
+    height: 42px !important;
+  }
+}
+
+.parcel-list-btn.mobile {
+  right: calc(52px + 2vw);
+}
+
+.search-map-btn {
+  position: absolute;
+  top: 120px;
+  right: 2vw;
+  width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
 }
 
 .scrollable-table table {
@@ -194,7 +250,6 @@ $dropdown-dark-link-hover-bg: $purple;
   overflow-y: auto;
   table-layout: fixed;
   scrollbar-width: none; // Firefox
-  max-height: 256px;
 }
 
 .scrollable-table tbody::-webkit-scrollbar-track {

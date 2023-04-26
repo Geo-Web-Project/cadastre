@@ -7,7 +7,7 @@ import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
+import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { STATE } from "../Map";
 import { getParcelContent } from "../../lib/utils";
@@ -25,6 +25,7 @@ interface NeedsTransferProps {
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  maxListSize: number;
 }
 
 type Bid = Parcel & {
@@ -71,6 +72,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    maxListSize,
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
@@ -80,7 +82,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
     needsTransferQuery,
     {
       variables: {
-        skip: 0 * MAX_LIST_SIZE,
+        skip: 0 * maxListSize,
       },
       notifyOnNetworkStatusChange: true,
     }
@@ -150,7 +152,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
 
       await Promise.allSettled(promises);
 
-      const needsTransferParcels = _parcels.splice(0, MAX_LIST_SIZE);
+      const needsTransferParcels = _parcels.splice(0, maxListSize);
       promises = [];
 
       for (const needsTransferParcel of needsTransferParcels) {

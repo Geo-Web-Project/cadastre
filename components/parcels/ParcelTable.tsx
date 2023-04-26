@@ -7,6 +7,7 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from "react-bootstrap/Button";
 import { Parcel } from "./ParcelList";
 import { truncateEth } from "../../lib/truncate";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 type ParcelTableProps = {
   parcels: Parcel[] | null;
@@ -16,9 +17,10 @@ type ParcelTableProps = {
 
 function ParcelTable(props: ParcelTableProps) {
   const { parcels, networkStatus, handleAction } = props;
+  const { isMobile } = useMediaQuery();
 
   return (
-    <Container>
+    <Container className="px-1 px-sm-2">
       <Row className="scrollable-table">
         {!parcels || networkStatus < NetworkStatus.ready ? (
           <span className="d-flex justify-content-center fs-4 my-4 py-4">
@@ -32,31 +34,33 @@ function ParcelTable(props: ParcelTableProps) {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>ID</th>
+                {!isMobile && <th>ID</th>}
                 <th>Price</th>
-                <th>Status</th>
+                {!isMobile && <th>Status</th>}
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody style={{ maxHeight: 512 }}>
+            <tbody style={{ maxHeight: "50svh" }}>
               {parcels.map((parcel, i) => {
                 return (
                   <tr key={i}>
                     <td>{parcel.name}</td>
-                    <td>{parcel.parcelId}</td>
+                    {!isMobile && <td>{parcel.parcelId}</td>}
                     <td>
                       {truncateEth(ethers.utils.formatEther(parcel.price), 8)}
                     </td>
-                    <td
-                      className={
-                        parcel.status === "Valid" ||
-                        parcel.status === "Outgoing Bid"
-                          ? ""
-                          : "text-danger"
-                      }
-                    >
-                      {parcel.status}
-                    </td>
+                    {!isMobile && (
+                      <td
+                        className={
+                          parcel.status === "Valid" ||
+                          parcel.status === "Outgoing Bid"
+                            ? ""
+                            : "text-danger"
+                        }
+                      >
+                        {parcel.status}
+                      </td>
+                    )}
                     <td>
                       <Button
                         variant={"primary"}

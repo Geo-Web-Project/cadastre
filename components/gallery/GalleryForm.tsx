@@ -260,8 +260,9 @@ function GalleryForm(props: GalleryFormProps) {
   return (
     <>
       <Form id="galleryForm" className="pt-2 text-start">
-        <Row className="px-3 d-flex align-items-end">
+        <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
+            <Form.Text className="text-primary mb-1">CID</Form.Text>
             <InputGroup>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
@@ -293,6 +294,24 @@ function GalleryForm(props: GalleryFormProps) {
             {/* {isUploading ? <ProgressBar now={uploadProgress} /> : null} */}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
+            <Form.Text className="text-primary mb-1">Name</Form.Text>
+            <Form.Control
+              style={{ backgroundColor: "#111320", border: "none" }}
+              className="text-white mt-1"
+              type="text"
+              placeholder="Display Name of Media"
+              value={mediaGalleryItem.name ?? ""}
+              required
+              onChange={(e) => {
+                updateMediaGalleryItem({
+                  name: e.target.value,
+                });
+              }}
+            />
+          </Col>
+        </Row>
+        <Row className="px-1 px-sm-3 d-flex align-items-end">
+          <Col sm="12" lg="6" className="mb-3">
             <div key="inline-radio">
               <Form.Text className="text-primary mb-1">File Format</Form.Text>
               <Form.Control
@@ -314,23 +333,6 @@ function GalleryForm(props: GalleryFormProps) {
               </Form.Control>
             </div>
           </Col>
-        </Row>
-        <Row className="px-3 d-flex align-items-end">
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Control
-              style={{ backgroundColor: "#111320", border: "none" }}
-              className="text-white mt-1"
-              type="text"
-              placeholder="Display Name of Media"
-              value={mediaGalleryItem.name ?? ""}
-              required
-              onChange={(e) => {
-                updateMediaGalleryItem({
-                  name: e.target.value,
-                });
-              }}
-            />
-          </Col>
           <Col sm="12" lg="6" className="mb-3">
             <Form.Text className="text-primary mb-1">
               Content Pinning Service
@@ -346,21 +348,31 @@ function GalleryForm(props: GalleryFormProps) {
             </Form.Control>
           </Col>
         </Row>
-        <Row className="px-3 text-end">
-          <Col xs="auto" lg={{ offset: 6 }} className="mb-3">
-            <Button variant="danger" disabled={isSaving} onClick={clearForm}>
+        <Row className="px-1 px-sm-3 text-end justify-content-end">
+          <Col xs="6" md="6" lg="3" className="mb-3">
+            <Button
+              variant="danger"
+              disabled={!fileFormat || isSaving}
+              onClick={clearForm}
+              className="w-100"
+            >
               Cancel
             </Button>
           </Col>
-          <Col xs="auto">
+          <Col xs="6" md="6" lg="3">
             {selectedMediaGalleryItemIndex !== null ? (
-              <Button variant="secondary" onClick={saveChanges}>
+              <Button
+                variant="secondary"
+                className="w-100"
+                onClick={saveChanges}
+              >
                 {isSaving ? spinner : "Save Changes"}
               </Button>
             ) : (
               <Button
                 variant="secondary"
                 disabled={!isReadyToAdd}
+                className="w-100"
                 onClick={addToGallery}
               >
                 {isSaving ? spinner : "Add to Gallery"}

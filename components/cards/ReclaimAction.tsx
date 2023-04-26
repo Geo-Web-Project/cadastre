@@ -4,7 +4,7 @@ import BN from "bn.js";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import type { BasicProfile } from "@geo-web/types";
 import { ActionData, ActionForm } from "./ActionForm";
-import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
 import TransactionSummaryView from "./TransactionSummaryView";
