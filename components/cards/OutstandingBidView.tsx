@@ -43,11 +43,9 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     licensorIsOwner,
     registryContract,
     licenseDiamondContract,
-    selectedParcelId,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     setInteractionState,
-    setSelectedParcelId,
     setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
@@ -216,12 +214,13 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       return;
     }
 
+    setParcelFieldsToUpdate({
+      forSalePrice: false,
+      licenseOwner: true,
+    });
     setIsActing(false);
     setInteractionState(STATE.PARCEL_SELECTED);
-
-    setSelectedParcelId("");
     setShouldRefetchParcelsData(true);
-    setSelectedParcelId(selectedParcelId);
   }
 
   // Calculate payout if surplus or depleted balance

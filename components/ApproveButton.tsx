@@ -14,6 +14,7 @@ export type ApproveButtonProps = OffCanvasPanelProps & {
   spender: string | null;
   flowOperator: string | null;
   setErrorMessage: (v: string) => void;
+  isActing: boolean;
   setIsActing: (v: boolean) => void;
   setDidFail: (v: boolean) => void;
   isAllowed: boolean;
@@ -41,6 +42,7 @@ export function ApproveButton(props: ApproveButtonProps) {
     requiredFlowAmount,
     flowOperator,
     setErrorMessage,
+    isActing,
     setIsActing,
     setDidFail,
     isAllowed,
@@ -229,10 +231,14 @@ export function ApproveButton(props: ApproveButtonProps) {
       className="w-100 mb-3"
       onClick={() => submit()}
       disabled={
-        isDisabled || !isReady || isAllowed || totalActions > completedActions
+        isDisabled ||
+        !isReady ||
+        isAllowed ||
+        isActing ||
+        totalActions > completedActions
       }
     >
-      {isAllowed ? (
+      {isAllowed || isActing ? (
         <>
           <span className="ms-4">{PAYMENT_TOKEN} use allowed</span>
           <Image src="./task-done.svg" className="float-end"></Image>

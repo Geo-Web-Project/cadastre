@@ -443,6 +443,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               requiredFlowPermissions={2}
               flowOperator={licenseDiamondContract?.address ?? null}
               setErrorMessage={setErrorMessage}
+              isActing={isActing}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
               isAllowed={isAllowed}

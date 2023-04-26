@@ -192,6 +192,15 @@ export function ActionForm(props: ActionFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
+    if (setShouldParcelContentUpdate) {
+      setShouldParcelContentUpdate(true);
+    } else if (licenseId) {
+      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
+    }
+
+    setInteractionState(STATE.PARCEL_SELECTED);
+    setShouldRefetchParcelsData(true);
+
     const content: BasicProfile = {};
     if (parcelName) {
       content["name"] = parcelName;
@@ -271,15 +280,6 @@ export function ActionForm(props: ActionFormProps) {
     }
 
     updateActionData({ isActing: false });
-
-    if (setShouldParcelContentUpdate) {
-      setShouldParcelContentUpdate(true);
-    } else if (licenseId) {
-      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
-    }
-
-    setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
   }
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
@@ -488,6 +488,7 @@ export function ActionForm(props: ActionFormProps) {
               setErrorMessage={(v) => {
                 updateActionData({ errorMessage: v });
               }}
+              isActing={isActing ?? false}
               setIsActing={(v) => {
                 updateActionData({ isActing: v });
               }}
