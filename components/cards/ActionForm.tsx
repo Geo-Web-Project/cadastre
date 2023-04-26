@@ -356,6 +356,9 @@ export function ActionForm(props: ActionFormProps) {
                     aria-describedby="web-content-uri"
                     value={parcelWebContentURI ?? ""}
                     disabled={isActing || isLoading}
+                    autoCapitalize="off"
+                    autoComplete="off"
+                    autoCorrect="off"
                     onChange={(e) =>
                       updateActionData({ parcelWebContentURI: e.target.value })
                     }

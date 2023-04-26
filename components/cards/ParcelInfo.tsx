@@ -497,10 +497,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       );
     } else if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
       buttons = (
-        <>
+        <div>
           {editButton}
           {editGalleryButton}
-        </>
+        </div>
       );
     } else if (!hasOutstandingBid) {
       buttons = placeBidButton;
