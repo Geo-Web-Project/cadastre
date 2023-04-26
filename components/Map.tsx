@@ -3,19 +3,27 @@ import * as React from "react";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
-import ReactMapGL, { NavigationControl } from "react-map-gl";
+import ReactMapGL, {
+  AttributionControl,
+  NavigationControl,
+} from "react-map-gl";
 import type { ViewState, MapRef } from "react-map-gl";
 import {
   MapLayerMouseEvent,
+  MapLayerTouchEvent,
   LngLatBounds,
   LngLat,
   PaddingOptions,
 } from "mapbox-gl";
-import Geocoder from "../lib/Geocoder";
-import Sidebar from "./Sidebar";
+import OffCanvasPanel from "./OffCanvasPanel";
 import ClaimSource from "./sources/ClaimSource";
 import CellHoverSource from "./sources/CellHoverSource";
 import GridSource, { Grid } from "./sources/GridSource";
+import Geocoder from "../lib/Geocoder";
+import {
+  DRAWER_PREVIEW_HEIGHT_PARCEL,
+  DRAWER_CLAIM_HEIGHT,
+} from "../lib/constants";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 import OpRewardAlert from "./OpRewardAlert";
 
@@ -43,6 +51,7 @@ import * as turf from "@turf/turf";
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
 import ParcelList from "./parcels/ParcelList";
+import { useMediaQuery } from "../lib/mediaQuery";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -69,6 +78,11 @@ export enum STATE {
 export type Coord = {
   x: number;
   y: number;
+};
+
+export type ParcelClaimInfo = {
+  width: number;
+  height: number;
 };
 
 export interface PolygonQuery {
@@ -223,6 +237,30 @@ function Map(props: MapProps) {
   const handleMapstyle = (newStyle: MapStyleName) => {
     localStorage.setItem(MAP_STYLE_KEY, newStyle);
     setMapStyleName(newStyle);
+
+    /*
+     * NOTE: This is a workaround for a bug in mapbox-gl happening only when
+     * the projection is "globe".
+     * The circle layer is lost when the style change, but after zooming out
+     * and then in the layer is rendered again.
+     * We should be able to remove this if
+     * https://github.com/visgl/react-map-gl/issues/2136 is fixed.
+     */
+    const zoom = viewport.zoom;
+    mapRef?.current?.easeTo({
+      center: [viewport.longitude, viewport.latitude],
+      zoom: 1,
+      duration: 500,
+    });
+    setTimeout(
+      () =>
+        mapRef?.current?.easeTo({
+          center: [viewport.longitude, viewport.latitude],
+          zoom,
+          duration: 500,
+        }),
+      1000
+    );
   };
 
   const mapPadding = {
@@ -235,7 +273,7 @@ function Map(props: MapProps) {
   const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
-    zoom: process.env.NEXT_PUBLIC_APP_ENV === "mainnet" ? 1 : 13,
+    zoom: 1,
     bearing: 0,
     pitch: 0,
     padding: mapPadding,
@@ -258,7 +296,10 @@ function Map(props: MapProps) {
 
   const [isValidClaim, setIsValidClaim] = React.useState(true);
   const [isParcelAvailable, setIsParcelAvailable] = React.useState(true);
-  const [parcelClaimSize, setParcelClaimSize] = React.useState(0);
+  const [parcelClaimInfo, setParcelClaimInfo] = React.useState({
+    width: 0,
+    height: 0,
+  });
   const [interactiveLayerIds, setInteractiveLayerIds] = React.useState<
     string[]
   >([]);
@@ -268,7 +309,9 @@ function Map(props: MapProps) {
     timerId: number | null;
   }>({ id: "", timerId: null });
   const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
+  const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
 
+  const { isMobile, isTablet } = useMediaQuery();
   const router = useRouter();
 
   const isGridVisible =
@@ -404,6 +447,14 @@ function Map(props: MapProps) {
       return;
     }
 
+    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet") {
+      mapRef.current.easeTo({
+        center: [viewport.longitude, viewport.latitude],
+        zoom: 13,
+        duration: 500,
+      });
+    }
+
     const mapBounds = mapRef.current.getBounds();
     const params = normalizeQueryVariables(mapBounds);
 
@@ -422,11 +473,12 @@ function Map(props: MapProps) {
       flyToLocation({
         longitude: Number(query.longitude),
         latitude: Number(query.latitude),
-        zoom: ZOOM_GRID_LEVEL,
+        zoom: isMobile || isTablet ? ZOOM_GRID_LEVEL - 1 : ZOOM_GRID_LEVEL,
         duration: 500,
         padding: {
           ...mapPadding,
-          left: document.body.offsetWidth * 0.25,
+          left: !isMobile && !isTablet ? document.body.offsetWidth * 0.25 : 0,
+          bottom: isMobile || isTablet ? DRAWER_PREVIEW_HEIGHT_PARCEL : 0,
         },
       });
 
@@ -512,7 +564,6 @@ function Map(props: MapProps) {
       }
     }
 
-    const gridFeature = event.features.find((f) => f.layer.id === "grid-layer");
     const gwCoord = geoWebCoordinate.from_gps(
       event.lngLat.lng,
       event.lngLat.lat,
@@ -527,14 +578,6 @@ function Map(props: MapProps) {
           setCellHoverCoord({
             x: geoWebCoordinate.get_x(gwCoord),
             y: geoWebCoordinate.get_y(gwCoord),
-          });
-        }
-        break;
-      case STATE.CLAIM_SELECTING:
-        if (gridFeature) {
-          setClaimBase2Coord({
-            x: gridFeature.properties?.gwCoordX,
-            y: gridFeature.properties?.gwCoordY,
           });
         }
         break;
@@ -557,9 +600,6 @@ function Map(props: MapProps) {
       return;
     }
 
-    const gridFeature = event.features?.find(
-      (f) => f.layer.id === "grid-layer"
-    );
     const parcelFeature = event.features?.find(
       (f) => f.layer.id === "parcels-layer"
     );
@@ -598,27 +638,44 @@ function Map(props: MapProps) {
       case STATE.VIEWING:
         if (_checkParcelClick()) {
           if (parcelFeature?.geometry.type === "Polygon") {
-            const parcelCoordSe = parcelFeature.geometry.coordinates[0][3];
             const parcelCoordSw = parcelFeature.geometry.coordinates[0][0];
+            const parcelCoordSe = parcelFeature.geometry.coordinates[0][2];
             const parcelPointSe = mapRef.current?.project(
               new LngLat(parcelCoordSe[0], parcelCoordSe[1])
             );
             const parcelPointSw = mapRef.current?.project(
               new LngLat(parcelCoordSw[0], parcelCoordSw[1])
             );
-            const parcelSizeX =
+            const parcelWidth =
               parcelPointSe && parcelPointSw
                 ? parcelPointSe.x - parcelPointSw.x
                 : 0;
-            const shouldOffsetSidebar =
-              parcelPointSw && parcelPointSw.x < sidebarPixelWidth;
+            const parcelHeight =
+              parcelPointSe && parcelPointSw
+                ? parcelPointSe.y - parcelPointSw.y
+                : 0;
+            const shouldOffsetOffCanvasPanelWidth =
+              !isMobile &&
+              !isTablet &&
+              parcelPointSw &&
+              parcelPointSw.x < sidebarPixelWidth;
+            const shouldOffsetOffCanvasPanelHeight =
+              (isMobile || isTablet) &&
+              parcelPointSw &&
+              parcelPointSw.y >
+                document.body.offsetHeight - DRAWER_PREVIEW_HEIGHT_PARCEL;
 
             mapRef.current?.panBy(
               [
-                shouldOffsetSidebar
-                  ? sidebarPixelWidth * -1 - parcelSizeX + event.point.x
+                shouldOffsetOffCanvasPanelWidth
+                  ? sidebarPixelWidth * -1 - parcelWidth + event.point.x
                   : 0,
-                0,
+                shouldOffsetOffCanvasPanelHeight
+                  ? DRAWER_PREVIEW_HEIGHT_PARCEL -
+                    parcelHeight +
+                    event.point.y -
+                    document.body.offsetHeight
+                  : 0,
               ],
               {
                 duration: 0,
@@ -635,9 +692,16 @@ function Map(props: MapProps) {
             event.lngLat.lat,
             GW_MAX_LAT
           );
-          const coord = {
-            x: geoWebCoordinate.get_x(gwCoord),
-            y: geoWebCoordinate.get_y(gwCoord),
+          const x = geoWebCoordinate.get_x(gwCoord);
+          const y = geoWebCoordinate.get_y(gwCoord);
+          const gwCoord2 = geoWebCoordinate.make_gw_coord(x + 3, y + 3);
+          const coord1 = {
+            x,
+            y,
+          };
+          const coord2 = {
+            x: geoWebCoordinate.get_x(gwCoord2),
+            y: geoWebCoordinate.get_y(gwCoord2),
           };
           const cellCoords = geoWebCoordinate.to_gps(
             gwCoord,
@@ -648,55 +712,62 @@ function Map(props: MapProps) {
             new LngLat(cellCoords[0][0], cellCoords[0][1])
           );
           const cellPointSe = mapRef.current?.project(
-            new LngLat(cellCoords[1][0], cellCoords[1][1])
+            new LngLat(cellCoords[2][0], cellCoords[2][1])
           );
-          const cellSizeX =
+          const cellWidth =
             cellPointSe && cellPointSw ? cellPointSe.x - cellPointSw.x : 0;
-          const shouldOffsetSidebar =
-            cellPointSw && cellPointSw.x < sidebarPixelWidth;
+          const cellHeight =
+            cellPointSe && cellPointSw ? cellPointSw.y - cellPointSe.y : 0;
+          const shouldOffsetOffCanvasPanelWidth =
+            !isMobile &&
+            !isTablet &&
+            cellPointSw &&
+            cellPointSw.x < sidebarPixelWidth;
+          const shouldOffsetOffCanvasPanelHeight =
+            (isMobile || isTablet) &&
+            cellPointSw &&
+            cellPointSw.y > document.body.offsetHeight - DRAWER_CLAIM_HEIGHT;
 
           setTimeout(
             () =>
               mapRef.current?.panBy(
                 [
-                  shouldOffsetSidebar
-                    ? sidebarPixelWidth * -1 - cellSizeX + event.point.x
+                  shouldOffsetOffCanvasPanelWidth
+                    ? sidebarPixelWidth * -1 - cellWidth + event.point.x
                     : 0,
-                  0,
+                  shouldOffsetOffCanvasPanelHeight
+                    ? DRAWER_CLAIM_HEIGHT +
+                      cellHeight +
+                      event.point.y -
+                      document.body.offsetHeight
+                    : 0,
                 ],
                 {
-                  duration: shouldOffsetSidebar ? 400 : 0,
+                  duration:
+                    shouldOffsetOffCanvasPanelWidth ||
+                    shouldOffsetOffCanvasPanelHeight
+                      ? 400
+                      : 0,
                 }
               ),
             100
           );
 
-          setClaimBase1Coord(coord);
-          setClaimBase2Coord(coord);
+          setClaimBase1Coord(coord1);
+          setClaimBase2Coord(coord2);
           setCellHoverCoord(null);
           setInteractionState(STATE.CLAIM_SELECTING);
         } else {
           flyToLocation({
             longitude: event.lngLat.lng,
             latitude: event.lngLat.lat,
-            zoom: ZOOM_GRID_LEVEL + 1,
+            zoom: ZOOM_GRID_LEVEL,
             duration: 500,
             padding: mapPadding,
           });
         }
-        break;
-      case STATE.CLAIM_SELECTING:
-        if (!isValidClaim) {
-          break;
-        }
-        if (gridFeature) {
-          setClaimBase2Coord({
-            x: gridFeature.properties?.gwCoordX,
-            y: gridFeature.properties?.gwCoordY,
-          });
-        }
 
-        setInteractionState(STATE.CLAIM_SELECTED);
+        mapRef?.current?.moveLayer("claim-point-layer");
         break;
       case STATE.CLAIM_SELECTED:
         setInteractionState(STATE.VIEWING);
@@ -707,8 +778,189 @@ function Map(props: MapProps) {
         }
         setInteractionState(STATE.VIEWING);
         break;
+      case STATE.PARCEL_EDITING:
+      case STATE.PARCEL_RECLAIMING:
+      case STATE.PARCEL_PLACING_BID:
+      case STATE.PARCEL_REJECTING_BID:
+        setInteractionState(STATE.VIEWING);
+        break;
       default:
         break;
+    }
+  }
+
+  function handleClaimSelection(e: MapLayerMouseEvent | MapLayerTouchEvent) {
+    if (
+      !mapRef?.current ||
+      !claimBase1Coord ||
+      !claimBase2Coord ||
+      viewport.zoom < ZOOM_GRID_LEVEL ||
+      interactionState !== STATE.CLAIM_SELECTING
+    ) {
+      return;
+    }
+
+    const dragStartedGwCoord = geoWebCoordinate.from_gps(
+      e.lngLat.lng,
+      e.lngLat.lat,
+      GW_MAX_LAT
+    );
+    const dragStartedX = geoWebCoordinate.get_x(dragStartedGwCoord);
+    const dragStartedY = geoWebCoordinate.get_y(dragStartedGwCoord);
+
+    const getClaimBaseCoordSw = (
+      claimBase1Coord: Coord,
+      claimBase2Coord: Coord
+    ): Coord => {
+      return {
+        x: Math.min(claimBase1Coord.x, claimBase2Coord.x),
+        y: Math.min(claimBase1Coord.y, claimBase2Coord.y),
+      };
+    };
+
+    const getClaimBaseCoordNe = (
+      claimBase1Coord: Coord,
+      claimBase2Coord: Coord
+    ): Coord => {
+      return {
+        x: Math.max(claimBase1Coord.x, claimBase2Coord.x),
+        y: Math.max(claimBase1Coord.y, claimBase2Coord.y),
+      };
+    };
+
+    const onDrag = (e: MapLayerMouseEvent | MapLayerTouchEvent) => {
+      const gwCoord = geoWebCoordinate.from_gps(
+        e.lngLat.lng,
+        e.lngLat.lat,
+        GW_MAX_LAT
+      );
+      const x = geoWebCoordinate.get_x(gwCoord);
+      const y = geoWebCoordinate.get_y(gwCoord);
+      const deltaX = dragStartedX - x;
+      const deltaY = dragStartedY - y;
+
+      if (deltaX !== 0 || deltaY !== 0) {
+        const claimBaseCoordSw = getClaimBaseCoordSw(
+          claimBase1Coord,
+          claimBase2Coord
+        );
+        const claimBaseCoordNe = getClaimBaseCoordNe(
+          claimBase1Coord,
+          claimBase2Coord
+        );
+
+        if (resizePoint) {
+          const claimBase1DeltaX =
+            resizePoint === "SW" || resizePoint === "NW" ? deltaX : 0;
+          const claimBase1DeltaY =
+            resizePoint === "SW" || resizePoint === "SE" ? deltaY : 0;
+          const claimBase2DeltaX =
+            resizePoint === "NE" || resizePoint === "SE" ? deltaX : 0;
+          const claimBase2DeltaY =
+            resizePoint === "NE" || resizePoint === "NW" ? deltaY : 0;
+
+          setClaimBase1Coord({
+            x: claimBaseCoordSw.x - claimBase1DeltaX,
+            y: claimBaseCoordSw.y - claimBase1DeltaY,
+          });
+          setClaimBase2Coord({
+            x: claimBaseCoordNe.x - claimBase2DeltaX,
+            y: claimBaseCoordNe.y - claimBase2DeltaY,
+          });
+        } else {
+          setClaimBase1Coord({
+            x: claimBaseCoordSw.x - deltaX,
+            y: claimBaseCoordSw.y - deltaY,
+          });
+          setClaimBase2Coord({
+            x: claimBaseCoordNe.x - deltaX,
+            y: claimBaseCoordNe.y - deltaY,
+          });
+        }
+      }
+    };
+
+    const resizePointFeatures = mapRef.current.queryRenderedFeatures(void 0, {
+      layers: ["claim-point-layer"],
+    });
+    let resizePoint = "";
+
+    if (!resizePointFeatures || resizePointFeatures.length === 0) {
+      return;
+    }
+
+    for (const feature of resizePointFeatures) {
+      if (feature?.geometry.type !== "Point") {
+        break;
+      }
+
+      const featureCenter = mapRef.current.project(
+        new LngLat(
+          feature.geometry.coordinates[0],
+          feature.geometry.coordinates[1]
+        )
+      );
+
+      if (featureCenter) {
+        const featureRadius = feature.layer.paint
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (feature.layer.paint as any)["circle-radius"]
+          : 0;
+        const isInsideClaimPoint =
+          e.point.x > featureCenter.x - featureRadius &&
+          e.point.x < featureCenter.x + featureRadius &&
+          e.point.y > featureCenter.y - featureRadius &&
+          e.point.y < featureCenter.y + featureRadius;
+
+        if (isInsideClaimPoint) {
+          resizePoint = feature.properties?.direction;
+          break;
+        }
+      }
+    }
+
+    const claimBaseCoordSw = getClaimBaseCoordSw(
+      claimBase1Coord,
+      claimBase2Coord
+    );
+    const claimBaseCoordNe = getClaimBaseCoordNe(
+      claimBase1Coord,
+      claimBase2Coord
+    );
+    const claimCoordSw = geoWebCoordinate.to_gps(
+      geoWebCoordinate.make_gw_coord(claimBaseCoordSw.x, claimBaseCoordSw.y),
+      GW_MAX_LAT,
+      GW_MAX_LON
+    );
+    const claimCoordNe = geoWebCoordinate.to_gps(
+      geoWebCoordinate.make_gw_coord(claimBaseCoordNe.x, claimBaseCoordNe.y),
+      GW_MAX_LAT,
+      GW_MAX_LON
+    );
+    const claimCornerSw = mapRef.current.project(
+      new LngLat(claimCoordSw[0][0], claimCoordSw[0][1])
+    );
+    const claimCornerNe = mapRef.current.project(
+      new LngLat(claimCoordNe[2][0], claimCoordNe[2][1])
+    );
+    const isInsideClaimSelection =
+      claimCornerSw &&
+      claimCornerNe &&
+      e.point.x > claimCornerSw.x &&
+      e.point.x < claimCornerNe.x &&
+      e.point.y > claimCornerNe.y &&
+      e.point.y < claimCornerSw.y;
+
+    if (isInsideClaimSelection || resizePoint) {
+      e.preventDefault();
+      mapRef.current.on("mousemove", onDrag);
+      mapRef.current.on("touchmove", onDrag);
+      mapRef.current.once("mouseup", () =>
+        mapRef.current?.off("mousemove", onDrag)
+      );
+      mapRef.current.once("touchend", () =>
+        mapRef.current?.off("touchmove", onDrag)
+      );
     }
   }
 
@@ -726,6 +978,12 @@ function Map(props: MapProps) {
         setParcelHoverId(selectedParcelId);
         break;
       case STATE.CLAIM_SELECTING:
+        setInteractiveLayerIds([
+          "parcels-layer",
+          "grid-layer",
+          "claim-layer",
+          "claim-point-layer",
+        ]);
         break;
       default:
         if (isGridVisible) {
@@ -758,11 +1016,12 @@ function Map(props: MapProps) {
       flyToLocation({
         longitude: parcelNavigationCenter.coordinates[0],
         latitude: parcelNavigationCenter.coordinates[1],
-        zoom: ZOOM_GRID_LEVEL,
+        zoom: isMobile || isTablet ? ZOOM_GRID_LEVEL - 1 : ZOOM_GRID_LEVEL,
         duration: 500,
         padding: {
           ...mapPadding,
-          left: document.body.offsetWidth * 0.25,
+          left: !isMobile && !isTablet ? document.body.offsetWidth * 0.25 : 0,
+          bottom: isMobile || isTablet ? DRAWER_PREVIEW_HEIGHT_PARCEL : 0,
         },
       });
 
@@ -773,6 +1032,41 @@ function Map(props: MapProps) {
     }
   }, [parcelNavigationCenter]);
 
+  useEffect(() => {
+    if (!showSearchBar) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onFocusOut = (e: any) => {
+      const { relatedTarget } = e;
+
+      if (
+        relatedTarget instanceof HTMLElement &&
+        relatedTarget.className.includes("parcel-list-btn")
+      ) {
+        setShowParcelList(true);
+      }
+
+      setTimeout(() => setShowSearchBar(false), 1000);
+    };
+
+    const searchInput: HTMLInputElement | null = document.querySelector(
+      ".mapboxgl-ctrl-geocoder--input"
+    );
+
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.addEventListener("focusout", onFocusOut);
+    }
+
+    return () => {
+      if (searchInput) {
+        searchInput.removeEventListener("onfocusout", onFocusOut);
+      }
+    };
+  }, [showSearchBar]);
+
   return (
     <>
       <OpRewardAlert />
@@ -781,17 +1075,24 @@ function Map(props: MapProps) {
           <Alert
             className="position-absolute top-50 start-50 text-center"
             variant="warning"
-            style={{ zIndex: 1, width: "256px" }}
+            style={{
+              zIndex: 1,
+              width: "256px",
+              transform:
+                isMobile || isTablet ? "translateX(-50%)" : "translateX(0)",
+            }}
           >
             Zoom to Continue Your Claim
-            <br />
-            or
-            <br />
-            Hit Esc to Cancel
+            <div className="d-none d-lg-block">
+              <br />
+              or
+              <br />
+              Hit Esc to Cancel
+            </div>
           </Alert>
         )}
       {interactionState != STATE.VIEWING ? (
-        <Sidebar
+        <OffCanvasPanel
           {...props}
           interactionState={interactionState}
           setInteractionState={setInteractionState}
@@ -800,37 +1101,48 @@ function Map(props: MapProps) {
           selectedParcelId={selectedParcelId}
           setSelectedParcelId={setSelectedParcelId}
           setIsParcelAvailable={setIsParcelAvailable}
-          parcelClaimSize={parcelClaimSize}
+          parcelClaimInfo={parcelClaimInfo}
           invalidLicenseId={invalidLicenseId}
           setInvalidLicenseId={setInvalidLicenseId}
           setNewParcel={setNewParcel}
           selectedParcelCoords={selectedParcelCoords}
+          isValidClaim={isValidClaim}
           delay={interactionState === STATE.CLAIM_SELECTING}
-        ></Sidebar>
+        ></OffCanvasPanel>
       ) : null}
       <Col sm={interactionState != STATE.VIEWING ? "9" : "12"} className="px-0">
         <ReactMapGL
           style={{
             width: "100vw",
-            height: "100vh",
+            height: isMobile || isTablet ? "100svh" : "100vh",
           }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ref={mapRef as any}
           {...viewport}
+          attributionControl={false}
           mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN}
           mapStyle={mapStyleUrlByName[mapStyleName]}
           interactiveLayerIds={interactiveLayerIds}
           projection="globe"
           fog={{}}
           dragRotate={false}
-          touchZoomRotate={false}
+          touchZoomRotate={true}
           onLoad={_onLoad}
           onMove={(e) => _onMove(e.viewState)}
           onMoveEnd={(e) => _onMoveEnd(e.viewState)}
           onMouseMove={_onMouseMove}
           onMouseOut={_onMouseOut}
+          onMouseDown={handleClaimSelection}
+          onTouchStart={handleClaimSelection}
           onClick={_onClick}
+          dragPan={
+            (!isMobile && !isTablet) ||
+            interactionState === STATE.VIEWING ||
+            interactionState === STATE.CLAIM_SELECTING ||
+            interactionState === STATE.PARCEL_SELECTED
+          }
         >
+          <AttributionControl compact={false} />
           <GridSource grid={grid} isGridVisible={isGridVisible}></GridSource>
           <ParcelSource
             data={data ?? null}
@@ -839,6 +1151,10 @@ function Map(props: MapProps) {
             selectedParcelId={selectedParcelId}
             invalidLicenseId={invalidLicenseId}
           ></ParcelSource>
+          <CellHoverSource
+            geoWebCoordinate={geoWebCoordinate}
+            cellHoverCoord={cellHoverCoord}
+          ></CellHoverSource>
           <ClaimSource
             geoWebCoordinate={geoWebCoordinate}
             existingMultiPoly={existingMultiPoly}
@@ -846,20 +1162,48 @@ function Map(props: MapProps) {
             claimBase2Coord={claimBase2Coord}
             isValidClaim={isValidClaim}
             setIsValidClaim={setIsValidClaim}
-            parcelClaimSize={parcelClaimSize}
-            setParcelClaimSize={setParcelClaimSize}
+            setParcelClaimInfo={setParcelClaimInfo}
+            interactionState={interactionState}
           ></ClaimSource>
-          <CellHoverSource
-            geoWebCoordinate={geoWebCoordinate}
-            cellHoverCoord={cellHoverCoord}
-          ></CellHoverSource>
-          <Geocoder
-            mapboxAccessToken={
-              process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
-            }
-            position="top-right"
+          {!isMobile || showSearchBar ? (
+            <Geocoder
+              mapboxAccessToken={
+                process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_TOKEN ?? ""
+              }
+              position="top-right"
+              hideSearchBar={() => setShowSearchBar(false)}
+            />
+          ) : (!isMobile && !isTablet) ||
+            document.body.clientHeight > 800 ||
+            interactionState !== STATE.CLAIM_SELECTING ? (
+            <Button
+              variant="light"
+              className="search-map-btn"
+              onClick={() => setShowSearchBar(true)}
+            >
+              <Image src="search.svg" alt="search" width={24} />
+            </Button>
+          ) : null}
+
+          <NavigationControl
+            position="bottom-right"
+            showCompass={false}
+            style={{
+              bottom:
+                (isMobile || isTablet) &&
+                interactionState === STATE.CLAIM_SELECTING
+                  ? `calc(90px + ${DRAWER_CLAIM_HEIGHT}px)`
+                  : isMobile || isTablet
+                  ? "123px"
+                  : "119px",
+              visibility:
+                (isMobile || isTablet) &&
+                interactionState !== STATE.VIEWING &&
+                interactionState !== STATE.CLAIM_SELECTING
+                  ? "hidden"
+                  : "visible",
+            }}
           />
-          <NavigationControl position="bottom-right" showCompass={false} />
         </ReactMapGL>
       </Col>
       <Button
@@ -867,17 +1211,29 @@ function Map(props: MapProps) {
         className="border border-secondary border-top-0 grid-switch"
         style={{
           position: "absolute",
-          bottom: "90px",
+          bottom:
+            (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
+              ? `calc(56px + ${DRAWER_CLAIM_HEIGHT}px)`
+              : isMobile || isTablet
+              ? "88px"
+              : "90px",
           right: "2vw",
-          width: "31px",
-          height: "29px",
+          zIndex: 1,
+          width: isMobile || isTablet ? "38px" : "31px",
+          height: isMobile || isTablet ? "36px" : "29px",
           borderRadius: "0 0 4px 4px",
+          visibility:
+            (isMobile || isTablet) &&
+            interactionState !== STATE.VIEWING &&
+            interactionState !== STATE.CLAIM_SELECTING
+              ? "hidden"
+              : "visible",
         }}
         onClick={() =>
           flyToLocation({
             longitude: viewport.longitude,
             latitude: viewport.latitude,
-            zoom: ZOOM_GRID_LEVEL + 1,
+            zoom: ZOOM_GRID_LEVEL,
             duration: 500,
             padding: mapPadding,
           })
@@ -891,24 +1247,36 @@ function Map(props: MapProps) {
         />
       </Button>
       <ButtonGroup
+        className={isMobile || isTablet ? "px-0 justify-content-end" : ""}
         style={{
           position: "absolute",
-          bottom: "4%",
+          bottom:
+            (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
+              ? `${DRAWER_CLAIM_HEIGHT}px`
+              : "4svh",
           right: "2%",
           width: "123px",
           borderRadius: 12,
+          visibility:
+            (isMobile || isTablet) &&
+            interactionState !== STATE.VIEWING &&
+            interactionState !== STATE.CLAIM_SELECTING
+              ? "hidden"
+              : "visible",
         }}
       >
         <Button
+          className={isMobile || isTablet ? "map-style-btn" : ""}
           style={{
             backgroundColor: mapStyleName === "street" ? "#2fc1c1" : "#202333",
           }}
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.street)}
         >
-          <Image src={"street_ic.png"} width={30} />
+          <Image src={"street_ic.png"} width={isMobile || isTablet ? 28 : 30} />
         </Button>
         <Button
+          className={isMobile || isTablet ? "map-style-btn" : ""}
           style={{
             backgroundColor:
               mapStyleName === "satellite" ? "#2fc1c1" : "#202333",
@@ -916,16 +1284,25 @@ function Map(props: MapProps) {
           variant="secondary"
           onClick={() => handleMapstyle(MapStyleName.satellite)}
         >
-          <Image src={"satellite_ic.png"} width={30} />
+          <Image
+            src={"satellite_ic.png"}
+            width={isMobile || isTablet ? 28 : 30}
+          />
         </Button>
       </ButtonGroup>
-      <Button
-        variant="primary"
-        className="p-0 border-0 parcel-list-btn"
-        onClick={() => setShowParcelList(true)}
-      >
-        <Image src="list.svg" alt="parcel list" width={38} />
-      </Button>
+      {(!isMobile && !isTablet) ||
+      document.body.clientHeight > 800 ||
+      interactionState !== STATE.CLAIM_SELECTING ? (
+        <Button
+          variant="primary"
+          className={`p-0 border-0 parcel-list-btn ${
+            isMobile && !showSearchBar ? "mobile" : ""
+          }`}
+          onClick={() => setShowParcelList(true)}
+        >
+          <Image src="list.svg" alt="parcel list" width={38} />
+        </Button>
+      ) : null}
       <ParcelList
         showParcelList={showParcelList}
         handleCloseModal={() => setShowParcelList(false)}

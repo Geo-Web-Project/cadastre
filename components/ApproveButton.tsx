@@ -3,10 +3,10 @@ import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Image from "react-bootstrap/Image";
 import { BigNumber } from "ethers";
-import { SidebarProps } from "./Sidebar";
+import { OffCanvasPanelProps } from "./OffCanvasPanel";
 import { PAYMENT_TOKEN } from "../lib/constants";
 
-export type ApproveButtonProps = SidebarProps & {
+export type ApproveButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;

@@ -19,7 +19,10 @@ function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
   const { mediaGalleryItems, selectedMediaGalleryItemIndex } = props;
 
   return (
-    <Row className="p-5 m-3 text-center" style={{ backgroundColor: "#111320" }}>
+    <Row
+      className="p-2 p-sm-5 m-1 m-sm-3 text-center"
+      style={{ backgroundColor: "#111320" }}
+    >
       {mediaGalleryItems.map((mediaGalleryItem, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem

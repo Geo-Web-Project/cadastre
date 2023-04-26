@@ -16,7 +16,7 @@ import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CID from "cids";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import CopyTooltip from "../CopyTooltip";
 import { formatBalance } from "../../lib/formatBalance";
 import EditAction from "./EditAction";
@@ -29,11 +29,13 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
+import BackButton from "../BackButton";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 const ParcelChat = dynamic(() => import("../ParcelChat"), {
   ssr: false,
@@ -87,7 +89,7 @@ const parcelQuery = gql`
   }
 `;
 
-export type ParcelInfoProps = SidebarProps & {
+export type ParcelInfoProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   parcelFieldsToUpdate: ParcelFieldsToUpdate | null;
@@ -97,6 +99,8 @@ export type ParcelInfoProps = SidebarProps & {
   minForSalePrice: BigNumber;
   licenseAddress: string;
   geoWebContent: GeoWebContent;
+  isFullSize: boolean;
+  setIsFullSize: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -117,7 +121,10 @@ function ParcelInfo(props: ParcelInfoProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
+    isFullSize,
+    setIsFullSize,
   } = props;
+  const { isMobile, isTablet } = useMediaQuery();
   const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
       id: selectedParcelId,
@@ -294,6 +301,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100"
       onClick={() => {
         setInteractionState(STATE.PARCEL_SELECTED);
+        setIsFullSize(true);
       }}
     >
       Cancel
@@ -306,6 +314,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100 mb-2"
       onClick={() => {
         setInteractionState(STATE.PARCEL_EDITING);
+        setIsFullSize(true);
       }}
     >
       Edit Parcel
@@ -318,6 +327,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100"
       onClick={() => {
         setInteractionState(STATE.EDITING_GALLERY);
+        setIsFullSize(true);
       }}
     >
       Edit Media Gallery
@@ -331,6 +341,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         className="w-100"
         onClick={() => {
           setInteractionState(STATE.PARCEL_PLACING_BID);
+          setIsFullSize(true);
         }}
       >
         Place Bid
@@ -341,51 +352,60 @@ function ParcelInfo(props: ParcelInfoProps) {
 
   let header;
   if (
-    interactionState == STATE.CLAIM_SELECTING ||
-    interactionState == STATE.CLAIM_SELECTED
+    interactionState === STATE.CLAIM_SELECTING ||
+    interactionState === STATE.CLAIM_SELECTED ||
+    (interactionState !== STATE.PARCEL_SELECTED && (isMobile || isTablet))
   ) {
+    const headerText =
+      interactionState === STATE.PARCEL_PLACING_BID
+        ? "Place Bid"
+        : interactionState === STATE.PARCEL_REJECTING_BID
+        ? "Reject Bid"
+        : interactionState === STATE.PARCEL_EDITING
+        ? "Edit Parcel"
+        : interactionState === STATE.PARCEL_RECLAIMING &&
+          account === licenseOwner
+        ? "Reclaim Parcel"
+        : interactionState === STATE.PARCEL_RECLAIMING
+        ? "Forclosure Claim"
+        : "Claim a Parcel";
     header = (
       <>
-        <Row className="mb-3">
-          <Col sm="10">
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-              Claim a Parcel
-            </h1>
-          </Col>
-          <Col sm="2">
-            <div className="text-end">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setInteractionState(STATE.VIEWING)}
-              >
-                <Image src="close.svg" />
-              </Button>
-            </div>
+        <Row
+          className={`${
+            (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
+          } p-sm-0`}
+        >
+          <Col sm="10" className="w-75">
+            <span className="fs-4 fw-bold">{headerText}</span>
           </Col>
         </Row>
+        {((!isMobile && !isTablet) || isFullSize) &&
+          interactionState !== STATE.CLAIM_SELECTING && (
+            <Row className="m-0 p-0 pb-3 pb-lg-4">
+              <BackButton
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+              />
+            </Row>
+          )}
       </>
     );
   } else {
     const spatialURL = `${SPATIAL_DOMAIN}?latitude=${selectedParcelCoords?.y}&longitude=${selectedParcelCoords?.x}`;
-    header = (
-      <>
-        <div
-          className="bg-image mb-4"
-          style={{ backgroundImage: `url(Contour_Lines.png)` }}
-        >
-          <div className="text-end">
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => setInteractionState(STATE.VIEWING)}
-            >
-              <Image src="close.svg" />
-            </Button>
-          </div>
-          <Row>
-            <Col className="mx-3" sm="10">
-              <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+    header =
+      interactionState === STATE.PARCEL_SELECTED || (!isMobile && !isTablet) ? (
+        <>
+          <div
+            className="d-flex flex-column justify-content-between rounded-3 p-0 pt-2 m-0 mt-sm-0"
+            style={{
+              backgroundImage: "url(Contour_Lines.png)",
+              backgroundSize: "cover",
+              height: isMobile || isTablet ? "116px" : "auto",
+            }}
+          >
+            <Row className="m-0">
+              <h1 className="fs-3 fw-bold">
                 {parcelContent === null
                   ? spinner
                   : parcelContent?.name
@@ -394,64 +414,72 @@ function ParcelInfo(props: ParcelInfoProps) {
                   ? `Parcel ${data.geoWebParcel.id}`
                   : spinner}
               </h1>
-            </Col>
-          </Row>
-          <Row>
-            <Col className="mx-3">
-              <p className="fw-bold text-truncate">
-                {!parcelContent ? null : hrefWebContent ? (
-                  <a
-                    href={hrefWebContent}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-light"
-                  >{`${hrefWebContent}`}</a>
-                ) : null}
-              </p>
-            </Col>
-            <Col className="d-flex justify-content-end gap-2 text-end pt-2 mx-2">
-              <OverlayTrigger
-                key="chat"
-                placement="top"
-                overlay={<Tooltip id={`tooltip-key`}>Open Parcel Chat</Tooltip>}
-              >
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="p-0 mt-1 shadow-none"
-                  onClick={() => setShowParcelChat(true)}
-                >
-                  <Image width={32} src="chat.svg" />
-                </Button>
-              </OverlayTrigger>
-              <OverlayTrigger
-                key="browser"
-                placement="top"
-                overlay={
-                  <Tooltip id={`tooltip-key`}>Open in Spatial Browser</Tooltip>
-                }
-              >
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-right shadow-none"
-                  href={spatialURL}
+            </Row>
+            <Row className="m-0">
+              {!parcelContent ? null : hrefWebContent ? (
+                <a
+                  href={hrefWebContent}
                   target="_blank"
+                  rel="noreferrer"
+                  className="d-block text-light fw-bold text-truncate"
+                >{`${hrefWebContent}`}</a>
+              ) : null}
+              <div className="d-flex justify-content-end gap-1 gap-sm-2 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
+                <OverlayTrigger
+                  key="chat"
+                  placement="top"
+                  overlay={
+                    <Tooltip id={`tooltip-key`}>Open Parcel Chat</Tooltip>
+                  }
                 >
-                  <Image width={32} src="open-in-browser.svg" />
-                </Button>
-              </OverlayTrigger>
-              <CopyTooltip
-                contentClick="Link Copied"
-                contentHover="Copy link to Parcel"
-                target={<Image className="me-1" width={36} src="link.svg" />}
-                handleCopy={copyParcelLink}
-              />
-            </Col>
-          </Row>
-        </div>
-      </>
-    );
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 mt-1 shadow-none"
+                    onClick={() => setShowParcelChat(true)}
+                  >
+                    <Image width={isMobile ? 24 : 32} src="chat.svg" />
+                  </Button>
+                </OverlayTrigger>
+                <OverlayTrigger
+                  key="browser"
+                  placement="top"
+                  overlay={
+                    <Tooltip id={`tooltip-key`}>
+                      Open in Spatial Browser
+                    </Tooltip>
+                  }
+                >
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-right shadow-none"
+                    href={spatialURL}
+                    target="_blank"
+                  >
+                    <Image
+                      width={isMobile ? 24 : 32}
+                      src="open-in-browser.svg"
+                    />
+                  </Button>
+                </OverlayTrigger>
+                <CopyTooltip
+                  contentClick="Link Copied"
+                  contentHover="Copy link to Parcel"
+                  target={
+                    <Image
+                      className="me-1"
+                      width={isMobile ? 30 : 36}
+                      src="link.svg"
+                    />
+                  }
+                  handleCopy={copyParcelLink}
+                />
+              </div>
+            </Row>
+          </div>
+        </>
+      ) : null;
   }
 
   let buttons;
@@ -469,10 +497,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       );
     } else if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
       buttons = (
-        <>
+        <div>
           {editButton}
           {editGalleryButton}
-        </>
+        </div>
       );
     } else if (!hasOutstandingBid) {
       buttons = placeBidButton;
@@ -482,21 +510,23 @@ function ParcelInfo(props: ParcelInfoProps) {
   return (
     <>
       {header}
-      <Row className="pb-5">
-        <Col>
-          {interactionState == STATE.PARCEL_SELECTED ||
-          interactionState == STATE.PARCEL_EDITING ||
+      {interactionState == STATE.PARCEL_SELECTED ||
+      (!isMobile &&
+        !isTablet &&
+        (interactionState == STATE.PARCEL_EDITING ||
           interactionState == STATE.PARCEL_PLACING_BID ||
           interactionState == STATE.PARCEL_REJECTING_BID ||
-          interactionState == STATE.EDITING_GALLERY ? (
-            <>
-              <p>
+          interactionState == STATE.EDITING_GALLERY)) ? (
+        <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
+          <Col className="p-0">
+            <div className="d-flex flex-column gap-1 gap-sm-3">
+              <div>
                 <span className="fw-bold">For Sale Price:</span>{" "}
                 {isLoading || parcelFieldsToUpdate?.forSalePrice
                   ? spinner
                   : forSalePrice}
-              </p>
-              <p className="text-truncate">
+              </div>
+              <div className="text-truncate">
                 <span className="fw-bold">Parcel ID:</span>{" "}
                 {isLoading ? (
                   spinner
@@ -514,16 +544,16 @@ function ParcelInfo(props: ParcelInfoProps) {
                     {selectedParcelId}
                   </a>
                 )}
-              </p>
-              <p className="text-truncate">
+              </div>
+              <div className="text-truncate">
                 <span className="fw-bold">Licensee:</span>{" "}
                 {isLoading ||
                 !licenseOwner ||
                 parcelFieldsToUpdate?.licenseOwner
                   ? spinner
                   : truncateStr(licenseOwner, 11)}
-              </p>
-              <p className="text-truncate">
+              </div>
+              <div className="text-truncate">
                 <span className="fw-bold">Root CID: </span>{" "}
                 {rootCid === "" ? (
                   "Not Available"
@@ -539,15 +569,19 @@ function ParcelInfo(props: ParcelInfoProps) {
                     {rootCid}
                   </a>
                 )}
-              </p>
+              </div>
               <br />
               {invalidLicenseId == selectedParcelId
                 ? null
                 : parcelFieldsToUpdate
                 ? null
                 : buttons}
-            </>
-          ) : null}
+            </div>
+          </Col>
+        </Row>
+      ) : null}
+      <Row>
+        <Col>
           {(interactionState == STATE.PARCEL_RECLAIMING ||
             (interactionState == STATE.PARCEL_SELECTED &&
               invalidLicenseId == selectedParcelId &&

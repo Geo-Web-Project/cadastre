@@ -6,7 +6,7 @@ import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
+import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
 import { STATE } from "../Map";
@@ -23,6 +23,7 @@ interface OutstandingBidProps {
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  maxListSize: number;
 }
 
 type Bid = Parcel & {
@@ -30,9 +31,9 @@ type Bid = Parcel & {
 };
 
 const outstandingBidQuery = gql`
-  query OutstandingBid($skip: Int) {
+  query OutstandingBid($first: Int, $skip: Int) {
     geoWebParcels(
-      first: 25
+      first: $first
       orderBy: pendingBid__timestamp
       orderDirection: desc
       skip: $skip
@@ -67,6 +68,7 @@ function OutstandingBid(props: OutstandingBidProps) {
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    maxListSize,
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
@@ -76,7 +78,8 @@ function OutstandingBid(props: OutstandingBidProps) {
     outstandingBidQuery,
     {
       variables: {
-        skip: 0 * MAX_LIST_SIZE,
+        first: maxListSize,
+        skip: 0 * maxListSize,
       },
       notifyOnNetworkStatusChange: true,
     }

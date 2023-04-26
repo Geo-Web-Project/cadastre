@@ -59,21 +59,22 @@ function GalleryModal(props: GalleryModalProps) {
     <Modal
       show={show}
       backdrop="static"
-      keyboard={false}
       centered
+      scrollable
+      keyboard={false}
       size="xl"
       onHide={handleClose}
       contentClassName="bg-dark"
     >
-      <Modal.Header className="bg-dark border-0">
-        <Container>
+      <Modal.Header className="p-2 p-sm-3 bg-dark border-0">
+        <Container className="p-2 p-sm-3">
           <Row>
-            <Col sm="11">
+            <Col xs="8" sm="11">
               <Modal.Title className="text-primary">
                 Edit Media Gallery
               </Modal.Title>
             </Col>
-            <Col sm="1" className="text-end">
+            <Col xs="4" sm="1" className="text-end">
               <Button variant="link" size="sm" onClick={handleClose}>
                 <Image src="close.svg" />
               </Button>
@@ -87,19 +88,16 @@ function GalleryModal(props: GalleryModalProps) {
         </Modal.Body>
       ) : (
         <>
-          <Modal.Body className="bg-dark px-4 text-light">
+          <Modal.Body className="bg-dark px-3 px-sm-4 text-light">
             <p>
-              The Media Gallery is a simple carousel viewing experience for
-              media on the{" "}
+              The Media Gallery is a simple carousel viewing experience on the{" "}
               <a href="https://geoweb.app" target="_blank" rel="noreferrer">
-                Geo Web alpha spatial browser
+                spatial browser
               </a>
-              .
-              <br />
-              .glb and .usdz (iOS only) files can be viewed in AR through the
-              spatial browser on compatible devices.
+              . GLB and USDZ (iOS only) files can be viewed in AR on compatible
+              devices.
             </p>
-            <div className="border border-secondary rounded p-3 text-center">
+            <div className="border border-secondary rounded p-2 p-sm-3 text-center">
               <GalleryForm
                 mediaGalleryItems={mediaGalleryItems}
                 selectedMediaGalleryItemIndex={selectedMediaGalleryItemIndex}

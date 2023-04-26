@@ -20,6 +20,7 @@ type GeocoderProps = Omit<
   onResult: (...args: any[]) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onError: (...args: any[]) => void;
+  hideSearchBar?: () => void;
 };
 
 function Geocoder(props: GeocoderProps) {
@@ -55,6 +56,9 @@ function Geocoder(props: GeocoderProps) {
           );
         } else {
           setMarker(null);
+        }
+        if (props.hideSearchBar) {
+          props.hideSearchBar();
         }
       });
       ctrl.on("error", props.onError);

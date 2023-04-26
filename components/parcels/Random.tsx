@@ -7,7 +7,7 @@ import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
-import { MAX_LIST_SIZE, Parcel, ParcelsQuery } from "./ParcelList";
+import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
 import { STATE } from "../Map";
@@ -23,6 +23,7 @@ interface RandomProps {
   setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  maxListSize: number;
 }
 
 const randomQuery = gql`
@@ -65,6 +66,7 @@ function Random(props: RandomProps) {
     setParcelNavigationCenter,
     hasRefreshed,
     setHasRefreshed,
+    maxListSize,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
@@ -116,7 +118,7 @@ function Random(props: RandomProps) {
     const _parcels: Parcel[] = [];
     const promises = [];
 
-    for (let i = 0; i < MAX_LIST_SIZE; i++) {
+    for (let i = 0; i < maxListSize; i++) {
       if (geoWebParcels.length === 0) {
         break;
       }

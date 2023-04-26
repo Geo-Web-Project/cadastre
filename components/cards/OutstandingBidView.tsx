@@ -5,7 +5,7 @@ import { Card, Spinner } from "react-bootstrap";
 import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
-import { ParcelFieldsToUpdate } from "../Sidebar";
+import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -298,7 +298,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   };
 
   return (
-    <Card className="bg-purple bg-opacity-25 mt-5">
+    <Card className="bg-purple bg-opacity-25 mt-4 mt-sm-5 mt-lg-0">
       <Card.Header>
         <h3>Outstanding Bid</h3>
       </Card.Header>
@@ -399,7 +399,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
             </Button>
           </>
         ) : null}
-        {shouldAllowTrigger ? (
+        {shouldAllowTrigger && signer ? (
           <Button
             variant="primary"
             className="w-100 mb-2"

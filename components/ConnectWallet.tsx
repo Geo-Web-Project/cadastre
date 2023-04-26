@@ -1,11 +1,11 @@
 import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/Image";
 import { useAccount, useNetwork } from "wagmi";
 import {
   ConnectButton,
   useConnectModal,
   useChainModal,
 } from "@rainbow-me/rainbowkit";
+import { useMediaQuery } from "../lib/mediaQuery";
 
 type ConnectWalletProps = {
   variant?: string;
@@ -18,6 +18,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
   const { status } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openChainModal } = useChainModal();
+  const { isMobile } = useMediaQuery();
 
   return (
     <ConnectButton.Custom>
@@ -43,25 +44,21 @@ export default function ConnectWallet(props: ConnectWalletProps) {
 
               return (
                 <Button
-                  variant={variant === "header" ? "outline-primary" : "primary"}
+                  variant="primary"
                   className={`text-light border-dark ${
-                    variant === "header" ? "fw-bold" : "w-100 fs-6 py-2"
+                    variant === "header"
+                      ? "px-2 px-sm-3 py-lg-2 ms-2 ms-lg-0 me-lg-2 fw-bold"
+                      : "w-100 py-2"
                   }`}
                   disabled={!mounted || status === "connecting"}
-                  style={{ height: variant === "header" ? "100px" : "auto" }}
                   onClick={openConnectModal}
                 >
-                  {variant === "header" && (
-                    <Image
-                      src="vector.png"
-                      width="40"
-                      style={{ marginRight: 20 }}
-                    />
-                  )}
-                  {variant === "header"
+                  {variant === "header" && isMobile
+                    ? "Connect"
+                    : variant === "header"
                     ? "Connect Wallet"
                     : variant === "claim"
-                    ? "Connect to Claim"
+                    ? "Connect to Continue"
                     : "Connect to Transact"}
                 </Button>
               );

@@ -50,6 +50,7 @@ function FAQ() {
       <span onClick={handleShow}>Frequently Asked Questions</span>
       <Modal
         show={show}
+        scrollable
         size="lg"
         onHide={handleClose}
         contentClassName="bg-dark"

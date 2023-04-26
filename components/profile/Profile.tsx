@@ -64,66 +64,80 @@ function Profile(props: ProfileProps) {
   );
 
   return (
-    <div className="d-flex flex-column ms-auto align-items-center fit-content">
-      {/* <Badge
-        pill
-        bg="info"
-        className="me-4 py-2 px-3 text-light"
+    <ButtonGroup className="d-flex align-items-center bg-dark border-secondary">
+      <Button
+        variant="secondary"
+        disabled={showProfile}
+        onClick={handleShowProfile}
+        className="d-none d-xl-block text-light rounded-start"
       >
-        <span style={{ fontWeight: 600 }}>{NETWORK_NAME}</span>
-      </Badge> */}
-      <ButtonGroup className="bg-dark border-secondary">
-        <Button
-          variant="secondary"
-          disabled={showProfile}
-          onClick={handleShowProfile}
-          className="text-light"
-        >
-          {isLoading || data == null ? (
-            <Spinner animation="border" role="status"></Spinner>
-          ) : (
-            <>
-              <FlowingBalance
-                format={(x) =>
-                  truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
-                }
-                accountTokenSnapshot={data.items[0]}
-              />
-              <ProfileModal
-                accountTokenSnapshot={data.items[0]}
-                showProfile={showProfile}
-                handleCloseProfile={handleCloseProfile}
-                {...props}
-              />
-            </>
-          )}
-        </Button>
-        <Button
-          variant="outline-secondary"
-          disabled={showProfile}
-          onClick={handleShowProfile}
-          className="text-light bg-dark"
-        >
-          {truncateStr(account, 14)}{" "}
-          {portfolioNeedActionCount ? (
-            <OverlayTrigger
-              trigger={["hover", "focus"]}
-              placement="bottom"
-              delay={{ show: 250, hide: 400 }}
-              overlay={
-                <Tooltip>You have parcels that require attention.</Tooltip>
+        {isLoading || data == null ? (
+          <Spinner animation="border" role="status"></Spinner>
+        ) : (
+          <>
+            <FlowingBalance
+              format={(x) =>
+                truncateEth(ethers.utils.formatUnits(x), 3) + " ETHx"
               }
-            >
-              <Badge bg="danger" pill={true} text="light">
-                {portfolioNeedActionCount}
-              </Badge>
-            </OverlayTrigger>
-          ) : (
-            <Image src="./ProfileIcon.png" />
-          )}
-        </Button>
-      </ButtonGroup>
-    </div>
+              accountTokenSnapshot={data.items[0]}
+            />
+            <ProfileModal
+              accountTokenSnapshot={data.items[0]}
+              showProfile={showProfile}
+              handleCloseProfile={handleCloseProfile}
+              {...props}
+            />
+          </>
+        )}
+      </Button>
+      <Button
+        variant="outline-secondary"
+        disabled={showProfile}
+        onClick={handleShowProfile}
+        className="d-none d-xl-flex align-items-center gap-1 text-light bg-dark rounded-end"
+      >
+        <span>{truncateStr(account, 14)} </span>
+        {portfolioNeedActionCount ? (
+          <OverlayTrigger
+            trigger={["hover", "focus"]}
+            placement="bottom"
+            delay={{ show: 250, hide: 400 }}
+            overlay={
+              <Tooltip>You have parcels that require attention.</Tooltip>
+            }
+          >
+            <Badge bg="danger" pill={true} text="light">
+              {portfolioNeedActionCount}
+            </Badge>
+          </OverlayTrigger>
+        ) : (
+          <Image src="./account-circle.svg" width={24} />
+        )}
+      </Button>
+      <Button
+        variant="link"
+        disabled={showProfile}
+        onClick={handleShowProfile}
+        className="ms-3 d-xl-none"
+      >
+        {portfolioNeedActionCount ? (
+          <OverlayTrigger
+            trigger={["hover", "focus"]}
+            placement="bottom"
+            delay={{ show: 250, hide: 400 }}
+            overlay={
+              <Tooltip>You have parcels that require attention.</Tooltip>
+            }
+          >
+            <Badge className="fs-6" bg="danger" pill={true} text="light">
+              {portfolioNeedActionCount}
+            </Badge>
+          </OverlayTrigger>
+        ) : (
+          <Image width={48} src="./account-circle.svg" />
+        )}
+      </Button>
+    </ButtonGroup>
   );
 }
 

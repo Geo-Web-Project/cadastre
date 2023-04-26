@@ -2,7 +2,7 @@ import * as React from "react";
 import { ActionData, ActionForm } from "./ActionForm";
 import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
-import { SidebarProps, ParcelFieldsToUpdate } from "../Sidebar";
+import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
@@ -14,7 +14,7 @@ import { SiweMessage } from "@didtools/cacao";
 import * as UCAN from "@ipld/dag-ucan";
 import { CarReader } from "@ipld/car/reader";
 
-export type ClaimActionProps = SidebarProps & {
+export type ClaimActionProps = OffCanvasPanelProps & {
   signer: ethers.Signer;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
