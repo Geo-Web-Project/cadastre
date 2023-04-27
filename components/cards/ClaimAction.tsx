@@ -32,7 +32,6 @@ function ClaimAction(props: ClaimActionProps) {
     perSecondFeeDenominator,
     requiredBid,
     setNewParcel,
-    setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
     minForSalePrice,
@@ -128,8 +127,6 @@ function ClaimAction(props: ClaimActionProps) {
     setNewParcel((prev) => {
       return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
     });
-
-    setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: true });
 
     return licenseId;
   }

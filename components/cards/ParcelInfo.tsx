@@ -618,7 +618,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           {interactionState == STATE.PARCEL_EDITING &&
           account &&
           signer &&
-          data?.geoWebParcel ? (
+          data?.geoWebParcel &&
+          licenseOwner ? (
             <EditAction
               {...props}
               signer={signer}
@@ -628,6 +629,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 !parcelFieldsToUpdate ? hasOutstandingBid : false
               }
               licenseDiamondContract={licenseDiamondContract}
+              licenseOwner={licenseOwner}
               setShouldParcelContentUpdate={setShouldParcelContentUpdate}
               setRootCid={setRootCid}
             />

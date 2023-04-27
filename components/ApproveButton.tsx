@@ -227,7 +227,7 @@ export function ApproveButton(props: ApproveButtonProps) {
 
   return (
     <Button
-      variant={isAllowed ? "info" : "primary"}
+      variant={isAllowed || isActing ? "info" : "primary"}
       className="w-100 mb-3"
       onClick={() => submit()}
       disabled={

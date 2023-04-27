@@ -13,7 +13,7 @@ import {
 } from "../../lib/constants";
 import BN from "bn.js";
 import { AssetId } from "caip";
-import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
@@ -43,6 +43,9 @@ export type ActionFormProps = OffCanvasPanelProps & {
   flowOperator: string | null;
   minForSalePrice: BigNumber;
   setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
+  setParcelFieldsToUpdate: React.Dispatch<
+    React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
 };
 
 export type ActionData = {
@@ -81,6 +84,7 @@ export function ActionForm(props: ActionFormProps) {
     minForSalePrice,
     paymentToken,
     setShouldParcelContentUpdate,
+    setParcelFieldsToUpdate,
   } = props;
 
   const {
@@ -192,15 +196,6 @@ export function ActionForm(props: ActionFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    if (setShouldParcelContentUpdate) {
-      setShouldParcelContentUpdate(true);
-    } else if (licenseId) {
-      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
-    }
-
-    setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
-
     const content: BasicProfile = {};
     if (parcelName) {
       content["name"] = parcelName;
@@ -222,35 +217,35 @@ export function ActionForm(props: ActionFormProps) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const ownerDID = ceramic.did!.parent;
 
-    if (
-      licenseId &&
-      (interactionState === STATE.CLAIM_SELECTED ||
-        (interactionState === STATE.PARCEL_RECLAIMING &&
-          account !== licenseOwner))
-    ) {
-      await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-      const mediaGallery: MediaGallery = [];
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        "/mediaGallery",
-        mediaGallery,
-        {
-          parentSchema: "ParcelRoot",
-          pin: true,
-        }
-      );
-
-      await geoWebContent.raw.commit(newRoot, {
-        ownerDID,
-        parcelId: assetId,
-      });
-    }
-
     try {
+      if (
+        licenseId &&
+        (interactionState === STATE.CLAIM_SELECTED ||
+          (interactionState === STATE.PARCEL_RECLAIMING &&
+            account !== licenseOwner))
+      ) {
+        await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
+        const rootCid = await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerDID,
+        });
+        const mediaGallery: MediaGallery = [];
+        const newRoot = await geoWebContent.raw.putPath(
+          rootCid,
+          "/mediaGallery",
+          mediaGallery,
+          {
+            parentSchema: "ParcelRoot",
+            pin: true,
+          }
+        );
+
+        await geoWebContent.raw.commit(newRoot, {
+          ownerDID,
+          parcelId: assetId,
+        });
+      }
+
       const rootCid = await geoWebContent.raw.resolveRoot({
         parcelId: assetId,
         ownerDID,
@@ -280,6 +275,19 @@ export function ActionForm(props: ActionFormProps) {
     }
 
     updateActionData({ isActing: false });
+
+    if (setShouldParcelContentUpdate) {
+      setShouldParcelContentUpdate(true);
+    } else if (licenseId) {
+      setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
+    }
+
+    setInteractionState(STATE.PARCEL_SELECTED);
+    setShouldRefetchParcelsData(true);
+    setParcelFieldsToUpdate({
+      forSalePrice: !displayNewForSalePrice || displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: !licenseOwner || licenseOwner !== account,
+    });
   }
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
