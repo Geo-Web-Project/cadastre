@@ -5,7 +5,6 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import type { Point } from "@turf/turf";
 import type { IPFS } from "ipfs-core-types";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
@@ -30,7 +29,6 @@ type StreamingInfoProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };

@@ -13,6 +13,7 @@ import OutstandingBid from "./OutstandingBid";
 import { STATE } from "../Map";
 import type { Point } from "@turf/turf";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useParcelNavigation } from "../../lib/parcelNavigation";
 
 interface ParcelListProps {
   sfFramework: Framework;
@@ -21,7 +22,6 @@ interface ParcelListProps {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   showParcelList: boolean;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   handleCloseModal: () => void;
@@ -69,13 +69,19 @@ export enum QuerySelection {
 }
 
 function ParcelList(props: ParcelListProps) {
-  const { showParcelList, handleCloseModal } = props;
-  const { isMobile } = useMediaQuery();
-
+  const {
+    showParcelList,
+    handleCloseModal,
+    setSelectedParcelId,
+    setInteractionState,
+  } = props;
   const [querySelected, setQuerySelected] = useState<QuerySelection>(
     QuerySelection.HIGHEST_VALUE
   );
   const [hasRefreshed, setHasRefreshed] = useState<boolean>(false);
+
+  const { isMobile } = useMediaQuery();
+  const { flyToParcel } = useParcelNavigation();
 
   const maxListSize = isMobile ? 10 : 25;
 
@@ -86,6 +92,18 @@ function ParcelList(props: ParcelListProps) {
     }
 
     setQuerySelected(selection);
+  };
+
+  const handleAction = (parcel: Parcel): void => {
+    const [lng, lat] = parcel.center.coordinates;
+
+    handleCloseModal();
+    setInteractionState(STATE.PARCEL_SELECTED);
+    setSelectedParcelId(parcel.parcelId);
+    flyToParcel({
+      center: [lng, lat],
+      duration: 500,
+    });
   };
 
   return (
@@ -149,6 +167,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : querySelected === QuerySelection.RECENT ? (
@@ -156,6 +175,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : querySelected === QuerySelection.RANDOM ? (
@@ -163,6 +183,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : querySelected === QuerySelection.NEEDS_TRASFER ? (
@@ -170,6 +191,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : querySelected === QuerySelection.FORECLOSURE ? (
@@ -177,6 +199,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : querySelected === QuerySelection.OUTSTANDING_BID ? (
@@ -184,6 +207,7 @@ function ParcelList(props: ParcelListProps) {
             hasRefreshed={hasRefreshed}
             setHasRefreshed={setHasRefreshed}
             maxListSize={maxListSize}
+            handleAction={handleAction}
             {...props}
           />
         ) : null}

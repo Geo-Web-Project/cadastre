@@ -48,6 +48,7 @@ import {
 } from "../../lib/utils";
 import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useParcelNavigation } from "../../lib/parcelNavigation";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -67,7 +68,6 @@ interface ProfileModalProps {
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
   handleCloseProfile: () => void;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
@@ -187,7 +187,6 @@ function ProfileModal(props: ProfileModalProps) {
     showProfile,
     handleCloseProfile,
     setPortfolioNeedActionCount,
-    setParcelNavigationCenter,
     shouldRefetchParcelsData,
     setShouldRefetchParcelsData,
   } = props;
@@ -211,12 +210,12 @@ function ProfileModal(props: ProfileModalProps) {
       id: account,
     },
   });
-
   const { superTokenBalance } = useSuperTokenBalance(
     account,
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
+  const { flyToParcel } = useParcelNavigation();
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -651,6 +650,8 @@ function ProfileModal(props: ProfileModalProps) {
   };
 
   const handlePortfolioAction = (parcel: PortfolioParcel): void => {
+    const [lng, lat] = parcel.center.coordinates;
+
     switch (parcel.action) {
       case PortfolioAction.VIEW:
       case PortfolioAction.RESPOND:
@@ -668,7 +669,10 @@ function ProfileModal(props: ProfileModalProps) {
 
     handleCloseProfile();
     setSelectedParcelId(parcel.parcelId);
-    setParcelNavigationCenter(parcel.center);
+    flyToParcel({
+      center: [lng, lat],
+      duration: 500,
+    });
   };
 
   return (

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
-import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -11,21 +10,17 @@ import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
 import { SECONDS_IN_WEEK } from "../../lib/constants";
-import { STATE } from "../Map";
 
 interface HighestValueProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  handleCloseModal: () => void;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
+  handleAction: (parcel: Parcel) => void;
 }
 
 const highestValueQuery = gql`
@@ -63,15 +58,12 @@ function HighestValue(props: HighestValueProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    setSelectedParcelId,
-    setInteractionState,
-    handleCloseModal,
-    setParcelNavigationCenter,
     shouldRefetchParcelsData,
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
+    handleAction,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
@@ -245,13 +237,6 @@ function HighestValue(props: HighestValueProps) {
     });
 
     return sorted;
-  };
-
-  const handleAction = (parcel: Parcel): void => {
-    handleCloseModal();
-    setInteractionState(STATE.PARCEL_SELECTED);
-    setSelectedParcelId(parcel.parcelId);
-    setParcelNavigationCenter(parcel.center);
   };
 
   return (

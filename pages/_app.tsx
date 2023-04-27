@@ -41,6 +41,8 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 
+import { MapProvider } from "react-map-gl";
+
 const networkIdToChain: Record<number, Chain> = {
   5: goerli,
   10: optimism,
@@ -217,11 +219,13 @@ export function App({ Component, pageProps }: AppProps) {
           })}
         >
           <ApolloProvider client={client}>
-            <Component
-              {...pageProps}
-              authStatus={authStatus}
-              setAuthStatus={setAuthStatus}
-            />
+            <MapProvider>
+              <Component
+                {...pageProps}
+                authStatus={authStatus}
+                setAuthStatus={setAuthStatus}
+              />
+            </MapProvider>
           </ApolloProvider>
         </RainbowKitProvider>
       </RainbowKitAuthenticationProvider>
