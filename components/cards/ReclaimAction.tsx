@@ -39,7 +39,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     selectedParcelId,
     sfFramework,
     paymentToken,
-    setParcelFieldsToUpdate,
     parcelContent,
   } = props;
 
@@ -153,11 +152,6 @@ function ReclaimAction(props: ReclaimActionProps) {
     }
 
     await txn.wait();
-
-    setParcelFieldsToUpdate({
-      forSalePrice: true,
-      licenseOwner: !isOwner,
-    });
 
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
   }

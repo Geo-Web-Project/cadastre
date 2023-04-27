@@ -17,6 +17,7 @@ export type EditActionProps = ParcelInfoProps & {
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   hasOutstandingBid: boolean;
+  licenseOwner: string;
   parcelData: GeoWebParcel;
   licenseDiamondContract: IPCOLicenseDiamond | null;
   setParcelFieldsToUpdate: React.Dispatch<
@@ -38,7 +39,6 @@ function EditAction(props: EditActionProps) {
     licenseDiamondContract,
     sfFramework,
     paymentToken,
-    setParcelFieldsToUpdate,
   } = props;
 
   const displayCurrentForSalePrice = formatBalance(
@@ -197,8 +197,6 @@ function EditAction(props: EditActionProps) {
       .connect(signer)
       .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
     await txn.wait();
-
-    setParcelFieldsToUpdate({ forSalePrice: true, licenseOwner: false });
   }
 
   return (

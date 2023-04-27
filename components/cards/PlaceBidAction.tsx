@@ -339,6 +339,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               requiredFlowPermissions={1}
               flowOperator={licenseDiamondContract?.address ?? null}
               setErrorMessage={setErrorMessage}
+              isActing={isActing}
               setIsActing={setIsActing}
               setDidFail={setDidFail}
               isAllowed={isAllowed}
