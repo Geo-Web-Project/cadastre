@@ -128,7 +128,7 @@ function ClaimAction(props: ClaimActionProps) {
     const referralStr = localStorage.getItem("referral");
     if (referralStr) {
       const referral = JSON.parse(referralStr);
-      if (referral.expiration > Date.now()) {
+      if (Date.now() < referral.expiration) {
         const sessionStr = localStorage.getItem("didsession");
         let session;
 
