@@ -8,7 +8,6 @@ import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import axios from "axios";
-import { useRouter } from "next/router";
 import { DIDSession } from "did-session";
 import { SiweMessage } from "@didtools/cacao";
 import * as UCAN from "@ipld/dag-ucan";
@@ -51,8 +50,6 @@ function ClaimAction(props: ClaimActionProps) {
   const [flowOperator, setFlowOperator] = React.useState<string>("");
 
   const { displayNewForSalePrice } = actionData;
-
-  const router = useRouter();
 
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
