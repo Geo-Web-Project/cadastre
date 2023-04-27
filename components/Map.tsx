@@ -307,11 +307,7 @@ function Map(props: MapProps) {
 
   const { isMobile, isTablet } = useMediaQuery();
   const router = useRouter();
-  const { getParcelCoords, flyToParcel } = useParcelNavigation(
-    !router.query.id || typeof router.query.id === "string"
-      ? router.query.id
-      : router.query.id[0]
-  );
+  const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
@@ -417,12 +413,14 @@ function Map(props: MapProps) {
     });
   }
 
-  function _onLoad() {
+  async function _onLoad() {
     if (mapRef.current == null) {
       return;
     }
 
-    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet" && !router.query.id) {
+    const { query } = router;
+
+    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet" && !query.id) {
       mapRef.current.easeTo({
         center: [viewport.longitude, viewport.latitude],
         zoom: 13,
@@ -442,10 +440,9 @@ function Map(props: MapProps) {
     setOldCoord(mapBounds.getCenter());
     setInteractiveLayerIds(["parcels-layer"]);
 
-    const { query } = router;
-
     if (query.id) {
-      const coords = getParcelCoords();
+      const parcelId = typeof query.id === "string" ? query.id : query.id[0];
+      const coords = await parcelIdToCoords(parcelId);
 
       if (coords) {
         flyToParcel({
@@ -453,9 +450,7 @@ function Map(props: MapProps) {
           duration: 500,
         });
 
-        setSelectedParcelId(
-          typeof query.id === "string" ? query.id : query.id[0]
-        );
+        setSelectedParcelId(parcelId);
         setInteractionState(STATE.PARCEL_SELECTED);
       }
     }
