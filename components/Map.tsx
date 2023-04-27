@@ -422,7 +422,7 @@ function Map(props: MapProps) {
       return;
     }
 
-    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet") {
+    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet" && !router.query.id) {
       mapRef.current.easeTo({
         center: [viewport.longitude, viewport.latitude],
         zoom: 13,
