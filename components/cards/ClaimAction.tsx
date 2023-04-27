@@ -4,9 +4,14 @@ import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR } from "../../lib/constants";
+import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import axios from "axios";
+import { DIDSession } from "did-session";
+import { SiweMessage } from "@didtools/cacao";
+import * as UCAN from "@ipld/dag-ucan";
+import { CarReader } from "@ipld/car/reader";
 
 export type ClaimActionProps = OffCanvasPanelProps & {
   signer: ethers.Signer;
@@ -115,6 +120,50 @@ function ClaimAction(props: ClaimActionProps) {
         latDim: neY - swY + 1,
       });
     const receipt = await txn.wait();
+
+    const referralStr = localStorage.getItem("referral");
+    if (referralStr) {
+      const referral = JSON.parse(referralStr);
+      if (Date.now() < referral.expiration) {
+        const sessionStr = localStorage.getItem("didsession");
+        let session;
+
+        if (sessionStr) {
+          session = await DIDSession.fromSession(sessionStr);
+
+          const jwt = await session?.did.createJWS({
+            txHash: receipt.transactionHash,
+            referralId: referral.referralID,
+          });
+
+          const delegationResp = await axios.post(
+            `${SSX_HOST}/delegations/claim-referral`,
+            {
+              siwe: SiweMessage.fromCacao(session.cacao),
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              responseType: "arraybuffer",
+            }
+          );
+
+          const carReader = await CarReader.fromBytes(
+            new Uint8Array(delegationResp.data)
+          );
+          const block = (await carReader.blocks().next()).value;
+          const ucan = UCAN.decode(block.bytes);
+
+          await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {}, {
+            headers: {
+              jwt: JSON.stringify(jwt),
+              ucan: UCAN.format(ucan),
+            },
+          });
+        }
+      }
+    }
 
     const filter = registryContract.filters.ParcelClaimedV2(null, null);
 

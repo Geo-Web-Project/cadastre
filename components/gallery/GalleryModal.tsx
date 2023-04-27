@@ -94,8 +94,8 @@ function GalleryModal(props: GalleryModalProps) {
               <a href="https://geoweb.app" target="_blank" rel="noreferrer">
                 spatial browser
               </a>
-              . GLB and USDZ (iOS only) files can be viewed in AR on
-              compatible devices.
+              . GLB and USDZ (iOS only) files can be viewed in AR on compatible
+              devices.
             </p>
             <div className="border border-secondary rounded p-2 p-sm-3 text-center">
               <GalleryForm

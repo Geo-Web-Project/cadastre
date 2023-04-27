@@ -40,6 +40,7 @@ import type { InvocationConfig } from "@web3-storage/upload-client";
 import { useAccount, useSigner, useNetwork } from "wagmi";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
+import { useRouter } from "next/router";
 
 import { Client as W3Client } from "@web3-storage/w3up-client";
 import { DIDSession } from "did-session";
@@ -87,6 +88,7 @@ function IndexPage({
   authStatus: AuthenticationStatus;
   setAuthStatus: (_: AuthenticationStatus) => void;
 }) {
+  const router = useRouter();
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
   >(null);
@@ -358,6 +360,20 @@ function IndexPage({
 
     start();
   }, []);
+
+  // Store referralId with an expiration of one week
+  React.useEffect(() => {
+    const { ref } = router.query;
+    if (ref) {
+      localStorage.setItem(
+        "referral",
+        JSON.stringify({
+          referralID: ref,
+          expiration: Date.now() + 60 * 60 * 24 * 7 * 1000,
+        })
+      );
+    }
+  }, [router.query]);
 
   return (
     <>
