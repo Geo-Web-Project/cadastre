@@ -159,7 +159,7 @@ function ClaimAction(props: ClaimActionProps) {
           const block = (await carReader.blocks().next()).value;
           const ucan = UCAN.decode(block.bytes);
 
-          await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {
+          await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {}, {
             headers: {
               jwt: JSON.stringify(jwt),
               ucan: UCAN.format(ucan),
