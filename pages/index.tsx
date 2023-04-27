@@ -361,11 +361,17 @@ function IndexPage({
     start();
   }, []);
 
-  // Redirect to home if page param is longer than 1
+  // Store referralId with an expiration of one week
   React.useEffect(() => {
-    const { pageParam } = router.query;
-    if (pageParam && pageParam.length > 1) {
-      router.push("/");
+    const { ref } = router.query;
+    if (ref) {
+      localStorage.setItem(
+        "referral",
+        JSON.stringify({
+          referralID: ref,
+          expiration: Date.now() + 60 * 60 * 24 * 7 * 1000,
+        })
+      );
     }
   }, [router.query]);
 
