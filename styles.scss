@@ -44,16 +44,6 @@ body {
   overscroll-behavior: none;
 }
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
 .dropdown-menu {
   top: 68px !important;
 }

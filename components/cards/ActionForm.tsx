@@ -285,7 +285,9 @@ export function ActionForm(props: ActionFormProps) {
     setInteractionState(STATE.PARCEL_SELECTED);
     setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
-      forSalePrice: !displayNewForSalePrice || displayNewForSalePrice !== displayCurrentForSalePrice,
+      forSalePrice:
+        !displayNewForSalePrice ||
+        displayNewForSalePrice !== displayCurrentForSalePrice,
       licenseOwner: !licenseOwner || licenseOwner !== account,
     });
   }
@@ -418,7 +420,8 @@ export function ActionForm(props: ActionFormProps) {
                     ? "bg-dark text-info mt-1"
                     : "bg-dark text-light mt-1"
                 }
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder={`New For Sale Price (${PAYMENT_TOKEN})`}
                 aria-label="For Sale Price"
                 aria-describedby="for-sale-price"
