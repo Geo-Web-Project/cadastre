@@ -155,12 +155,33 @@ function ClaimAction(props: ClaimActionProps) {
           const block = (await carReader.blocks().next()).value;
           const ucan = UCAN.decode(block.bytes);
 
-          await axios.post(`${process.env.NEXT_REFERRAL_HOST}/claim`, {}, {
-            headers: {
-              jwt: JSON.stringify(jwt),
-              ucan: UCAN.format(ucan),
-            },
-          });
+          const referrals = JSON.parse(
+            localStorage.getItem("referrals") ?? "[]"
+          ) as any[];
+          referrals.push(JSON.stringify(jwt));
+          localStorage.setItem("referrals", JSON.stringify(referrals));
+
+          let newReferrals = referrals;
+
+          // Post all referrals to the referral server
+          for (const referral of referrals) {
+            const resp = await axios.post(
+              `${process.env.NEXT_REFERRAL_HOST}/claim`,
+              {},
+              {
+                headers: {
+                  jwt: referral,
+                  ucan: UCAN.format(ucan),
+                },
+              }
+            );
+
+            // Remove referral from newReferrals on success
+            if (resp.status === 201) {
+              newReferrals = newReferrals.filter((v) => v !== referral);
+              localStorage.setItem("referrals", JSON.stringify(newReferrals));
+            }
+          }
         }
       }
     }
