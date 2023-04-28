@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
-import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -18,13 +17,12 @@ interface ForeclosureProps {
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  handleCloseModal: () => void;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
+  handleAction: (parcel: Parcel) => void;
 }
 
 type Bid = Parcel & {
@@ -62,15 +60,12 @@ function Foreclosure(props: ForeclosureProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    setSelectedParcelId,
-    setInteractionState,
-    handleCloseModal,
-    setParcelNavigationCenter,
     shouldRefetchParcelsData,
     setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
+    handleAction,
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
@@ -229,13 +224,6 @@ function Foreclosure(props: ForeclosureProps) {
     });
 
     return sorted;
-  };
-
-  const handleAction = (parcel: Parcel): void => {
-    handleCloseModal();
-    setInteractionState(STATE.PARCEL_SELECTED);
-    setSelectedParcelId(parcel.parcelId);
-    setParcelNavigationCenter(parcel.center);
   };
 
   return (

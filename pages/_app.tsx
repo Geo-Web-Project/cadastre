@@ -1,5 +1,4 @@
 import { wrapper } from "../redux/store";
-
 import React from "react";
 import {
   ApolloClient,
@@ -10,7 +9,7 @@ import {
 import { SUBGRAPH_URL, NETWORK_ID, RPC_URLS } from "../lib/constants";
 import "../styles.scss";
 import { AppProps } from "next/app";
-
+import { MapProvider } from "react-map-gl";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { goerli, optimism, optimismGoerli } from "wagmi/chains";
 import type { Chain } from "wagmi";
@@ -217,11 +216,13 @@ export function App({ Component, pageProps }: AppProps) {
           })}
         >
           <ApolloProvider client={client}>
-            <Component
-              {...pageProps}
-              authStatus={authStatus}
-              setAuthStatus={setAuthStatus}
-            />
+            <MapProvider>
+              <Component
+                {...pageProps}
+                authStatus={authStatus}
+                setAuthStatus={setAuthStatus}
+              />
+            </MapProvider>
           </ApolloProvider>
         </RainbowKitProvider>
       </RainbowKitAuthenticationProvider>

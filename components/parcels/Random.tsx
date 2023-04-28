@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
-import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -10,20 +9,16 @@ import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { getParcelContent } from "../../lib/utils";
-import { STATE } from "../Map";
 import { SECONDS_IN_WEEK } from "../../lib/constants";
 
 interface RandomProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  handleCloseModal: () => void;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
+  handleAction: (parcel: Parcel) => void;
 }
 
 const randomQuery = gql`
@@ -60,17 +55,23 @@ function Random(props: RandomProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    setSelectedParcelId,
-    setInteractionState,
-    handleCloseModal,
-    setParcelNavigationCenter,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
+    handleAction,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
   const [orderDirection, setOrderDirection] = useState<string>("desc");
+
+  const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(randomQuery, {
+    variables: {
+      orderBy: "createdAtBlock",
+      orderDirection: "desc",
+    },
+    fetchPolicy: "network-only",
+    notifyOnNetworkStatusChange: true,
+  });
 
   const getQueryVariables = () => {
     const orderByChoices = [
@@ -85,22 +86,6 @@ function Random(props: RandomProps) {
 
     return { orderBy, orderDirection };
   };
-
-  const handleAction = (parcel: Parcel): void => {
-    handleCloseModal();
-    setInteractionState(STATE.PARCEL_SELECTED);
-    setSelectedParcelId(parcel.parcelId);
-    setParcelNavigationCenter(parcel.center);
-  };
-
-  const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(randomQuery, {
-    variables: {
-      orderBy: "createdAtBlock",
-      orderDirection: "desc",
-    },
-    fetchPolicy: "network-only",
-    notifyOnNetworkStatusChange: true,
-  });
 
   useEffect(() => {
     if (!data) {

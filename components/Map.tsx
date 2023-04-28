@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import * as React from "react";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
 import ReactMapGL, {
   AttributionControl,
@@ -13,7 +13,6 @@ import {
   MapLayerTouchEvent,
   LngLatBounds,
   LngLat,
-  PaddingOptions,
 } from "mapbox-gl";
 import OffCanvasPanel from "./OffCanvasPanel";
 import ClaimSource from "./sources/ClaimSource";
@@ -44,7 +43,7 @@ import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
 
-import type { Point, MultiPolygon, Polygon } from "@turf/turf";
+import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -52,6 +51,7 @@ import * as turf from "@turf/turf";
 import type { InvocationConfig } from "@web3-storage/upload-client";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
+import { useParcelNavigation } from "../lib/parcelNavigation";
 
 export const ZOOM_GRID_LEVEL = 17;
 const GRID_DIM_LAT = 140;
@@ -186,8 +186,6 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  parcelNavigationCenter: Point | null;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
@@ -215,7 +213,6 @@ function Map(props: MapProps) {
     setSelectedParcelId,
     interactionState,
     setInteractionState,
-    parcelNavigationCenter,
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -287,9 +284,6 @@ function Map(props: MapProps) {
   const [claimBase1Coord, setClaimBase1Coord] = useState<Coord | null>(null);
   const [claimBase2Coord, setClaimBase2Coord] = useState<Coord | null>(null);
 
-  const [selectedParcelCoords, setSelectedParcelCoords] =
-    useState<Coord | null>(null);
-
   const [existingMultiPoly, setExistingMultiPoly] = useState<
     MultiPolygon | Polygon
   >(turf.multiPolygon([]).geometry);
@@ -313,6 +307,7 @@ function Map(props: MapProps) {
 
   const { isMobile, isTablet } = useMediaQuery();
   const router = useRouter();
+  const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
 
   const isGridVisible =
     viewport.zoom >= ZOOM_GRID_LEVEL &&
@@ -346,30 +341,6 @@ function Map(props: MapProps) {
       }
     };
   }, [data, newParcel.id, fetchMore]);
-
-  const flyToLocation = useCallback(
-    ({
-      longitude,
-      latitude,
-      duration,
-      zoom,
-      padding,
-    }: {
-      longitude: number;
-      latitude: number;
-      duration: number;
-      zoom: number;
-      padding: PaddingOptions;
-    }) => {
-      mapRef.current?.flyTo({
-        center: [longitude, latitude],
-        duration,
-        zoom,
-        padding: padding,
-      });
-    },
-    []
-  );
 
   function updateGrid(
     lat: number,
@@ -442,12 +413,14 @@ function Map(props: MapProps) {
     });
   }
 
-  function _onLoad() {
+  async function _onLoad() {
     if (mapRef.current == null) {
       return;
     }
 
-    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet") {
+    const { query } = router;
+
+    if (process.env.NEXT_PUBLIC_APP_ENV === "testnet" && !query.id) {
       mapRef.current.easeTo({
         center: [viewport.longitude, viewport.latitude],
         zoom: 13,
@@ -467,29 +440,19 @@ function Map(props: MapProps) {
     setOldCoord(mapBounds.getCenter());
     setInteractiveLayerIds(["parcels-layer"]);
 
-    const { query } = router;
+    if (query.id) {
+      const parcelId = typeof query.id === "string" ? query.id : query.id[0];
+      const coords = await parcelIdToCoords(parcelId);
 
-    if (query.longitude && query.latitude && query.id) {
-      flyToLocation({
-        longitude: Number(query.longitude),
-        latitude: Number(query.latitude),
-        zoom: isMobile || isTablet ? ZOOM_GRID_LEVEL - 1 : ZOOM_GRID_LEVEL,
-        duration: 500,
-        padding: {
-          ...mapPadding,
-          left: !isMobile && !isTablet ? document.body.offsetWidth * 0.25 : 0,
-          bottom: isMobile || isTablet ? DRAWER_PREVIEW_HEIGHT_PARCEL : 0,
-        },
-      });
+      if (coords) {
+        flyToParcel({
+          center: coords,
+          duration: 500,
+        });
 
-      setSelectedParcelId(
-        typeof query.id === "string" ? query.id : query.id[0]
-      );
-      setInteractionState(STATE.PARCEL_SELECTED);
-      setSelectedParcelCoords({
-        x: Number(query.longitude),
-        y: Number(query.latitude),
-      });
+        setSelectedParcelId(parcelId);
+        setInteractionState(STATE.PARCEL_SELECTED);
+      }
     }
   }
 
@@ -605,10 +568,6 @@ function Map(props: MapProps) {
     );
 
     function _checkParcelClick() {
-      setSelectedParcelCoords({
-        x: event.lngLat.lng,
-        y: event.lngLat.lat,
-      });
       if (parcelFeature) {
         setSelectedParcelId(parcelFeature.properties?.parcelId);
         setInteractionState(STATE.PARCEL_SELECTED);
@@ -758,16 +717,14 @@ function Map(props: MapProps) {
           setCellHoverCoord(null);
           setInteractionState(STATE.CLAIM_SELECTING);
         } else {
-          flyToLocation({
-            longitude: event.lngLat.lng,
-            latitude: event.lngLat.lat,
+          mapRef.current?.easeTo({
+            center: [event.lngLat.lng, event.lngLat.lat],
             zoom: ZOOM_GRID_LEVEL,
             duration: 500,
-            padding: mapPadding,
           });
         }
 
-        mapRef?.current?.moveLayer("claim-point-layer");
+        mapRef.current?.moveLayer("claim-point-layer");
         break;
       case STATE.CLAIM_SELECTED:
         setInteractionState(STATE.VIEWING);
@@ -1012,27 +969,6 @@ function Map(props: MapProps) {
   }, [data]);
 
   useEffect(() => {
-    if (parcelNavigationCenter) {
-      flyToLocation({
-        longitude: parcelNavigationCenter.coordinates[0],
-        latitude: parcelNavigationCenter.coordinates[1],
-        zoom: isMobile || isTablet ? ZOOM_GRID_LEVEL - 1 : ZOOM_GRID_LEVEL,
-        duration: 500,
-        padding: {
-          ...mapPadding,
-          left: !isMobile && !isTablet ? document.body.offsetWidth * 0.25 : 0,
-          bottom: isMobile || isTablet ? DRAWER_PREVIEW_HEIGHT_PARCEL : 0,
-        },
-      });
-
-      setSelectedParcelCoords({
-        x: parcelNavigationCenter.coordinates[0],
-        y: parcelNavigationCenter.coordinates[1],
-      });
-    }
-  }, [parcelNavigationCenter]);
-
-  useEffect(() => {
     if (!showSearchBar) {
       return;
     }
@@ -1105,7 +1041,6 @@ function Map(props: MapProps) {
           invalidLicenseId={invalidLicenseId}
           setInvalidLicenseId={setInvalidLicenseId}
           setNewParcel={setNewParcel}
-          selectedParcelCoords={selectedParcelCoords}
           isValidClaim={isValidClaim}
           delay={interactionState === STATE.CLAIM_SELECTING}
         ></OffCanvasPanel>
@@ -1230,12 +1165,10 @@ function Map(props: MapProps) {
               : "visible",
         }}
         onClick={() =>
-          flyToLocation({
-            longitude: viewport.longitude,
-            latitude: viewport.latitude,
+          mapRef.current?.easeTo({
+            center: [viewport.longitude, viewport.latitude],
             zoom: ZOOM_GRID_LEVEL,
             duration: 500,
-            padding: mapPadding,
           })
         }
       >

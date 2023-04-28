@@ -6,7 +6,6 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
-import type { Point } from "@turf/turf";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
@@ -40,7 +39,6 @@ type ProfileProps = {
   paymentToken: NativeAssetSuperToken;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setParcelNavigationCenter: React.Dispatch<React.SetStateAction<Point | null>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };

@@ -31,7 +31,6 @@ import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { getIpfs, providers } from "ipfs-provider";
 import type { IPFS } from "ipfs-core-types";
 import * as IPFSCore from "ipfs-core";
-import type { Point } from "@turf/turf";
 import * as IPFSHttpClient from "ipfs-http-client";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -109,8 +108,6 @@ function IndexPage({
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [parcelNavigationCenter, setParcelNavigationCenter] =
-    React.useState<Point | null>(null);
   const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
     React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
@@ -437,7 +434,6 @@ function IndexPage({
                 setSelectedParcelId={setSelectedParcelId}
                 interactionState={interactionState}
                 setInteractionState={setInteractionState}
-                setParcelNavigationCenter={setParcelNavigationCenter}
                 shouldRefetchParcelsData={shouldRefetchParcelsData}
                 setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               />
@@ -491,9 +487,7 @@ function IndexPage({
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              parcelNavigationCenter={parcelNavigationCenter}
               shouldRefetchParcelsData={shouldRefetchParcelsData}
-              setParcelNavigationCenter={setParcelNavigationCenter}
               setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}

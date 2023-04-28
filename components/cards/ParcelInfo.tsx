@@ -36,6 +36,7 @@ import { GeoWebContent } from "@geo-web/content";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useParcelNavigation } from "../../lib/parcelNavigation";
 
 const ParcelChat = dynamic(() => import("../ParcelChat"), {
   ssr: false,
@@ -116,7 +117,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     geoWebContent,
     invalidLicenseId,
     setInvalidLicenseId,
-    selectedParcelCoords,
     parcelFieldsToUpdate,
     setParcelFieldsToUpdate,
     sfFramework,
@@ -148,6 +148,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       data?.geoWebParcel?.licenseOwner,
       selectedParcelId
     );
+  const { getParcelCoords } = useParcelNavigation(selectedParcelId);
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -155,6 +156,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Spinner>
   );
 
+  const selectedParcelCoords = getParcelCoords();
   const forSalePrice =
     data && data.geoWebParcel ? (
       <>
@@ -189,14 +191,8 @@ function ParcelInfo(props: ParcelInfoProps) {
   const licenseDiamondAddress = data?.geoWebParcel?.licenseDiamond;
 
   function copyParcelLink() {
-    if (!selectedParcelCoords) {
-      return;
-    }
-
     const parcelLink = new URL(window.location.origin);
 
-    parcelLink.searchParams.set("latitude", selectedParcelCoords.y.toString());
-    parcelLink.searchParams.set("longitude", selectedParcelCoords.x.toString());
     parcelLink.searchParams.set("id", selectedParcelId);
 
     navigator.clipboard.writeText(parcelLink.href);
@@ -392,7 +388,9 @@ function ParcelInfo(props: ParcelInfoProps) {
       </>
     );
   } else {
-    const spatialURL = `${SPATIAL_DOMAIN}?latitude=${selectedParcelCoords?.y}&longitude=${selectedParcelCoords?.x}`;
+    const spatialURL = selectedParcelCoords
+      ? `${SPATIAL_DOMAIN}?latitude=${selectedParcelCoords[1]}&longitude=${selectedParcelCoords[0]}`
+      : SPATIAL_DOMAIN;
     header =
       interactionState === STATE.PARCEL_SELECTED || (!isMobile && !isTablet) ? (
         <>
@@ -465,7 +463,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 </OverlayTrigger>
                 <CopyTooltip
                   contentClick="Link Copied"
-                  contentHover="Copy link to Parcel"
+                  contentHover="Copy Parcel Link"
                   target={
                     <Image
                       className="me-1"

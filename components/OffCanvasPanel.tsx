@@ -22,7 +22,6 @@ export type OffCanvasPanelProps = MapProps & {
   selectedParcelId: string;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setIsParcelAvailable: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedParcelCoords: Coord | null;
   parcelClaimInfo: ParcelClaimInfo;
   invalidLicenseId: string;
   setInvalidLicenseId: React.Dispatch<React.SetStateAction<string>>;
@@ -47,7 +46,6 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
     setInteractionState,
     parcelClaimInfo,
     selectedParcelId,
-    selectedParcelCoords,
     isValidClaim,
     delay,
   } = props;
@@ -266,7 +264,6 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
           perSecondFeeNumerator={perSecondFeeNumerator}
           perSecondFeeDenominator={perSecondFeeDenominator}
           minForSalePrice={minForSalePrice}
-          selectedParcelCoords={selectedParcelCoords}
           parcelFieldsToUpdate={parcelFieldsToUpdate}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
           licenseAddress={registryContract.address}
