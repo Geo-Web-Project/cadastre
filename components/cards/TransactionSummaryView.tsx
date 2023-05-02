@@ -106,10 +106,10 @@ function TransactionSummaryView({
               {interactionState == STATE.PARCEL_RECLAIMING &&
               account.toLowerCase() === licenseOwner?.toLowerCase()
                 ? "No one-time payment is required to reclaim your foreclosed parcel—just restart a network fee stream."
-                : `Unclaimed parcels require a minimum one-time payment of ${truncateEth(
+                : `Parcel claims require a flat, one-time payment of ${truncateEth(
                     ethers.utils.formatEther(claimPayment),
                     8
-                  )} ETHx. This is enforced to prevent low-value claims and squatting.`}
+                  )} ${PAYMENT_TOKEN}. This is enforced to prevent low-value claims and squatting.`}
             </div>
           }
           target={
@@ -210,7 +210,7 @@ function TransactionSummaryView({
           <div style={{ textAlign: "left" }}>
             {collateralDeposit
               ? "This is the amount you authorize your network fee stream to be increased if your bid is accepted."
-              : "The amount that will be added (or subtracted) from your total network fee stream."}
+              : "Once opened, your pro rata Network Fee stream is deducted from your ETHx token balance every second. The value shown here will be added (or subtracted) to your current Network Fee stream."}
           </div>
         }
         target={
@@ -227,7 +227,7 @@ function TransactionSummaryView({
   );
 
   const streamBufferView = (
-    <p>
+    <p className="mb-2">
       Stream Buffer:{" "}
       <InfoTooltip
         content={
@@ -256,6 +256,33 @@ function TransactionSummaryView({
     </p>
   );
 
+  const yearlyTotalView = (
+    <p className="border-top pt-2">
+      Year 1 Total:{" "}
+      <InfoTooltip
+        content={
+          <div className="text-start">
+            This projection is provided for ETHx token budgeting purposes. If
+            you update your For Sale Price or sell the parcel, your required
+            outlay will change.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {claimPayment && newAnnualNetworkFee && streamBuffer
+              ? `${truncateEth(
+                  formatBalance(
+                    claimPayment.add(newAnnualNetworkFee).add(streamBuffer)
+                  ),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
   return (
     <div>
       <h3>Transaction Summary</h3>
@@ -263,6 +290,7 @@ function TransactionSummaryView({
         {paymentView}
         {streamView}
         {streamBufferView}
+        {interactionState === STATE.CLAIM_SELECTED ? yearlyTotalView : null}
       </>
     </div>
   );

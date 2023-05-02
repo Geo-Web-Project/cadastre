@@ -364,7 +364,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
-        : "Claim a Parcel";
+        : "Claim Parcel";
     header = (
       <>
         <Row
