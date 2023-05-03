@@ -239,7 +239,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
           interactionState !== STATE.CLAIM_SELECTING &&
           (interactionState !== STATE.CLAIM_SELECTED || account) && (
             <Button
-              className="position-relative start-50 translate-middle w-25 bg-info rounded-3 mt-1 mb-0 p-0 border-0 shadow-none"
+              className="position-relative start-50 translate-middle w-25 bg-info rounded-3 mt-2 mb-0 p-0 border-0 shadow-none"
               style={{
                 height: "6px",
               }}
@@ -252,7 +252,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
             size="sm"
             className={`${
               ((!isMobile && !isTablet) || isFullSize) &&
-              interactionState !== STATE.CLAIM_SELECTING
+              interactionState !== STATE.CLAIM_SELECTING &&
+              interactionState !== STATE.PARCEL_SELECTED
                 ? "visible"
                 : "invisible"
             } shadow-none p-0`}
