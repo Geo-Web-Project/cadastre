@@ -335,6 +335,23 @@ export function ActionForm(props: ActionFormProps) {
                   <Form.Text className="text-primary mb-1">
                     Parcel Name
                   </Form.Text>
+                  <InfoTooltip
+                    content={
+                      <div style={{ textAlign: "left" }}>
+                        Optional - Add a name to your parcel for all visitors to
+                        see.
+                      </div>
+                    }
+                    target={
+                      <Image
+                        style={{
+                          width: "1.1rem",
+                          marginLeft: "4px",
+                        }}
+                        src="info.svg"
+                      />
+                    }
+                  />
                   <Form.Control
                     isInvalid={isParcelNameInvalid}
                     className="bg-dark text-light mt-1"
@@ -355,8 +372,33 @@ export function ActionForm(props: ActionFormProps) {
                   ) : null}
                   <br />
                   <Form.Text className="text-primary mb-1">
-                    Content Link (http://, https://, ipfs://, ipns://)
+                    Content Link
                   </Form.Text>
+                  <InfoTooltip
+                    content={
+                      <div style={{ textAlign: "left" }}>
+                        Optional - Link content to your parcel via URI. This is
+                        displayed in an iframe on the{" "}
+                        <a
+                          href="https://geoweb.app/"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          Geo Web spatial browser
+                        </a>
+                        .
+                      </div>
+                    }
+                    target={
+                      <Image
+                        style={{
+                          width: "1.1rem",
+                          marginLeft: "4px",
+                        }}
+                        src="info.svg"
+                      />
+                    }
+                  />
                   <Form.Control
                     isInvalid={isURIInvalid}
                     className="bg-dark text-light mt-1"

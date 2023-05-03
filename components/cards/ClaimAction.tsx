@@ -157,6 +157,7 @@ function ClaimAction(props: ClaimActionProps) {
 
           const referrals = JSON.parse(
             localStorage.getItem("referrals") ?? "[]"
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ) as any[];
           referrals.push(JSON.stringify(jwt));
           localStorage.setItem("referrals", JSON.stringify(referrals));

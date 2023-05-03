@@ -14,7 +14,12 @@ function InfoTooltip(props: InfoTooltipProps) {
 
   const handleMouseEnter = () => setShowTooltip(true);
   const handleMouseLeave = () => setShowTooltip(false);
-  const handleTouchEnd = () => setShowTooltip(!showTooltip);
+  const handleTouchEnd = () => {
+    setShowTooltip(true);
+    document.addEventListener("touchstart", () => setShowTooltip(false), {
+      once: true,
+    });
+  };
 
   return (
     <OverlayTrigger
