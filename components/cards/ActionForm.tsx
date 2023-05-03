@@ -314,8 +314,16 @@ export function ActionForm(props: ActionFormProps) {
         border={isMobile || isTablet ? "dark" : "secondary"}
         className="bg-dark"
       >
-        <Card.Header className="d-none d-lg-block">
-          <h3>
+        {interactionState === STATE.CLAIM_SELECTED ? (
+          <Card.Header className="lh-sm px-0 pt-0 pb-2 mb-2 p-lg-3 mb-lg-1">
+            <h3 className="d-none d-lg-block fw-bold">Claim Parcel</h3>
+            <small>
+              Claims require a one-time 0.005 ETHx payment. 10% per year of your
+              For Sale Price is required as a separate streaming payment.
+            </small>
+          </Card.Header>
+        ) : (
+          <Card.Header className="d-none d-lg-block fs-3">
             {interactionState === STATE.PARCEL_EDITING
               ? "Edit"
               : interactionState === STATE.PARCEL_RECLAIMING &&
@@ -324,8 +332,8 @@ export function ActionForm(props: ActionFormProps) {
               : interactionState === STATE.PARCEL_RECLAIMING
               ? "Foreclosure Claim"
               : null}
-          </h3>
-        </Card.Header>
+          </Card.Header>
+        )}
         <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
@@ -518,10 +526,9 @@ export function ActionForm(props: ActionFormProps) {
                 aria-describedby="network-fee"
               />
             </Form.Group>
-            <br />
+            <br className="d-lg-none" />
             <div className="d-none d-lg-block">
               <hr className="action-form_divider" />
-              <br />
             </div>
             {summaryView}
             <br />

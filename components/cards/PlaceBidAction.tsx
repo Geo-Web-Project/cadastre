@@ -303,10 +303,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 aria-describedby="network-fee"
               />
             </Form.Group>
-            <br />
+            <br className="d-lg-none" />
             <div className="d-none d-lg-block">
               <hr className="action-form_divider" />
-              <br />
             </div>
             {!isForSalePriceInvalid && existingAnnualNetworkFee ? (
               <TransactionSummaryView
