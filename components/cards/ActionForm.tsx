@@ -315,8 +315,8 @@ export function ActionForm(props: ActionFormProps) {
         className="bg-dark"
       >
         {interactionState === STATE.CLAIM_SELECTED ? (
-          <Card.Header className="d-none d-lg-block lh-sm px-0 pt-0 pb-2 mb-2 p-lg-3 mb-lg-1">
-            <h3 className=" fw-bold">Claim Parcel</h3>
+          <Card.Header className="lh-sm px-0 pt-0 pb-2 mb-2 p-lg-3 mb-lg-1">
+            <h3 className="d-none d-lg-block fw-bold">Claim Parcel</h3>
             <small>
               Claims require a one-time 0.005 ETHx payment. 10% per year of your
               For Sale Price is required as a separate streaming payment.

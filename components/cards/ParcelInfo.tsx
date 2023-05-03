@@ -363,14 +363,17 @@ function ParcelInfo(props: ParcelInfoProps) {
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
-        : isMobile || isTablet
+        : isMobile ||
+          isTablet ||
+          interactionState === STATE.CLAIM_SELECTING ||
+          (interactionState === STATE.CLAIM_SELECTED && !account)
         ? "Claim Parcel"
         : null;
     header = (
       <Row
         className={`${
           (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
-        } p-sm-0 mb-3`}
+        } p-sm-0`}
       >
         <Col sm="10" className="w-75">
           <span className="fs-4 fw-bold">{headerText}</span>

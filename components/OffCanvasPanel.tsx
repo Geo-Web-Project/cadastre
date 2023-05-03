@@ -234,37 +234,39 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
       }}
       onTouchStart={handleTouchStart}
     >
-      <Row className="sticky-top bg-dark pt-1">
+      <Row className="sticky-top bg-dark">
         {(isMobile || isTablet) &&
           interactionState !== STATE.CLAIM_SELECTING &&
           (interactionState !== STATE.CLAIM_SELECTED || account) && (
             <Button
-              className="position-relative start-50 translate-middle w-25 bg-info rounded-3 my-0 p-0 border-0 shadow-none"
+              className="position-relative start-50 translate-middle w-25 bg-info rounded-3 mt-1 mb-0 p-0 border-0 shadow-none"
               style={{
                 height: "6px",
               }}
               onClick={() => setIsFullSize(!isFullSize)}
             ></Button>
           )}
-        <Col className="d-flex justify-content-end justify-content-lg-between gap-4 p-1 p-lg-2">
-          {((!isMobile && !isTablet) || isFullSize) &&
-            interactionState !== STATE.CLAIM_SELECTING && (
-              <Button
-                variant="link"
-                size="sm"
-                className="shadow-none"
-                onClick={() => {
-                  if (interactionState === STATE.CLAIM_SELECTED) {
-                    setInteractionState(STATE.CLAIM_SELECTING);
-                  } else {
-                    setInteractionState(STATE.PARCEL_SELECTED);
-                  }
-                }}
-              >
-                <Image src="arrow-back.svg" alt="back" width={26} />
-              </Button>
-            )}
-          <Button variant="link" size="sm" className="p-0 shadow-none">
+        <Col className="d-flex justify-content-end justify-content-lg-between gap-4 p-1 px-0 pb-0 p-lg-2">
+          <Button
+            variant="link"
+            size="sm"
+            className={`${
+              ((!isMobile && !isTablet) || isFullSize) &&
+              interactionState !== STATE.CLAIM_SELECTING
+                ? "visible"
+                : "invisible"
+            } shadow-none p-0`}
+            onClick={() => {
+              if (interactionState === STATE.CLAIM_SELECTED) {
+                setInteractionState(STATE.CLAIM_SELECTING);
+              } else {
+                setInteractionState(STATE.PARCEL_SELECTED);
+              }
+            }}
+          >
+            <Image src="arrow-back.svg" alt="back" width={26} />
+          </Button>
+          <Button variant="link" size="sm" className="p-0 shadow-none text-end">
             <Image
               src="close.svg"
               alt="close"
@@ -297,7 +299,9 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
         />
       ) : null}
       {interactionState === STATE.CLAIM_SELECTED && !account ? (
-        <ConnectWallet variant="claim" />
+        <div className="mt-3">
+          <ConnectWallet variant="claim" />
+        </div>
       ) : interactionState === STATE.CLAIM_SELECTED &&
         account &&
         signer &&
