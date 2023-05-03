@@ -29,7 +29,6 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
-import BackButton from "../BackButton";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
@@ -364,28 +363,19 @@ function ParcelInfo(props: ParcelInfoProps) {
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
-        : "Claim Parcel";
+        : isMobile || isTablet
+        ? "Claim Parcel"
+        : null;
     header = (
-      <>
-        <Row
-          className={`${
-            (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
-          } p-sm-0`}
-        >
-          <Col sm="10" className="w-75">
-            <span className="fs-4 fw-bold">{headerText}</span>
-          </Col>
-        </Row>
-        {((!isMobile && !isTablet) || isFullSize) &&
-          interactionState !== STATE.CLAIM_SELECTING && (
-            <Row className="m-0 p-0 pb-3 pb-lg-4">
-              <BackButton
-                interactionState={interactionState}
-                setInteractionState={setInteractionState}
-              />
-            </Row>
-          )}
-      </>
+      <Row
+        className={`${
+          (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
+        } p-sm-0 mb-3`}
+      >
+        <Col sm="10" className="w-75">
+          <span className="fs-4 fw-bold">{headerText}</span>
+        </Col>
+      </Row>
     );
   } else {
     const spatialURL = selectedParcelCoords
