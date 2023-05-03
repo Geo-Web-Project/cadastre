@@ -577,7 +577,7 @@ export function ActionForm(props: ActionFormProps) {
           </Form>
 
           <br />
-          {isBalanceInsufficient && displayNewForSalePrice ? (
+          {isBalanceInsufficient && displayNewForSalePrice && !isActing ? (
             <Alert key="warning" variant="warning">
               <Alert.Heading>Insufficient ETHx</Alert.Heading>
               Please wrap enough ETH to ETHx to complete this transaction with

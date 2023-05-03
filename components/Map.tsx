@@ -322,6 +322,8 @@ function Map(props: MapProps) {
       if (lastParcel?.id === newParcel.id) {
         clearInterval(newParcel.timerId ?? undefined);
         setNewParcel({ id: "", timerId: null });
+        setClaimBase1Coord(null);
+        setClaimBase2Coord(null);
         return;
       }
 
