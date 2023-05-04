@@ -4,28 +4,28 @@ import ListGroup from "react-bootstrap/ListGroup";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 
-const BETA_AGREEMENT_KEY = "storedBetaAgreement";
+const WELCOME_CHECKLIST = "welcomeChecklist";
 
 function WelcomeChecklist() {
-  const [betaAgreement, setBetaAgreement] = useState<string | null>(null);
+  const [welcomeChecklist, setWelcomeChecklist] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
-  const handleBetaAgreement = (newStyle: string) => {
-    localStorage?.setItem(BETA_AGREEMENT_KEY, newStyle);
-    setBetaAgreement(newStyle);
+  const handleWelcomeChecklist = (val: string) => {
+    localStorage?.setItem(WELCOME_CHECKLIST, val);
+    setWelcomeChecklist(val);
   };
 
   useEffect(() => {
-    const betaAgreement = localStorage?.getItem(BETA_AGREEMENT_KEY);
+    const welcomeChecklist = localStorage?.getItem(WELCOME_CHECKLIST);
 
-    if (betaAgreement) {
-      setBetaAgreement(betaAgreement);
+    if (welcomeChecklist) {
+      setWelcomeChecklist(welcomeChecklist);
     }
 
     setIsHydrated(true);
   }, []);
 
-  if (!isHydrated || betaAgreement) {
+  if (!isHydrated || welcomeChecklist) {
     return null;
   }
 
@@ -33,22 +33,22 @@ function WelcomeChecklist() {
     <Modal
       contentClassName="bg-dark"
       size="xl"
-      show={!betaAgreement}
+      show={!welcomeChecklist}
       centered
       scrollable
     >
-      <Modal.Header className="text-primary border-0">
+      <Modal.Header className="text-primary border-0 pb-0">
         <Modal.Title as="h2">Welcome to the Cadastre</Modal.Title>
         <Button
           variant="link"
           size="sm"
           className="position-absolute top-0 end-0 pt-1 pe-1 px-sm-2 py-sm-2"
-          onClick={() => handleBetaAgreement("true")}
+          onClick={() => handleWelcomeChecklist("true")}
         >
           <Image width={30} src="close.svg" />
         </Button>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light px-4 fs-5">
+      <Modal.Body className="bg-dark text-light px-4 fs-6">
         <p>
           Here are the most important things to know to get started with the Geo
           Web:
@@ -87,9 +87,8 @@ function WelcomeChecklist() {
                   rel="noreferrer"
                   className="text-primary"
                 >
-                  centralized exchange that supports Optimism
+                  centralized exchange
                 </a>
-                .
               </div>
             </ListGroup.Item>
             <ListGroup.Item
@@ -98,7 +97,7 @@ function WelcomeChecklist() {
             >
               &#x2022;
               <div>
-                Bridge from another network using the{" "}
+                Use the{" "}
                 <a
                   href="https://app.optimism.io/bridge/deposit"
                   target="_blank"
@@ -116,7 +115,23 @@ function WelcomeChecklist() {
                 >
                   3rd-party bridge
                 </a>
-                .
+              </div>
+            </ListGroup.Item>
+            <ListGroup.Item
+              as="li"
+              className="d-inline-flex gap-1 bg-dark border-0 text-light ms-2 px-0 py-1"
+            >
+              &#x2022;
+              <div>
+                Buy it on{" "}
+                <a
+                  href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary"
+                >
+                  fiat on-ramp service
+                </a>
               </div>
             </ListGroup.Item>
           </ListGroup>
@@ -124,8 +139,18 @@ function WelcomeChecklist() {
             as="li"
             className="d-inline-flex gap-1 bg-dark border-0 text-light px-0 py-1"
           >
-            The land market is administered using partial common ownership.
-            Under this free market system, you must maintain:
+            <div>
+              The market is administered using{" "}
+              <a
+                href="https://docs.geoweb.network/concepts/partial-common-ownership"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary"
+              >
+                partial common ownership
+              </a>
+              . You must maintain:
+            </div>
           </ListGroup.Item>
           <ListGroup as="ul">
             <ListGroup.Item
@@ -153,9 +178,8 @@ function WelcomeChecklist() {
             className="d-inline-flex gap-1 bg-dark border-0 text-light px-0 py-1"
           >
             <div>
-              Each land claim requires a 0.005 ETHx registration payment in
-              addition to your ongoing Network Fee stream. For additional
-              guidance,{" "}
+              Each claim requires a flat 0.005 ETHx registration payment. For
+              additional guidance,{" "}
               <a
                 href="https://docs.geoweb.network/getting-started/claim"
                 target="_blank"
@@ -172,7 +196,7 @@ function WelcomeChecklist() {
             className="d-inline-flex gap-1 bg-dark border-0 text-light px-0 py-1"
           >
             <div>
-              100% of the Geo Web land market proceeds are{" "}
+              100% of the land market proceeds are{" "}
               <a
                 href="https://docs.geoweb.network/community-and-governance/network-funds-allocation"
                 target="_blank"
@@ -184,22 +208,11 @@ function WelcomeChecklist() {
               .
             </div>
           </ListGroup.Item>
-          <ListGroup.Item
-            as="li"
-            className="d-inline-flex gap-1 bg-dark border-0 text-light px-0 py-1"
-          >
-            <span className="fw-bold">
-              The Geo Web network is in beta. Its smart contract code,
-              interfaces, and tools are unaudited and subject to change. By
-              continuing, you acknowledge you are interacting with the network
-              at your own risk.
-            </span>
-          </ListGroup.Item>
         </ListGroup>
         <Modal.Footer className="border-0 p-0">
           <Button
             variant="secondary"
-            onClick={() => handleBetaAgreement("true")}
+            onClick={() => handleWelcomeChecklist("true")}
             className={"float-end bg-primary px-5 mt-3"}
           >
             Continue

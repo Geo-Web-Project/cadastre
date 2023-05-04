@@ -19,6 +19,9 @@ function NavMenuMainnet() {
       menuVariant="dark"
       align="end"
     >
+      <NavDropdown.Item>
+        <FAQ />
+      </NavDropdown.Item>
       <NavDropdown.Item
         href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
         target="_blank"
@@ -36,9 +39,6 @@ function NavMenuMainnet() {
       >
         Documentation
         <Image src="open-new.svg" alt="open-new" />
-      </NavDropdown.Item>
-      <NavDropdown.Item>
-        <FAQ />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://testnet.geoweb.land/"
@@ -62,6 +62,9 @@ function NavMenuTestnet() {
       menuVariant="dark"
       align="end"
     >
+      <NavDropdown.Item>
+        <FAQ />
+      </NavDropdown.Item>
       <NavDropdown.Item
         href="https://optimismfaucet.xyz/"
         target="_blank"
@@ -79,9 +82,6 @@ function NavMenuTestnet() {
       >
         Documentation
         <Image src="open-new.svg" alt="open-new" />
-      </NavDropdown.Item>
-      <NavDropdown.Item>
-        <FAQ />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://geoweb.land/"
