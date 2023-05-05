@@ -29,6 +29,7 @@ import PlaceBidAction from "./PlaceBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
+import NotificationModal from "../NotificationModal";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
@@ -416,6 +417,11 @@ function ParcelInfo(props: ParcelInfoProps) {
                 >{`${hrefWebContent}`}</a>
               ) : null}
               <div className="d-flex justify-content-end gap-1 gap-sm-2 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
+                <NotificationModal
+                  isMobile={isMobile}
+                  isTablet={isTablet}
+                  licenseDiamondAddress={licenseDiamondAddress ?? ""}
+                />
                 <OverlayTrigger
                   key="chat"
                   placement="top"
