@@ -162,6 +162,30 @@ export function App({ Component, pageProps }: AppProps) {
     [setAuthStatus]
   );
 
+  const client = React.useMemo(
+    () =>
+      new ApolloClient({
+        link: new HttpLink({
+          uri: SUBGRAPH_URL,
+        }),
+        cache: new InMemoryCache({
+          typePolicies: {
+            Query: {
+              fields: {
+                geoWebParcels: {
+                  keyArgs: ["skip", "orderBy"],
+                  merge(existing = [], incoming) {
+                    return [...existing, ...incoming];
+                  },
+                },
+              },
+            },
+          },
+        }),
+      }),
+    []
+  );
+
   React.useEffect(() => {
     (async () => {
       const sessionStr = localStorage.getItem("didsession");
@@ -178,26 +202,6 @@ export function App({ Component, pageProps }: AppProps) {
       }
     })();
   }, []);
-
-  const client = new ApolloClient({
-    link: new HttpLink({
-      uri: SUBGRAPH_URL,
-    }),
-    cache: new InMemoryCache({
-      typePolicies: {
-        Query: {
-          fields: {
-            geoWebParcels: {
-              keyArgs: ["skip", "orderBy"],
-              merge(existing = [], incoming) {
-                return [...existing, ...incoming];
-              },
-            },
-          },
-        },
-      },
-    }),
-  });
 
   return (
     <WagmiConfig client={wagmiClient}>
