@@ -136,36 +136,97 @@ function FAQ() {
                     market participants.
                   </p>
                   <p>
-                    Licensors pay an annual network fee (currently 10%) based on
-                    their self-determined `For Sale Price` of the parcel. To
-                    help make sure parcels aren’t underpriced and “squatted” on,
-                    any other market participant can place a bid at or above the
-                    current price of the parcel. A bid must be accepted (the
-                    licensor is paid their `For Sale Price` and the asset is
-                    transferred) or rejected (the licensor pays a penalty equal
-                    to 10% of incoming bid value) within 7 days.
+                    Each land claim requires a flat 0.005 ETHx registration
+                    payment. Licensors then pay an annual network fee (currently
+                    10%) based on their self-determined `For Sale Price` of the
+                    parcel. To help make sure parcels aren’t underpriced and
+                    “squatted” on, any other market participant can place a bid
+                    at or above the current price of the parcel. A bid must be
+                    accepted (the licensor is paid their `For Sale Price` and
+                    the asset is transferred) or rejected (the licensor pays a
+                    penalty equal to 10% of incoming bid value) within 7 days.
                   </p>
                   <p>
-                    It might seem a little{" "}
                     <a
-                      href="https://www.radicalxchange.org/concepts/"
+                      href="https://docs.geoweb.network/getting-started/claim"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      radical
-                    </a>
-                    , but we believe that this system creates the right
-                    incentives, opportunities, and efficiency to globally scale
-                    the Geo Web network without a centralized authority.
+                      Check out our onboarding guides
+                    </a>{" "}
+                    for step-by-step transaction instructions.
                   </p>
                 </Card.Body>
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="3">
-                What are network fees used for?
+                How do I fund my wallet on Optimism?
               </ContextAwareToggle>
               <Accordion.Collapse eventKey="3">
+                <Card.Body>
+                  <div>
+                    First,{" "}
+                    <a
+                      href="https://chainlist.org/chain/10"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      add the Optimism network to your crypto wallet
+                    </a>
+                    . Your choices for funding your wallet include:
+                    <ul>
+                      <li>
+                        Deposit from a{" "}
+                        <a
+                          href="https://help.optimism.io/hc/en-us/articles/10800854161563-Centralized-exchanges-that-support-Optimism"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          centralized exchange that supports Optimism
+                        </a>
+                      </li>
+                      <li>
+                        Bridge from another network using the{" "}
+                        <a
+                          href="https://app.optimism.io/bridge/deposit"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          official
+                        </a>{" "}
+                        or a{" "}
+                        <a
+                          href="https://www.optimism.io/apps/bridges"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          3rd-party bridge
+                        </a>{" "}
+                      </li>
+                      <li>
+                        Buy it through a{" "}
+                        <a
+                          href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          fiat on-ramp service
+                        </a>{" "}
+                      </li>
+                    </ul>
+                    You should plan for at least .007 ETH per parcel claim you
+                    want to make. You will use ETH to pay transaction fees and
+                    to convert to ETHx which is used in the Geo Web PCO market.
+                  </div>
+                </Card.Body>
+              </Accordion.Collapse>
+            </Card>
+            <Card className="bg-transparent border-dark text-light">
+              <ContextAwareToggle eventKey="4">
+                What are network fees used for?
+              </ContextAwareToggle>
+              <Accordion.Collapse eventKey="4">
                 <Card.Body>
                   <p>
                     Network fees are used to fund public goods and create
@@ -194,39 +255,6 @@ function FAQ() {
               </Accordion.Collapse>
             </Card>
             <Card className="bg-transparent border-dark text-light">
-              <ContextAwareToggle eventKey="4">
-                How do I use the Cadastre?
-              </ContextAwareToggle>
-              <Accordion.Collapse eventKey="4">
-                <Card.Body>
-                  <p>
-                    Use the Cadastre like other modern map interfaces. Zoom and
-                    pan across the globe to find points of interest and Geo Web
-                    land parcels. When you interact with a land parcel, all of
-                    its details will be shown in a panel on the left side of the
-                    screen.
-                  </p>
-                  <p>
-                    Click on a shaded polygon on the map to inspect the parcel
-                    details. You can edit the parcel and make network payments
-                    if you’re the current licensor. You can place a bid if
-                    someone else currently licenses the land. You’ll have to
-                    fully collateralize your bid and wait up to 7 days before
-                    the transfer is effected or your bid is rejected.
-                  </p>
-                  <p>
-                    Click once on an unshaded area of the map to start a new
-                    land parcel claim. You set the size and shape of your parcel
-                    claim (just rectangles for now).
-                  </p>
-                  <p>
-                    Please be patient with your clicks, transactions, and data
-                    loading. Our web3 stack will continue to improve!
-                  </p>
-                </Card.Body>
-              </Accordion.Collapse>
-            </Card>
-            <Card className="bg-transparent border-dark text-light">
               <ContextAwareToggle eventKey="5">
                 What can I do with my land parcel?
               </ContextAwareToggle>
@@ -235,15 +263,7 @@ function FAQ() {
                   <p>
                     Currently, landholders can name their parcel, add a URI
                     link, and anchor 3D/AR content in a media gallery. New use
-                    cases are added as{" "}
-                    <a
-                      href="https://github.com/Geo-Web-Project/datamodels"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      open-source data models in this repository
-                    </a>
-                    .
+                    cases are being added.
                   </p>
                   <p>
                     The Geo Web leverages{" "}
@@ -301,7 +321,7 @@ function FAQ() {
                       rel="noreferrer"
                     >
                       Let your imagination run wild with what you could do with
-                      digital objects/information persisted in the real world
+                      digital objects/information persisting in the real world
                     </a>
                     .
                   </p>
@@ -401,15 +421,7 @@ function FAQ() {
                     >
                       Twitter
                     </a>
-                    . Discord, Forum and Github engagement can even earn you{" "}
-                    <a
-                      href="https://geo-web-project.github.io/sourcecred-instance/#/explorer"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      SourceCred-based payouts
-                    </a>
-                    !
+                    .
                   </p>
                 </Card.Body>
               </Accordion.Collapse>

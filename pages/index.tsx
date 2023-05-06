@@ -1,4 +1,5 @@
 import Home from "../components/Home";
+import WelcomeChecklist from "../components/WelcomeChecklist";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";
 import Profile from "../components/profile/Profile";
 import FundsRaisedCounter from "../components/FundsRaisedCounter";
@@ -127,7 +128,6 @@ function IndexPage({
     React.useState<GeoWebContent | null>(null);
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
-  const [isFirstVisit, setIsFirstVisit] = React.useState<boolean>(true);
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
 
@@ -456,8 +456,7 @@ function IndexPage({
         </Navbar>
       </Container>
       <Container fluid>
-        {!isFirstVisit &&
-        registryContract &&
+        {registryContract &&
         paymentToken &&
         library &&
         ceramic &&
@@ -496,8 +495,9 @@ function IndexPage({
             ></Map>
           </Row>
         ) : (
-          <Home setIsFirstVisit={setIsFirstVisit} />
+          <Home />
         )}
+        <WelcomeChecklist />
       </Container>
     </>
   );
