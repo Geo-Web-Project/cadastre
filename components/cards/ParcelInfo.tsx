@@ -416,10 +416,9 @@ function ParcelInfo(props: ParcelInfoProps) {
                   className="d-block text-light fw-bold text-truncate"
                 >{`${hrefWebContent}`}</a>
               ) : null}
-              <div className="d-flex justify-content-end gap-1 gap-sm-2 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
+              <div className="d-flex justify-content-end gap-1 text-end pt-2 mb-1 mb-sm-0  mx-sm-2">
                 <NotificationModal
                   isMobile={isMobile}
-                  isTablet={isTablet}
                   licenseDiamondAddress={licenseDiamondAddress ?? ""}
                 />
                 <OverlayTrigger
@@ -435,7 +434,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                     className="p-0 mt-1 shadow-none"
                     onClick={() => setShowParcelChat(true)}
                   >
-                    <Image width={isMobile ? 24 : 32} src="chat.svg" />
+                    <Image width={24} src="chat.svg" />
                   </Button>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -455,7 +454,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                     target="_blank"
                   >
                     <Image
-                      width={isMobile ? 24 : 32}
+                      width={24}
                       src="open-in-browser.svg"
                     />
                   </Button>
@@ -466,7 +465,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                   target={
                     <Image
                       className="me-1"
-                      width={isMobile ? 30 : 36}
+                      width={30}
                       src="link.svg"
                     />
                   }
