@@ -10,12 +10,11 @@ import { truncateStr } from "../lib/truncate";
 
 type NotificationModalProps = {
   isMobile: boolean;
-  isTablet: boolean;
   licenseDiamondAddress: string;
 };
 
 function NotificationModal(props: NotificationModalProps) {
-  const { isMobile, isTablet, licenseDiamondAddress } = props;
+  const { isMobile, licenseDiamondAddress } = props;
 
   const [show, setShow] = useState<boolean>(false);
 
@@ -37,7 +36,7 @@ function NotificationModal(props: NotificationModalProps) {
           <Image
             src="notification-add.svg"
             alt="add notification"
-            width={isMobile || isTablet ? 26 : 32}
+            width={26}
           ></Image>
         </Button>
       </OverlayTrigger>
