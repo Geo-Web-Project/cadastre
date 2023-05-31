@@ -53,6 +53,8 @@ function EditAction(props: EditActionProps) {
       ? displayCurrentForSalePrice
       : "",
   });
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+    React.useState<BigNumber | null>(null);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -215,6 +217,7 @@ function EditAction(props: EditActionProps) {
               }
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -229,6 +232,9 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
+        encodeFunctionData={() => ""}
+        bundleCallback={async () => ""}
+        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         {...props}
       />
       <StreamingInfo {...props} />

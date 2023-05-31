@@ -29,6 +29,7 @@ function ClaimAction(props: ClaimActionProps) {
   const {
     geoWebCoordinate,
     account,
+    smartAccount,
     signer,
     claimBase1Coord,
     claimBase2Coord,
@@ -47,6 +48,8 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice: "",
   });
   const [flowOperator, setFlowOperator] = React.useState<string>("");
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+    React.useState<BigNumber | null>(null);
 
   const { displayNewForSalePrice } = actionData;
 
@@ -95,6 +98,40 @@ function ClaimAction(props: ClaimActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
+  function encodeClaimData() {
+    if (!claimBase1Coord || !claimBase2Coord) {
+      throw new Error(`Unknown coordinates`);
+    }
+
+    const swX = Math.min(claimBase1Coord.x, claimBase2Coord.x);
+    const swY = Math.min(claimBase1Coord.y, claimBase2Coord.y);
+    const neX = Math.max(claimBase1Coord.x, claimBase2Coord.x);
+    const neY = Math.max(claimBase1Coord.y, claimBase2Coord.y);
+    const swCoord = geoWebCoordinate.make_gw_coord(swX, swY);
+
+    if (!displayNewForSalePrice || !newFlowRate || isForSalePriceInvalid) {
+      throw new Error(
+        `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
+      );
+    }
+
+    const encodedClaimData = registryContract.interface.encodeFunctionData(
+      "claim",
+      //"claim(int96,uint256,(uint64,uint256,uint256))",
+      [
+        newFlowRate,
+        ethers.utils.parseEther(displayNewForSalePrice),
+        {
+          swCoordinate: BigNumber.from(swCoord.toString()),
+          lngDim: neX - swX + 1,
+          latDim: neY - swY + 1,
+        },
+      ]
+    );
+
+    return encodedClaimData;
+  }
+
   async function _claim() {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
@@ -121,6 +158,46 @@ function ClaimAction(props: ClaimActionProps) {
       });
     const receipt = await txn.wait();
 
+    await handleReferral(receipt);
+
+    const filter = registryContract.filters.ParcelClaimedV2(null, null);
+
+    const res = await registryContract.queryFilter(
+      filter,
+      receipt.blockNumber,
+      receipt.blockNumber
+    );
+    const licenseId = res[0].args[0].toString();
+    setNewParcel((prev) => {
+      return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
+    });
+
+    return licenseId;
+  }
+
+  async function bundleCallback(receipt?: ethers.providers.TransactionReceipt) {
+    if (!receipt) {
+      throw new Error("Could not find receipt");
+    }
+
+    await handleReferral(receipt);
+
+    const filter = registryContract.filters.ParcelClaimedV2(null, null);
+
+    const res = await registryContract.queryFilter(
+      filter,
+      receipt.blockNumber,
+      receipt.blockNumber
+    );
+    const licenseId = res[0].args[0].toString();
+    setNewParcel((prev) => {
+      return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
+    });
+
+    return licenseId;
+  }
+
+  async function handleReferral(receipt: ethers.providers.TransactionReceipt) {
     const referralStr = localStorage.getItem("referral");
     if (referralStr) {
       const referral = JSON.parse(referralStr);
@@ -186,30 +263,18 @@ function ClaimAction(props: ClaimActionProps) {
         }
       }
     }
-
-    const filter = registryContract.filters.ParcelClaimedV2(null, null);
-
-    const res = await registryContract.queryFilter(
-      filter,
-      receipt.blockNumber,
-      receipt.blockNumber
-    );
-    const licenseId = res[0].args[0].toString();
-    setNewParcel((prev) => {
-      return { ...prev, id: `0x${new BN(licenseId.toString()).toString(16)}` };
-    });
-
-    return licenseId;
   }
 
   React.useEffect(() => {
     const _fetchFlowOperator = async () => {
-      const _flowOperator = await registryContract.getNextProxyAddress(account);
+      const _flowOperator = await registryContract.getNextProxyAddress(
+        smartAccount?.safe ? smartAccount.address : account
+      );
       setFlowOperator(_flowOperator);
     };
 
     _fetchFlowOperator();
-  }, [registryContract, account]);
+  }, [registryContract, account, smartAccount]);
 
   return (
     <>
@@ -224,6 +289,7 @@ function ClaimAction(props: ClaimActionProps) {
               claimPayment={minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -236,6 +302,9 @@ function ClaimAction(props: ClaimActionProps) {
         requiredFlowPermissions={1}
         spender={registryContract.address}
         flowOperator={flowOperator}
+        bundleCallback={bundleCallback}
+        encodeFunctionData={encodeClaimData}
+        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         {...props}
       />
       <StreamingInfo {...props} />

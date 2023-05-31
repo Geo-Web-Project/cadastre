@@ -19,6 +19,7 @@ import {
   IPFS_DELEGATE,
   SSX_HOST,
 } from "../lib/constants";
+import Safe from "@safe-global/protocol-kit";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
@@ -81,6 +82,20 @@ async function createW3UpClient(didSession: DIDSession) {
   }
 }
 
+export enum LoginState {
+  CREATE,
+  FUND,
+  CONNECTING,
+  SELECT,
+  CONNECTED,
+}
+
+export interface SmartAccount {
+  safe: Safe | null;
+  address: string;
+  loginState: LoginState;
+}
+
 function IndexPage({
   authStatus,
   setAuthStatus,
@@ -130,6 +145,9 @@ function IndexPage({
     React.useState<GeoWebCoordinate>();
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
+  const [smartAccount, setSmartAccount] = React.useState<SmartAccount | null>(
+    null
+  );
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -167,6 +185,7 @@ function IndexPage({
     return { session, w3Client };
   };
 
+  console.log(smartAccount?.loginState);
   const loadStorageDelegation = async (
     session: DIDSession,
     w3Client: W3Client
@@ -255,7 +274,7 @@ function IndexPage({
 
   React.useEffect(() => {
     initSession();
-  }, [authStatus, signer, address, ipfs, ceramic]);
+  }, [authStatus, signer, address, smartAccount, ipfs, ceramic]);
 
   React.useEffect(() => {
     const start = async () => {
@@ -408,6 +427,10 @@ function IndexPage({
           >
             {address &&
             signer &&
+            (smartAccount?.loginState === LoginState.CONNECTED ||
+              smartAccount?.loginState === LoginState.CREATE ||
+              smartAccount?.loginState === LoginState.CONNECTING ||
+              smartAccount?.loginState === LoginState.FUND) &&
             sfFramework &&
             ceramic &&
             ipfs &&
@@ -418,9 +441,16 @@ function IndexPage({
             chain?.id === NETWORK_ID &&
             library ? (
               <Profile
-                account={address.toLowerCase()}
+                account={
+                  smartAccount.safe
+                    ? smartAccount.address
+                    : address.toLowerCase()
+                }
+                authStatus={authStatus}
                 signer={signer}
                 sfFramework={sfFramework}
+                smartAccount={smartAccount}
+                setSmartAccount={setSmartAccount}
                 ceramic={ceramic}
                 setCeramic={setCeramic}
                 ipfs={ipfs}
@@ -438,7 +468,11 @@ function IndexPage({
                 setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               />
             ) : (
-              <ConnectWallet variant="header" />
+              <ConnectWallet
+                variant="header"
+                authStatus={authStatus}
+                setSmartAccount={setSmartAccount}
+              />
             )}
           </Col>
           <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
@@ -468,8 +502,11 @@ function IndexPage({
           <Row>
             <Map
               registryContract={registryContract}
+              authStatus={authStatus}
               signer={signer ?? null}
               account={address?.toLowerCase() ?? ""}
+              smartAccount={smartAccount}
+              setSmartAccount={setSmartAccount}
               ceramic={ceramic}
               setCeramic={setCeramic}
               ipfs={ipfs}

@@ -27,16 +27,20 @@ import {
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
+import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPFS } from "ipfs-core-types";
 import { FlowingBalance } from "./FlowingBalance";
+import AddFundsModal from "./AddFundsModal";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import CopyTooltip from "../CopyTooltip";
+import { SmartAccount } from "../../pages/index";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
+  RAMP_HOST_KEY,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
@@ -49,6 +53,7 @@ import {
 import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
+import { useSafe } from "../../lib/safe";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -58,6 +63,8 @@ interface ProfileModalProps {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
   signer: ethers.Signer;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   sfFramework: Framework;
   ceramic: CeramicClient;
   ipfs: IPFS;
@@ -179,6 +186,8 @@ function ProfileModal(props: ProfileModalProps) {
     sfFramework,
     account,
     signer,
+    smartAccount,
+    setSmartAccount,
     geoWebContent,
     registryContract,
     setSelectedParcelId,
@@ -203,6 +212,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
+  const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
 
   const { disconnect } = useDisconnect();
   const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
@@ -216,6 +226,12 @@ function ProfileModal(props: ProfileModalProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
+  const { relayTransaction } = useSafe(smartAccount?.safe ?? null);
+
+  const accountAddress =
+    smartAccount && smartAccount.address !== ""
+      ? smartAccount.address
+      : account;
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -226,15 +242,22 @@ function ProfileModal(props: ProfileModalProps) {
     unwrappingAmount !== "" &&
     paymentTokenBalance !== "" &&
     Number(unwrappingAmount) > Number(paymentTokenBalance);
+
   useEffect(() => {
     let isMounted = true;
 
     const initBalance = async () => {
-      if (sfFramework.settings.provider && account) {
+      if (sfFramework.settings.provider && accountAddress) {
         try {
+          if (smartAccount?.safe) {
+            const isSafeDeployed = await smartAccount?.safe.isSafeDeployed();
+
+            setIsSafeDeployed(isSafeDeployed ? true : false);
+          }
+
           const ethBalance = await getETHBalance(
             sfFramework.settings.provider,
-            account
+            accountAddress
           );
 
           if (isMounted) {
@@ -251,7 +274,7 @@ function ProfileModal(props: ProfileModalProps) {
     return () => {
       isMounted = false;
     };
-  }, [sfFramework, account]);
+  }, [sfFramework, accountAddress, smartAccount]);
 
   useEffect(() => {
     if (!data) {
@@ -299,7 +322,7 @@ function ProfileModal(props: ProfileModalProps) {
         signer
       );
 
-      if (licenseOwner === account) {
+      if (licenseOwner === accountAddress) {
         if (!pendingBid || BigNumber.from(pendingBid.contributionRate).eq(0)) {
           status = "Valid";
           actionDate = "";
@@ -387,7 +410,7 @@ function ProfileModal(props: ProfileModalProps) {
         })
         .then(() => licenseDiamondContract.isPayerBidActive())
         .then((isPayerBidActive) => {
-          if (licenseOwner === account && !isPayerBidActive) {
+          if (licenseOwner === accountAddress && !isPayerBidActive) {
             foreclosureInfoPromise = sfFramework.cfaV1
               .getAccountFlowInfo({
                 superToken: paymentToken.address,
@@ -496,7 +519,7 @@ function ProfileModal(props: ProfileModalProps) {
     }
 
     const intervalId = setInterval(() => {
-      refetch({ id: account });
+      refetch({ id: accountAddress });
     }, 4000);
 
     setTimerId(intervalId);
@@ -520,6 +543,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
 
   const deactivateProfile = (): void => {
+    setSmartAccount(null);
     disconnect();
     handleCloseProfile();
   };
@@ -528,36 +552,55 @@ function ProfileModal(props: ProfileModalProps) {
     amount: string,
     action: SuperTokenAction
   ): Promise<void> => {
-    let txn: ethers.providers.TransactionResponse | null = null;
+    const weiAmount = ethers.utils.parseEther(amount).toString();
+    let safeTransactionData;
+    let gasToken;
 
     try {
       if (action === SuperTokenAction.WRAP) {
-        txn = await paymentToken
-          .upgrade({
-            amount: ethers.utils.parseEther(amount).toString(),
-          })
-          .exec(signer);
+        const populatedTransaction = await paymentToken.upgrade({
+          amount: weiAmount,
+        }).populateTransactionPromise;
 
-        setIsWrapping(true);
+        const { data, to } = populatedTransaction;
+
+        if (data && to) {
+          safeTransactionData = {
+            data,
+            to,
+            value: weiAmount,
+          };
+
+          setIsWrapping(true);
+        }
       } else if (action === SuperTokenAction.UNWRAP) {
-        txn = await paymentToken
-          .downgrade({
-            amount: ethers.utils.parseEther(amount).toString(),
-          })
-          .exec(signer);
+        const populatedTransaction = await paymentToken.downgrade({
+          amount: weiAmount,
+        }).populateTransactionPromise;
 
-        setIsUnwrapping(true);
+        const { data, to } = populatedTransaction;
+
+        if (data && to) {
+          gasToken = paymentToken.address;
+          safeTransactionData = {
+            data,
+            to,
+            value: "0",
+          };
+
+          setIsUnwrapping(true);
+        }
       }
 
-      if (txn === null) {
-        return;
+      if (!safeTransactionData) {
+        throw new Error("Error populating transaction");
       }
 
-      await txn.wait();
+      await relayTransaction([safeTransactionData], gasToken);
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,
-        account
+        accountAddress
       );
 
       setETHBalance(ethBalance);
@@ -675,6 +718,20 @@ function ProfileModal(props: ProfileModalProps) {
     });
   };
 
+  if (smartAccount?.safe && isSafeDeployed === null) {
+    return null;
+  } else if (smartAccount?.safe && !isSafeDeployed) {
+    return (
+      <AddFundsModal
+        show={showProfile}
+        handleClose={handleCloseProfile}
+        smartAccount={smartAccount}
+        setSmartAccount={setSmartAccount}
+        setIsSafeDeployed={setIsSafeDeployed}
+      />
+    );
+  }
+
   return (
     <Modal
       show={showProfile}
@@ -697,9 +754,11 @@ function ProfileModal(props: ProfileModalProps) {
               lg="10"
             >
               <span className="d-none d-sm-block">
-                {truncateStr(account, 14)}
+                {truncateStr(accountAddress, 14)}
               </span>
-              <span className="fs-1 d-sm-none">{truncateStr(account, 12)}</span>
+              <span className="fs-1 d-sm-none">
+                {truncateStr(accountAddress, 12)}
+              </span>
               <CopyTooltip
                 contentClick="Address Copied"
                 contentHover="Copy Address"
@@ -711,7 +770,7 @@ function ProfileModal(props: ProfileModalProps) {
                     className="ms-1 ms-lg-2"
                   />
                 }
-                handleCopy={() => navigator.clipboard.writeText(account)}
+                handleCopy={() => navigator.clipboard.writeText(accountAddress)}
               />
               <Button
                 onClick={deactivateProfile}
@@ -784,16 +843,46 @@ function ProfileModal(props: ProfileModalProps) {
             )}`}</span>
             <Form
               id="wrapForm"
-              className="form-inline mt-5 px-0 px-sm-3"
+              className="form-inline mt-1 px-0 px-sm-3"
               noValidate
               onSubmit={(e) =>
                 handleSubmit(e, wrappingAmount, SuperTokenAction.WRAP)
               }
             >
+              <Button
+                variant="light"
+                size="sm"
+                className="d-flex justify-content-center gap-1 w-100 mb-2 fs-6 rounded-2"
+                onClick={() => {
+                  const rampWidget = new RampInstantSDK({
+                    hostAppName: "Geo Web Cadastre",
+                    hostLogoUrl:
+                      "https://assets.ramp.network/misc/test-logo.png",
+                    hostApiKey: RAMP_HOST_KEY,
+                    variant: isMobile ? "mobile" : "desktop",
+                    defaultAsset: "OPTIMISM_ETH",
+                    url: "https://app.demo.ramp.network",
+                    userAddress: accountAddress ?? "",
+                    fiatCurrency: "USD",
+                    fiatValue: "20",
+                  });
+                  rampWidget.show();
+                  if (rampWidget.domNodes?.overlay) {
+                    rampWidget.domNodes.overlay.style.zIndex = "10000";
+                  }
+                }}
+              >
+                <Image
+                  src="credit-card-dark.svg"
+                  alt="credit card"
+                  width={22}
+                />
+                <span className="text-black">Buy Crypto</span>
+              </Button>
               <Form.Control
                 required
                 type="text"
-                className="mb-2"
+                className="mb-2 rounded-2"
                 placeholder="0.00"
                 size="sm"
                 value={wrappingAmount}
@@ -807,7 +896,7 @@ function ProfileModal(props: ProfileModalProps) {
                 type="submit"
                 disabled={isWrapping || isOutOfBalanceWrap}
                 size="sm"
-                className="w-100"
+                className="w-100 rounded-2"
               >
                 {isWrapping
                   ? "Wrapping..."
@@ -817,7 +906,7 @@ function ProfileModal(props: ProfileModalProps) {
               </Button>
             </Form>
             {wrappingError ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${wrappingError}`}</span>
+              <span className="d-inline-block text-danger m-0 mt-1 ms-3 text-break">{`Error: ${wrappingError}`}</span>
             ) : !isOutOfBalanceWrap &&
               wrappingAmount !== "" &&
               Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
@@ -853,10 +942,10 @@ function ProfileModal(props: ProfileModalProps) {
                 maxWidth: "220px",
                 height: "auto",
                 margin: isMobile
-                  ? "4px 0px 14px 0px"
+                  ? "8px 0px 8px 0px"
                   : isTablet
-                  ? "4px 15px 14px 16px"
-                  : "5px 15px 8px 15px",
+                  ? "4px 15px 8px 16px"
+                  : "4px 15px 8px 15px",
               }}
             >
               <CopyTokenAddress options={tokenOptions} />
@@ -871,7 +960,7 @@ function ProfileModal(props: ProfileModalProps) {
               <Form.Control
                 required
                 type="text"
-                className="mb-2"
+                className="mb-2 rounded-2"
                 placeholder="0.00"
                 size="sm"
                 value={unwrappingAmount}
@@ -885,7 +974,7 @@ function ProfileModal(props: ProfileModalProps) {
                 type="submit"
                 disabled={isUnWrapping || isOutOfBalanceUnwrap}
                 size="sm"
-                className="w-100 text-break"
+                className="w-100 text-break rounded-2"
               >
                 {isUnWrapping
                   ? "Unwrapping..."

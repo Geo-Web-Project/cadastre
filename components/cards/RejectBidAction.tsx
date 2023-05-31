@@ -89,6 +89,8 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+    React.useState<BigNumber | null>(null);
 
   const { superTokenBalance } = useSuperTokenBalance(
     account,
@@ -418,6 +420,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
+                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                 {...props}
               />
             ) : null}

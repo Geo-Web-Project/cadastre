@@ -42,6 +42,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
   const {
     account,
     signer,
+    authStatus,
+    setSmartAccount,
     registryContract,
     interactionState,
     setInteractionState,
@@ -301,7 +303,11 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
       ) : null}
       {interactionState === STATE.CLAIM_SELECTED && !account ? (
         <div className="mt-3">
-          <ConnectWallet variant="claim" />
+          <ConnectWallet
+            variant="claim"
+            authStatus={authStatus}
+            setSmartAccount={setSmartAccount}
+          />
         </div>
       ) : interactionState === STATE.CLAIM_SELECTED &&
         account &&

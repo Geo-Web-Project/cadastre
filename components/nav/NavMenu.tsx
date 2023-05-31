@@ -29,7 +29,6 @@ function NavMenuMainnet() {
         className="d-flex gap-2"
       >
         Buy ETH on Optimism
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -38,7 +37,6 @@ function NavMenuMainnet() {
         className="d-flex gap-2"
       >
         Documentation
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://testnet.geoweb.land/"
@@ -47,7 +45,22 @@ function NavMenuMainnet() {
         className="d-flex gap-2"
       >
         Cadastre Testnet
-        <Image src="open-new.svg" alt="open-new" />
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://example.com/"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Term of Service
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://example.com/"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Privacy Policy
       </NavDropdown.Item>
       <SocialItems />
     </NavDropdown>
@@ -72,7 +85,6 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Request Testnet ETH
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -81,7 +93,6 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Documentation
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://geoweb.land/"
@@ -90,7 +101,22 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Cadastre Mainnet
-        <Image src="open-new.svg" alt="open-new" />
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://example.com/"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Term of Service
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://example.com/"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Privacy Policy
       </NavDropdown.Item>
       <SocialItems />
     </NavDropdown>

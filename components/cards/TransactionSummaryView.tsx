@@ -19,7 +19,7 @@ type TransactionSummaryViewProps = OffCanvasPanelProps & {
   penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
-  /** during the fair launch period (true) or after (false). */
+  transactionBundleFeesEstimate: BigNumber | null;
 };
 
 function TransactionSummaryView({
@@ -36,6 +36,7 @@ function TransactionSummaryView({
   penaltyPayment,
   sfFramework,
   paymentToken,
+  transactionBundleFeesEstimate,
 }: TransactionSummaryViewProps) {
   const { isMobile } = useMediaQuery();
 
@@ -53,6 +54,9 @@ function TransactionSummaryView({
       : networkFeeDelta ?? BigNumber.from(0);
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
+  const transactionBundleFeesDisplay = transactionBundleFeesEstimate
+    ? truncateEth(formatBalance(transactionBundleFeesEstimate), 5)
+    : null;
 
   const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
     null
@@ -256,9 +260,23 @@ function TransactionSummaryView({
     </p>
   );
 
+  const transactionBundleFeesEstimateView = (
+    <p className="pt-2">
+      Tx Bundle Gas: ~
+      <InfoTooltip
+        content={<div className="text-start"></div>}
+        target={
+          <span className="text-decoration-underline">
+            {transactionBundleFeesDisplay} ETH
+          </span>
+        }
+      />
+    </p>
+  );
+
   const yearlyTotalView = (
     <p className="border-top pt-2">
-      Year 1 Total:{" "}
+      Year 1 Total: ~
       <InfoTooltip
         content={
           <div className="text-start">
@@ -290,6 +308,9 @@ function TransactionSummaryView({
         {paymentView}
         {streamView}
         {streamBufferView}
+        {transactionBundleFeesEstimate
+          ? transactionBundleFeesEstimateView
+          : null}
         {interactionState === STATE.CLAIM_SELECTED ? yearlyTotalView : null}
       </>
     </div>

@@ -14,6 +14,8 @@ import {
 import BN from "bn.js";
 import { AssetId } from "caip";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
+import AddFundsModal from "../profile/AddFundsModal";
+import { SubmitBundleButton } from "../SubmitBundleButton";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
@@ -46,6 +48,13 @@ export type ActionFormProps = OffCanvasPanelProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
+  encodeFunctionData: () => string;
+  bundleCallback: (
+    receipt?: ethers.providers.TransactionReceipt
+  ) => Promise<string | void>;
+  setTransactionBundleFeesEstimate: React.Dispatch<
+    React.SetStateAction<BigNumber | null>
+  >;
 };
 
 export type ActionData = {
@@ -62,6 +71,8 @@ export function ActionForm(props: ActionFormProps) {
   const {
     account,
     licenseOwner,
+    smartAccount,
+    setSmartAccount,
     geoWebContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -85,6 +96,9 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken,
     setShouldParcelContentUpdate,
     setParcelFieldsToUpdate,
+    encodeFunctionData,
+    bundleCallback,
+    setTransactionBundleFeesEstimate,
   } = props;
 
   const {
@@ -100,9 +114,11 @@ export function ActionForm(props: ActionFormProps) {
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] =
+    React.useState<boolean>(false);
 
   const { superTokenBalance } = useSuperTokenBalance(
-    account,
+    smartAccount?.safe ? smartAccount.address : account,
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
@@ -170,13 +186,22 @@ export function ActionForm(props: ActionFormProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  async function submit() {
+  async function submit(receipt?: ethers.providers.TransactionReceipt) {
     updateActionData({ isActing: true, didFail: false });
 
     let licenseId: string | void;
     try {
-      // Perform action
-      licenseId = await performAction();
+      if (bundleCallback) {
+        /* Callback after bundle submission */
+        if (receipt) {
+          licenseId = await bundleCallback(receipt);
+        } else {
+          await bundleCallback();
+        }
+      } else {
+        /* Call contract's function directly */
+        licenseId = await performAction();
+      }
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -532,48 +557,100 @@ export function ActionForm(props: ActionFormProps) {
             </div>
             {summaryView}
             <br />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
-              {...props}
-              isDisabled={isActing ?? false}
-              requiredFlowAmount={requiredFlowAmount ?? null}
-              requiredPayment={requiredPayment ?? null}
-              spender={spender ?? null}
-              setErrorMessage={(v) => {
-                updateActionData({ errorMessage: v });
-              }}
-              isActing={isActing ?? false}
-              setIsActing={(v) => {
-                updateActionData({ isActing: v });
-              }}
-              setDidFail={(v) => {
-                updateActionData({ didFail: v });
-              }}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
-              isDisabled={
-                isActing || isLoading || isInvalid || isBalanceInsufficient
-              }
-              isActing={isActing ?? false}
-              buttonText={
-                interactionState === STATE.PARCEL_EDITING
-                  ? "Submit"
-                  : interactionState === STATE.PARCEL_RECLAIMING &&
-                    account.toLowerCase() === licenseOwner?.toLowerCase()
-                  ? "Reclaim"
-                  : "Claim"
-              }
-              performAction={submit}
-              isAllowed={isAllowed}
-            />
+            {smartAccount?.safe ? (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={() => setShowAddFundsModal(true)}
+                >
+                  Add Funds
+                </Button>
+                <AddFundsModal
+                  show={showAddFundsModal}
+                  handleClose={() => setShowAddFundsModal(false)}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                />
+                <SubmitBundleButton
+                  {...props}
+                  requiredFlowAmount={requiredFlowAmount ?? null}
+                  requiredPayment={requiredPayment ?? null}
+                  spender={spender ?? null}
+                  setErrorMessage={(v) => {
+                    updateActionData({ errorMessage: v });
+                  }}
+                  setIsActing={(v) => {
+                    updateActionData({ isActing: v });
+                  }}
+                  setDidFail={(v) => {
+                    updateActionData({ didFail: v });
+                  }}
+                  isDisabled={
+                    isActing || isLoading || isInvalid || isBalanceInsufficient
+                  }
+                  isActing={isActing ?? false}
+                  buttonText={
+                    interactionState === STATE.PARCEL_EDITING
+                      ? "Submit"
+                      : interactionState === STATE.PARCEL_RECLAIMING &&
+                        account.toLowerCase() === licenseOwner?.toLowerCase()
+                      ? "Reclaim"
+                      : "Claim"
+                  }
+                  encodeFunctionData={encodeFunctionData}
+                  callback={bundleCallback}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
+                  }
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={handleWrapModalOpen}
+                >
+                  {`Wrap ETH to ${PAYMENT_TOKEN}`}
+                </Button>
+                <ApproveButton
+                  {...props}
+                  isDisabled={isActing ?? false}
+                  requiredFlowAmount={requiredFlowAmount ?? null}
+                  requiredPayment={requiredPayment ?? null}
+                  spender={spender ?? null}
+                  setErrorMessage={(v) => {
+                    updateActionData({ errorMessage: v });
+                  }}
+                  isActing={isActing ?? false}
+                  setIsActing={(v) => {
+                    updateActionData({ isActing: v });
+                  }}
+                  setDidFail={(v) => {
+                    updateActionData({ didFail: v });
+                  }}
+                  isAllowed={isAllowed}
+                  setIsAllowed={setIsAllowed}
+                />
+                <PerformButton
+                  isDisabled={
+                    isActing || isLoading || isInvalid || isBalanceInsufficient
+                  }
+                  isActing={isActing ?? false}
+                  buttonText={
+                    interactionState === STATE.PARCEL_EDITING
+                      ? "Submit"
+                      : interactionState === STATE.PARCEL_RECLAIMING &&
+                        account.toLowerCase() === licenseOwner?.toLowerCase()
+                      ? "Reclaim"
+                      : "Claim"
+                  }
+                  performAction={submit}
+                  isAllowed={isAllowed}
+                />
+              </>
+            )}
           </Form>
 
           <br />

@@ -9,6 +9,8 @@ import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
+import AddFundsModal from "../profile/AddFundsModal";
+import SubmitBundleButton from "../SubmitBundleButton";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Button from "react-bootstrap/Button";
@@ -48,6 +50,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const {
     signer,
     account,
+    smartAccount,
+    setSmartAccount,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -68,11 +72,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     string | null
   >(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
   const [isBalanceInsufficient, setIsBalanceInsufficient] =
     React.useState(false);
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+    React.useState<BigNumber | null>(null);
 
   const { superTokenBalance } = useSuperTokenBalance(
-    account,
+    smartAccount?.safe ? smartAccount.address : account,
     paymentToken.address
   );
 
@@ -85,7 +92,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const currentForSalePrice = ethers.utils.parseEther(
     displayCurrentForSalePrice
   );
-
   const newForSalePrice =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
@@ -160,6 +166,27 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     );
   }, [superTokenBalance]);
 
+  function encodePlaceBidData() {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!newForSalePrice) {
+      throw new Error("Could not find newForSalePrice");
+    }
+
+    if (!newNetworkFee) {
+      throw new Error("Could not find newNetworkFee");
+    }
+
+    const placeBidData = licenseDiamondContract.interface.encodeFunctionData(
+      "placeBid",
+      [newNetworkFee, newForSalePrice]
+    );
+
+    return placeBidData;
+  }
+
   async function placeBid() {
     setIsActing(true);
     setDidFail(false);
@@ -204,6 +231,16 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
+    setIsActing(false);
+    setShouldRefetchParcelsData(true);
+    setInteractionState(STATE.PARCEL_SELECTED);
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: false,
+    });
+  }
+
+  async function submitBundleCallback() {
     setIsActing(false);
     setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
@@ -314,44 +351,88 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
+                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                 {...props}
               />
             ) : null}
 
             <br />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
-              {...props}
-              isDisabled={isActing}
-              requiredFlowAmount={annualNetworkFeeRate ?? null}
-              requiredPayment={
-                newForSalePrice && requiredBuffer
-                  ? newForSalePrice.add(requiredBuffer)
-                  : null
-              }
-              spender={licenseDiamondContract?.address ?? null}
-              requiredFlowPermissions={1}
-              flowOperator={licenseDiamondContract?.address ?? null}
-              setErrorMessage={setErrorMessage}
-              isActing={isActing}
-              setIsActing={setIsActing}
-              setDidFail={setDidFail}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
-              isDisabled={isActing || isInvalid || isBalanceInsufficient}
-              isActing={isActing}
-              buttonText={"Place Bid"}
-              performAction={placeBid}
-              isAllowed={isAllowed}
-            />
+            {!smartAccount?.safe ? (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={handleWrapModalOpen}
+                >
+                  {`Wrap ETH to ${PAYMENT_TOKEN}`}
+                </Button>
+                <ApproveButton
+                  {...props}
+                  isDisabled={isActing}
+                  requiredFlowAmount={annualNetworkFeeRate ?? null}
+                  requiredPayment={
+                    newForSalePrice && requiredBuffer
+                      ? newForSalePrice.add(requiredBuffer)
+                      : null
+                  }
+                  spender={licenseDiamondContract?.address ?? null}
+                  requiredFlowPermissions={1}
+                  flowOperator={licenseDiamondContract?.address ?? null}
+                  setErrorMessage={setErrorMessage}
+                  isActing={isActing}
+                  setIsActing={setIsActing}
+                  setDidFail={setDidFail}
+                  isAllowed={isAllowed}
+                  setIsAllowed={setIsAllowed}
+                />
+                <PerformButton
+                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isActing={isActing}
+                  buttonText={"Place Bid"}
+                  performAction={placeBid}
+                  isAllowed={isAllowed}
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={() => setShowAddFundsModal(true)}
+                >
+                  Add Funds
+                </Button>
+                <AddFundsModal
+                  show={showAddFundsModal}
+                  handleClose={() => setShowAddFundsModal(false)}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                />
+                <SubmitBundleButton
+                  {...props}
+                  requiredFlowAmount={annualNetworkFeeRate ?? null}
+                  requiredPayment={
+                    newForSalePrice && requiredBuffer
+                      ? newForSalePrice.add(requiredBuffer)
+                      : null
+                  }
+                  spender={licenseDiamondContract?.address ?? null}
+                  requiredFlowPermissions={1}
+                  flowOperator={licenseDiamondContract?.address ?? null}
+                  setErrorMessage={setErrorMessage}
+                  setIsActing={setIsActing}
+                  setDidFail={setDidFail}
+                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isActing={isActing}
+                  buttonText={"Place Bid"}
+                  encodeFunctionData={encodePlaceBidData}
+                  callback={submitBundleCallback}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
+                  }
+                />
+              </>
+            )}
           </Form>
 
           <br />

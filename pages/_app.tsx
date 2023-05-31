@@ -11,13 +11,13 @@ import "../styles.scss";
 import { AppProps } from "next/app";
 import { MapProvider } from "react-map-gl";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { goerli, optimism, optimismGoerli } from "wagmi/chains";
+import { optimism, optimismGoerli } from "wagmi/chains";
 import type { Chain } from "wagmi";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import {
   connectorsForWallets,
   RainbowKitProvider,
-  lightTheme,
+  darkTheme,
   RainbowKitAuthenticationProvider,
   createAuthenticationAdapter,
 } from "@rainbow-me/rainbowkit";
@@ -39,9 +39,9 @@ import { DID } from "dids";
 import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
+import merge from "lodash.merge";
 
 const networkIdToChain: Record<number, Chain> = {
-  5: goerli,
   10: optimism,
   420: optimismGoerli,
 };
@@ -203,22 +203,28 @@ export function App({ Component, pageProps }: AppProps) {
     })();
   }, []);
 
+  const myTheme = merge(darkTheme(), {
+    colors: {
+      modalBackground: "#202333",
+      accentColor: "#2fc1c1",
+      modalBorder: "0",
+      profileForeground: "#111320",
+      modalText: "#f8f9fa",
+      closeButtonBackground: "#111320",
+      closeButton: "#f8f9fa",
+    },
+    radii: {
+      modal: "18px",
+    },
+  });
+
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitAuthenticationProvider
         adapter={authenticationAdapter}
         status={authStatus}
       >
-        <RainbowKitProvider
-          chains={chains}
-          modalSize="compact"
-          theme={lightTheme({
-            accentColor: "#2fc1c1",
-            accentColorForeground: "#202333",
-            borderRadius: "medium",
-            fontStack: "system",
-          })}
-        >
+        <RainbowKitProvider chains={chains} modalSize="compact" theme={myTheme}>
           <ApolloProvider client={client}>
             <MapProvider>
               <Component

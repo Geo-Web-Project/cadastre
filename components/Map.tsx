@@ -49,6 +49,7 @@ import * as turf from "@turf/turf";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
+import { SmartAccount } from "../pages/index";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
@@ -173,6 +174,9 @@ export type MapProps = {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
+  authStatus: string;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   signer: ethers.Signer | null;
   ceramic: CeramicClient;
   setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
