@@ -7,6 +7,7 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
@@ -31,6 +32,7 @@ function ReclaimAction(props: ReclaimActionProps) {
   const {
     account,
     signer,
+    smartAccount,
     licenseOwner,
     requiredBid,
     perSecondFeeNumerator,
@@ -52,9 +54,17 @@ function ReclaimAction(props: ReclaimActionProps) {
   );
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [transactionBundleConfig, setTransactionBundleConfig] =
+    React.useState<TransactionBundleConfig>({
+      isSponsored: true,
+      wrapAll: true,
+      noWrap: false,
+      wrapAmount: BigNumber.from(0),
+    });
 
   const { displayNewForSalePrice } = actionData;
 
+  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
   const isForSalePriceInvalid: boolean =
     displayNewForSalePrice != null &&
     displayNewForSalePrice.length > 0 &&
@@ -77,7 +87,7 @@ function ReclaimAction(props: ReclaimActionProps) {
           perSecondFeeDenominator
         )
       : null;
-  const isOwner = account === licenseOwner;
+  const isOwner = accountAddress === licenseOwner;
 
   React.useEffect(() => {
     const run = async () => {
@@ -116,6 +126,46 @@ function ReclaimAction(props: ReclaimActionProps) {
     setActionData(_updateData(updatedValues));
   }
 
+  function encodeReclaimData() {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!displayNewForSalePrice || !newNetworkFee || isForSalePriceInvalid) {
+      throw new Error(
+        `displayNewForSalePrice is invalid: ${displayNewForSalePrice}`
+      );
+    }
+
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
+    let encodedReclaimData;
+
+    if (isOwner) {
+      encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "editBid(int96,uint256,bytes)",
+        [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice), "0x"]
+      );
+    } else {
+      encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "reclaim(uint256,int96,uint256",
+        [
+          ethers.utils.parseEther(displayNewForSalePrice),
+          newNetworkFee,
+          ethers.utils.parseEther(displayNewForSalePrice),
+        ]
+      );
+    }
+
+    return encodedReclaimData;
+  }
+
   async function _reclaim() {
     updateActionData({ isActing: true });
 
@@ -138,9 +188,10 @@ function ReclaimAction(props: ReclaimActionProps) {
     if (isOwner) {
       txn = await licenseDiamondContract
         .connect(signer)
-        .editBid(
+        ["editBid(int96,uint256,bytes)"](
           newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice)
+          ethers.utils.parseEther(displayNewForSalePrice),
+          "0x"
         );
     } else {
       txn = await licenseDiamondContract
@@ -154,6 +205,10 @@ function ReclaimAction(props: ReclaimActionProps) {
 
     await txn.wait();
 
+    return new BN(selectedParcelId.split("x")[1], 16).toString(10);
+  }
+
+  async function bundleCallback() {
     return new BN(selectedParcelId.split("x")[1], 16).toString(10);
   }
 
@@ -171,6 +226,8 @@ function ReclaimAction(props: ReclaimActionProps) {
               newAnnualNetworkFee={newAnnualNetworkFee}
               newNetworkFee={newNetworkFee}
               transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+              transactionBundleConfig={transactionBundleConfig}
+              setTransactionBundleConfig={setTransactionBundleConfig}
               {...props}
             />
           ) : (
@@ -185,9 +242,10 @@ function ReclaimAction(props: ReclaimActionProps) {
         requiredFlowPermissions={1}
         spender={licenseDiamondContract?.address || null}
         flowOperator={licenseDiamondContract?.address || null}
-        encodeFunctionData={() => ""}
-        bundleCallback={async () => ""}
+        encodeFunctionData={encodeReclaimData}
+        bundleCallback={bundleCallback}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
+        transactionBundleConfig={transactionBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

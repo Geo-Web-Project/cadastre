@@ -20,21 +20,23 @@ import {
   RAMP_HOST_KEY,
 } from "../../lib/constants";
 
-interface AddFundsModal {
+interface AddFundsModalProps {
   show: boolean;
   handleClose: () => void;
   smartAccount: SmartAccount;
   setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   setIsSafeDeployed?: React.Dispatch<React.SetStateAction<boolean | null>>;
+  superTokenBalance: BigNumber;
 }
 
-function AddFundsModal(props: AddFundsModal) {
+function AddFundsModal(props: AddFundsModalProps) {
   const {
     show,
     handleClose,
     smartAccount,
     setSmartAccount,
     setIsSafeDeployed,
+    superTokenBalance,
   } = props;
 
   const { disconnect } = useDisconnect();
@@ -50,7 +52,8 @@ function AddFundsModal(props: AddFundsModal) {
   const [isDeployed, setIsDeployed] = useState<boolean>(false);
 
   const hasEnoughBalance =
-    Number(ethers.utils.formatEther(safeBalance)) >= MIN_CLAIM_BALANCE;
+    Number(ethers.utils.formatEther(safeBalance.add(superTokenBalance))) >=
+    MIN_CLAIM_BALANCE;
 
   useEffect(() => {
     if (!smartAccount?.safe) {
@@ -93,7 +96,7 @@ function AddFundsModal(props: AddFundsModal) {
 
     try {
       setIsDeploying(true);
-      await deploySafe();
+      await deploySafe({ isRefunded: true });
       setIsDeploying(false);
       setIsSafeDeployed(true);
       setSmartAccount({
@@ -138,8 +141,9 @@ function AddFundsModal(props: AddFundsModal) {
             isMobile || isTablet ? "bg-blue py-3" : ""
           }`}
         >
-          We recommend depositing at least .008 ETH into your smart account
-          address on Optimism for each minimum price land parcel claim.
+          We recommend depositing at least {MIN_CLAIM_BALANCE} ETH into your
+          smart account address on Optimism for each minimum price land parcel
+          claim.
         </span>
         <div className="w-100 rounded-3 text-center pt-2 pb-3 m-auto mt-lg-3">
           {safeBalance ? (
@@ -167,12 +171,24 @@ function AddFundsModal(props: AddFundsModal) {
                 />
               </div>
               <div className="d-flex justify-content-center gap-2">
-                <span className="fs-1 fw-bold">
-                  {truncateEth(ethers.utils.formatEther(safeBalance), 3)} ETH
-                </span>
-                {hasEnoughBalance && (
-                  <Image src="green-checkmark.svg" alt="success" width={36} />
-                )}
+                <div className="d-flex flex-column ms-5 ps-4">
+                  <span className="fs-2 fw-bold">
+                    {truncateEth(ethers.utils.formatEther(safeBalance), 3)} ETH,
+                  </span>
+                  <span className="fs-2 fw-bold">
+                    {truncateEth(
+                      ethers.utils.formatEther(superTokenBalance),
+                      3
+                    )}{" "}
+                    ETHx
+                  </span>
+                </div>
+                <Image
+                  src="green-checkmark.svg"
+                  alt="success"
+                  width={64}
+                  className={`${hasEnoughBalance ? "visible" : "invisible"}`}
+                />
               </div>
               <div
                 className="d-flex align-items-center justify-content-center gap-1"
@@ -185,10 +201,10 @@ function AddFundsModal(props: AddFundsModal) {
                   target={
                     <a
                       href={`https://${
-                        NETWORK_ID === 420 ? "goerli-" : ""
-                      }optimistic.etherscan.io/address/${
-                        smartAccount?.address ?? ""
-                      }`}
+                        process.env.NEXT_PUBLIC_APP_ENV === "mainnet"
+                          ? "optimistic"
+                          : "goerli-optimism"
+                      }.etherscan.io/address/${smartAccount.address}`}
                       target="_blank"
                       rel="noreferrer"
                       className="d-flex align-items-center"

@@ -20,6 +20,7 @@ import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import { formatBalance } from "../../lib/formatBalance";
 import TransactionError from "./TransactionError";
 import ApproveButton from "../ApproveButton";
@@ -48,13 +49,14 @@ export type ActionFormProps = OffCanvasPanelProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
-  encodeFunctionData: () => string;
+  encodeFunctionData: () => string | void;
   bundleCallback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
   setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
+  transactionBundleConfig: TransactionBundleConfig;
 };
 
 export type ActionData = {
@@ -117,8 +119,9 @@ export function ActionForm(props: ActionFormProps) {
   const [showAddFundsModal, setShowAddFundsModal] =
     React.useState<boolean>(false);
 
+  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
   const { superTokenBalance } = useSuperTokenBalance(
-    smartAccount?.safe ? smartAccount.address : account,
+    accountAddress,
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
@@ -192,12 +195,7 @@ export function ActionForm(props: ActionFormProps) {
     let licenseId: string | void;
     try {
       if (bundleCallback) {
-        /* Callback after bundle submission */
-        if (receipt) {
-          licenseId = await bundleCallback(receipt);
-        } else {
-          await bundleCallback();
-        }
+        licenseId = await bundleCallback(receipt);
       } else {
         /* Call contract's function directly */
         licenseId = await performAction();
@@ -247,7 +245,7 @@ export function ActionForm(props: ActionFormProps) {
         licenseId &&
         (interactionState === STATE.CLAIM_SELECTED ||
           (interactionState === STATE.PARCEL_RECLAIMING &&
-            account !== licenseOwner))
+            accountAddress !== licenseOwner))
       ) {
         await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
         const rootCid = await geoWebContent.raw.resolveRoot({
@@ -313,7 +311,7 @@ export function ActionForm(props: ActionFormProps) {
       forSalePrice:
         !displayNewForSalePrice ||
         displayNewForSalePrice !== displayCurrentForSalePrice,
-      licenseOwner: !licenseOwner || licenseOwner !== account,
+      licenseOwner: !licenseOwner || licenseOwner !== accountAddress,
     });
   }
 
@@ -352,7 +350,7 @@ export function ActionForm(props: ActionFormProps) {
             {interactionState === STATE.PARCEL_EDITING
               ? "Edit"
               : interactionState === STATE.PARCEL_RECLAIMING &&
-                licenseOwner === account
+                licenseOwner === accountAddress
               ? "Reclaim"
               : interactionState === STATE.PARCEL_RECLAIMING
               ? "Foreclosure Claim"
@@ -363,7 +361,8 @@ export function ActionForm(props: ActionFormProps) {
           <Form>
             <Form.Group>
               {interactionState == STATE.PARCEL_RECLAIMING &&
-              account.toLowerCase() == licenseOwner?.toLowerCase() ? null : (
+              accountAddress.toLowerCase() ==
+                licenseOwner?.toLowerCase() ? null : (
                 <>
                   <Form.Text className="text-primary mb-1">
                     Parcel Name
@@ -461,7 +460,7 @@ export function ActionForm(props: ActionFormProps) {
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
-                  top={isMobile}
+                  position={{ top: isMobile }}
                   content={
                     <div style={{ textAlign: "left" }}>
                       Be honest about your personal valuation! A{" "}
@@ -571,6 +570,7 @@ export function ActionForm(props: ActionFormProps) {
                   handleClose={() => setShowAddFundsModal(false)}
                   smartAccount={smartAccount}
                   setSmartAccount={setSmartAccount}
+                  superTokenBalance={superTokenBalance}
                 />
                 <SubmitBundleButton
                   {...props}
@@ -594,12 +594,13 @@ export function ActionForm(props: ActionFormProps) {
                     interactionState === STATE.PARCEL_EDITING
                       ? "Submit"
                       : interactionState === STATE.PARCEL_RECLAIMING &&
-                        account.toLowerCase() === licenseOwner?.toLowerCase()
+                        accountAddress.toLowerCase() ===
+                          licenseOwner?.toLowerCase()
                       ? "Reclaim"
                       : "Claim"
                   }
                   encodeFunctionData={encodeFunctionData}
-                  callback={bundleCallback}
+                  callback={submit}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
@@ -642,7 +643,8 @@ export function ActionForm(props: ActionFormProps) {
                     interactionState === STATE.PARCEL_EDITING
                       ? "Submit"
                       : interactionState === STATE.PARCEL_RECLAIMING &&
-                        account.toLowerCase() === licenseOwner?.toLowerCase()
+                        accountAddress.toLowerCase() ===
+                          licenseOwner?.toLowerCase()
                       ? "Reclaim"
                       : "Claim"
                   }

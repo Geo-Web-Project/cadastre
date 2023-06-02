@@ -7,6 +7,7 @@ import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import axios from "axios";
 import { DIDSession } from "did-session";
 import { SiweMessage } from "@didtools/cacao";
@@ -50,6 +51,13 @@ function ClaimAction(props: ClaimActionProps) {
   const [flowOperator, setFlowOperator] = React.useState<string>("");
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [transactionBundleConfig, setTransactionBundleConfig] =
+    React.useState<TransactionBundleConfig>({
+      isSponsored: true,
+      wrapAll: true,
+      noWrap: false,
+      wrapAmount: BigNumber.from(0),
+    });
 
   const { displayNewForSalePrice } = actionData;
 
@@ -116,8 +124,9 @@ function ClaimAction(props: ClaimActionProps) {
     }
 
     const encodedClaimData = registryContract.interface.encodeFunctionData(
-      "claim",
-      //"claim(int96,uint256,(uint64,uint256,uint256))",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      "claim(int96,uint256,(uint64,uint256,uint256),bytes)",
       [
         newFlowRate,
         ethers.utils.parseEther(displayNewForSalePrice),
@@ -126,6 +135,7 @@ function ClaimAction(props: ClaimActionProps) {
           lngDim: neX - swX + 1,
           latDim: neY - swY + 1,
         },
+        "0x",
       ]
     );
 
@@ -151,11 +161,16 @@ function ClaimAction(props: ClaimActionProps) {
 
     const txn = await registryContract
       .connect(signer)
-      .claim(newFlowRate, ethers.utils.parseEther(displayNewForSalePrice), {
-        swCoordinate: BigNumber.from(swCoord.toString()),
-        lngDim: neX - swX + 1,
-        latDim: neY - swY + 1,
-      });
+      ["claim(int96,uint256,(uint64,uint256,uint256),bytes)"](
+        newFlowRate,
+        ethers.utils.parseEther(displayNewForSalePrice),
+        {
+          swCoordinate: BigNumber.from(swCoord.toString()),
+          lngDim: neX - swX + 1,
+          latDim: neY - swY + 1,
+        },
+        "0x"
+      );
     const receipt = await txn.wait();
 
     await handleReferral(receipt);
@@ -290,6 +305,8 @@ function ClaimAction(props: ClaimActionProps) {
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
               transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+              transactionBundleConfig={transactionBundleConfig}
+              setTransactionBundleConfig={setTransactionBundleConfig}
               {...props}
             />
           ) : (
@@ -305,6 +322,7 @@ function ClaimAction(props: ClaimActionProps) {
         bundleCallback={bundleCallback}
         encodeFunctionData={encodeClaimData}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
+        transactionBundleConfig={transactionBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

@@ -1,7 +1,12 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
+import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
+import TransactionBundleConfigModal, {
+  TransactionBundleConfig,
+} from "../TransactionBundleConfigModal";
 import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
@@ -20,6 +25,10 @@ type TransactionSummaryViewProps = OffCanvasPanelProps & {
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
   transactionBundleFeesEstimate: BigNumber | null;
+  transactionBundleConfig: TransactionBundleConfig;
+  setTransactionBundleConfig: React.Dispatch<
+    React.SetStateAction<TransactionBundleConfig>
+  >;
 };
 
 function TransactionSummaryView({
@@ -27,6 +36,7 @@ function TransactionSummaryView({
   newAnnualNetworkFee,
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
+  smartAccount,
   account,
   interactionState,
   licenseOwner,
@@ -37,6 +47,8 @@ function TransactionSummaryView({
   sfFramework,
   paymentToken,
   transactionBundleFeesEstimate,
+  transactionBundleConfig,
+  setTransactionBundleConfig,
 }: TransactionSummaryViewProps) {
   const { isMobile } = useMediaQuery();
 
@@ -55,13 +67,17 @@ function TransactionSummaryView({
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
   const transactionBundleFeesDisplay = transactionBundleFeesEstimate
-    ? truncateEth(formatBalance(transactionBundleFeesEstimate), 5)
+    ? truncateEth(formatBalance(transactionBundleFeesEstimate), 8)
     : null;
 
   const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
     null
   );
   const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
+  const [
+    showTransactionBundleConfigModal,
+    setShowTransactionBundleConfigModal,
+  ] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const run = async () => {
@@ -104,7 +120,7 @@ function TransactionSummaryView({
           ? "Max Claim Payment (to Licensor): "
           : "Claim Payment: "}
         <InfoTooltip
-          top={isMobile}
+          position={{ top: isMobile }}
           content={
             <div style={{ textAlign: "left" }}>
               {interactionState == STATE.PARCEL_RECLAIMING &&
@@ -261,10 +277,17 @@ function TransactionSummaryView({
   );
 
   const transactionBundleFeesEstimateView = (
-    <p className="pt-2">
+    <p className={transactionBundleConfig.isSponsored ? "pt-2" : "pt-0"}>
       Tx Bundle Gas: ~
       <InfoTooltip
-        content={<div className="text-start"></div>}
+        content={
+          <div className="text-start">
+            This is an estimate of the total transaction cost to complete this
+            action. If you have the default settings enabled, we'll sponsor your
+            transaction with an external ETH balance then refund ourselves via
+            your ETHx balance.
+          </div>
+        }
         target={
           <span className="text-decoration-underline">
             {transactionBundleFeesDisplay} ETH
@@ -290,7 +313,10 @@ function TransactionSummaryView({
             {claimPayment && newAnnualNetworkFee && streamBuffer
               ? `${truncateEth(
                   formatBalance(
-                    claimPayment.add(newAnnualNetworkFee).add(streamBuffer)
+                    claimPayment
+                      .add(newAnnualNetworkFee)
+                      .add(streamBuffer)
+                      .add(transactionBundleFeesEstimate ?? 0)
                   ),
                   8
                 )} ${PAYMENT_TOKEN}`
@@ -303,15 +329,44 @@ function TransactionSummaryView({
 
   return (
     <div>
-      <h3>Transaction Summary</h3>
+      <div className="d-flex">
+        <h4>Transaction Summary</h4>
+        {smartAccount?.safe && (
+          <div className="position-absolute end-0">
+            <Button
+              variant="link"
+              className="shadow-none p-0 me-2"
+              onClick={() => setShowTransactionBundleConfigModal(true)}
+            >
+              <Image src="settings.svg" alt="settings" width={32} />
+            </Button>
+            <TransactionBundleConfigModal
+              show={showTransactionBundleConfigModal}
+              handleClose={() => setShowTransactionBundleConfigModal(false)}
+              smartAccount={smartAccount}
+              transactionBundleConfig={transactionBundleConfig}
+              setTransactionBundleConfig={setTransactionBundleConfig}
+              existingAnnualNetworkFee={existingAnnualNetworkFee}
+              newAnnualNetworkFee={newAnnualNetworkFee}
+            />
+          </div>
+        )}
+      </div>
       <>
         {paymentView}
         {streamView}
         {streamBufferView}
-        {transactionBundleFeesEstimate
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
+        transactionBundleConfig.isSponsored
           ? transactionBundleFeesEstimateView
           : null}
         {interactionState === STATE.CLAIM_SELECTED ? yearlyTotalView : null}
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
+        !transactionBundleConfig.isSponsored
+          ? transactionBundleFeesEstimateView
+          : null}
       </>
     </div>
   );

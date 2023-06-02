@@ -214,24 +214,21 @@ function ProfileModal(props: ProfileModalProps) {
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
   const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
 
+  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
+
   const { disconnect } = useDisconnect();
   const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
-      id: account,
+      id: accountAddress,
     },
   });
   const { superTokenBalance } = useSuperTokenBalance(
-    account,
+    accountAddress,
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
   const { relayTransaction } = useSafe(smartAccount?.safe ?? null);
-
-  const accountAddress =
-    smartAccount && smartAccount.address !== ""
-      ? smartAccount.address
-      : account;
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -596,7 +593,10 @@ function ProfileModal(props: ProfileModalProps) {
         throw new Error("Error populating transaction");
       }
 
-      await relayTransaction([safeTransactionData], gasToken);
+      await relayTransaction([safeTransactionData], {
+        isSponsored: true,
+        gasToken,
+      });
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,
@@ -728,6 +728,7 @@ function ProfileModal(props: ProfileModalProps) {
         smartAccount={smartAccount}
         setSmartAccount={setSmartAccount}
         setIsSafeDeployed={setIsSafeDeployed}
+        superTokenBalance={superTokenBalance}
       />
     );
   }
@@ -850,7 +851,7 @@ function ProfileModal(props: ProfileModalProps) {
               }
             >
               <Button
-                variant="light"
+                variant="gray"
                 size="sm"
                 className="d-flex justify-content-center gap-1 w-100 mb-2 fs-6 rounded-2"
                 onClick={() => {

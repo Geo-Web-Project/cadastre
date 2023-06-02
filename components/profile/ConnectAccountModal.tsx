@@ -125,7 +125,7 @@ function ConnectAccountModal(props: ConnectAccountModalProps) {
         setSmartAccount({
           safe: gwSafe,
           loginState: LoginState.CONNECTED,
-          address: predictedSafeAddress,
+          address: predictedSafeAddress.toLowerCase(),
         });
 
         setIsLoading(false);
@@ -173,7 +173,7 @@ function ConnectAccountModal(props: ConnectAccountModalProps) {
 
       setSmartAccount({
         safe,
-        address: safeAddress,
+        address: safeAddress.toLowerCase(),
         loginState: LoginState.CONNECTED,
       });
     }
@@ -328,7 +328,9 @@ function ConnectAccountModal(props: ConnectAccountModalProps) {
               setLoginState(LoginState.CONNECTED);
               setSmartAccount({
                 safe: gwSafe,
-                address: gwSafe ? await gwSafe.getAddress() : "",
+                address: gwSafe
+                  ? (await gwSafe.getAddress()).toLowerCase()
+                  : "",
                 loginState: LoginState.CONNECTED,
               });
               handleCloseModal();

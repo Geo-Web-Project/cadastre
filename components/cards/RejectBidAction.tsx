@@ -12,9 +12,12 @@ import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import WrapModal from "../wrap/WrapModal";
+import SubmitBundleButton from "../SubmitBundleButton";
+import AddFundsModal from "../profile/AddFundsModal";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -59,6 +62,8 @@ const infoIcon = (
 function RejectBidAction(props: RejectBidActionProps) {
   const {
     account,
+    smartAccount,
+    setSmartAccount,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -91,9 +96,17 @@ function RejectBidAction(props: RejectBidActionProps) {
     React.useState(false);
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
+  const [transactionBundleConfig, setTransactionBundleConfig] =
+    React.useState<TransactionBundleConfig>({
+      isSponsored: true,
+      wrapAll: true,
+      noWrap: false,
+      wrapAmount: BigNumber.from(0),
+    });
 
   const { superTokenBalance } = useSuperTokenBalance(
-    account,
+    smartAccount?.safe ? smartAccount.address : account,
     paymentToken.address
   );
 
@@ -248,6 +261,36 @@ function RejectBidAction(props: RejectBidActionProps) {
     ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
+  function encodeRejectBidData() {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!newForSalePrice) {
+      throw new Error("Could not find newForSalePrice");
+    }
+
+    if (!newNetworkFee) {
+      throw new Error("Could not find newNetworkFee");
+    }
+
+    if (!penaltyPayment) {
+      throw new Error("Could not find penaltyPayment");
+    }
+
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
+    const encodedRejectBidData =
+      licenseDiamondContract.interface.encodeFunctionData("rejectBid", [
+        newNetworkFee,
+        newForSalePrice,
+      ]);
+
+    return encodedRejectBidData;
+  }
+
   async function rejectBid() {
     setIsActing(true);
     setDidFail(false);
@@ -305,6 +348,16 @@ function RejectBidAction(props: RejectBidActionProps) {
     });
   }
 
+  async function bundleCallback() {
+    setIsActing(false);
+    setShouldRefetchParcelsData(true);
+    setInteractionState(STATE.PARCEL_SELECTED);
+    setParcelFieldsToUpdate({
+      forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
+      licenseOwner: false,
+    });
+  }
+
   return (
     <>
       <Card
@@ -327,7 +380,7 @@ function RejectBidAction(props: RejectBidActionProps) {
               <Form.Text className="text-primary mb-1">
                 New For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
-                  top={isMobile}
+                  position={{ top: isMobile }}
                   content={
                     <div style={{ textAlign: "left" }}>
                       You’re rejecting a bid that is higher than your previous
@@ -421,44 +474,94 @@ function RejectBidAction(props: RejectBidActionProps) {
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+                transactionBundleConfig={transactionBundleConfig}
+                setTransactionBundleConfig={setTransactionBundleConfig}
                 {...props}
               />
             ) : null}
 
             <br />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
-              {...props}
-              isDisabled={isActing}
-              requiredFlowAmount={annualNetworkFeeRate ?? null}
-              requiredPayment={
-                penaltyPayment && newRequiredBuffer && oldRequiredBuffer
-                  ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
-                  : null
-              }
-              spender={licenseDiamondContract?.address ?? null}
-              requiredFlowPermissions={2}
-              flowOperator={licenseDiamondContract?.address ?? null}
-              setErrorMessage={setErrorMessage}
-              isActing={isActing}
-              setIsActing={setIsActing}
-              setDidFail={setDidFail}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
-              isDisabled={isActing || isInvalid || isBalanceInsufficient}
-              isActing={isActing}
-              buttonText={"Reject Bid"}
-              performAction={rejectBid}
-              isAllowed={isAllowed}
-            />
+            {smartAccount?.safe ? (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={() => setShowAddFundsModal(true)}
+                >
+                  Add Funds
+                </Button>
+                <AddFundsModal
+                  show={showAddFundsModal}
+                  handleClose={() => setShowAddFundsModal(false)}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                  superTokenBalance={superTokenBalance}
+                />
+                <SubmitBundleButton
+                  {...props}
+                  requiredFlowAmount={annualNetworkFeeRate ?? null}
+                  requiredPayment={
+                    penaltyPayment && newRequiredBuffer && oldRequiredBuffer
+                      ? penaltyPayment
+                          .add(newRequiredBuffer)
+                          .sub(oldRequiredBuffer)
+                      : null
+                  }
+                  spender={licenseDiamondContract?.address ?? null}
+                  flowOperator={licenseDiamondContract?.address ?? null}
+                  setErrorMessage={setErrorMessage}
+                  setIsActing={setIsActing}
+                  setDidFail={setDidFail}
+                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isActing={isActing}
+                  buttonText={"Reject Bid"}
+                  encodeFunctionData={encodeRejectBidData}
+                  callback={bundleCallback}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
+                  }
+                  transactionBundleConfig={transactionBundleConfig}
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={handleWrapModalOpen}
+                >
+                  {`Wrap ETH to ${PAYMENT_TOKEN}`}
+                </Button>
+                <ApproveButton
+                  {...props}
+                  isDisabled={isActing}
+                  requiredFlowAmount={annualNetworkFeeRate ?? null}
+                  requiredPayment={
+                    penaltyPayment && newRequiredBuffer && oldRequiredBuffer
+                      ? penaltyPayment
+                          .add(newRequiredBuffer)
+                          .sub(oldRequiredBuffer)
+                      : null
+                  }
+                  spender={licenseDiamondContract?.address ?? null}
+                  requiredFlowPermissions={2}
+                  flowOperator={licenseDiamondContract?.address ?? null}
+                  setErrorMessage={setErrorMessage}
+                  isActing={isActing}
+                  setIsActing={setIsActing}
+                  setDidFail={setDidFail}
+                  isAllowed={isAllowed}
+                  setIsAllowed={setIsAllowed}
+                />
+                <PerformButton
+                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isActing={isActing}
+                  buttonText={"Reject Bid"}
+                  performAction={rejectBid}
+                  isAllowed={isAllowed}
+                />
+              </>
+            )}
           </Form>
 
           <br />

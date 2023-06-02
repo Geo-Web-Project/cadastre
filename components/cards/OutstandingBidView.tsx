@@ -12,6 +12,7 @@ import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import { useSafe } from "../../lib/safe";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
@@ -42,6 +43,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     bidTimestamp,
     licensorIsOwner,
     registryContract,
+    smartAccount,
     licenseDiamondContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -61,6 +63,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
 
+  const { relayTransaction } = useSafe(smartAccount?.safe ?? null);
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
@@ -155,8 +158,23 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     try {
-      const txn = await licenseDiamondContract.connect(signer).acceptBid();
-      await txn.wait();
+      if (smartAccount?.safe) {
+        const acceptBidData =
+          licenseDiamondContract.interface.encodeFunctionData("acceptBid");
+        const acceptBidTransaction = {
+          to: licenseDiamondContract.address,
+          data: acceptBidData,
+          value: "0",
+        };
+
+        await relayTransaction([acceptBidTransaction], {
+          isSponsored: true,
+          gasToken: paymentToken.address,
+        });
+      } else {
+        const txn = await licenseDiamondContract.connect(signer).acceptBid();
+        await txn.wait();
+      }
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -198,11 +216,28 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     try {
-      const txn = await licenseDiamondContract
-        .connect(signer)
-        .triggerTransfer();
+      if (smartAccount?.safe) {
+        const triggerTransferData =
+          licenseDiamondContract.interface.encodeFunctionData(
+            "triggerTransfer"
+          );
+        const triggerTransferTransaction = {
+          to: licenseDiamondContract.address,
+          data: triggerTransferData,
+          value: "0",
+        };
 
-      await txn.wait();
+        await relayTransaction([triggerTransferTransaction], {
+          isSponsored: true,
+          gasToken: paymentToken.address,
+        });
+      } else {
+        const txn = await licenseDiamondContract
+          .connect(signer)
+          .triggerTransfer();
+
+        await txn.wait();
+      }
     } catch (err) {
       console.error(err);
       setErrorMessage(

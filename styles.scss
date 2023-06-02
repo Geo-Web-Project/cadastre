@@ -7,7 +7,7 @@ $dark: #202333;
 $blue: #111320;
 $purple: rgba(75, 85, 136, 0.25);
 $info: #707179;
-$gray: #e6e7ee;
+$gray: #b8b8be;
 $danger: #dc3545;
 $light: #f8f9fa;
 $success: #28a745;
@@ -186,6 +186,10 @@ body {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.dropdown-selected:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .parcel-list-btn {

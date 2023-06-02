@@ -6,6 +6,7 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
@@ -55,6 +56,13 @@ function EditAction(props: EditActionProps) {
   });
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [transactionBundleConfig, setTransactionBundleConfig] =
+    React.useState<TransactionBundleConfig>({
+      isSponsored: true,
+      wrapAll: true,
+      noWrap: false,
+      wrapAmount: BigNumber.from(0),
+    });
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -170,6 +178,39 @@ function EditAction(props: EditActionProps) {
     }
   }, [parcelContent]);
 
+  function encodeEditBidData() {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!existingNetworkFee) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
+    if (!signer) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
+    // Check for changes
+    if (
+      !displayNewForSalePrice ||
+      !newNetworkFee ||
+      displayNewForSalePrice == displayCurrentForSalePrice
+    ) {
+      // Content change only
+      return;
+    }
+
+    const editBidData = licenseDiamondContract.interface.encodeFunctionData(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      "editBid(int96,uint256,bytes)",
+      [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice), "0x"]
+    );
+
+    return editBidData;
+  }
+
   async function _edit() {
     updateActionData({ isActing: true });
 
@@ -197,7 +238,11 @@ function EditAction(props: EditActionProps) {
 
     const txn = await licenseDiamondContract
       .connect(signer)
-      .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
+      ["editBid(int96,uint256,bytes)"](
+        newNetworkFee,
+        ethers.utils.parseEther(displayNewForSalePrice),
+        "0x"
+      );
     await txn.wait();
   }
 
@@ -218,6 +263,8 @@ function EditAction(props: EditActionProps) {
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
               transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+              transactionBundleConfig={transactionBundleConfig}
+              setTransactionBundleConfig={setTransactionBundleConfig}
               {...props}
             />
           ) : (
@@ -232,9 +279,10 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
-        encodeFunctionData={() => ""}
-        bundleCallback={async () => ""}
+        encodeFunctionData={encodeEditBidData}
+        bundleCallback={async () => void 0}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
+        transactionBundleConfig={transactionBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

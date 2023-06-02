@@ -14,6 +14,7 @@ import SubmitBundleButton from "../SubmitBundleButton";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Button from "react-bootstrap/Button";
+import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import Image from "react-bootstrap/Image";
 import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
@@ -77,6 +78,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     React.useState(false);
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [transactionBundleConfig, setTransactionBundleConfig] =
+    React.useState<TransactionBundleConfig>({
+      isSponsored: true,
+      wrapAll: true,
+      noWrap: false,
+      wrapAmount: BigNumber.from(0),
+    });
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : account,
@@ -180,7 +188,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     const placeBidData = licenseDiamondContract.interface.encodeFunctionData(
-      "placeBid",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      "placeBid(int96,uint256)",
       [newNetworkFee, newForSalePrice]
     );
 
@@ -210,7 +220,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     try {
       const txn = await licenseDiamondContract
         .connect(signer)
-        .placeBid(newNetworkFee, newForSalePrice);
+        ["placeBid(int96,uint256)"](newNetworkFee, newForSalePrice);
       await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -265,7 +275,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               <Form.Text className="text-primary mb-1">
                 New For Sale Price ({PAYMENT_TOKEN}, Fully Collateralized)
                 <InfoTooltip
-                  top={isMobile}
+                  position={{ top: isMobile }}
                   content={
                     <div style={{ textAlign: "left" }}>
                       The current licensor will have 7 days to respond to your
@@ -352,6 +362,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+                transactionBundleConfig={transactionBundleConfig}
+                setTransactionBundleConfig={setTransactionBundleConfig}
                 {...props}
               />
             ) : null}
@@ -407,6 +419,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   handleClose={() => setShowAddFundsModal(false)}
                   smartAccount={smartAccount}
                   setSmartAccount={setSmartAccount}
+                  superTokenBalance={superTokenBalance}
                 />
                 <SubmitBundleButton
                   {...props}
@@ -417,7 +430,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                       : null
                   }
                   spender={licenseDiamondContract?.address ?? null}
-                  requiredFlowPermissions={1}
                   flowOperator={licenseDiamondContract?.address ?? null}
                   setErrorMessage={setErrorMessage}
                   setIsActing={setIsActing}
@@ -430,6 +442,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
+                  transactionBundleConfig={transactionBundleConfig}
                 />
               </>
             )}

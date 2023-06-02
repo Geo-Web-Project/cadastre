@@ -3,14 +3,15 @@ import { ethers, BigNumber } from "ethers";
 import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
+import { TransactionBundleConfig } from "./TransactionBundleConfigModal";
 import { OffCanvasPanelProps } from "./OffCanvasPanel";
 import { useSafe } from "../lib/safe";
+import { ZERO_ADDRESS } from "../lib/constants";
 
 export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;
-  requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
   setErrorMessage: (v: string) => void;
@@ -25,6 +26,7 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
+  transactionBundleConfig: TransactionBundleConfig;
 };
 
 export function SubmitBundleButton(props: SubmitBundleButtonProps) {
@@ -35,7 +37,6 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     spender,
     requiredPayment,
     sfFramework,
-    requiredFlowPermissions,
     requiredFlowAmount,
     flowOperator,
     setErrorMessage,
@@ -46,6 +47,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     encodeFunctionData,
     callback,
     setTransactionBundleFeesEstimate,
+    transactionBundleConfig,
   } = props;
 
   const [metaTransactions, setMetaTransactions] = useState<
@@ -57,11 +59,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
   );
 
   const isReady =
-    requiredPayment &&
-    requiredFlowAmount &&
-    requiredFlowPermissions &&
-    spender &&
-    flowOperator
+    requiredPayment && requiredFlowAmount && spender && flowOperator
       ? true
       : false;
 
@@ -86,10 +84,12 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         return;
       }
 
-      const receipt = await relayTransaction(
-        metaTransactions,
-        paymentToken.address
-      );
+      const receipt = await relayTransaction(metaTransactions, {
+        isSponsored: transactionBundleConfig.isSponsored,
+        gasToken: transactionBundleConfig.isSponsored
+          ? paymentToken.address
+          : ZERO_ADDRESS,
+      });
 
       await callback(receipt);
       setIsActing(false);
@@ -110,27 +110,62 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
   };
 
   useEffect(() => {
-    (async () => {
+    let timerId: NodeJS.Timer | null = null;
+
+    if (timerId) {
+      clearInterval(timerId);
+    }
+    console.log(transactionBundleConfig);
+
+    const prepareTransaction = async () => {
       if (
         !flowOperator ||
         !requiredFlowAmount ||
         !spender ||
         !requiredPayment ||
-        !smartAccount?.safe ||
-        !smartAccount?.address
+        !smartAccount?.safe
       ) {
         return;
       }
 
+      const metaTransactions = [];
+      const encodedGwContractFunctionData = encodeFunctionData();
+
+      /* Offchain content change only */
+      if (!encodedGwContractFunctionData) {
+        return;
+      }
+
+      let wrap, approveSpending;
+      const safeBalance = await smartAccount.safe.getBalance();
       const yearlyFeeBufferedPayment = requiredPayment.add(requiredFlowAmount);
-      const wrapAmount = yearlyFeeBufferedPayment.toString();
-      const wrap = await paymentToken.upgrade({
-        amount: wrapAmount,
-      }).populateTransactionPromise;
-      const approveSpending = await paymentToken.approve({
-        amount: requiredPayment.toString(),
-        receiver: spender,
-      }).populateTransactionPromise;
+      const wrapAmount =
+        transactionBundleConfig.isSponsored &&
+        transactionBundleConfig.wrapAll &&
+        safeBalance.gt(0)
+          ? safeBalance.toString()
+          : transactionBundleConfig.isSponsored &&
+            transactionBundleConfig.wrapAmount.gt(0)
+          ? transactionBundleConfig.wrapAmount.toString()
+          : "0";
+      const isPaymentRequired = requiredPayment.gt(0);
+
+      if (isPaymentRequired) {
+        if (
+          transactionBundleConfig.isSponsored &&
+          !transactionBundleConfig.noWrap &&
+          safeBalance.gt(0)
+        ) {
+          wrap = await paymentToken.upgrade({
+            amount: wrapAmount,
+          }).populateTransactionPromise;
+        }
+        approveSpending = await paymentToken.approve({
+          amount: requiredPayment.toString(),
+          receiver: spender,
+        }).populateTransactionPromise;
+      }
+
       const approveFlow = await sfFramework.cfaV1.updateFlowOperatorPermissions(
         {
           flowOperator: flowOperator,
@@ -140,56 +175,53 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         }
       ).populateTransactionPromise;
 
-      if (
-        !wrap.to ||
-        !wrap.data ||
-        !approveSpending.to ||
-        !approveSpending.data ||
-        !approveFlow.to ||
-        !approveFlow.data
-      ) {
+      if (!approveFlow.to || !approveFlow.data) {
         throw new Error("Error populating Superfluid transaction");
       }
-      const encodedGwContractFunctionData = encodeFunctionData();
 
-      /* Offchain content change only */
-      if (!encodedGwContractFunctionData) {
-        return;
+      if (
+        wrap?.to &&
+        wrap?.data &&
+        approveSpending?.to &&
+        approveSpending?.data
+      ) {
+        metaTransactions.push({
+          to: wrap.to,
+          value: wrapAmount,
+          data: wrap.data,
+        });
+        metaTransactions.push({
+          to: approveSpending.to,
+          value: "0",
+          data: approveSpending.data,
+        });
       }
-
-      const wrapTransactionData = {
-        to: wrap.to,
-        value: wrapAmount,
-        data: wrap.data,
-      };
-      const approveSpendingTransactionData = {
-        to: approveSpending.to,
-        value: "0",
-        data: approveSpending.data,
-      };
-      const approveFlowTransactionData = {
+      metaTransactions.push({
         to: approveFlow.to,
         value: "0",
         data: approveFlow.data,
-      };
-      const gwContractTransactionData = {
+      });
+      metaTransactions.push({
         to: spender,
         value: "0",
         data: encodedGwContractFunctionData,
-      };
-      const metaTransactions = [
-        wrapTransactionData,
-        approveSpendingTransactionData,
-        approveFlowTransactionData,
-        gwContractTransactionData,
-      ];
+      });
       const { transactionFeesEstimate } = await estimateTransactionBundleFees(
         metaTransactions
       );
 
       setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
       setMetaTransactions(metaTransactions);
-    })();
+    };
+
+    prepareTransaction();
+    timerId = setInterval(prepareTransaction, 2000);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
   }, [
     flowOperator,
     requiredPayment?._hex,
