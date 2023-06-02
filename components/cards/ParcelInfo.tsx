@@ -37,6 +37,7 @@ import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
+import AWImageCapture from "../augmented-worlds/AWImageCapture";
 
 const ParcelChat = dynamic(() => import("../ParcelChat"), {
   ssr: false,
@@ -453,22 +454,13 @@ function ParcelInfo(props: ParcelInfoProps) {
                     href={spatialURL}
                     target="_blank"
                   >
-                    <Image
-                      width={24}
-                      src="open-in-browser.svg"
-                    />
+                    <Image width={24} src="open-in-browser.svg" />
                   </Button>
                 </OverlayTrigger>
                 <CopyTooltip
                   contentClick="Link Copied"
                   contentHover="Copy Parcel Link"
-                  target={
-                    <Image
-                      className="me-1"
-                      width={30}
-                      src="link.svg"
-                    />
-                  }
+                  target={<Image className="me-1" width={30} src="link.svg" />}
                   handleCopy={copyParcelLink}
                 />
               </div>
@@ -502,6 +494,34 @@ function ParcelInfo(props: ParcelInfoProps) {
       buttons = placeBidButton;
     }
   }
+
+  const [showAWImageCapture, setShowAWImageCapture] = React.useState(false);
+  const testButtons = (
+    <>
+      <Button
+        variant="primary"
+        className="w-100 mb-2"
+        onClick={() => {
+          setShowAWImageCapture(true);
+        }}
+      >
+        [TEST] Image Capture
+      </Button>
+      {showAWImageCapture ? (
+        <AWImageCapture onClose={() => setShowAWImageCapture(false)} />
+      ) : null}
+      <Button
+        variant="primary"
+        className="w-100 mb-2"
+        // onClick={() => {
+        //   setInteractionState(STATE.PARCEL_EDITING);
+        //   setIsFullSize(true);
+        // }}
+      >
+        [TEST] Adjust Scaling
+      </Button>
+    </>
+  );
 
   return (
     <>
@@ -572,6 +592,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 : parcelFieldsToUpdate
                 ? null
                 : buttons}
+              {testButtons}
             </div>
           </Col>
         </Row>
