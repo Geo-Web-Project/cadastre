@@ -229,7 +229,7 @@ body {
   text-overflow: ellipsis;
 }
 
-/* 
+/*
  * NOTE: To have a scrolling table with a sticky header the scrollbar needs to
  * overlay the body, otherwise it would shift the content.
  * Only Chromium based browsers support an overflow overlay property so for now
@@ -280,4 +280,8 @@ body {
   50% {
     opacity: 0;
   }
+}
+
+.scaling-span::after {
+    margin-top: 0px;
 }

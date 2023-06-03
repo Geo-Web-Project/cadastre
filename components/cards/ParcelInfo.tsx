@@ -15,7 +15,6 @@ import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import CID from "cids";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import CopyTooltip from "../CopyTooltip";
 import { formatBalance } from "../../lib/formatBalance";
@@ -38,6 +37,10 @@ import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
 import AWImageCapture from "../augmented-worlds/AWImageCapture";
+import AWModelScaling from "../augmented-worlds/AWModelScaling";
+
+// eslint-disable-next-line import/no-unresolved
+import { CID } from "multiformats/cid";
 
 const ParcelChat = dynamic(() => import("../ParcelChat"), {
   ssr: false,
@@ -286,8 +289,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     parcelContent.url &&
     parcelContent.url.startsWith("ipfs://")
   ) {
-    const cid = new CID(parcelContent.url.split("ipfs://")[1]);
-    hrefWebContent = `ipfs://${cid.toV1().toBaseEncodedString("base32")}`;
+    const cid = CID.parse(parcelContent.url.split("ipfs://")[1]);
+    hrefWebContent = `ipfs://${cid.toString()}`;
   } else if (parcelContent) {
     hrefWebContent = parcelContent.url;
   }
@@ -496,6 +499,7 @@ function ParcelInfo(props: ParcelInfoProps) {
   }
 
   const [showAWImageCapture, setShowAWImageCapture] = React.useState(false);
+  const [showAWModelScaling, setShowAWModelScaling] = React.useState(false);
   const testButtons = (
     <>
       <Button
@@ -513,13 +517,24 @@ function ParcelInfo(props: ParcelInfoProps) {
       <Button
         variant="primary"
         className="w-100 mb-2"
-        // onClick={() => {
-        //   setInteractionState(STATE.PARCEL_EDITING);
-        //   setIsFullSize(true);
-        // }}
+        onClick={() => {
+          setShowAWModelScaling(true);
+        }}
       >
         [TEST] Adjust Scaling
       </Button>
+      {showAWModelScaling ? (
+        <AWModelScaling
+          gwContent={geoWebContent}
+          augmentedWorldCid={CID.parse(
+            "bafyreietptw7udedbdpro6fje5bzsqdhsktktqdl4273pmvbpjrc2odi3q"
+          )}
+          modelToScaleCid={CID.parse(
+            "bafyreigtrroervbkml26x32cyebwnjxbwiapytse3xulo74zg24ojnizee"
+          )}
+          onClose={() => setShowAWModelScaling(false)}
+        />
+      ) : null}
     </>
   );
 

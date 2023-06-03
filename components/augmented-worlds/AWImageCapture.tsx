@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+/* eslint-disable import/named */
 import init, { World } from "augmented-worlds";
 import {
   GraphicsSystem,
   WebXRSystem,
   ImageCaptureSystem,
 } from "@augmented-worlds/system-babylonjs";
+/* eslint-enable */
+
 import Image from "react-bootstrap/Image";
 import { UAParser } from "ua-parser-js";
 import Button from "react-bootstrap/Button";
@@ -12,74 +15,13 @@ import Modal from "react-bootstrap/Modal";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import CopyTooltip from "../CopyTooltip";
 import Spinner from "react-bootstrap/Spinner";
+import NotAvailableView from "./NotAvailableView";
 
 enum State {
   Loading,
   Ready,
   NotSupported,
-}
-
-function NotAvailableView({ incubationsUri }: { incubationsUri: string }) {
-  const parser = new UAParser();
-  const { os } = parser.getResult();
-
-  const copyUri = useCallback(() => {
-    navigator.clipboard.writeText(incubationsUri);
-  }, [incubationsUri]);
-
-  return (
-    <Container>
-      <Row>
-        <Col xs={{ span: 4, offset: 3 }} className="mb-4">
-          <Image width={126} src="ar-unavailable.svg" />
-        </Col>
-      </Row>
-      <Row>
-        <Col xs={12} className="text-center mb-4">
-          <h1>Browser Not Compatible</h1>
-        </Col>
-        <Col xs={12} className="text-center">
-          {os.name === "iOS" ? (
-            <p>iOS doesn’t yet support WebXR.</p>
-          ) : os.name === "Android" ? (
-            <p>
-              On Android, try using{" "}
-              <a href="https://play.google.com/store/apps/details?id=com.android.chrome">
-                Chrome (version 113+)
-              </a>{" "}
-              & installing the{" "}
-              <a href="https://play.google.com/store/apps/details?id=com.google.ar.core">
-                latest version of ARCore
-              </a>
-              . Then paste the following into your URL bar & enable the WebXR
-              Incubations flag:{" "}
-              <span style={{ textDecoration: "underline" }}>
-                {incubationsUri}
-              </span>{" "}
-              <CopyTooltip
-                contentClick="Copied"
-                contentHover="Copy Address"
-                target={
-                  <div className="d-flex flex-shrink-1 align-items-center">
-                    <Image width={25} src="copy-light.svg" alt="copy" />
-                  </div>
-                }
-                handleCopy={copyUri}
-              />
-            </p>
-          ) : (
-            <p>
-              This augmented reality experience uses experimental features of
-              the open-source WebXR standard. Not all devices and browsers
-              support these features.
-            </p>
-          )}
-        </Col>
-      </Row>
-    </Container>
-  );
 }
 
 export default function AWImageCapture({ onClose }: { onClose: () => void }) {
@@ -140,12 +82,10 @@ export default function AWImageCapture({ onClose }: { onClose: () => void }) {
         overlayRef.current
       );
 
-      imageCaptureSystem.onImageAnchorCaptured.add(
-        (imageAnchorCapture: any) => {
-          console.log(imageAnchorCapture);
-          onClose();
-        }
-      );
+      imageCaptureSystem.onImageAnchorCaptured.add((imageAnchorCapture) => {
+        console.log(imageAnchorCapture);
+        onClose();
+      });
 
       world.add_system(graphicsSystem);
       world.add_system(webXRSystem);
@@ -232,7 +172,7 @@ export default function AWImageCapture({ onClose }: { onClose: () => void }) {
             </Row>
           </Container>
         ) : state === State.NotSupported ? (
-          <NotAvailableView incubationsUri={incubationsUri} />
+          <NotAvailableView incubationsUri={incubationsUri} onClose={onClose} />
         ) : null}
       </Modal.Body>
     </Modal>
