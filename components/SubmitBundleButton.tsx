@@ -115,10 +115,10 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     if (timerId) {
       clearInterval(timerId);
     }
-    console.log(transactionBundleConfig);
 
     const prepareTransaction = async () => {
       if (
+        isActing ||
         !flowOperator ||
         !requiredFlowAmount ||
         !spender ||
@@ -179,17 +179,14 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         throw new Error("Error populating Superfluid transaction");
       }
 
-      if (
-        wrap?.to &&
-        wrap?.data &&
-        approveSpending?.to &&
-        approveSpending?.data
-      ) {
+      if (wrap?.to && wrap?.data) {
         metaTransactions.push({
           to: wrap.to,
           value: wrapAmount,
           data: wrap.data,
         });
+      }
+      if (approveSpending?.to && approveSpending?.data) {
         metaTransactions.push({
           to: approveSpending.to,
           value: "0",
@@ -225,9 +222,11 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
   }, [
     flowOperator,
     requiredPayment?._hex,
+    transactionBundleConfig,
     spender,
     requiredFlowAmount?._hex,
     smartAccount,
+    isActing,
   ]);
 
   return (

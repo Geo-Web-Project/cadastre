@@ -154,7 +154,7 @@ function ReclaimAction(props: ReclaimActionProps) {
       encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        "reclaim(uint256,int96,uint256",
+        "reclaim(uint256,int96,uint256)",
         [
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,

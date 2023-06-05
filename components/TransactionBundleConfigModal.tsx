@@ -146,9 +146,10 @@ function TransactionBundleConfigModal(
         setShowTopUpTotalDropDown(false);
         setShowTopUpSingleDropDown(false);
       }}
+      contentClassName="bg-dark"
     >
-      <Modal.Header className="bg-dark border-0 pb-1">
-        <Modal.Title className="d-flex align-items-center gap-3 fw-bold text-light fs-4">
+      <Modal.Header className="bg-dark border-0 pb-2">
+        <Modal.Title className="d-flex align-items-center gap-3 fw-bold text-light fs-4 ms-1">
           ETH : ETHx Settings
           <InfoTooltip
             position={{ top: isMobile, right: !isMobile }}
@@ -184,38 +185,49 @@ function TransactionBundleConfigModal(
         </Button>
       </Modal.Header>
       <Modal.Body className="d-flex flex-column justify-content-center bg-dark text-light p-0 p-lg-3 mb-lg-0">
-        <div className="form-check d-flex align-items-center gap-2 ms-3 ms-sm-0">
+        <div className="form-check d-flex align-items-center gap-2 ms-3 ms-sm-1">
           <input
-            checked={transactionBundleConfig.isSponsored}
+            defaultChecked={transactionBundleConfig.isSponsored}
             aria-label="Checkbox to choose if payment denominated in ETHx or ETH"
             className="form-check-input"
             type="checkbox"
             style={{ width: 24, height: 24 }}
-            onClick={(e) =>
+            onClick={(e) => {
               setTransactionBundleConfig({
                 ...transactionBundleConfig,
                 isSponsored: !transactionBundleConfig.isSponsored,
+                wrapAll: false,
                 noWrap: true,
-              })
-            }
+              });
+              setTopUpStrategy("");
+            }}
           />
           <label className="form-check-label" htmlFor="flexCheckDefault">
             Enable transaction sponsoring + refunding
           </label>
         </div>
         <Card
-          border="dark"
-          className={`bg-blue mt-3 pb-2 ${isMobile ? "" : "rounded-4"} ${
-            !transactionBundleConfig.isSponsored ? "opacity-50" : ""
-          }`}
+          border="secondary"
+          className={`bg-dark mt-4 mb-2 p-3 ${isMobile ? "" : "rounded-4"}`}
         >
-          <Card.Body>
+          <small
+            className="position-absolute bg-dark px-1 text-secondary"
+            style={{ left: 25, top: -12 }}
+          >
+            {" "}
+            Auto-Wrapping
+          </small>
+          <Card.Body className="pb-1">
             <Button
-              variant={transactionBundleConfig.isSponsored ? "primary" : "info"}
+              variant={
+                transactionBundleConfig.wrapAll
+                  ? "outline-primary"
+                  : transactionBundleConfig.isSponsored
+                  ? "outline-light"
+                  : "outline-info"
+              }
               disabled={!transactionBundleConfig.isSponsored}
-              className={`w-100 p-2 rounded-3 mb-3 ${
-                transactionBundleConfig.wrapAll ? "opacity-100" : "opacity-50"
-              }`}
+              className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
               onClick={() =>
                 setTransactionBundleConfig({
                   ...transactionBundleConfig,
@@ -224,14 +236,29 @@ function TransactionBundleConfigModal(
                 })
               }
             >
-              Auto-wrap all ETH to ETHx
+              <span
+                className={
+                  transactionBundleConfig.wrapAll
+                    ? "text-primary"
+                    : transactionBundleConfig.isSponsored
+                    ? "text-light"
+                    : "text-info"
+                }
+              >
+                Auto-wrap all ETH to ETHx
+              </span>
             </Button>
             <Button
-              variant="secondary"
+              variant={
+                transactionBundleConfig.noWrap &&
+                transactionBundleConfig.isSponsored
+                  ? "outline-primary"
+                  : transactionBundleConfig.isSponsored
+                  ? "outline-light"
+                  : "outline-info"
+              }
               disabled={!transactionBundleConfig.isSponsored}
-              className={`w-100 p-2 rounded-3 mb-3 ${
-                transactionBundleConfig.noWrap ? "opacity-100" : "opacity-50"
-              }`}
+              className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
               onClick={() =>
                 setTransactionBundleConfig({
                   ...transactionBundleConfig,
@@ -240,28 +267,66 @@ function TransactionBundleConfigModal(
                 })
               }
             >
-              Don't auto-wrap any ETH to ETHx
+              <span
+                className={
+                  transactionBundleConfig.noWrap &&
+                  transactionBundleConfig.isSponsored
+                    ? "text-primary"
+                    : transactionBundleConfig.isSponsored
+                    ? "text-light"
+                    : "text-info"
+                }
+              >
+                Don't auto-wrap any ETH to ETHx
+              </span>
             </Button>
-            <span>Balance Top-up (based on your total ETHx outflow)</span>
-            <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
+            <span
+              className={
+                !transactionBundleConfig.isSponsored
+                  ? "text-info"
+                  : topUpStrategy === "total"
+                  ? "text-primary"
+                  : "text-light"
+              }
+            >
+              Total Balance Top-up
+            </span>
+            <div className="d-flex justify-content-between align-items-center gap-2 mb-0">
               <InputGroup className="mb-2 mt-1 rounded-3">
                 <Form.Control
                   disabled={!transactionBundleConfig.isSponsored}
                   type="text"
                   inputMode="numeric"
+                  className={`bg-dark ${
+                    !transactionBundleConfig.isSponsored
+                      ? "border-info"
+                      : topUpStrategy === "total"
+                      ? "border-primary"
+                      : "border-light"
+                  } ${
+                    !transactionBundleConfig.isSponsored
+                      ? "text-info"
+                      : topUpStrategy === "total"
+                      ? "text-primary"
+                      : "text-light"
+                  }`}
                   value={
-                    topUpStrategy === "total" ? topUpTotalDigitsSelection : "0"
+                    topUpStrategy === "total" ? topUpTotalDigitsSelection : ""
                   }
                   placeholder="0"
-                  aria-label="Username"
-                  aria-describedby="basic-addon1"
                   onChange={(e) => handleTopUpChange(e, "total")}
                 />
               </InputGroup>
               <Button
                 disabled={!transactionBundleConfig.isSponsored}
-                variant="light"
-                className="d-flex align-items-end mb-1 px-4 w-25"
+                variant={
+                  !transactionBundleConfig.isSponsored
+                    ? "outline-info"
+                    : topUpStrategy === "total"
+                    ? "outline-primary"
+                    : "outline-light"
+                }
+                className="d-flex justify-content-center align-items-end mb-1 px-5 w-25 shadow-none btn-wrap-strategy"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowTopUpTotalDropDown(!showTopUpTotalDropDown);
@@ -269,15 +334,35 @@ function TransactionBundleConfigModal(
                   setShowTopUpSingleDropDown(false);
                 }}
               >
-                <span className="text-black">{topUpTotalSelection}</span>
-                <Image src="expand-more.svg" alt="expand" width={18} />
+                <span
+                  className={
+                    !transactionBundleConfig.isSponsored
+                      ? "text-info"
+                      : topUpStrategy === "total"
+                      ? "text-primary"
+                      : "text-light"
+                  }
+                >
+                  {topUpTotalSelection}
+                </span>
+                <Image
+                  src={`${
+                    !transactionBundleConfig.isSponsored
+                      ? "expand-more-info.svg"
+                      : topUpStrategy === "total"
+                      ? "expand-more-primary.svg"
+                      : "expand-more-light.svg"
+                  }`}
+                  alt="expand"
+                  width={18}
+                />
               </Button>
               {showTopUpTotalDropDown && (
                 <div
                   className="d-flex flex-column gap-1 position-absolute px-2 py-2 bg-light rounded-2"
                   style={{
-                    right: 15,
-                    top: isMobile ? 230 : 205,
+                    right: 30,
+                    top: isMobile ? 218 : 218,
                   }}
                 >
                   <span
@@ -315,15 +400,36 @@ function TransactionBundleConfigModal(
                 </div>
               )}
             </div>
-            <span>
-              Per Parcel Top-Up (based on the ETHx outflow in the transaction)
+            <span
+              className={
+                !transactionBundleConfig.isSponsored
+                  ? "text-info"
+                  : topUpStrategy === "single"
+                  ? "text-primary"
+                  : "text-light"
+              }
+            >
+              Per Parcel Top-Up
             </span>
-            <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
+            <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
               <InputGroup className="mb-2 mt-1 rounded-3">
                 <Form.Control
                   disabled={!transactionBundleConfig.isSponsored}
                   type="text"
                   inputMode="numeric"
+                  className={`bg-dark ${
+                    !transactionBundleConfig.isSponsored
+                      ? "border-info"
+                      : topUpStrategy === "single"
+                      ? "border-primary"
+                      : "border-light"
+                  } ${
+                    !transactionBundleConfig.isSponsored
+                      ? "text-info"
+                      : topUpStrategy === "single"
+                      ? "text-primary"
+                      : "text-light"
+                  }`}
                   value={
                     topUpStrategy === "single"
                       ? topUpSingleDigitsSelection
@@ -331,30 +437,54 @@ function TransactionBundleConfigModal(
                   }
                   onChange={(e) => handleTopUpChange(e, "single")}
                   placeholder="0"
-                  aria-label="Username"
-                  aria-describedby="basic-addon1"
                 />
               </InputGroup>
               <Button
-                variant="light"
+                variant={
+                  !transactionBundleConfig.isSponsored
+                    ? "outline-info"
+                    : topUpStrategy === "single"
+                    ? "outline-primary"
+                    : "outline-light"
+                }
                 disabled={!transactionBundleConfig.isSponsored}
                 title={`Days`}
-                className="d-flex align-items-end mb-1 px-4 w-25"
+                className="d-flex justify-content-center align-items-end mb-1 px-5 w-25 shadow-none btn-wrap-strategy"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowTopUpSingleDropDown(!showTopUpSingleDropDown);
                   setShowTopUpTotalDropDown(false);
                 }}
               >
-                <span className="text-black">{topUpSingleSelection}</span>
-                <Image src="expand-more.svg" alt="expand" width={18} />
+                <span
+                  className={
+                    !transactionBundleConfig.isSponsored
+                      ? "text-info"
+                      : topUpStrategy === "single"
+                      ? "text-primary"
+                      : "text-light"
+                  }
+                >
+                  {topUpSingleSelection}
+                </span>
+                <Image
+                  src={`${
+                    !transactionBundleConfig.isSponsored
+                      ? "expand-more-info.svg"
+                      : topUpStrategy === "single"
+                      ? "expand-more-primary.svg"
+                      : "expand-more-light.svg"
+                  }`}
+                  alt="expand"
+                  width={18}
+                />
               </Button>
               {showTopUpSingleDropDown && (
                 <div
                   className="d-flex flex-column gap-1 position-absolute px-2 py-1 bg-light rounded-2"
                   style={{
-                    right: 15,
-                    top: isMobile ? 335 : 285,
+                    right: 30,
+                    top: isMobile ? 290 : 289,
                   }}
                 >
                   <span
@@ -392,11 +522,11 @@ function TransactionBundleConfigModal(
                 </div>
               )}
             </div>
-            <small className="mb-2">
+            <span style={{ fontSize: "0.7rem" }}>
               Note: If you don't have enough ETH for your chosen strategy with a
               proposed transaction, we'll wrap your full balance and show a
               warning.
-            </small>
+            </span>
           </Card.Body>
         </Card>
       </Modal.Body>

@@ -191,7 +191,9 @@ body {
 .dropdown-selected:hover {
   background: rgba(0, 0, 0, 0.2);
 }
-
+.btn-wrap-strategy{
+  background: transparent !important;
+}
 .parcel-list-btn {
   position: absolute;
   top: 120px;

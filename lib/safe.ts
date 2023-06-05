@@ -33,11 +33,6 @@ enum OperationType {
   DelegateCall,
 }
 
-enum GwFunctionSelector {
-  CLAIM = "0xd27a4bd0",
-  PLACE_BID = "0x00fa6802",
-}
-
 function useSafe(safe: Safe | null) {
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
   const proxyFactoryInfo = getProxyFactoryDeployment();
@@ -148,14 +143,10 @@ function useSafe(safe: Safe | null) {
     let gasEstimate = "0";
 
     if (metaTxs.length === 1) {
-      gasEstimate = await ethAdapter.estimateGas({
-        from: WETH_ADDRESS,
-        to: metaTxs[0].to,
-        value: metaTxs[0].value,
-        data: metaTxs[0].data,
-      });
+      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+      gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(metaTxs[0], {
-        gasLimit: BigNumber.from(gasEstimate),
+        gasLimit: BigNumber.from(gasUsed),
         isAutoRefunded: true,
         gasToken: gasToken ?? ZERO_ADDRESS,
         isSponsored: true,
@@ -197,8 +188,9 @@ function useSafe(safe: Safe | null) {
       encodedTransaction: encodedTransactionData,
       chainId: NETWORK_ID,
       options: {
-        gasLimit: gasEstimate,
+        gasLimit: Math.floor(Number(gasEstimate) * 1.5).toString(),
         isSponsored,
+        gasToken: ZERO_ADDRESS,
       },
     });
     const receipt = await waitRelayedTxConfirmation(res.taskId);
@@ -337,7 +329,7 @@ function useSafe(safe: Safe | null) {
       gasUsed = simulationResultDecoded[2];
       transactionFeesEstimate = await relayKit.getEstimateFee(
         NETWORK_ID,
-        BigNumber.from(gasUsed).toString()
+        BigNumber.from(gasUsed).mul(120).div(100).toString()
       );
     } else {
       /*
@@ -412,14 +404,14 @@ function useSafe(safe: Safe | null) {
       NETWORK_ID,
       gasLimit.toString()
     );
-    const baseGas = BigNumber.from(estimate).mul(110).div(100);
+    const baseGas = BigNumber.from(estimate).mul(120).div(100);
 
     const safeTransactionData = {
       data: metaTransaction.data,
       to: metaTransaction.to,
       value: metaTransaction.value,
       baseGas: !isAutoRefunded ? "0" : baseGas.toString(),
-      safeTxGas: gasLimit.add(100000).toString(),
+      safeTxGas: gasLimit.mul(120).div(100).toString(),
       gasPrice: isAutoRefunded ? "1" : "0",
       gasToken: gasToken ?? ZERO_ADDRESS,
       refundReceiver:
@@ -427,7 +419,6 @@ function useSafe(safe: Safe | null) {
           ? REFUND_RECEIVER
           : relayKit.getFeeCollector(),
       operation: metaTransaction.operation ?? OperationType.Call,
-      nonce: await safe.getNonce(),
     };
     const safeTransaction = await safe.createTransaction({
       safeTransactionData,

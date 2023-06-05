@@ -244,7 +244,7 @@ function ProfileModal(props: ProfileModalProps) {
     let isMounted = true;
 
     const initBalance = async () => {
-      if (sfFramework.settings.provider && accountAddress) {
+      if (sfFramework.settings.provider && accountAddress && showProfile) {
         try {
           if (smartAccount?.safe) {
             const isSafeDeployed = await smartAccount?.safe.isSafeDeployed();
@@ -271,7 +271,7 @@ function ProfileModal(props: ProfileModalProps) {
     return () => {
       isMounted = false;
     };
-  }, [sfFramework, accountAddress, smartAccount]);
+  }, [sfFramework, accountAddress, smartAccount, showProfile]);
 
   useEffect(() => {
     if (!data) {
@@ -550,7 +550,7 @@ function ProfileModal(props: ProfileModalProps) {
     action: SuperTokenAction
   ): Promise<void> => {
     const weiAmount = ethers.utils.parseEther(amount).toString();
-    let safeTransactionData;
+    let transactionData;
     let gasToken;
 
     try {
@@ -562,7 +562,7 @@ function ProfileModal(props: ProfileModalProps) {
         const { data, to } = populatedTransaction;
 
         if (data && to) {
-          safeTransactionData = {
+          transactionData = {
             data,
             to,
             value: weiAmount,
@@ -579,7 +579,7 @@ function ProfileModal(props: ProfileModalProps) {
 
         if (data && to) {
           gasToken = paymentToken.address;
-          safeTransactionData = {
+          transactionData = {
             data,
             to,
             value: "0",
@@ -589,14 +589,20 @@ function ProfileModal(props: ProfileModalProps) {
         }
       }
 
-      if (!safeTransactionData) {
+      if (!transactionData) {
         throw new Error("Error populating transaction");
       }
 
-      await relayTransaction([safeTransactionData], {
-        isSponsored: true,
-        gasToken,
-      });
+      if (smartAccount?.safe) {
+        await relayTransaction([transactionData], {
+          isSponsored: true,
+          gasToken,
+        });
+      } else {
+        const tx = await signer.sendTransaction(transactionData);
+
+        await tx.wait();
+      }
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,

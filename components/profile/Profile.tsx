@@ -48,12 +48,8 @@ type ProfileProps = {
 };
 
 function Profile(props: ProfileProps) {
-  const {
-    account,
-    paymentToken,
-    portfolioNeedActionCount,
-    smartAccount,
-  } = props;
+  const { account, paymentToken, portfolioNeedActionCount, smartAccount } =
+    props;
 
   const [showProfile, setShowProfile] = React.useState(false);
   const [isSafeFunded, setIsSafeFunded] = React.useState<boolean | null>(false);
@@ -67,10 +63,11 @@ function Profile(props: ProfileProps) {
 
       const safeBalance = await smartAccount.safe.getBalance();
       const isSafeFunded = safeBalance.gt(0);
+      const isSafeDeployed = await smartAccount.safe.isSafeDeployed();
 
       setIsSafeFunded(isSafeFunded);
 
-      if (!isSafeFunded) {
+      if (!isSafeFunded && !isSafeDeployed) {
         setShowProfile(true);
       }
     })();

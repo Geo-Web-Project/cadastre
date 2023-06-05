@@ -166,7 +166,7 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          Purchase Payment:{" "}
+          &emsp;&ensp;Purchase Payment:{" "}
           <InfoTooltip
             content={
               <div style={{ textAlign: "left" }}>
@@ -182,7 +182,7 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          Refundable Collateral:{" "}
+          &emsp;&ensp;Refundable Collateral:{" "}
           <InfoTooltip
             content={
               <div style={{ textAlign: "left" }}>
@@ -290,7 +290,8 @@ function TransactionSummaryView({
         }
         target={
           <span className="text-decoration-underline">
-            {transactionBundleFeesDisplay} ETH
+            {transactionBundleFeesDisplay}{" "}
+            {transactionBundleConfig.isSponsored ? "ETHx" : "ETH"}
           </span>
         }
       />
@@ -329,13 +330,13 @@ function TransactionSummaryView({
 
   return (
     <div>
-      <div className="d-flex">
+      <div className="d-flex justify-content-between gap-2">
         <h4>Transaction Summary</h4>
         {smartAccount?.safe && (
-          <div className="position-absolute end-0">
+          <div>
             <Button
               variant="link"
-              className="shadow-none p-0 me-2"
+              className="shadow-none p-0"
               onClick={() => setShowTransactionBundleConfigModal(true)}
             >
               <Image src="settings.svg" alt="settings" width={32} />
