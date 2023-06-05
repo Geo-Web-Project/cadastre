@@ -24,7 +24,7 @@ import {
   DRAWER_CLAIM_HEIGHT,
 } from "../lib/constants";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
-import OpRewardAlert from "./OpRewardAlert";
+import BedrockDowntimeAlert from "./BedrockDowntimeAlert";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
@@ -1007,7 +1007,7 @@ function Map(props: MapProps) {
 
   return (
     <>
-      <OpRewardAlert />
+      <BedrockDowntimeAlert />
       {interactionState === STATE.CLAIM_SELECTING &&
         viewport.zoom < ZOOM_GRID_LEVEL && (
           <Alert
