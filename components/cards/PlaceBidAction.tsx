@@ -74,17 +74,30 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   >(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] =
-    React.useState(false);
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
+  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
+    null
+  );
   const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>({
-      isSponsored: true,
-      wrapAll: true,
-      noWrap: false,
-      wrapAmount: BigNumber.from(0),
-    });
+    React.useState<TransactionBundleConfig>(
+      localStorage.transactionBundleConfig
+        ? JSON.parse(localStorage.transactionBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : account,
@@ -140,10 +153,40 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     .div(100);
 
   const isInvalid = isForSalePriceInvalid || !displayNewForSalePrice;
+  const requiredPayment =
+    newForSalePrice && requiredBuffer
+      ? newForSalePrice.add(requiredBuffer)
+      : null;
 
-  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
-    null
-  );
+  const isSignerBalanceInsufficient = requiredPayment
+    ? requiredPayment.gt(superTokenBalance)
+    : false;
+
+  const isSafeBalanceInsufficient =
+    smartAccount?.safe &&
+    transactionBundleConfig.isSponsored &&
+    requiredPayment &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? requiredPayment
+          .add(transactionBundleFeesEstimate)
+          .gt(superTokenBalance.add(safeEthBalance))
+      : false;
+
+  const isSafeEthBalanceInsufficient =
+    smartAccount?.safe &&
+    !transactionBundleConfig.isSponsored &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
+      : false;
+
+  const isSafeSuperTokenBalanceInsufficient =
+    smartAccount?.safe &&
+    (!transactionBundleConfig.isSponsored || transactionBundleConfig.noWrap) &&
+    requiredPayment
+      ? requiredPayment.gt(superTokenBalance)
+      : false;
 
   React.useEffect(() => {
     const run = async () => {
@@ -164,15 +207,19 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
-    const requiredPayment =
-      newForSalePrice && requiredBuffer
-        ? newForSalePrice.add(requiredBuffer)
-        : null;
+    let timerId: NodeJS.Timer;
 
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
-    );
-  }, [superTokenBalance]);
+    if (smartAccount?.safe) {
+      timerId = setInterval(async () => {
+        if (smartAccount?.safe) {
+          const safeEthBalance = await smartAccount.safe.getBalance();
+          setSafeEthBalance(safeEthBalance);
+        }
+      }, 10000);
+    }
+
+    return () => clearInterval(timerId);
+  }, [smartAccount]);
 
   function encodePlaceBidData() {
     if (!licenseDiamondContract) {
@@ -382,11 +429,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   {...props}
                   isDisabled={isActing}
                   requiredFlowAmount={annualNetworkFeeRate ?? null}
-                  requiredPayment={
-                    newForSalePrice && requiredBuffer
-                      ? newForSalePrice.add(requiredBuffer)
-                      : null
-                  }
+                  requiredPayment={requiredPayment}
                   spender={licenseDiamondContract?.address ?? null}
                   requiredFlowPermissions={1}
                   flowOperator={licenseDiamondContract?.address ?? null}
@@ -398,7 +441,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   setIsAllowed={setIsAllowed}
                 />
                 <PerformButton
-                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isDisabled={
+                    isActing || isInvalid || isSignerBalanceInsufficient
+                  }
                   isActing={isActing}
                   buttonText={"Place Bid"}
                   performAction={placeBid}
@@ -423,6 +468,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 />
                 <SubmitBundleButton
                   {...props}
+                  superTokenBalance={superTokenBalance}
                   requiredFlowAmount={annualNetworkFeeRate ?? null}
                   requiredPayment={
                     newForSalePrice && requiredBuffer
@@ -434,11 +480,18 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   setErrorMessage={setErrorMessage}
                   setIsActing={setIsActing}
                   setDidFail={setDidFail}
-                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isDisabled={
+                    isActing ||
+                    isInvalid ||
+                    isSafeBalanceInsufficient ||
+                    isSafeEthBalanceInsufficient ||
+                    isSafeSuperTokenBalanceInsufficient
+                  }
                   isActing={isActing}
                   buttonText={"Place Bid"}
                   encodeFunctionData={encodePlaceBidData}
                   callback={submitBundleCallback}
+                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
@@ -449,11 +502,56 @@ function PlaceBidAction(props: PlaceBidActionProps) {
           </Form>
 
           <br />
-          {isBalanceInsufficient && displayNewForSalePrice && !isActing ? (
-            <Alert key="warning" variant="warning">
+          {!smartAccount?.safe &&
+          isSignerBalanceInsufficient &&
+          isSignerBalanceInsufficient &&
+          displayNewForSalePrice &&
+          !isActing ? (
+            <Alert variant="warning">
               <Alert.Heading>Insufficient ETHx</Alert.Heading>
               Please wrap enough ETH to ETHx to complete this transaction with
               the button above.
+            </Alert>
+          ) : isSafeBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              You must deposit more ETH to your account to complete your
+              transaction. Click Add Funds above.
+            </Alert>
+          ) : smartAccount?.safe &&
+            transactionBundleConfig.isSponsored &&
+            !transactionBundleConfig.noWrap &&
+            safeEthBalance &&
+            BigNumber.from(transactionBundleConfig.wrapAmount).gt(
+              safeEthBalance
+            ) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>ETH balance warning</Alert.Heading>
+              You don't have enough ETH to fully fund your ETHx wrapping
+              strategy. We'll wrap your full balance, but consider depositing
+              ETH or changing your transaction settings.
+            </Alert>
+          ) : isSafeEthBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETH for Gas</Alert.Heading>
+              You must deposit more ETH to your account or enable transaction
+              sponsoring in Transaction Settings.
+            </Alert>
+          ) : isSafeSuperTokenBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              You must wrap or deposit ETHx to your account to complete your
+              transaction. You can add funds and wrap your ETH to ETHx in your
+              profile. Alternatively, enable auto-wrapping in Transaction
+              Settings.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError

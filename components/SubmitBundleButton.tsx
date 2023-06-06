@@ -11,6 +11,7 @@ import { ZERO_ADDRESS } from "../lib/constants";
 export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
   requiredPayment: BigNumber | null;
+  superTokenBalance: BigNumber;
   requiredFlowAmount: BigNumber | null;
   spender: string | null;
   flowOperator: string | null;
@@ -23,6 +24,7 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   callback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
+  transactionBundleFeesEstimate: BigNumber | null;
   setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
@@ -35,6 +37,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     paymentToken,
     smartAccount,
     spender,
+    superTokenBalance,
     requiredPayment,
     sfFramework,
     requiredFlowAmount,
@@ -46,6 +49,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     buttonText,
     encodeFunctionData,
     callback,
+    transactionBundleFeesEstimate,
     setTransactionBundleFeesEstimate,
     transactionBundleConfig,
   } = props;
@@ -86,9 +90,12 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
 
       const receipt = await relayTransaction(metaTransactions, {
         isSponsored: transactionBundleConfig.isSponsored,
-        gasToken: transactionBundleConfig.isSponsored
-          ? paymentToken.address
-          : ZERO_ADDRESS,
+        gasToken:
+          transactionBundleConfig.isSponsored &&
+          (BigNumber.from(transactionBundleConfig.wrapAmount).eq(0) ||
+            superTokenBalance.gt(transactionBundleFeesEstimate ?? 0))
+            ? paymentToken.address
+            : ZERO_ADDRESS,
       });
 
       await callback(receipt);
@@ -141,19 +148,25 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       const yearlyFeeBufferedPayment = requiredPayment.add(requiredFlowAmount);
       const wrapAmount =
         transactionBundleConfig.isSponsored &&
-        transactionBundleConfig.wrapAll &&
+        !transactionBundleConfig.noWrap &&
+        (transactionBundleConfig.wrapAll ||
+          BigNumber.from(transactionBundleConfig.wrapAmount).gt(safeBalance)) &&
         safeBalance.gt(0)
           ? safeBalance.toString()
           : transactionBundleConfig.isSponsored &&
-            transactionBundleConfig.wrapAmount.gt(0)
-          ? transactionBundleConfig.wrapAmount.toString()
-          : "0";
+            !transactionBundleConfig.noWrap &&
+            BigNumber.from(transactionBundleConfig.wrapAmount).gt(0) &&
+            safeBalance.gt(0)
+          ? BigNumber.from(transactionBundleConfig.wrapAmount)
+              .add(requiredPayment ?? 0)
+              .toString()
+          : "";
       const isPaymentRequired = requiredPayment.gt(0);
 
       if (isPaymentRequired) {
         if (
           transactionBundleConfig.isSponsored &&
-          !transactionBundleConfig.noWrap &&
+          wrapAmount &&
           safeBalance.gt(0)
         ) {
           wrap = await paymentToken.upgrade({
@@ -212,7 +225,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     };
 
     prepareTransaction();
-    timerId = setInterval(prepareTransaction, 2000);
+    timerId = setInterval(prepareTransaction, 8000);
 
     return () => {
       if (timerId) {
@@ -221,10 +234,13 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     };
   }, [
     flowOperator,
-    requiredPayment?._hex,
-    transactionBundleConfig,
     spender,
+    requiredPayment?._hex,
     requiredFlowAmount?._hex,
+    transactionBundleConfig.isSponsored,
+    transactionBundleConfig.wrapAll,
+    transactionBundleConfig.noWrap,
+    transactionBundleConfig.wrapAmount,
     smartAccount,
     isActing,
   ]);

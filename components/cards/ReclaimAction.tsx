@@ -55,12 +55,21 @@ function ReclaimAction(props: ReclaimActionProps) {
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>({
-      isSponsored: true,
-      wrapAll: true,
-      noWrap: false,
-      wrapAmount: BigNumber.from(0),
-    });
+    React.useState<TransactionBundleConfig>(
+      localStorage.transactionBundleConfig
+        ? JSON.parse(localStorage.transactionBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   const { displayNewForSalePrice } = actionData;
 
@@ -244,6 +253,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         encodeFunctionData={encodeReclaimData}
         bundleCallback={bundleCallback}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         transactionBundleConfig={transactionBundleConfig}
         {...props}

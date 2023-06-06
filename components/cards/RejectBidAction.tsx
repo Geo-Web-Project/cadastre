@@ -92,18 +92,39 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
   const [isAllowed, setIsAllowed] = React.useState(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] =
-    React.useState(false);
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
+  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
+    null
+  );
+  const [bidPeriodLength, setBidPeriodLength] =
+    React.useState<BigNumber | null>(null);
+
+  const [penaltyRateNumerator, setPenaltyRateNumerator] =
+    React.useState<BigNumber | null>(null);
+  const [penaltyRateDenominator, setPenaltyRateDenominator] =
+    React.useState<BigNumber | null>(null);
+  const [oldRequiredBuffer, setOldRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
+  const [newRequiredBuffer, setNewRequiredBuffer] =
+    React.useState<BigNumber | null>(null);
   const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>({
-      isSponsored: true,
-      wrapAll: true,
-      noWrap: false,
-      wrapAmount: BigNumber.from(0),
-    });
+    React.useState<TransactionBundleConfig>(
+      localStorage.transactionBundleConfig
+        ? JSON.parse(localStorage.transactionBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : account,
@@ -168,24 +189,48 @@ function RejectBidAction(props: RejectBidActionProps) {
     ?.mul(annualFeePercentage)
     .div(100);
 
-  const [bidPeriodLength, setBidPeriodLength] =
-    React.useState<BigNumber | null>(null);
-
-  const [penaltyRateNumerator, setPenaltyRateNumerator] =
-    React.useState<BigNumber | null>(null);
-  const [penaltyRateDenominator, setPenaltyRateDenominator] =
-    React.useState<BigNumber | null>(null);
-
   const penaltyPayment =
     penaltyRateNumerator && penaltyRateDenominator
       ? bidForSalePrice.mul(penaltyRateNumerator).div(penaltyRateDenominator)
       : null;
 
+  const requiredPayment =
+    penaltyPayment && newRequiredBuffer && oldRequiredBuffer
+      ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
+      : null;
+
+  const isSignerBalanceInsufficient = requiredPayment
+    ? requiredPayment?.gt(superTokenBalance)
+    : false;
+
   const isInvalid =
     isForSalePriceInvalid || !displayNewForSalePrice || !penaltyPayment;
 
-  const [oldRequiredBuffer, setOldRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
+  const isSafeBalanceInsufficient =
+    smartAccount?.safe &&
+    transactionBundleConfig.isSponsored &&
+    requiredPayment &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? requiredPayment
+          .add(transactionBundleFeesEstimate)
+          .gt(superTokenBalance.add(safeEthBalance))
+      : false;
+
+  const isSafeEthBalanceInsufficient =
+    smartAccount?.safe &&
+    !transactionBundleConfig.isSponsored &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
+      : false;
+
+  const isSafeSuperTokenBalanceInsufficient =
+    smartAccount?.safe &&
+    (!transactionBundleConfig.isSponsored || transactionBundleConfig.noWrap) &&
+    requiredPayment
+      ? requiredPayment.gt(superTokenBalance)
+      : false;
 
   React.useEffect(() => {
     const run = async () => {
@@ -204,9 +249,6 @@ function RejectBidAction(props: RejectBidActionProps) {
 
     run();
   }, [sfFramework, paymentToken, displayCurrentForSalePrice]);
-
-  const [newRequiredBuffer, setNewRequiredBuffer] =
-    React.useState<BigNumber | null>(null);
 
   React.useEffect(() => {
     const run = async () => {
@@ -227,6 +269,21 @@ function RejectBidAction(props: RejectBidActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
+    let timerId: NodeJS.Timer;
+
+    if (smartAccount?.safe) {
+      timerId = setInterval(async () => {
+        if (smartAccount?.safe) {
+          const safeEthBalance = await smartAccount.safe.getBalance();
+          setSafeEthBalance(safeEthBalance);
+        }
+      }, 10000);
+    }
+
+    return () => clearInterval(timerId);
+  }, [smartAccount]);
+
+  React.useEffect(() => {
     async function checkBidPeriod() {
       if (!registryContract) return;
 
@@ -243,17 +300,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     checkBidPeriod();
     checkPenaltyRate();
   }, [registryContract]);
-
-  React.useEffect(() => {
-    const requiredPayment =
-      penaltyPayment && newRequiredBuffer && oldRequiredBuffer
-        ? penaltyPayment.add(newRequiredBuffer).sub(oldRequiredBuffer)
-        : null;
-
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment?.gt(superTokenBalance) : false
-    );
-  }, [superTokenBalance]);
 
   const bidDeadline =
     bidTimestamp && bidPeriodLength ? bidTimestamp.add(bidPeriodLength) : null;
@@ -499,6 +545,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 />
                 <SubmitBundleButton
                   {...props}
+                  superTokenBalance={superTokenBalance}
                   requiredFlowAmount={annualNetworkFeeRate ?? null}
                   requiredPayment={
                     penaltyPayment && newRequiredBuffer && oldRequiredBuffer
@@ -512,11 +559,18 @@ function RejectBidAction(props: RejectBidActionProps) {
                   setErrorMessage={setErrorMessage}
                   setIsActing={setIsActing}
                   setDidFail={setDidFail}
-                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isDisabled={
+                    isActing ||
+                    isInvalid ||
+                    isSafeBalanceInsufficient ||
+                    isSafeEthBalanceInsufficient ||
+                    isSafeSuperTokenBalanceInsufficient
+                  }
                   isActing={isActing}
                   buttonText={"Reject Bid"}
                   encodeFunctionData={encodeRejectBidData}
                   callback={bundleCallback}
+                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
@@ -536,13 +590,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                   {...props}
                   isDisabled={isActing}
                   requiredFlowAmount={annualNetworkFeeRate ?? null}
-                  requiredPayment={
-                    penaltyPayment && newRequiredBuffer && oldRequiredBuffer
-                      ? penaltyPayment
-                          .add(newRequiredBuffer)
-                          .sub(oldRequiredBuffer)
-                      : null
-                  }
+                  requiredPayment={requiredPayment}
                   spender={licenseDiamondContract?.address ?? null}
                   requiredFlowPermissions={2}
                   flowOperator={licenseDiamondContract?.address ?? null}
@@ -554,7 +602,9 @@ function RejectBidAction(props: RejectBidActionProps) {
                   setIsAllowed={setIsAllowed}
                 />
                 <PerformButton
-                  isDisabled={isActing || isInvalid || isBalanceInsufficient}
+                  isDisabled={
+                    isActing || isInvalid || isSignerBalanceInsufficient
+                  }
                   isActing={isActing}
                   buttonText={"Reject Bid"}
                   performAction={rejectBid}
@@ -565,11 +615,55 @@ function RejectBidAction(props: RejectBidActionProps) {
           </Form>
 
           <br />
-          {isBalanceInsufficient && displayNewForSalePrice && !isActing ? (
+          {!smartAccount?.safe &&
+          isSignerBalanceInsufficient &&
+          displayNewForSalePrice &&
+          !isActing ? (
             <Alert key="warning" variant="warning">
               <Alert.Heading>Insufficient ETHx</Alert.Heading>
               Please wrap enough ETH to ETHx to complete this transaction with
               the button above.
+            </Alert>
+          ) : isSafeBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              You must deposit more ETH to your account to complete your
+              transaction. Click Add Funds above.
+            </Alert>
+          ) : smartAccount?.safe &&
+            transactionBundleConfig.isSponsored &&
+            !transactionBundleConfig.noWrap &&
+            safeEthBalance &&
+            BigNumber.from(transactionBundleConfig.wrapAmount).gt(
+              safeEthBalance
+            ) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>ETH balance warning</Alert.Heading>
+              You don't have enough ETH to fully fund your ETHx wrapping
+              strategy. We'll wrap your full balance, but consider depositing
+              ETH or changing your transaction settings.
+            </Alert>
+          ) : isSafeEthBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETH for Gas</Alert.Heading>
+              You must deposit more ETH to your account or enable transaction
+              sponsoring in Transaction Settings.
+            </Alert>
+          ) : isSafeSuperTokenBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              You must wrap or deposit ETHx to your account to complete your
+              transaction. You can add funds and wrap your ETH to ETHx in your
+              profile. Alternatively, enable auto-wrapping in Transaction
+              Settings.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError

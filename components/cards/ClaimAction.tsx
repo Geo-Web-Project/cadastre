@@ -52,12 +52,21 @@ function ClaimAction(props: ClaimActionProps) {
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>({
-      isSponsored: true,
-      wrapAll: true,
-      noWrap: false,
-      wrapAmount: BigNumber.from(0),
-    });
+    React.useState<TransactionBundleConfig>(
+      localStorage.getItem("transactionBundleConfig")
+        ? JSON.parse(localStorage.transactionBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   const { displayNewForSalePrice } = actionData;
 
@@ -319,8 +328,9 @@ function ClaimAction(props: ClaimActionProps) {
         requiredFlowPermissions={1}
         spender={registryContract.address}
         flowOperator={flowOperator}
-        bundleCallback={bundleCallback}
+        bundleCallback={smartAccount?.safe ? bundleCallback : void 0}
         encodeFunctionData={encodeClaimData}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         transactionBundleConfig={transactionBundleConfig}
         {...props}

@@ -317,7 +317,12 @@ function TransactionSummaryView({
                     claimPayment
                       .add(newAnnualNetworkFee)
                       .add(streamBuffer)
-                      .add(transactionBundleFeesEstimate ?? 0)
+                      .add(
+                        transactionBundleFeesEstimate &&
+                          transactionBundleConfig.isSponsored
+                          ? transactionBundleFeesEstimate
+                          : 0
+                      )
                   ),
                   8
                 )} ${PAYMENT_TOKEN}`

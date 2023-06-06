@@ -526,7 +526,7 @@ function ProfileModal(props: ProfileModalProps) {
         clearInterval(timerId);
       }
     };
-  }, [shouldRefetchParcelsData, data]);
+  }, [shouldRefetchParcelsData, data, showProfile]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({

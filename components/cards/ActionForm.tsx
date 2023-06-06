@@ -50,9 +50,10 @@ export type ActionFormProps = OffCanvasPanelProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   encodeFunctionData: () => string | void;
-  bundleCallback: (
+  bundleCallback?: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
+  transactionBundleFeesEstimate: BigNumber | null;
   setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
@@ -100,6 +101,8 @@ export function ActionForm(props: ActionFormProps) {
     setParcelFieldsToUpdate,
     encodeFunctionData,
     bundleCallback,
+    transactionBundleConfig,
+    transactionBundleFeesEstimate,
     setTransactionBundleFeesEstimate,
   } = props;
 
@@ -114,10 +117,11 @@ export function ActionForm(props: ActionFormProps) {
   } = actionData;
   const [showWrapModal, setShowWrapModal] = React.useState(false);
   const [isAllowed, setIsAllowed] = React.useState(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] =
-    React.useState(false);
   const [showAddFundsModal, setShowAddFundsModal] =
     React.useState<boolean>(false);
+  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
+    null
+  );
 
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
   const { superTokenBalance } = useSuperTokenBalance(
@@ -178,6 +182,36 @@ export function ActionForm(props: ActionFormProps) {
     displayCurrentForSalePrice === displayNewForSalePrice
       ? BigNumber.from(0)
       : annualNetworkFeeRate;
+
+  const isSignerBalanceInsufficient = requiredPayment
+    ? requiredPayment.gt(superTokenBalance)
+    : false;
+
+  const isSafeBalanceInsufficient =
+    smartAccount?.safe &&
+    transactionBundleConfig.isSponsored &&
+    requiredPayment &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? requiredPayment
+          .add(transactionBundleFeesEstimate)
+          .gt(superTokenBalance.add(safeEthBalance))
+      : false;
+
+  const isSafeEthBalanceInsufficient =
+    smartAccount?.safe &&
+    !transactionBundleConfig.isSponsored &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
+      : false;
+
+  const isSafeSuperTokenBalanceInsufficient =
+    smartAccount?.safe &&
+    (!transactionBundleConfig.isSponsored || transactionBundleConfig.noWrap) &&
+    requiredPayment
+      ? requiredPayment.gt(superTokenBalance)
+      : false;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -326,10 +360,19 @@ export function ActionForm(props: ActionFormProps) {
   }, [displayCurrentForSalePrice, displayNewForSalePrice, updateActionData]);
 
   React.useEffect(() => {
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
-    );
-  }, [superTokenBalance]);
+    let timerId: NodeJS.Timer;
+
+    if (smartAccount?.safe) {
+      timerId = setInterval(async () => {
+        if (smartAccount?.safe) {
+          const safeEthBalance = await smartAccount.safe.getBalance();
+          setSafeEthBalance(safeEthBalance);
+        }
+      }, 10000);
+    }
+
+    return () => clearInterval(timerId);
+  }, [smartAccount]);
 
   return (
     <>
@@ -574,6 +617,7 @@ export function ActionForm(props: ActionFormProps) {
                 />
                 <SubmitBundleButton
                   {...props}
+                  superTokenBalance={superTokenBalance}
                   requiredFlowAmount={requiredFlowAmount ?? null}
                   requiredPayment={requiredPayment ?? null}
                   spender={spender ?? null}
@@ -587,7 +631,11 @@ export function ActionForm(props: ActionFormProps) {
                     updateActionData({ didFail: v });
                   }}
                   isDisabled={
-                    isActing || isLoading || isInvalid || isBalanceInsufficient
+                    isActing ||
+                    isInvalid ||
+                    isSafeBalanceInsufficient ||
+                    isSafeEthBalanceInsufficient ||
+                    isSafeSuperTokenBalanceInsufficient
                   }
                   isActing={isActing ?? false}
                   buttonText={
@@ -601,6 +649,7 @@ export function ActionForm(props: ActionFormProps) {
                   }
                   encodeFunctionData={encodeFunctionData}
                   callback={submit}
+                  transactionBundleConfig={transactionBundleConfig}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
@@ -636,7 +685,10 @@ export function ActionForm(props: ActionFormProps) {
                 />
                 <PerformButton
                   isDisabled={
-                    isActing || isLoading || isInvalid || isBalanceInsufficient
+                    isActing ||
+                    isLoading ||
+                    isInvalid ||
+                    isSignerBalanceInsufficient
                   }
                   isActing={isActing ?? false}
                   buttonText={
@@ -656,11 +708,55 @@ export function ActionForm(props: ActionFormProps) {
           </Form>
 
           <br />
-          {isBalanceInsufficient && displayNewForSalePrice && !isActing ? (
+          {!smartAccount?.safe &&
+          isSignerBalanceInsufficient &&
+          displayNewForSalePrice &&
+          !isActing ? (
             <Alert key="warning" variant="warning">
               <Alert.Heading>Insufficient ETHx</Alert.Heading>
               Please wrap enough ETH to ETHx to complete this transaction with
               the button above.
+            </Alert>
+          ) : isSafeBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              You must deposit more ETH to your account to complete your
+              transaction. Click Add Funds above.
+            </Alert>
+          ) : smartAccount?.safe &&
+            transactionBundleConfig.isSponsored &&
+            !transactionBundleConfig.noWrap &&
+            safeEthBalance &&
+            BigNumber.from(transactionBundleConfig.wrapAmount).gt(
+              safeEthBalance
+            ) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>ETH balance warning</Alert.Heading>
+              You don't have enough ETH to fully fund your ETHx wrapping
+              strategy. We'll wrap your full balance, but consider depositing
+              ETH or changing your transaction settings.
+            </Alert>
+          ) : isSafeEthBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETH for Gas</Alert.Heading>
+              You must deposit more ETH to your account or enable transaction
+              sponsoring in Transaction Settings.
+            </Alert>
+          ) : isSafeSuperTokenBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              You must wrap or deposit ETHx to your account to complete your
+              transaction. You can add funds and wrap your ETH to ETHx in your
+              profile. Alternatively, enable auto-wrapping in Transaction
+              Settings.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError

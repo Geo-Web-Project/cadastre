@@ -57,12 +57,21 @@ function EditAction(props: EditActionProps) {
   const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>({
-      isSponsored: true,
-      wrapAll: true,
-      noWrap: false,
-      wrapAmount: BigNumber.from(0),
-    });
+    React.useState<TransactionBundleConfig>(
+      localStorage.transactionBundleConfig
+        ? JSON.parse(localStorage.transactionBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -281,6 +290,7 @@ function EditAction(props: EditActionProps) {
         flowOperator={licenseDiamondContract?.address ?? ""}
         encodeFunctionData={encodeEditBidData}
         bundleCallback={async () => void 0}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         transactionBundleConfig={transactionBundleConfig}
         {...props}

@@ -153,7 +153,7 @@ function useSafe(safe: Safe | null) {
       });
     } else {
       if (!isSafeDeployed) {
-        await deploySafe({ isRefunded: false });
+        await deploySafe({ isRefunded: true });
       }
 
       const totalValue = metaTxs.reduce(

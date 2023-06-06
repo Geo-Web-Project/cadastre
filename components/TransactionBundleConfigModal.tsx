@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { ethers, BigNumber } from "ethers";
 import Safe from "@safe-global/protocol-kit";
 import { useDisconnect } from "wagmi";
@@ -39,7 +39,12 @@ export interface TransactionBundleConfig {
   isSponsored: boolean;
   wrapAll: boolean;
   noWrap: boolean;
-  wrapAmount: BigNumber;
+  wrapAmount: string;
+  topUpTotalDigitsSelection: number;
+  topUpSingleDigitsSelection: number;
+  topUpTotalSelection: string;
+  topUpSingleSelection: string;
+  topUpStrategy: string;
 }
 
 enum TopUpDropDownSelection {
@@ -62,21 +67,12 @@ function TransactionBundleConfigModal(
     newAnnualNetworkFee,
   } = props;
 
-  const [daysTopUpTotalFlow, setDaysTopUpTotalFlow] = useState<number>(0);
-  const [daysTopUpSingleFLow, setDaysTopUpSingleFlow] = useState<number>(0);
-  const [topUpTotalDigitsSelection, setTopUpTotalDigitsSelection] =
-    useState<number>(0);
-  const [topUpSingleDigitsSelection, setTopUpSingleDigitsSelection] =
-    useState<number>(0);
   const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
     useState<boolean>(false);
   const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
     useState<boolean>(false);
-  const [topUpTotalSelection, setTopUpTotalSelection] =
-    useState<TopUpDropDownSelection>(TopUpDropDownSelection.DAYS);
-  const [topUpSingleSelection, setTopUpSingleSelection] =
-    useState<TopUpDropDownSelection>(TopUpDropDownSelection.DAYS);
-  const [topUpStrategy, setTopUpStrategy] = useState<string>("");
+  const [shouldWrapAmountUpdate, setShouldWrapAmuntUpdate] =
+    useState<boolean>(false);
 
   const { isMobile, isTablet } = useMediaQuery();
 
@@ -84,11 +80,32 @@ function TransactionBundleConfigModal(
     if (isNaN(e.target.value)) {
       return;
     }
+    const dropDownSelection =
+      strategy === "total"
+        ? transactionBundleConfig.topUpTotalSelection
+        : transactionBundleConfig.topUpSingleSelection;
 
-    const digit = Number(e.target.value);
+    updateWrapAmount(strategy, dropDownSelection, Number(e.target.value));
+  };
+
+  const saveTransactionBundleConfig = (
+    newTransactionBundleConfig: TransactionBundleConfig
+  ) => {
+    setTransactionBundleConfig(newTransactionBundleConfig);
+    localStorage.setItem(
+      "transactionBundleConfig",
+      JSON.stringify(newTransactionBundleConfig)
+    );
+  };
+
+  const updateWrapAmount = (
+    strategy: string,
+    dropDownSelection: string,
+    digit: number
+  ) => {
     let daysTopUp = 0;
 
-    switch (strategy === "total" ? topUpTotalSelection : topUpSingleSelection) {
+    switch (dropDownSelection) {
       case TopUpDropDownSelection.DAYS:
         daysTopUp = digit;
         break;
@@ -106,36 +123,62 @@ function TransactionBundleConfigModal(
     }
 
     if (strategy === "total") {
-      const wrapAmount =
-        existingAnnualNetworkFee && newAnnualNetworkFee
-          ? newAnnualNetworkFee.div(365).mul(Math.ceil(daysTopUp))
-          : BigNumber.from(0);
-      setTransactionBundleConfig({
+      const wrapAmount = newAnnualNetworkFee
+        ? newAnnualNetworkFee.div(365).mul(Math.ceil(daysTopUp))
+        : BigNumber.from(0);
+      saveTransactionBundleConfig({
         ...transactionBundleConfig,
         wrapAll: false,
         noWrap: false,
-        wrapAmount,
+        topUpStrategy: strategy,
+        topUpTotalSelection: dropDownSelection,
+        topUpTotalDigitsSelection: strategy === "total" ? digit : 0,
+        topUpSingleDigitsSelection: 0,
+        wrapAmount: wrapAmount.gt(0) ? wrapAmount.toString() : "0",
       });
-      setTopUpTotalDigitsSelection(e.target.value);
-      setTopUpStrategy(strategy);
     } else if (strategy === "single") {
       const wrapAmount =
-        existingAnnualNetworkFee && newAnnualNetworkFee
+        existingAnnualNetworkFee &&
+        newAnnualNetworkFee &&
+        existingAnnualNetworkFee.lt(newAnnualNetworkFee)
           ? newAnnualNetworkFee
-              .div(365)
               .sub(existingAnnualNetworkFee)
+              .div(365)
               .mul(Math.ceil(daysTopUp))
+          : newAnnualNetworkFee
+          ? newAnnualNetworkFee.div(365).mul(Math.ceil(daysTopUp))
           : BigNumber.from(0);
-      setTransactionBundleConfig({
+      saveTransactionBundleConfig({
         ...transactionBundleConfig,
         wrapAll: false,
         noWrap: false,
-        wrapAmount,
+        topUpStrategy: strategy,
+        topUpSingleSelection: dropDownSelection,
+        topUpSingleDigitsSelection: strategy === "single" ? digit : 0,
+        topUpTotalDigitsSelection: 0,
+        wrapAmount: wrapAmount.gt(0) ? wrapAmount.toString() : "0",
       });
-      setTopUpSingleDigitsSelection(e.target.value);
-      setTopUpStrategy(strategy);
     }
   };
+
+  useMemo(() => {
+    if (newAnnualNetworkFee && transactionBundleConfig.topUpStrategy) {
+      const digit =
+        transactionBundleConfig.topUpStrategy === "total"
+          ? transactionBundleConfig.topUpTotalDigitsSelection
+          : transactionBundleConfig.topUpSingleDigitsSelection;
+      const dropDownSelection =
+        transactionBundleConfig.topUpStrategy === "total"
+          ? transactionBundleConfig.topUpTotalSelection
+          : transactionBundleConfig.topUpSingleSelection;
+
+      updateWrapAmount(
+        transactionBundleConfig.topUpStrategy,
+        dropDownSelection,
+        digit
+      );
+    }
+  }, [newAnnualNetworkFee?._hex, transactionBundleConfig.topUpStrategy]);
 
   return (
     <Modal
@@ -193,13 +236,13 @@ function TransactionBundleConfigModal(
             type="checkbox"
             style={{ width: 24, height: 24 }}
             onClick={(e) => {
-              setTransactionBundleConfig({
+              saveTransactionBundleConfig({
                 ...transactionBundleConfig,
                 isSponsored: !transactionBundleConfig.isSponsored,
-                wrapAll: false,
-                noWrap: true,
+                wrapAll: !transactionBundleConfig.isSponsored,
+                noWrap: transactionBundleConfig.isSponsored ? true : false,
+                topUpStrategy: "",
               });
-              setTopUpStrategy("");
             }}
           />
           <label className="form-check-label" htmlFor="flexCheckDefault">
@@ -228,13 +271,15 @@ function TransactionBundleConfigModal(
               }
               disabled={!transactionBundleConfig.isSponsored}
               className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
-              onClick={() =>
-                setTransactionBundleConfig({
+              onClick={() => {
+                saveTransactionBundleConfig({
                   ...transactionBundleConfig,
                   wrapAll: true,
                   noWrap: false,
-                })
-              }
+                  wrapAmount: "0",
+                  topUpStrategy: "",
+                });
+              }}
             >
               <span
                 className={
@@ -259,13 +304,15 @@ function TransactionBundleConfigModal(
               }
               disabled={!transactionBundleConfig.isSponsored}
               className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
-              onClick={() =>
-                setTransactionBundleConfig({
+              onClick={() => {
+                saveTransactionBundleConfig({
                   ...transactionBundleConfig,
                   noWrap: true,
                   wrapAll: false,
-                })
-              }
+                  wrapAmount: "0",
+                  topUpStrategy: "",
+                });
+              }}
             >
               <span
                 className={
@@ -284,7 +331,7 @@ function TransactionBundleConfigModal(
               className={
                 !transactionBundleConfig.isSponsored
                   ? "text-info"
-                  : topUpStrategy === "total"
+                  : transactionBundleConfig.topUpStrategy === "total"
                   ? "text-primary"
                   : "text-light"
               }
@@ -300,21 +347,35 @@ function TransactionBundleConfigModal(
                   className={`bg-dark ${
                     !transactionBundleConfig.isSponsored
                       ? "border-info"
-                      : topUpStrategy === "total"
+                      : transactionBundleConfig.topUpStrategy === "total"
                       ? "border-primary"
                       : "border-light"
                   } ${
                     !transactionBundleConfig.isSponsored
                       ? "text-info"
-                      : topUpStrategy === "total"
+                      : transactionBundleConfig.topUpStrategy === "total"
                       ? "text-primary"
                       : "text-light"
                   }`}
                   value={
-                    topUpStrategy === "total" ? topUpTotalDigitsSelection : ""
+                    transactionBundleConfig.topUpStrategy === "total"
+                      ? transactionBundleConfig.topUpTotalDigitsSelection
+                      : ""
                   }
                   placeholder="0"
                   onChange={(e) => handleTopUpChange(e, "total")}
+                  onBlur={() => {
+                    if (
+                      !transactionBundleConfig.topUpTotalDigitsSelection ||
+                      transactionBundleConfig.topUpTotalDigitsSelection == 0
+                    ) {
+                      saveTransactionBundleConfig({
+                        ...transactionBundleConfig,
+                        wrapAll: true,
+                        topUpStrategy: "",
+                      });
+                    }
+                  }}
                 />
               </InputGroup>
               <Button
@@ -322,7 +383,7 @@ function TransactionBundleConfigModal(
                 variant={
                   !transactionBundleConfig.isSponsored
                     ? "outline-info"
-                    : topUpStrategy === "total"
+                    : transactionBundleConfig.topUpStrategy === "total"
                     ? "outline-primary"
                     : "outline-light"
                 }
@@ -338,18 +399,18 @@ function TransactionBundleConfigModal(
                   className={
                     !transactionBundleConfig.isSponsored
                       ? "text-info"
-                      : topUpStrategy === "total"
+                      : transactionBundleConfig.topUpStrategy === "total"
                       ? "text-primary"
                       : "text-light"
                   }
                 >
-                  {topUpTotalSelection}
+                  {transactionBundleConfig.topUpTotalSelection}
                 </span>
                 <Image
                   src={`${
                     !transactionBundleConfig.isSponsored
                       ? "expand-more-info.svg"
-                      : topUpStrategy === "total"
+                      : transactionBundleConfig.topUpStrategy === "total"
                       ? "expand-more-primary.svg"
                       : "expand-more-light.svg"
                   }`}
@@ -368,7 +429,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpTotalSelection(TopUpDropDownSelection.DAYS)
+                      updateWrapAmount(
+                        "total",
+                        TopUpDropDownSelection.DAYS,
+                        transactionBundleConfig.topUpTotalDigitsSelection
+                      )
                     }
                   >
                     Days
@@ -376,7 +441,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpTotalSelection(TopUpDropDownSelection.WEEKS)
+                      updateWrapAmount(
+                        "total",
+                        TopUpDropDownSelection.WEEKS,
+                        transactionBundleConfig.topUpTotalDigitsSelection
+                      )
                     }
                   >
                     Weeks
@@ -384,7 +453,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpTotalSelection(TopUpDropDownSelection.MONTHS)
+                      updateWrapAmount(
+                        "total",
+                        TopUpDropDownSelection.MONTHS,
+                        transactionBundleConfig.topUpTotalDigitsSelection
+                      )
                     }
                   >
                     Months
@@ -392,7 +465,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpTotalSelection(TopUpDropDownSelection.YEARS)
+                      updateWrapAmount(
+                        "total",
+                        TopUpDropDownSelection.YEARS,
+                        transactionBundleConfig.topUpTotalDigitsSelection
+                      )
                     }
                   >
                     Years
@@ -404,7 +481,7 @@ function TransactionBundleConfigModal(
               className={
                 !transactionBundleConfig.isSponsored
                   ? "text-info"
-                  : topUpStrategy === "single"
+                  : transactionBundleConfig.topUpStrategy === "single"
                   ? "text-primary"
                   : "text-light"
               }
@@ -420,30 +497,42 @@ function TransactionBundleConfigModal(
                   className={`bg-dark ${
                     !transactionBundleConfig.isSponsored
                       ? "border-info"
-                      : topUpStrategy === "single"
+                      : transactionBundleConfig.topUpStrategy === "single"
                       ? "border-primary"
                       : "border-light"
                   } ${
                     !transactionBundleConfig.isSponsored
                       ? "text-info"
-                      : topUpStrategy === "single"
+                      : transactionBundleConfig.topUpStrategy === "single"
                       ? "text-primary"
                       : "text-light"
                   }`}
                   value={
-                    topUpStrategy === "single"
-                      ? topUpSingleDigitsSelection
-                      : "0"
+                    transactionBundleConfig.topUpStrategy === "single"
+                      ? transactionBundleConfig.topUpSingleDigitsSelection
+                      : ""
                   }
                   onChange={(e) => handleTopUpChange(e, "single")}
                   placeholder="0"
+                  onBlur={() => {
+                    if (
+                      !transactionBundleConfig.topUpSingleDigitsSelection ||
+                      transactionBundleConfig.topUpSingleDigitsSelection == 0
+                    ) {
+                      saveTransactionBundleConfig({
+                        ...transactionBundleConfig,
+                        wrapAll: true,
+                        topUpStrategy: "",
+                      });
+                    }
+                  }}
                 />
               </InputGroup>
               <Button
                 variant={
                   !transactionBundleConfig.isSponsored
                     ? "outline-info"
-                    : topUpStrategy === "single"
+                    : transactionBundleConfig.topUpStrategy === "single"
                     ? "outline-primary"
                     : "outline-light"
                 }
@@ -460,18 +549,18 @@ function TransactionBundleConfigModal(
                   className={
                     !transactionBundleConfig.isSponsored
                       ? "text-info"
-                      : topUpStrategy === "single"
+                      : transactionBundleConfig.topUpStrategy === "single"
                       ? "text-primary"
                       : "text-light"
                   }
                 >
-                  {topUpSingleSelection}
+                  {transactionBundleConfig.topUpSingleSelection}
                 </span>
                 <Image
                   src={`${
                     !transactionBundleConfig.isSponsored
                       ? "expand-more-info.svg"
-                      : topUpStrategy === "single"
+                      : transactionBundleConfig.topUpStrategy === "single"
                       ? "expand-more-primary.svg"
                       : "expand-more-light.svg"
                   }`}
@@ -490,7 +579,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpSingleSelection(TopUpDropDownSelection.DAYS)
+                      updateWrapAmount(
+                        "single",
+                        TopUpDropDownSelection.DAYS,
+                        transactionBundleConfig.topUpSingleDigitsSelection
+                      )
                     }
                   >
                     Days
@@ -498,7 +591,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpSingleSelection(TopUpDropDownSelection.WEEKS)
+                      updateWrapAmount(
+                        "single",
+                        TopUpDropDownSelection.WEEKS,
+                        transactionBundleConfig.topUpSingleDigitsSelection
+                      )
                     }
                   >
                     Weeks
@@ -506,7 +603,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpSingleSelection(TopUpDropDownSelection.MONTHS)
+                      updateWrapAmount(
+                        "single",
+                        TopUpDropDownSelection.MONTHS,
+                        transactionBundleConfig.topUpSingleDigitsSelection
+                      )
                     }
                   >
                     Months
@@ -514,7 +615,11 @@ function TransactionBundleConfigModal(
                   <span
                     className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                     onClick={() =>
-                      setTopUpSingleSelection(TopUpDropDownSelection.YEARS)
+                      updateWrapAmount(
+                        "single",
+                        TopUpDropDownSelection.YEARS,
+                        transactionBundleConfig.topUpSingleDigitsSelection
+                      )
                     }
                   >
                     Years
@@ -522,7 +627,12 @@ function TransactionBundleConfigModal(
                 </div>
               )}
             </div>
-            <span style={{ fontSize: "0.7rem" }}>
+            <span
+              className={
+                !transactionBundleConfig.isSponsored ? "text-info" : ""
+              }
+              style={{ fontSize: "0.7rem" }}
+            >
               Note: If you don't have enough ETH for your chosen strategy with a
               proposed transaction, we'll wrap your full balance and show a
               warning.
