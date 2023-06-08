@@ -14,11 +14,7 @@ import { useMediaQuery } from "../../lib/mediaQuery";
 import { useSafe } from "../../lib/safe";
 import { SmartAccount } from "../../pages/index";
 import { truncateEth } from "../../lib/truncate";
-import {
-  NETWORK_ID,
-  MIN_CLAIM_BALANCE,
-  RAMP_HOST_KEY,
-} from "../../lib/constants";
+import { MIN_CLAIM_BALANCE, RAMP_HOST_KEY } from "../../lib/constants";
 
 interface AddFundsModalProps {
   show: boolean;

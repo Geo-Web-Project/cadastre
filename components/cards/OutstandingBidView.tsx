@@ -159,18 +159,9 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
 
     try {
       if (smartAccount?.safe) {
-        const acceptBidData =
-          licenseDiamondContract.interface.encodeFunctionData("acceptBid");
-        const acceptBidTransaction = {
-          to: licenseDiamondContract.address,
-          data: acceptBidData,
-          value: "0",
-        };
+        setInteractionState(STATE.PARCEL_ACCEPTING_BID);
 
-        await relayTransaction([acceptBidTransaction], {
-          isSponsored: true,
-          gasToken: paymentToken.address,
-        });
+        return;
       } else {
         const txn = await licenseDiamondContract.connect(signer).acceptBid();
         await txn.wait();

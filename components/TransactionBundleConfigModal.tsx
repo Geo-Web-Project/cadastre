@@ -1,32 +1,23 @@
 import { useState, useMemo } from "react";
-import { ethers, BigNumber } from "ethers";
-import Safe from "@safe-global/protocol-kit";
-import { useDisconnect } from "wagmi";
-import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
+import { BigNumber } from "ethers";
+import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
+import { sfSubgraph } from "../redux/store";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import ToggleButton from "react-bootstrap/ToggleButton";
-import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import Tooltip from "react-bootstrap/Tooltip";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import DropdownMenu from "react-bootstrap/DropdownMenu";
-import Spinner from "react-bootstrap/Spinner";
 import InfoTooltip from "./InfoTooltip";
 import { useMediaQuery } from "../lib/mediaQuery";
-import { useSafe } from "../lib/safe";
 import { SmartAccount } from "../pages/index";
-import { truncateEth } from "../lib/truncate";
+import { NETWORK_ID, SECONDS_IN_YEAR } from "../lib/constants";
 
 type TransactionBundleConfigModalProps = {
   show: boolean;
   handleClose: () => void;
   smartAccount: SmartAccount;
+  paymentToken: NativeAssetSuperToken;
   transactionBundleConfig: TransactionBundleConfig;
   setTransactionBundleConfig: React.Dispatch<
     React.SetStateAction<TransactionBundleConfig>
@@ -61,6 +52,7 @@ function TransactionBundleConfigModal(
     show,
     handleClose,
     smartAccount,
+    paymentToken,
     transactionBundleConfig,
     setTransactionBundleConfig,
     existingAnnualNetworkFee,
@@ -71,12 +63,21 @@ function TransactionBundleConfigModal(
     useState<boolean>(false);
   const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
     useState<boolean>(false);
-  const [shouldWrapAmountUpdate, setShouldWrapAmuntUpdate] =
-    useState<boolean>(false);
 
-  const { isMobile, isTablet } = useMediaQuery();
+  const { data: accountTokenSnapshot } =
+    sfSubgraph.useAccountTokenSnapshotsQuery({
+      chainId: NETWORK_ID,
+      filter: {
+        account: smartAccount?.address ?? "",
+        token: paymentToken?.address ?? "",
+      },
+    });
+  const { isMobile } = useMediaQuery();
 
-  const handleTopUpChange = (e: React.ChangeEvent<any>, strategy: string) => {
+  const totalNetworkStream =
+    accountTokenSnapshot?.data[0].totalOutflowRate ?? "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleTopUpChange = (e: any, strategy: string) => {
     if (isNaN(e.target.value)) {
       return;
     }
@@ -123,9 +124,17 @@ function TransactionBundleConfigModal(
     }
 
     if (strategy === "total") {
-      const wrapAmount = newAnnualNetworkFee
-        ? newAnnualNetworkFee.div(365).mul(Math.ceil(daysTopUp))
+      const networkFeeDelta = newAnnualNetworkFee
+        ? newAnnualNetworkFee.sub(existingAnnualNetworkFee ?? 0)
         : BigNumber.from(0);
+      const wrapAmount =
+        totalNetworkStream && networkFeeDelta
+          ? BigNumber.from(totalNetworkStream)
+              .mul(SECONDS_IN_YEAR)
+              .add(networkFeeDelta)
+              .div(365)
+              .mul(Math.ceil(daysTopUp))
+          : BigNumber.from(0);
       saveTransactionBundleConfig({
         ...transactionBundleConfig,
         wrapAll: false,
@@ -138,14 +147,7 @@ function TransactionBundleConfigModal(
       });
     } else if (strategy === "single") {
       const wrapAmount =
-        existingAnnualNetworkFee &&
-        newAnnualNetworkFee &&
-        existingAnnualNetworkFee.lt(newAnnualNetworkFee)
-          ? newAnnualNetworkFee
-              .sub(existingAnnualNetworkFee)
-              .div(365)
-              .mul(Math.ceil(daysTopUp))
-          : newAnnualNetworkFee
+        newAnnualNetworkFee && newAnnualNetworkFee.gt(0)
           ? newAnnualNetworkFee.div(365).mul(Math.ceil(daysTopUp))
           : BigNumber.from(0);
       saveTransactionBundleConfig({
@@ -235,7 +237,7 @@ function TransactionBundleConfigModal(
             className="form-check-input"
             type="checkbox"
             style={{ width: 24, height: 24 }}
-            onClick={(e) => {
+            onClick={() => {
               saveTransactionBundleConfig({
                 ...transactionBundleConfig,
                 isSponsored: !transactionBundleConfig.isSponsored,

@@ -156,10 +156,6 @@ function useSafe(safe: Safe | null) {
         await deploySafe({ isRefunded: true });
       }
 
-      const totalValue = metaTxs.reduce(
-        (acc, curr) => acc.add(curr.value),
-        BigNumber.from(0)
-      );
       const multiSendData = encodeMultiSendData(metaTxs);
       const multiSendTransactionData =
         multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
@@ -294,18 +290,16 @@ function useSafe(safe: Safe | null) {
     const isSafeDeployed = await safe.isSafeDeployed();
 
     if (isSafeDeployed) {
-      const safeContract = (safe as any).getContractManager().safeContract
-        ?.contract as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const safeContract =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (safe as any).getContractManager().safeContract?.contract as any;
       const safeAddress = await safe.getAddress();
       const multiSendData = encodeMultiSendData(metaTxs);
       const multiSendTransactionData =
         multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
           multiSendData,
         ]);
-      const totalValue = metaTxs.reduce(
-        (acc, curr) => acc.add(curr.value),
-        BigNumber.from(0)
-      );
       const simulationCalldata = simulateTxAccessorInterface.encodeFunctionData(
         "simulate",
         [

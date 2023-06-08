@@ -74,6 +74,12 @@ function TransactionSummaryView({
     null
   );
   const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
+  const [reducedBuffer, setReducedBuffer] = React.useState<BigNumber | null>(
+    null
+  );
+  const [reducedStream, setReducedStream] = React.useState<BigNumber | null>(
+    null
+  );
   const [
     showTransactionBundleConfigModal,
     setShowTransactionBundleConfigModal,
@@ -105,6 +111,23 @@ function TransactionSummaryView({
 
     run();
   }, [sfFramework, paymentToken, newNetworkFee]);
+
+  React.useEffect(() => {
+    (async () => {
+      if (
+        interactionState === STATE.PARCEL_ACCEPTING_BID &&
+        existingNetworkFee
+      ) {
+        const reducedBuffer = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          existingNetworkFee
+        );
+        setReducedBuffer(reducedBuffer);
+        setReducedStream(existingAnnualNetworkFee);
+      }
+    })();
+  }, [existingNetworkFee]);
 
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 8)
@@ -284,8 +307,15 @@ function TransactionSummaryView({
   );
 
   const transactionBundleFeesEstimateView = (
-    <p className={transactionBundleConfig.isSponsored ? "pt-2" : "pt-0"}>
-      Transaction Cost: ~
+    <p
+      className={
+        transactionBundleConfig.isSponsored &&
+        interactionState !== STATE.PARCEL_ACCEPTING_BID
+          ? "pt-2"
+          : "pt-0"
+      }
+    >
+      Transaction Cost: -
       <InfoTooltip
         content={
           <div className="text-start">
@@ -366,6 +396,88 @@ function TransactionSummaryView({
     </p>
   );
 
+  const salePriceView = (
+    <p className="pt-2">
+      Sale Price:{" "}
+      <InfoTooltip
+        content={<div className="text-start"></div>}
+        target={
+          <span className="text-decoration-underline">
+            {currentForSalePrice
+              ? `${truncateEth(
+                  formatBalance(currentForSalePrice),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const bufferReductionView = (
+    <p>
+      Buffer Reduction:{" "}
+      <InfoTooltip
+        content={<div className="text-start"></div>}
+        target={
+          <span className="text-decoration-underline">
+            {reducedBuffer
+              ? `${truncateEth(
+                  formatBalance(reducedBuffer),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const streamReductionView = (
+    <p>
+      Stream Reduction:{" "}
+      <InfoTooltip
+        content={<div className="text-start"></div>}
+        target={
+          <span className="text-decoration-underline">
+            {reducedStream
+              ? `${truncateEth(
+                  formatBalance(reducedStream),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const netReceivedView = (
+    <p className="border-top pt-2">
+      Net Received:{" "}
+      <InfoTooltip
+        content={<div className="text-start"></div>}
+        target={
+          <span className="text-decoration-underline">
+            {currentForSalePrice &&
+            reducedBuffer &&
+            transactionBundleFeesEstimate
+              ? `${truncateEth(
+                  formatBalance(
+                    currentForSalePrice
+                      .add(reducedBuffer)
+                      .sub(transactionBundleFeesEstimate)
+                  ),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
   return (
     <div>
       <div className="d-flex justify-content-between gap-2">
@@ -383,18 +495,25 @@ function TransactionSummaryView({
               show={showTransactionBundleConfigModal}
               handleClose={() => setShowTransactionBundleConfigModal(false)}
               smartAccount={smartAccount}
+              paymentToken={paymentToken}
               transactionBundleConfig={transactionBundleConfig}
               setTransactionBundleConfig={setTransactionBundleConfig}
               existingAnnualNetworkFee={existingAnnualNetworkFee}
-              newAnnualNetworkFee={newAnnualNetworkFee}
+              newAnnualNetworkFee={
+                interactionState === STATE.PARCEL_ACCEPTING_BID
+                  ? BigNumber.from(0)
+                  : newAnnualNetworkFee
+              }
             />
           </div>
         )}
       </div>
       <>
-        {paymentView}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && salePriceView}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && bufferReductionView}
+        {interactionState !== STATE.PARCEL_ACCEPTING_BID && paymentView}
         {!smartAccount?.safe && streamView}
-        {streamBufferView}
+        {interactionState !== STATE.PARCEL_ACCEPTING_BID && streamBufferView}
         {smartAccount?.safe &&
           interactionState === STATE.PARCEL_EDITING &&
           !transactionBundleConfig.isSponsored &&
@@ -404,6 +523,7 @@ function TransactionSummaryView({
         transactionBundleConfig.isSponsored
           ? transactionBundleFeesEstimateView
           : null}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && netReceivedView}
         {transactionBundleFeesEstimate &&
         transactionBundleFeesEstimate.gt(0) &&
         !transactionBundleConfig.isSponsored &&
@@ -411,6 +531,7 @@ function TransactionSummaryView({
           ? transactionBundleFeesEstimateView
           : null}
         {smartAccount?.safe &&
+        interactionState !== STATE.PARCEL_ACCEPTING_BID &&
         (interactionState !== STATE.PARCEL_EDITING ||
           transactionBundleConfig.isSponsored)
           ? initialTransferView
@@ -419,17 +540,18 @@ function TransactionSummaryView({
           : null}
         {smartAccount?.safe &&
           interactionState !== STATE.PARCEL_EDITING &&
+          interactionState !== STATE.PARCEL_ACCEPTING_BID &&
           streamView}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && streamReductionView}
         {smartAccount?.safe &&
           interactionState === STATE.PARCEL_EDITING &&
           transactionBundleConfig.isSponsored &&
           streamView}
         {transactionBundleFeesEstimate &&
-        transactionBundleFeesEstimate.gt(0) &&
-        !transactionBundleConfig.isSponsored &&
-        interactionState !== STATE.PARCEL_EDITING
-          ? transactionBundleFeesEstimateView
-          : null}
+          transactionBundleFeesEstimate.gt(0) &&
+          !transactionBundleConfig.isSponsored &&
+          interactionState !== STATE.PARCEL_EDITING &&
+          transactionBundleFeesEstimateView}
       </>
     </div>
   );

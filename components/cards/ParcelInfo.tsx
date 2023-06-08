@@ -26,6 +26,7 @@ import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
+import AcceptBidAction from "./AcceptBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
@@ -510,6 +511,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         !isTablet &&
         (interactionState == STATE.PARCEL_EDITING ||
           interactionState == STATE.PARCEL_PLACING_BID ||
+          interactionState == STATE.PARCEL_ACCEPTING_BID ||
           interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY)) ? (
         <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
@@ -637,6 +639,20 @@ function ParcelInfo(props: ParcelInfoProps) {
               {...props}
               signer={signer}
               parcelData={data.geoWebParcel}
+              licenseDiamondContract={licenseDiamondContract}
+            />
+          ) : null}
+          {smartAccount?.safe &&
+          interactionState == STATE.PARCEL_ACCEPTING_BID &&
+          hasOutstandingBid &&
+          outstandingBidForSalePrice &&
+          currentOwnerBidForSalePrice &&
+          !parcelFieldsToUpdate ? (
+            <AcceptBidAction
+              {...props}
+              newForSalePrice={outstandingBidForSalePrice}
+              existingForSalePrice={currentOwnerBidForSalePrice}
+              bidTimestamp={outstandingBidTimestamp ?? null}
               licenseDiamondContract={licenseDiamondContract}
             />
           ) : null}
