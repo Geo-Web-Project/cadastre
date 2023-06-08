@@ -27,6 +27,7 @@ import {
 } from "./constants";
 
 const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
+const MAX_GAS_LIMIT = "15000000";
 
 enum OperationType {
   Call,
@@ -137,7 +138,6 @@ function useSafe(safe: Safe | null) {
 
     const { isSponsored, gasToken } = options;
     const safeAddress = await safe.getAddress();
-    const ethAdapter = await safe.getEthAdapter();
     const isSafeDeployed = await safe.isSafeDeployed();
     let encodedTransactionData = "0x";
     let gasEstimate = "0";
@@ -188,7 +188,7 @@ function useSafe(safe: Safe | null) {
       encodedTransaction: encodedTransactionData,
       chainId: NETWORK_ID,
       options: {
-        gasLimit: Math.floor(Number(gasEstimate) * 1.5).toString(),
+        gasLimit: MAX_GAS_LIMIT,
         isSponsored,
         gasToken: ZERO_ADDRESS,
       },
@@ -329,58 +329,8 @@ function useSafe(safe: Safe | null) {
       gasUsed = simulationResultDecoded[2];
       transactionFeesEstimate = await relayKit.getEstimateFee(
         NETWORK_ID,
-        BigNumber.from(gasUsed).mul(120).div(100).toString()
-      );
-    } else {
-      /*
-      const safeAddress = await safe.getAddress();
-      const safeDeploymentData = await encodeSafeDeploymentData();
-      const safeDeploymentTransaction = {
-        to: proxyFactoryInfo.networkAddresses[NETWORK_ID],
-        value: "0",
-        data: safeDeploymentData,
-      };
-      const gwTransactionsMultiSendData = encodeMultiSendData(metaTxs);
-      const simulationCalldata = simulateTxAccessorInterface.encodeFunctionData(
-        "simulate",
-        [
-          multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
-          BigNumber.from(0),
-          gwTransactionsMultiSendData,
-          OperationType.DelegateCall,
-        ]
-      );
-      const multiSendData = encodeMultiSendData([
-        { from: WETH_ADDRESS, to: safeAddress, data: "0x", value: "10000000000000000" },
-        safeDeploymentTransaction,
-        {
-          to: safeAddress,
-          data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
-            simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
-            simulationCalldata,
-          ]),
-          value: "0",
-        },
-      ]);
-      const encodedTransactionData =
-        multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
-          multiSendData,
-        ]);
-      const simulationResultEncoded = await provider.call({
-        to: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
-        data: encodedTransactionData,
-        value: BigNumber.from(0),
-      });
-      const simulationResultDecoded = defaultAbiCoder.decode(
-        ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
-        simulationResultEncoded
-      );
-      gasUsed = simulationResultDecoded[2];
-      transactionFeesEstimate = await relayKit.getEstimateFee(
-        NETWORK_ID,
         BigNumber.from(gasUsed).toString()
       );
-      */
     }
 
     return { transactionFeesEstimate, gasUsed };
@@ -404,13 +354,12 @@ function useSafe(safe: Safe | null) {
       NETWORK_ID,
       gasLimit.toString()
     );
-    const baseGas = BigNumber.from(estimate).mul(120).div(100);
 
     const safeTransactionData = {
       data: metaTransaction.data,
       to: metaTransaction.to,
       value: metaTransaction.value,
-      baseGas: !isAutoRefunded ? "0" : baseGas.toString(),
+      baseGas: !isAutoRefunded ? "0" : estimate,
       safeTxGas: gasLimit.mul(120).div(100).toString(),
       gasPrice: isAutoRefunded ? "1" : "0",
       gasToken: gasToken ?? ZERO_ADDRESS,
@@ -466,8 +415,6 @@ function useSafe(safe: Safe | null) {
     if (!safe) {
       throw new Error("Safe was not found");
     }
-
-    const ethAdapter = await safe.getEthAdapter();
 
     /* eslint no-constant-condition: ["error", { "checkLoops": false }] */
     while (true) {

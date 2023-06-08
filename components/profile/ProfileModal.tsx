@@ -914,7 +914,8 @@ function ProfileModal(props: ProfileModalProps) {
             </Form>
             {wrappingError ? (
               <span className="d-inline-block text-danger m-0 mt-1 ms-3 text-break">{`Error: ${wrappingError}`}</span>
-            ) : !isOutOfBalanceWrap &&
+            ) : !smartAccount?.safe &&
+              !isOutOfBalanceWrap &&
               wrappingAmount !== "" &&
               Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
               <span className="d-inline-block text-danger m-0 mt-1 ms-3">

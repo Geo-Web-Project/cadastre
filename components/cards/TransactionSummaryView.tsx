@@ -223,7 +223,14 @@ function TransactionSummaryView({
   }
 
   const streamView = (
-    <p>
+    <p
+      className={
+        interactionState === STATE.PARCEL_EDITING &&
+        !transactionBundleConfig.isSponsored
+          ? "mb-2"
+          : ""
+      }
+    >
       Stream:{" "}
       <InfoTooltip
         content={
@@ -278,7 +285,7 @@ function TransactionSummaryView({
 
   const transactionBundleFeesEstimateView = (
     <p className={transactionBundleConfig.isSponsored ? "pt-2" : "pt-0"}>
-      Tx Bundle Gas: ~
+      Transaction Cost: ~
       <InfoTooltip
         content={
           <div className="text-start">
@@ -314,9 +321,35 @@ function TransactionSummaryView({
             {claimPayment && newAnnualNetworkFee && streamBuffer
               ? `${truncateEth(
                   formatBalance(
-                    claimPayment
-                      .add(newAnnualNetworkFee)
-                      .add(streamBuffer)
+                    claimPayment.add(newAnnualNetworkFee).add(streamBuffer)
+                  ),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const initialTransferView = (
+    <p className="border-top pt-2">
+      Initial Transfer:{" "}
+      <InfoTooltip
+        content={
+          <div className="text-start">
+            This is the total ETHx you'll transfer (or have transferred back to
+            you) to complete this transaction. Always make sure you have enough
+            ETHx above this amount to sustain your Network Fee Stream.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {newAnnualNetworkFee && streamBuffer
+              ? `${truncateEth(
+                  formatBalance(
+                    streamBuffer
+                      .add(claimPayment ?? 0)
                       .add(
                         transactionBundleFeesEstimate &&
                           transactionBundleConfig.isSponsored
@@ -360,17 +393,41 @@ function TransactionSummaryView({
       </div>
       <>
         {paymentView}
-        {streamView}
+        {!smartAccount?.safe && streamView}
         {streamBufferView}
+        {smartAccount?.safe &&
+          interactionState === STATE.PARCEL_EDITING &&
+          !transactionBundleConfig.isSponsored &&
+          streamView}
         {transactionBundleFeesEstimate &&
         transactionBundleFeesEstimate.gt(0) &&
         transactionBundleConfig.isSponsored
           ? transactionBundleFeesEstimateView
           : null}
-        {interactionState === STATE.CLAIM_SELECTED ? yearlyTotalView : null}
         {transactionBundleFeesEstimate &&
         transactionBundleFeesEstimate.gt(0) &&
-        !transactionBundleConfig.isSponsored
+        !transactionBundleConfig.isSponsored &&
+        interactionState === STATE.PARCEL_EDITING
+          ? transactionBundleFeesEstimateView
+          : null}
+        {smartAccount?.safe &&
+        (interactionState !== STATE.PARCEL_EDITING ||
+          transactionBundleConfig.isSponsored)
+          ? initialTransferView
+          : interactionState === STATE.CLAIM_SELECTED
+          ? yearlyTotalView
+          : null}
+        {smartAccount?.safe &&
+          interactionState !== STATE.PARCEL_EDITING &&
+          streamView}
+        {smartAccount?.safe &&
+          interactionState === STATE.PARCEL_EDITING &&
+          transactionBundleConfig.isSponsored &&
+          streamView}
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
+        !transactionBundleConfig.isSponsored &&
+        interactionState !== STATE.PARCEL_EDITING
           ? transactionBundleFeesEstimateView
           : null}
       </>

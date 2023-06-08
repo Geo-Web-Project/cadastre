@@ -92,8 +92,15 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         isSponsored: transactionBundleConfig.isSponsored,
         gasToken:
           transactionBundleConfig.isSponsored &&
-          (BigNumber.from(transactionBundleConfig.wrapAmount).eq(0) ||
-            superTokenBalance.gt(transactionBundleFeesEstimate ?? 0))
+          transactionBundleConfig.noWrap &&
+          requiredPayment &&
+          superTokenBalance.lt(
+            requiredPayment.add(transactionBundleFeesEstimate ?? 0)
+          )
+            ? ZERO_ADDRESS
+            : transactionBundleConfig.isSponsored &&
+              (BigNumber.from(transactionBundleConfig.wrapAmount).eq(0) ||
+                superTokenBalance.gt(transactionBundleFeesEstimate ?? 0))
             ? paymentToken.address
             : ZERO_ADDRESS,
       });
@@ -145,7 +152,6 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
 
       let wrap, approveSpending;
       const safeBalance = await smartAccount.safe.getBalance();
-      const yearlyFeeBufferedPayment = requiredPayment.add(requiredFlowAmount);
       const wrapAmount =
         transactionBundleConfig.isSponsored &&
         !transactionBundleConfig.noWrap &&
@@ -161,18 +167,20 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
               .add(requiredPayment ?? 0)
               .toString()
           : "";
+
+      if (
+        transactionBundleConfig.isSponsored &&
+        wrapAmount &&
+        safeBalance.gt(0)
+      ) {
+        wrap = await paymentToken.upgrade({
+          amount: wrapAmount,
+        }).populateTransactionPromise;
+      }
+
       const isPaymentRequired = requiredPayment.gt(0);
 
       if (isPaymentRequired) {
-        if (
-          transactionBundleConfig.isSponsored &&
-          wrapAmount &&
-          safeBalance.gt(0)
-        ) {
-          wrap = await paymentToken.upgrade({
-            amount: wrapAmount,
-          }).populateTransactionPromise;
-        }
         approveSpending = await paymentToken.approve({
           amount: requiredPayment.toString(),
           receiver: spender,

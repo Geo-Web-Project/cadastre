@@ -547,13 +547,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                   {...props}
                   superTokenBalance={superTokenBalance}
                   requiredFlowAmount={annualNetworkFeeRate ?? null}
-                  requiredPayment={
-                    penaltyPayment && newRequiredBuffer && oldRequiredBuffer
-                      ? penaltyPayment
-                          .add(newRequiredBuffer)
-                          .sub(oldRequiredBuffer)
-                      : null
-                  }
+                  requiredPayment={requiredPayment}
                   spender={licenseDiamondContract?.address ?? null}
                   flowOperator={licenseDiamondContract?.address ?? null}
                   setErrorMessage={setErrorMessage}
@@ -664,6 +658,23 @@ function RejectBidAction(props: RejectBidActionProps) {
               transaction. You can add funds and wrap your ETH to ETHx in your
               profile. Alternatively, enable auto-wrapping in Transaction
               Settings.
+            </Alert>
+          ) : transactionBundleConfig.isSponsored &&
+            ((transactionBundleConfig.noWrap &&
+              requiredPayment &&
+              superTokenBalance.lt(
+                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
+              )) ||
+              (BigNumber.from(transactionBundleConfig.wrapAmount).gt(0) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>Gas Sponsoring Notice</Alert.Heading>
+              You have transaction sponsoring enabled, but your current ETHx
+              balance doesn't cover the Initial Transfer shown above. We'll use
+              your ETH balance to directly pay for the Transaction Cost then
+              proceed with your chosen auto-wrapping strategy.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError
