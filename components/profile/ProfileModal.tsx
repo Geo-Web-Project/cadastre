@@ -34,13 +34,25 @@ import type { IPFS } from "ipfs-core-types";
 import { FlowingBalance } from "./FlowingBalance";
 import AddFundsModal from "./AddFundsModal";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
+import InfoTooltip from "../InfoTooltip";
 import CopyTooltip from "../CopyTooltip";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownMenu from "react-bootstrap/DropdownMenu";
+import DropdownItem from "react-bootstrap/DropdownItem";
+import DropdownToggle from "react-bootstrap/DropdownToggle";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import { SmartAccount } from "../../pages/index";
+import TransactionsBundleConfigView from "../TransactionsBundleConfigView";
+import {
+  TransactionsBundleConfig,
+  useTransactionsBundleConfig,
+} from "../../lib/transactionsBundleConfig";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
   RAMP_HOST_KEY,
+  ZERO_ADDRESS,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
@@ -213,6 +225,24 @@ function ProfileModal(props: ProfileModalProps) {
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
   const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
+  const [viewDropDownSelection, setViewDropDownSelection] =
+    useState<string>("Wallet");
+  const [transactionsBundleConfig, setTransactionsBundleConfig] =
+    useState<TransactionsBundleConfig>(
+      localStorage.getItem("transactionsBundleConfig")
+        ? JSON.parse(localStorage.transactionsBundleConfig)
+        : {
+            isSponsored: true,
+            wrapAll: true,
+            noWrap: false,
+            wrapAmount: "0",
+            topUpTotalDigitsSelection: 0,
+            topUpSingleDigitsSelection: 0,
+            topUpTotalSelection: "Days",
+            topUpSingleSelection: "Days",
+            topUpStrategy: "",
+          }
+    );
 
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
 
@@ -228,7 +258,25 @@ function ProfileModal(props: ProfileModalProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
-  const { relayTransaction } = useSafe(smartAccount?.safe ?? null);
+  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+    smartAccount?.safe ?? null
+  );
+  const {
+    showTopUpTotalDropDown,
+    setShowTopUpTotalDropDown,
+    showTopUpSingleDropDown,
+    setShowTopUpSingleDropDown,
+    saveTransactionsBundleConfig,
+    updateWrapAmount,
+    handleTopUpChange,
+  } = useTransactionsBundleConfig(
+    smartAccount,
+    transactionsBundleConfig,
+    setTransactionsBundleConfig,
+    paymentToken,
+    BigNumber.from(0),
+    BigNumber.from(0)
+  );
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -534,7 +582,6 @@ function ProfileModal(props: ProfileModalProps) {
       symbol: PAYMENT_TOKEN,
       decimals: 18,
       image: "",
-      size: "small",
     }),
     [paymentToken.address]
   );
@@ -549,9 +596,9 @@ function ProfileModal(props: ProfileModalProps) {
     amount: string,
     action: SuperTokenAction
   ): Promise<void> => {
-    const weiAmount = ethers.utils.parseEther(amount).toString();
     let transactionData;
     let gasToken;
+    const weiAmount = ethers.utils.parseEther(amount).toString();
 
     try {
       if (action === SuperTokenAction.WRAP) {
@@ -594,9 +641,20 @@ function ProfileModal(props: ProfileModalProps) {
       }
 
       if (smartAccount?.safe) {
+        const { transactionFeesEstimate } =
+          await estimateTransactionsBundleFees([transactionData]);
         await relayTransaction([transactionData], {
-          isSponsored: true,
-          gasToken,
+          isSponsored: transactionsBundleConfig.isSponsored,
+          gasToken:
+            transactionsBundleConfig.isSponsored &&
+            transactionsBundleConfig.noWrap &&
+            superTokenBalance.lt(transactionFeesEstimate ?? 0)
+              ? ZERO_ADDRESS
+              : transactionsBundleConfig.isSponsored &&
+                (BigNumber.from(transactionsBundleConfig.wrapAmount).eq(0) ||
+                  superTokenBalance.gt(transactionFeesEstimate ?? 0))
+              ? paymentToken.address
+              : ZERO_ADDRESS,
         });
       } else {
         const tx = await signer.sendTransaction(transactionData);
@@ -624,7 +682,9 @@ function ProfileModal(props: ProfileModalProps) {
         (err as any)?.code !== "TRANSACTION_REPLACED" ||
         (err as any).cancelled
       ) {
-        const message = (err as any).reason
+        const message = (err as any).message.includes("GS012")
+          ? "Not enough ETHx to complete the transaction. Turn off Transaction Sponsoring or unwrap less."
+          : (err as any).reason
           ? (err as any).reason
               .replace("execution reverted: ", "")
               .replace(/([^.])$/, "$1.")
@@ -749,23 +809,31 @@ function ProfileModal(props: ProfileModalProps) {
         setWrappingError("");
         setUnwrappingError("");
       }}
+      onClick={() => {
+        setShowTopUpTotalDropDown(false);
+        setShowTopUpSingleDropDown(false);
+      }}
       size="xl"
       contentClassName="bg-dark"
     >
-      <Modal.Header className="bg-dark border-0">
+      <Modal.Header className="bg-dark border-0 pb-0">
         <Container className="ps-1 pe-0">
           <Row>
             <Col
-              className="px-0 px-sm-2 text-light fs-1 d-flex align-items-center"
-              xs="9"
-              lg="10"
+              className="px-0 ps-lg-2 text-light fs-1 d-flex align-items-center"
+              xs="6"
+              lg="4"
+              xl="3"
             >
-              <span className="d-none d-sm-block">
-                {truncateStr(accountAddress, 14)}
+              <span>
+                {truncateStr(accountAddress, 13)}
               </span>
-              <span className="fs-1 d-sm-none">
-                {truncateStr(accountAddress, 12)}
-              </span>
+            </Col>
+            <Col
+              xs="5"
+              lg={smartAccount?.safe ? "2" : "2"}
+              className="p-0 text-end d-flex justify-content-start align-items-center gap-2"
+            >
               <CopyTooltip
                 contentClick="Address Copied"
                 contentHover="Copy Address"
@@ -774,20 +842,83 @@ function ProfileModal(props: ProfileModalProps) {
                     src="copy-light.svg"
                     alt="copy"
                     width={isMobile ? 28 : 34}
-                    className="ms-1 ms-lg-2"
                   />
                 }
                 handleCopy={() => navigator.clipboard.writeText(accountAddress)}
               />
+              {smartAccount?.safe && (
+                <InfoTooltip
+                  position={{ top: true }}
+                  content={
+                    <span style={{ textAlign: "left" }}>Open Safe Wallet</span>
+                  }
+                  target={
+                    <Button
+                      variant="link"
+                      href={`https://
+                    https://app.safe.global/home?safe=oeth:${accountAddress}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="px-1 py-0 shadow-none"
+                    >
+                      <Image
+                        src="wallet.svg"
+                        alt="open safe wallet"
+                        width={isMobile ? 32 : 36}
+                      />
+                    </Button>
+                  }
+                />
+              )}
+              <InfoTooltip
+                position={{ top: true }}
+                content={
+                  <span style={{ textAlign: "left" }}>Open in Etherscan</span>
+                }
+                target={
+                  <Button
+                    variant="link"
+                    href={`https://${
+                      process.env.NEXT_PUBLIC_APP_ENV === "mainnet"
+                        ? "optimistic"
+                        : "goerli-optimism"
+                    }.etherscan.io/address/${accountAddress}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="px-0 py-0 shadow-none"
+                  >
+                    <Image
+                      src="open-new-tab.svg"
+                      alt="open in Etherscan"
+                      width={isMobile ? 30 : 36}
+                    />
+                  </Button>
+                }
+              />
+            </Col>
+            <Col xs="2" className="d-lg-none position-absolute end-0 pe-0">
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => handleCloseProfile()}
+                className="p-0 ms-2"
+              >
+                <Image width={isMobile ? 28 : 36} src="close.svg" />
+              </Button>
+            </Col>
+            <Col xs="5" lg="2" className="d-flex align-items-center p-0 mt-2 mb-3 my-lg-0">
               <Button
                 onClick={deactivateProfile}
                 variant="info"
-                className="ms-2 ms-lg-4 p-1 px-lg-3 py-lg-2"
+                className="p-1 px-lg-3 py-lg-2"
               >
                 Disconnect
               </Button>
             </Col>
-            <Col xs="3" lg="2" className="p-0 text-end align-self-start">
+            <Col
+              lg="1"
+              className="d-none d-lg-flex justify-content-end position-absolute end-0"
+            >
               <Button
                 variant="link"
                 size="sm"
@@ -800,384 +931,475 @@ function ProfileModal(props: ProfileModalProps) {
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="px-1 px-lg-3 bg-dark text-light text-start">
-        <Row>
-          <Col className="d-inline-flex mx-2 fs-6 h-100">
-            {!isMobile &&
-              !isTablet &&
-              accountTokenSnapshot &&
-              accountTokenSnapshot.totalNumberOfActiveStreams > 0 && (
-                <Image
-                  src="notice.svg"
-                  width={20}
-                  className="flex-start me-2"
-                />
-              )}
-            {!accountTokenSnapshot ||
-            accountTokenSnapshot.totalNumberOfActiveStreams ===
-              0 ? null : accountTokenSnapshot.maybeCriticalAtTimestamp &&
-              Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
-                Date.now() / 1000 ? (
-              <p className="mb-0" style={{ fontSize: "0.9rem" }}>
-                <span>{isMobile ? "Your " : "At the current rate, your "}</span>
-                {PAYMENT_TOKEN} balance will reach 0 on{" "}
-                {dayjs
-                  .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
-                  .format(
-                    `MMM D, YYYY ${!isMobile && !isTablet ? "HH:MM z" : ""}`
-                  )}
-              </p>
-            ) : (
-              <span
-                style={{ fontSize: isMobile || isTablet ? "0.9rem" : "1rem" }}
-              >
-                Your ETHx balance is 0. Any Geo Web parcels you previously
-                licensed have been put in foreclosure.
-              </span>
-            )}
-          </Col>
-        </Row>
-        <Row className="mt-3 align-items-start">
-          <Col
-            className="p-2 p-lg-3 ms-3 fs-6 border border-purple rounded"
-            xs="5"
-            lg="4"
-            xl="3"
-          >
-            <span className="ms-sm-3">{`ETH: ${truncateEth(
-              ETHBalance,
-              isMobile ? 6 : 8
-            )}`}</span>
-            <Form
-              id="wrapForm"
-              className="form-inline mt-1 px-0 px-sm-3"
-              noValidate
-              onSubmit={(e) =>
-                handleSubmit(e, wrappingAmount, SuperTokenAction.WRAP)
-              }
+      <Modal.Body className="px-1 px-lg-3 py-0 bg-dark text-light text-start">
+        <Row className="mb-2 px-1 py-2">
+          <Dropdown>
+            <DropdownToggle
+              variant="outline-secondary"
+              className={`${
+                isMobile ? "w-50" : "w-25"
+              } d-flex justify-content-between align-items-center shadow-none`}
             >
-              <Button
-                variant="gray"
-                size="sm"
-                className="d-flex justify-content-center gap-1 w-100 mb-2 fs-6 rounded-2"
-                onClick={() => {
-                  const rampWidget = new RampInstantSDK({
-                    hostAppName: "Geo Web Cadastre",
-                    hostLogoUrl:
-                      "https://assets.ramp.network/misc/test-logo.png",
-                    hostApiKey: RAMP_HOST_KEY,
-                    variant: isMobile ? "mobile" : "desktop",
-                    defaultAsset: "OPTIMISM_ETH",
-                    url: "https://app.demo.ramp.network",
-                    userAddress: accountAddress ?? "",
-                    fiatCurrency: "USD",
-                    fiatValue: "20",
-                  });
-                  rampWidget.show();
-                  if (rampWidget.domNodes?.overlay) {
-                    rampWidget.domNodes.overlay.style.zIndex = "10000";
+              <span className="fs-3 m-auto ms-0">{viewDropDownSelection}</span>
+            </DropdownToggle>
+            <DropdownMenu className="position-absolute top-0 mt-5 ms-2">
+              <DropdownItem onClick={() => setViewDropDownSelection("Wallet")}>
+                Wallet
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => setViewDropDownSelection("Portfolio")}
+              >
+                Portfolio
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </Row>
+        {viewDropDownSelection === "Wallet" ? (
+          <>
+            <Row>
+              <Col className="d-inline-flex mb-2 mx-2 fs-6 h-100">
+                {!isMobile &&
+                  !isTablet &&
+                  accountTokenSnapshot &&
+                  accountTokenSnapshot.totalNumberOfActiveStreams > 0 && (
+                    <Image
+                      src="notice.svg"
+                      width={20}
+                      className="flex-start me-2"
+                    />
+                  )}
+                {!accountTokenSnapshot ||
+                accountTokenSnapshot.totalNumberOfActiveStreams ===
+                  0 ? null : accountTokenSnapshot.maybeCriticalAtTimestamp &&
+                  Number(accountTokenSnapshot.maybeCriticalAtTimestamp) >
+                    Date.now() / 1000 ? (
+                  <p className="mb-0" style={{ fontSize: "0.9rem" }}>
+                    <span>
+                      {isMobile ? "Your " : "At the current rate, your "}
+                    </span>
+                    {PAYMENT_TOKEN} balance will reach 0 on{" "}
+                    {dayjs
+                      .unix(accountTokenSnapshot.maybeCriticalAtTimestamp)
+                      .format(
+                        `MMM D, YYYY ${!isMobile && !isTablet ? "HH:MM z" : ""}`
+                      )}
+                  </p>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: isMobile || isTablet ? "0.9rem" : "1rem",
+                    }}
+                  >
+                    Your ETHx balance is 0. Any Geo Web parcels you previously
+                    licensed have been put in foreclosure.
+                  </span>
+                )}
+              </Col>
+            </Row>
+            <Row className="align-items-start mb-4">
+              <Col
+                className="p-2 p-lg-3 ms-3 fs-6 border border-purple rounded"
+                xs="5"
+                lg="4"
+                xl="3"
+              >
+                <span className="ms-sm-3">{`ETH: ${truncateEth(
+                  ETHBalance,
+                  isMobile ? 4 : 8
+                )}`}</span>
+                <Form
+                  id="wrapForm"
+                  className="form-inline mt-1 px-0 px-sm-3"
+                  noValidate
+                  onSubmit={(e) =>
+                    handleSubmit(e, wrappingAmount, SuperTokenAction.WRAP)
                   }
-                }}
+                >
+                  <Form.Control
+                    required
+                    type="text"
+                    className="mb-2 rounded-2"
+                    placeholder="0.00"
+                    size="sm"
+                    value={wrappingAmount}
+                    onChange={(e) => {
+                      setWrappingAmount(e.target.value);
+                      setWrappingError("");
+                    }}
+                  />
+                  <Button
+                    variant={isOutOfBalanceWrap ? "info" : "secondary"}
+                    type="submit"
+                    disabled={isWrapping || isOutOfBalanceWrap}
+                    size="sm"
+                    className="w-100 rounded-2"
+                  >
+                    {isWrapping
+                      ? "Wrapping..."
+                      : isOutOfBalanceWrap
+                      ? "Insufficient ETH"
+                      : "Wrap"}
+                  </Button>
+                  <Button
+                    variant="gray"
+                    size="sm"
+                    className="d-flex justify-content-center gap-1 w-100 mt-2 fs-6 rounded-2"
+                    style={{ marginBottom: 7 }}
+                    onClick={() => {
+                      const rampWidget = new RampInstantSDK({
+                        hostAppName: "Geo Web Cadastre",
+                        hostLogoUrl:
+                          "https://assets.ramp.network/misc/test-logo.png",
+                        hostApiKey: RAMP_HOST_KEY,
+                        variant: isMobile ? "mobile" : "desktop",
+                        defaultAsset: "OPTIMISM_ETH",
+                        url: "https://app.demo.ramp.network",
+                        userAddress: accountAddress ?? "",
+                        fiatCurrency: "USD",
+                        fiatValue: "20",
+                      });
+                      rampWidget.show();
+                      if (rampWidget.domNodes?.overlay) {
+                        rampWidget.domNodes.overlay.style.zIndex = "10000";
+                      }
+                    }}
+                  >
+                    <Image
+                      src="credit-card-dark.svg"
+                      alt="credit card"
+                      width={22}
+                    />
+                    <span className="text-black">Buy ETH</span>
+                  </Button>
+                </Form>
+                {wrappingError ? (
+                  <span className="d-inline-block text-danger m-0 mt-1 ms-3 text-break">{`Error: ${wrappingError}`}</span>
+                ) : !smartAccount?.safe &&
+                  !isOutOfBalanceWrap &&
+                  wrappingAmount !== "" &&
+                  Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
+                  <span className="d-inline-block text-danger m-0 mt-1 ms-3">
+                    Warning: Leave enough ETH for more transactions
+                  </span>
+                ) : null}
+              </Col>
+              <Col
+                xs="1"
+                sm="1"
+                className="p-0 mt-auto mb-auto d-flex justify-content-center"
               >
-                <Image
-                  src="credit-card-dark.svg"
-                  alt="credit card"
-                  width={22}
-                />
-                <span className="text-black">Buy Crypto</span>
-              </Button>
-              <Form.Control
-                required
-                type="text"
-                className="mb-2 rounded-2"
-                placeholder="0.00"
-                size="sm"
-                value={wrappingAmount}
-                onChange={(e) => {
-                  setWrappingAmount(e.target.value);
-                  setWrappingError("");
-                }}
-              />
-              <Button
-                variant={isOutOfBalanceWrap ? "info" : "secondary"}
-                type="submit"
-                disabled={isWrapping || isOutOfBalanceWrap}
-                size="sm"
-                className="w-100 rounded-2"
+                <Image src="exchange.svg" width={isMobile ? 36 : 64} />
+              </Col>
+              <Col
+                className="p-2 p-lg-3 fs-6 border border-purple rounded"
+                xs="5"
+                lg="4"
+                xl="3"
               >
-                {isWrapping
-                  ? "Wrapping..."
-                  : isOutOfBalanceWrap
-                  ? "Insufficient ETH"
-                  : "Wrap"}
-              </Button>
-            </Form>
-            {wrappingError ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3 text-break">{`Error: ${wrappingError}`}</span>
-            ) : !smartAccount?.safe &&
-              !isOutOfBalanceWrap &&
-              wrappingAmount !== "" &&
-              Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">
-                Warning: Leave enough ETH for more transactions
-              </span>
-            ) : null}
-          </Col>
-          <Col
-            xs="1"
-            sm="1"
-            className="p-0 mt-auto mb-auto d-flex justify-content-center"
-          >
-            <Image src="exchange.svg" width={isMobile ? 36 : 64} />
-          </Col>
-          <Col
-            className="p-2 p-lg-3 fs-6 border border-purple rounded"
-            xs="5"
-            lg="4"
-            xl="3"
-          >
-            <div className="ms-0 ms-sm-3">
-              {`${PAYMENT_TOKEN}: `}
-              <FlowingBalance
-                format={(x) =>
-                  truncateEth(ethers.utils.formatUnits(x), isMobile ? 6 : 8)
-                }
-                accountTokenSnapshot={accountTokenSnapshot}
-              />
-            </div>
-            <div
-              style={{
-                maxWidth: "220px",
-                height: "auto",
-                margin: isMobile
-                  ? "8px 0px 8px 0px"
-                  : isTablet
-                  ? "4px 15px 8px 16px"
-                  : "4px 15px 8px 15px",
-              }}
-            >
-              <CopyTokenAddress options={tokenOptions} />
-            </div>
-            <Form
-              noValidate
-              onSubmit={(e) =>
-                handleSubmit(e, unwrappingAmount, SuperTokenAction.UNWRAP)
-              }
-              className="form-inline px-0 px-sm-3"
-            >
-              <Form.Control
-                required
-                type="text"
-                className="mb-2 rounded-2"
-                placeholder="0.00"
-                size="sm"
-                value={unwrappingAmount}
-                onChange={(e) => {
-                  setUnwrappingAmount(e.target.value);
-                  setUnwrappingError("");
-                }}
-              />
-              <Button
-                variant={isOutOfBalanceUnwrap ? "info" : "primary"}
-                type="submit"
-                disabled={isUnWrapping || isOutOfBalanceUnwrap}
-                size="sm"
-                className="w-100 text-break rounded-2"
-              >
-                {isUnWrapping
-                  ? "Unwrapping..."
-                  : isOutOfBalanceUnwrap
-                  ? `Insufficient ${PAYMENT_TOKEN}`
-                  : "Unwrap"}
-              </Button>
-            </Form>
-            {unwrappingError && (
-              <span className="d-inline-block text-danger m-0 mt-1 ms-3">{`Error: ${unwrappingError}`}</span>
+                <div className="d-flex align-items-center gap-1 gap-sm-2 ms-0 ms-sm-3">
+                  <div>
+                    {`${PAYMENT_TOKEN}: `}
+                    <FlowingBalance
+                      format={(x) =>
+                        truncateEth(
+                          ethers.utils.formatUnits(x),
+                          isMobile ? 4 : isTablet ? 6 : 8
+                        )
+                      }
+                      accountTokenSnapshot={accountTokenSnapshot}
+                    />
+                  </div>
+                  <div className="d-flex align-items-center gap-1">
+                    <CopyTokenAddress options={tokenOptions} size="s" />
+                  </div>
+                </div>
+                <Form
+                  noValidate
+                  onSubmit={(e) =>
+                    handleSubmit(e, unwrappingAmount, SuperTokenAction.UNWRAP)
+                  }
+                  className="form-inline px-0 px-sm-3 mt-1"
+                >
+                  <Form.Control
+                    required
+                    type="text"
+                    className="mb-2 rounded-2"
+                    placeholder="0.00"
+                    size="sm"
+                    value={unwrappingAmount}
+                    onChange={(e) => {
+                      setUnwrappingAmount(e.target.value);
+                      setUnwrappingError("");
+                    }}
+                  />
+                  <Button
+                    variant={isOutOfBalanceUnwrap ? "info" : "primary"}
+                    type="submit"
+                    disabled={isUnWrapping || isOutOfBalanceUnwrap}
+                    size="sm"
+                    className={`w-100 text-break rounded-2 ${
+                      !unwrappingError ? "mb-5" : "mb-2"
+                    }`}
+                  >
+                    {isUnWrapping
+                      ? "Unwrapping..."
+                      : isOutOfBalanceUnwrap
+                      ? `Insufficient ${PAYMENT_TOKEN}`
+                      : "Unwrap"}
+                  </Button>
+                </Form>
+                {unwrappingError && (
+                  <span className="d-inline-block text-danger m-0 ms-3">{`Error: ${unwrappingError}`}</span>
+                )}
+              </Col>
+            </Row>
+            {smartAccount?.safe && (
+              <>
+                <Row className="fw-bold mt-3 mb-3 ps-2 fs-2">
+                  <Col className="d-flex align-items-center gap-3" xs="12">
+                    <span>ETH:ETHx Settings</span>
+                    <InfoTooltip
+                      position={{ top: true }}
+                      content={
+                        <div style={{ textAlign: "left" }}>
+                          Optimism transaction fees (aka gas) are paid in ETH,
+                          but all Geo Web land transactions are denominated in
+                          ETHx. <br />
+                          <br />
+                          Safe smart accounts allow us to sponsor your
+                          transaction bundle's gas with ETH and then get
+                          refunded by you with ETHx.
+                          <br />
+                          <br />
+                          This means you can (optionally) keep all your account
+                          funds in the form ETHx.
+                          <br />
+                          <br />
+                          Otherwise, set how much ETH you want to wrap to ETHx
+                          with each transaction.
+                        </div>
+                      }
+                      target={
+                        <Image
+                          src="info.svg"
+                          alt="info"
+                          width={28}
+                          className="mb-1"
+                        />
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Row
+                  className={`${
+                    isMobile || isTablet ? "w-100" : "w-75"
+                  } pe-2 mb-3 mb-lg-5 ms-1`}
+                >
+                  <TransactionsBundleConfigView
+                    direction="row"
+                    transactionsBundleConfig={transactionsBundleConfig}
+                    showTopUpTotalDropDown={showTopUpTotalDropDown}
+                    setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
+                    showTopUpSingleDropDown={showTopUpSingleDropDown}
+                    setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
+                    updateWrapAmount={updateWrapAmount}
+                    saveTransactionsBundleConfig={saveTransactionsBundleConfig}
+                    handleTopUpChange={handleTopUpChange}
+                  />
+                </Row>
+              </>
             )}
-          </Col>
-        </Row>
-        <Row className="mt-3 ps-3 fs-1">Portfolio</Row>
-        <Row className="scrollable-table">
-          {!portfolio || !portfolioTotal ? (
-            <span className="d-flex justify-content-center fs-4 my-4 py-4">
-              <Spinner animation="border" role="status"></Spinner>
-            </span>
-          ) : portfolio.length > 0 ? (
-            <Table
-              bordered
-              className="m-3 text-light border border-purple flex-shrink-1"
-            >
-              <thead>
-                <tr className="cursor-pointer">
-                  {!isMobile && !isTablet && (
-                    <>
-                      <th
-                        onClick={() =>
-                          setPortfolio(sortPortfolio(portfolio, "parcelId"))
-                        }
-                      >
-                        Parcel ID
-                      </th>
-                      <th
-                        onClick={() =>
-                          setPortfolio(sortPortfolio(portfolio, "status"))
-                        }
-                      >
-                        Status
-                      </th>
-                      <th
-                        onClick={() =>
-                          setPortfolio(sortPortfolio(portfolio, "actionDate"))
-                        }
-                      >
-                        Action Date
-                      </th>
-                    </>
-                  )}
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "name"))
-                    }
-                  >
-                    Name
-                  </th>
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "price"))
-                    }
-                  >
-                    Price
-                  </th>
-                  {!isMobile && !isTablet && (
-                    <>
-                      <th
-                        onClick={() =>
-                          setPortfolio(sortPortfolio(portfolio, "fee"))
-                        }
-                      >
-                        Fee/Yr
-                      </th>
-                      <th
-                        onClick={() =>
-                          setPortfolio(sortPortfolio(portfolio, "buffer"))
-                        }
-                      >
-                        Buffer Deposit
-                      </th>
-                    </>
-                  )}
-                  <th
-                    onClick={() =>
-                      setPortfolio(sortPortfolio(portfolio, "action"))
-                    }
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody style={{ maxHeight: 260 }}>
-                {portfolio.map((parcel, i) => {
-                  return (
-                    <tr key={i}>
+          </>
+        ) : (
+          <>
+            <Row className="scrollable-table">
+              {!portfolio || !portfolioTotal ? (
+                <span className="d-flex justify-content-center fs-4 my-4 py-4">
+                  <Spinner animation="border" role="status"></Spinner>
+                </span>
+              ) : portfolio.length > 0 ? (
+                <Table
+                  bordered
+                  className="m-3 text-light border border-purple flex-shrink-1"
+                >
+                  <thead>
+                    <tr className="cursor-pointer">
                       {!isMobile && !isTablet && (
                         <>
-                          <td>{parcel.parcelId}</td>
-                          <td
-                            className={
-                              parcel.status === "Valid" ||
-                              parcel.status === "Outgoing Bid"
-                                ? ""
-                                : "text-danger"
+                          <th
+                            onClick={() =>
+                              setPortfolio(sortPortfolio(portfolio, "parcelId"))
                             }
                           >
-                            {parcel.status}
-                          </td>
-                          <td
-                            className={
-                              parcel.status === "Valid" ||
-                              parcel.status === "Outgoing Bid"
-                                ? ""
-                                : "text-danger"
+                            Parcel ID
+                          </th>
+                          <th
+                            onClick={() =>
+                              setPortfolio(sortPortfolio(portfolio, "status"))
                             }
                           >
-                            {parcel.actionDate}
-                          </td>
+                            Status
+                          </th>
+                          <th
+                            onClick={() =>
+                              setPortfolio(
+                                sortPortfolio(portfolio, "actionDate")
+                              )
+                            }
+                          >
+                            Action Date
+                          </th>
                         </>
                       )}
-                      <td>{parcel.name}</td>
-                      <td>
-                        {truncateEth(ethers.utils.formatEther(parcel.price), 8)}
-                      </td>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "name"))
+                        }
+                      >
+                        Name
+                      </th>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "price"))
+                        }
+                      >
+                        Price
+                      </th>
                       {!isMobile && !isTablet && (
                         <>
-                          <td>
-                            {parcel.action === PortfolioAction.RECLAIM
-                              ? ""
-                              : truncateEth(
-                                  ethers.utils.formatEther(parcel.fee),
-                                  8
-                                )}
-                          </td>
-                          <td>
-                            {parcel.action === PortfolioAction.RECLAIM
-                              ? ""
-                              : truncateEth(
-                                  ethers.utils.formatEther(parcel.buffer),
-                                  8
-                                )}
-                          </td>
+                          <th
+                            onClick={() =>
+                              setPortfolio(sortPortfolio(portfolio, "fee"))
+                            }
+                          >
+                            Fee/Yr
+                          </th>
+                          <th
+                            onClick={() =>
+                              setPortfolio(sortPortfolio(portfolio, "buffer"))
+                            }
+                          >
+                            Buffer Deposit
+                          </th>
                         </>
                       )}
-                      <td>
-                        <Button
-                          variant={
-                            parcel.action === PortfolioAction.VIEW
-                              ? "primary"
-                              : "danger"
-                          }
-                          className="w-100"
-                          onClick={() => handlePortfolioAction(parcel)}
-                        >
-                          {parcel.action}
-                        </Button>
-                      </td>
+                      <th
+                        onClick={() =>
+                          setPortfolio(sortPortfolio(portfolio, "action"))
+                        }
+                      >
+                        Action
+                      </th>
                     </tr>
-                  );
-                })}
-                <tr>
-                  <td colSpan={isMobile || isTablet ? 0 : 4}>Total</td>
-                  <td>
-                    {truncateEth(
-                      ethers.utils.formatEther(portfolioTotal.price),
-                      8
-                    )}
-                  </td>
-                  {!isMobile && !isTablet && (
-                    <>
+                  </thead>
+                  <tbody style={{ maxHeight: 400 }}>
+                    {portfolio.map((parcel, i) => {
+                      return (
+                        <tr key={i}>
+                          {!isMobile && !isTablet && (
+                            <>
+                              <td>{parcel.parcelId}</td>
+                              <td
+                                className={
+                                  parcel.status === "Valid" ||
+                                  parcel.status === "Outgoing Bid"
+                                    ? ""
+                                    : "text-danger"
+                                }
+                              >
+                                {parcel.status}
+                              </td>
+                              <td
+                                className={
+                                  parcel.status === "Valid" ||
+                                  parcel.status === "Outgoing Bid"
+                                    ? ""
+                                    : "text-danger"
+                                }
+                              >
+                                {parcel.actionDate}
+                              </td>
+                            </>
+                          )}
+                          <td>{parcel.name}</td>
+                          <td>
+                            {truncateEth(
+                              ethers.utils.formatEther(parcel.price),
+                              8
+                            )}
+                          </td>
+                          {!isMobile && !isTablet && (
+                            <>
+                              <td>
+                                {parcel.action === PortfolioAction.RECLAIM
+                                  ? ""
+                                  : truncateEth(
+                                      ethers.utils.formatEther(parcel.fee),
+                                      8
+                                    )}
+                              </td>
+                              <td>
+                                {parcel.action === PortfolioAction.RECLAIM
+                                  ? ""
+                                  : truncateEth(
+                                      ethers.utils.formatEther(parcel.buffer),
+                                      8
+                                    )}
+                              </td>
+                            </>
+                          )}
+                          <td>
+                            <Button
+                              variant={
+                                parcel.action === PortfolioAction.VIEW
+                                  ? "primary"
+                                  : "danger"
+                              }
+                              className="w-100"
+                              onClick={() => handlePortfolioAction(parcel)}
+                            >
+                              {parcel.action}
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr>
+                      <td colSpan={isMobile || isTablet ? 0 : 4}>Total</td>
                       <td>
                         {truncateEth(
-                          ethers.utils.formatEther(portfolioTotal.fee),
+                          ethers.utils.formatEther(portfolioTotal.price),
                           8
                         )}
                       </td>
-                      <td>
-                        {truncateEth(
-                          ethers.utils.formatEther(portfolioTotal.buffer),
-                          8
-                        )}
-                      </td>
-                    </>
-                  )}
-                  <td></td>
-                </tr>
-              </tbody>
-            </Table>
-          ) : (
-            <span className="d-flex justify-content-center fs-4 my-4 py-4">
-              No parcels or bids yet...
-            </span>
-          )}
-        </Row>
+                      {!isMobile && !isTablet && (
+                        <>
+                          <td>
+                            {truncateEth(
+                              ethers.utils.formatEther(portfolioTotal.fee),
+                              8
+                            )}
+                          </td>
+                          <td>
+                            {truncateEth(
+                              ethers.utils.formatEther(portfolioTotal.buffer),
+                              8
+                            )}
+                          </td>
+                        </>
+                      )}
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              ) : (
+                <span className="d-flex justify-content-center fs-4 my-4 py-4">
+                  No parcels or bids yet...
+                </span>
+              )}
+            </Row>
+          </>
+        )}
       </Modal.Body>
     </Modal>
   );

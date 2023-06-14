@@ -150,6 +150,7 @@ function AddFundsModal(props: AddFundsModalProps) {
             >
               <div className="d-flex justify-content-end pt-1 pt-lg-2 pe-2 pe-lg-0 me-2 mt-lg-0">
                 <InfoTooltip
+                  position={{ top: true }}
                   content={<span>Disconnect from account</span>}
                   target={
                     <Image

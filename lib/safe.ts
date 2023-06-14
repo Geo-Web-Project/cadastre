@@ -73,10 +73,10 @@ function useSafe(safe: Safe | null) {
 
     let safeRefundTransaction;
     const { isRefunded } = options;
-    const metaTxs = [];
     const safeAddress = await safe.getAddress();
     const safeDeploymentData = await encodeSafeDeploymentData();
     const { gasEstimate, transactionFeesEstimate } = await calcDeploymentFees();
+    const metaTxs = [];
     const safeDeploymentTransaction = {
       to: proxyFactoryInfo.networkAddresses[NETWORK_ID],
       value: "0",
@@ -101,6 +101,7 @@ function useSafe(safe: Safe | null) {
       };
       metaTxs.push(safeRefundTransaction);
     }
+
     const multiSendData = encodeMultiSendData(metaTxs);
     const encodedTransactionData =
       multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
@@ -143,17 +144,70 @@ function useSafe(safe: Safe | null) {
     let gasEstimate = "0";
 
     if (metaTxs.length === 1) {
-      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+      const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(metaTxs[0], {
         gasLimit: BigNumber.from(gasUsed),
         isAutoRefunded: true,
         gasToken: gasToken ?? ZERO_ADDRESS,
-        isSponsored: true,
+        isSponsored,
       });
     } else {
       if (!isSafeDeployed) {
-        await deploySafe({ isRefunded: true });
+        const txs = [];
+        const safeDeploymentData = await encodeSafeDeploymentData();
+        const safeDeploymentTransaction = {
+          to: proxyFactoryInfo.networkAddresses[NETWORK_ID],
+          value: "0",
+          data: safeDeploymentData,
+        };
+        txs.push(safeDeploymentTransaction);
+
+        const safeMultiSendData = encodeMultiSendData(metaTxs);
+        const safeMultiSendTransactionData =
+          multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
+            safeMultiSendData,
+          ]);
+        const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
+        const safeTransactionData = await encodeExecTransactionData(
+          {
+            to: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
+            value: "0",
+            data: safeMultiSendTransactionData,
+            operation: OperationType.DelegateCall,
+          },
+          {
+            gasLimit: BigNumber.from(gasUsed),
+            isAutoRefunded: true,
+            gasToken: gasToken ?? ZERO_ADDRESS,
+            isSponsored: true,
+          }
+        );
+        txs.push({
+          to: safeAddress,
+          data: safeTransactionData,
+          value: "0",
+        });
+
+        const multiSendData = encodeMultiSendData(txs);
+        const encodedTransactionData =
+          multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
+            multiSendData,
+          ]);
+
+        const res = await relayKit.relayTransaction({
+          target: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
+          encodedTransaction: encodedTransactionData,
+          chainId: NETWORK_ID,
+          options: {
+            gasLimit: MAX_GAS_LIMIT,
+            isSponsored: true,
+            gasToken: ZERO_ADDRESS,
+          },
+        });
+        const receipt = await waitRelayedTxConfirmation(res.taskId);
+
+        return receipt;
       }
 
       const multiSendData = encodeMultiSendData(metaTxs);
@@ -161,7 +215,7 @@ function useSafe(safe: Safe | null) {
         multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
           multiSendData,
         ]);
-      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+      const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(
         {
@@ -277,55 +331,72 @@ function useSafe(safe: Safe | null) {
     return safeDeploymentData;
   };
 
-  const estimateTransactionBundleFees = async (
+  const estimateTransactionsBundleFees = async (
     metaTxs: MetaTransactionData[]
   ) => {
     if (!safe) {
       throw new Error("Safe was not found");
     }
 
+    let simulationResultEncoded;
     let transactionFeesEstimate = "0";
     let gasUsed = "0";
 
     const isSafeDeployed = await safe.isSafeDeployed();
+    const safeAddress = await safe.getAddress();
+    const multiSendData = encodeMultiSendData(metaTxs);
+    const multiSendTransactionData =
+      multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
+        multiSendData,
+      ]);
+    const simulationCalldata = simulateTxAccessorInterface.encodeFunctionData(
+      "simulate",
+      [
+        multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
+        BigNumber.from(0),
+        multiSendTransactionData,
+        OperationType.DelegateCall,
+      ]
+    );
+    const singletonCode = await provider.getCode(
+      safeL2SingletonInfo.networkAddresses[NETWORK_ID]
+    );
+    const stateOverride = {
+      [safeAddress]: {
+        code: singletonCode,
+      },
+    };
 
-    if (isSafeDeployed) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const safeContract =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (safe as any).getContractManager().safeContract?.contract as any;
-      const safeAddress = await safe.getAddress();
-      const multiSendData = encodeMultiSendData(metaTxs);
-      const multiSendTransactionData =
-        multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
-          multiSendData,
-        ]);
-      const simulationCalldata = simulateTxAccessorInterface.encodeFunctionData(
-        "simulate",
-        [
-          multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
-          BigNumber.from(0),
-          multiSendTransactionData,
-          OperationType.DelegateCall,
-        ]
-      );
-      const simulationResultEncoded = await provider.call({
-        to: safeAddress,
-        data: safeContract.interface.encodeFunctionData("simulateAndRevert", [
-          simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
-          simulationCalldata,
-        ]),
-      });
-      const simulationResultDecoded = defaultAbiCoder.decode(
-        ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
-        simulationResultEncoded
-      );
-      gasUsed = simulationResultDecoded[2];
-      transactionFeesEstimate = await relayKit.getEstimateFee(
-        NETWORK_ID,
-        BigNumber.from(gasUsed).toString()
-      );
+    /*
+     * Simulate a safe transaction with state override in case the safe is not
+     * deployed yet. `simulateAndRevert` cause this function call to throw
+     * even if successful but the data we care about is in the error message.
+     */
+    try {
+      await provider.send("eth_call", [
+        {
+          to: safeAddress,
+          data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
+            simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
+            simulationCalldata,
+          ]),
+        },
+        "latest",
+        stateOverride,
+      ]);
+    } catch (err) {
+      simulationResultEncoded = (err as any).error.data;
     }
+
+    const simulationResultDecoded = defaultAbiCoder.decode(
+      ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
+      simulationResultEncoded
+    );
+    gasUsed = simulationResultDecoded[2];
+    transactionFeesEstimate = await relayKit.getEstimateFee(
+      NETWORK_ID,
+      BigNumber.from(gasUsed).toString()
+    );
 
     return { transactionFeesEstimate, gasUsed };
   };
@@ -344,10 +415,9 @@ function useSafe(safe: Safe | null) {
     }
 
     const { gasLimit, isAutoRefunded, gasToken, isSponsored } = options;
-    const estimate = await relayKit.getEstimateFee(
-      NETWORK_ID,
-      gasLimit.toString()
-    );
+    const estimate = gasLimit.gt(0)
+      ? await relayKit.getEstimateFee(NETWORK_ID, gasLimit.toString())
+      : "0";
 
     const safeTransactionData = {
       data: metaTransaction.data,
@@ -446,7 +516,7 @@ function useSafe(safe: Safe | null) {
     deploySafe,
     relayTransaction,
     waitRelayedTxConfirmation,
-    estimateTransactionBundleFees,
+    estimateTransactionsBundleFees,
   };
 }
 

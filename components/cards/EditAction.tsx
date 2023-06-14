@@ -6,8 +6,8 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
+import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
@@ -54,12 +54,12 @@ function EditAction(props: EditActionProps) {
       ? displayCurrentForSalePrice
       : "",
   });
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>(
-      localStorage.transactionBundleConfig
-        ? JSON.parse(localStorage.transactionBundleConfig)
+  const [transactionsBundleConfig, setTransactionsBundleConfig] =
+    React.useState<TransactionsBundleConfig>(
+      localStorage.transactionsBundleConfig
+        ? JSON.parse(localStorage.transactionsBundleConfig)
         : {
             isSponsored: true,
             wrapAll: true,
@@ -271,9 +271,9 @@ function EditAction(props: EditActionProps) {
               }
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
-              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-              transactionBundleConfig={transactionBundleConfig}
-              setTransactionBundleConfig={setTransactionBundleConfig}
+              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionsBundleConfig={transactionsBundleConfig}
+              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -290,9 +290,9 @@ function EditAction(props: EditActionProps) {
         flowOperator={licenseDiamondContract?.address ?? ""}
         encodeFunctionData={encodeEditBidData}
         bundleCallback={async () => void 0}
-        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
-        transactionBundleConfig={transactionBundleConfig}
+        transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+        setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
+        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

@@ -7,7 +7,7 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
-import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
+import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
@@ -52,12 +52,12 @@ function ReclaimAction(props: ReclaimActionProps) {
   const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
     null
   );
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>(
-      localStorage.transactionBundleConfig
-        ? JSON.parse(localStorage.transactionBundleConfig)
+  const [transactionsBundleConfig, setTransactionsBundleConfig] =
+    React.useState<TransactionsBundleConfig>(
+      localStorage.transactionsBundleConfig
+        ? JSON.parse(localStorage.transactionsBundleConfig)
         : {
             isSponsored: true,
             wrapAll: true,
@@ -234,9 +234,9 @@ function ReclaimAction(props: ReclaimActionProps) {
               claimPayment={isOwner ? BigNumber.from("0") : requiredBid}
               newAnnualNetworkFee={newAnnualNetworkFee}
               newNetworkFee={newNetworkFee}
-              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-              transactionBundleConfig={transactionBundleConfig}
-              setTransactionBundleConfig={setTransactionBundleConfig}
+              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionsBundleConfig={transactionsBundleConfig}
+              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -253,9 +253,9 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         encodeFunctionData={encodeReclaimData}
         bundleCallback={bundleCallback}
-        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
-        transactionBundleConfig={transactionBundleConfig}
+        transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+        setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
+        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

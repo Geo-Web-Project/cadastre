@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ethers, BigNumber } from "ethers";
+import { useSigner } from "wagmi";
+import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
 import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
-import { TransactionBundleConfig } from "./TransactionBundleConfigModal";
+import { TransactionsBundleConfig } from "../lib/transactionsBundleConfig";
 import { OffCanvasPanelProps } from "./OffCanvasPanel";
 import { useSafe } from "../lib/safe";
 import { ZERO_ADDRESS } from "../lib/constants";
@@ -24,11 +26,11 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   callback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
-  transactionBundleFeesEstimate: BigNumber | null;
-  setTransactionBundleFeesEstimate: React.Dispatch<
+  transactionsBundleFeesEstimate: BigNumber | null;
+  setTransactionsBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
-  transactionBundleConfig: TransactionBundleConfig;
+  transactionsBundleConfig: TransactionsBundleConfig;
 };
 
 export function SubmitBundleButton(props: SubmitBundleButtonProps) {
@@ -36,6 +38,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     isDisabled,
     paymentToken,
     smartAccount,
+    setSmartAccount,
     spender,
     superTokenBalance,
     requiredPayment,
@@ -49,18 +52,19 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     buttonText,
     encodeFunctionData,
     callback,
-    transactionBundleFeesEstimate,
-    setTransactionBundleFeesEstimate,
-    transactionBundleConfig,
+    transactionsBundleFeesEstimate,
+    setTransactionsBundleFeesEstimate,
+    transactionsBundleConfig,
   } = props;
 
   const [metaTransactions, setMetaTransactions] = useState<
     MetaTransactionData[]
   >([]);
 
-  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
+  const { data: signer } = useSigner();
 
   const isReady =
     requiredPayment && requiredFlowAmount && spender && flowOperator
@@ -88,24 +92,44 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         return;
       }
 
+      const isSafeDeployed = await smartAccount?.safe?.isSafeDeployed();
       const receipt = await relayTransaction(metaTransactions, {
-        isSponsored: transactionBundleConfig.isSponsored,
+        isSponsored: transactionsBundleConfig.isSponsored,
         gasToken:
-          transactionBundleConfig.isSponsored &&
-          transactionBundleConfig.noWrap &&
+          transactionsBundleConfig.isSponsored &&
+          transactionsBundleConfig.noWrap &&
           requiredPayment &&
           superTokenBalance.lt(
-            requiredPayment.add(transactionBundleFeesEstimate ?? 0)
+            requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
           )
             ? ZERO_ADDRESS
-            : transactionBundleConfig.isSponsored &&
-              (BigNumber.from(transactionBundleConfig.wrapAmount).eq(0) ||
-                superTokenBalance.gt(transactionBundleFeesEstimate ?? 0))
+            : transactionsBundleConfig.isSponsored &&
+              (BigNumber.from(transactionsBundleConfig.wrapAmount).eq(0) ||
+                superTokenBalance.gt(transactionsBundleFeesEstimate ?? 0))
             ? paymentToken.address
             : ZERO_ADDRESS,
       });
 
       await callback(receipt);
+
+      if (!isSafeDeployed && smartAccount) {
+        const ethAdapter = signer
+          ? new EthersAdapter({
+              ethers,
+              signerOrProvider: signer,
+            })
+          : null;
+        if (ethAdapter) {
+          setSmartAccount({
+            ...smartAccount,
+            safe: await Safe.create({
+              ethAdapter,
+              safeAddress: smartAccount.address,
+            }),
+          });
+        }
+      }
+
       setIsActing(false);
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -153,23 +177,25 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       let wrap, approveSpending;
       const safeBalance = await smartAccount.safe.getBalance();
       const wrapAmount =
-        transactionBundleConfig.isSponsored &&
-        !transactionBundleConfig.noWrap &&
-        (transactionBundleConfig.wrapAll ||
-          BigNumber.from(transactionBundleConfig.wrapAmount).gt(safeBalance)) &&
+        transactionsBundleConfig.isSponsored &&
+        !transactionsBundleConfig.noWrap &&
+        (transactionsBundleConfig.wrapAll ||
+          BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
+            safeBalance
+          )) &&
         safeBalance.gt(0)
           ? safeBalance.toString()
-          : transactionBundleConfig.isSponsored &&
-            !transactionBundleConfig.noWrap &&
-            BigNumber.from(transactionBundleConfig.wrapAmount).gt(0) &&
+          : transactionsBundleConfig.isSponsored &&
+            !transactionsBundleConfig.noWrap &&
+            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
             safeBalance.gt(0)
-          ? BigNumber.from(transactionBundleConfig.wrapAmount)
+          ? BigNumber.from(transactionsBundleConfig.wrapAmount)
               .add(requiredPayment ?? 0)
               .toString()
           : "";
 
       if (
-        transactionBundleConfig.isSponsored &&
+        transactionsBundleConfig.isSponsored &&
         wrapAmount &&
         safeBalance.gt(0)
       ) {
@@ -206,6 +232,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
           value: wrapAmount,
           data: wrap.data,
         });
+
       }
       if (approveSpending?.to && approveSpending?.data) {
         metaTransactions.push({
@@ -224,11 +251,13 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         value: "0",
         data: encodedGwContractFunctionData,
       });
-      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
+      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
         metaTransactions
       );
 
-      setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
+      setTransactionsBundleFeesEstimate(
+        BigNumber.from(transactionFeesEstimate)
+      );
       setMetaTransactions(metaTransactions);
     };
 
@@ -245,10 +274,10 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     spender,
     requiredPayment?._hex,
     requiredFlowAmount?._hex,
-    transactionBundleConfig.isSponsored,
-    transactionBundleConfig.wrapAll,
-    transactionBundleConfig.noWrap,
-    transactionBundleConfig.wrapAmount,
+    transactionsBundleConfig.isSponsored,
+    transactionsBundleConfig.wrapAll,
+    transactionsBundleConfig.noWrap,
+    transactionsBundleConfig.wrapAmount,
     smartAccount,
     isActing,
   ]);

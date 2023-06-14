@@ -7,7 +7,7 @@ import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
+import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import axios from "axios";
 import { DIDSession } from "did-session";
 import { SiweMessage } from "@didtools/cacao";
@@ -49,12 +49,12 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice: "",
   });
   const [flowOperator, setFlowOperator] = React.useState<string>("");
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>(
-      localStorage.getItem("transactionBundleConfig")
-        ? JSON.parse(localStorage.transactionBundleConfig)
+  const [transactionsBundleConfig, setTransactionsBundleConfig] =
+    React.useState<TransactionsBundleConfig>(
+      localStorage.getItem("transactionsBundleConfig")
+        ? JSON.parse(localStorage.transactionsBundleConfig)
         : {
             isSponsored: true,
             wrapAll: true,
@@ -313,9 +313,9 @@ function ClaimAction(props: ClaimActionProps) {
               claimPayment={minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
-              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-              transactionBundleConfig={transactionBundleConfig}
-              setTransactionBundleConfig={setTransactionBundleConfig}
+              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionsBundleConfig={transactionsBundleConfig}
+              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -330,9 +330,9 @@ function ClaimAction(props: ClaimActionProps) {
         flowOperator={flowOperator}
         bundleCallback={smartAccount?.safe ? bundleCallback : void 0}
         encodeFunctionData={encodeClaimData}
-        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
-        transactionBundleConfig={transactionBundleConfig}
+        transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+        setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
+        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

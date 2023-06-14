@@ -14,7 +14,7 @@ import SubmitBundleButton from "../SubmitBundleButton";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Button from "react-bootstrap/Button";
-import { TransactionBundleConfig } from "../TransactionBundleConfigModal";
+import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import Image from "react-bootstrap/Image";
 import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
@@ -74,7 +74,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   >(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
     null
@@ -82,10 +82,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
     null
   );
-  const [transactionBundleConfig, setTransactionBundleConfig] =
-    React.useState<TransactionBundleConfig>(
-      localStorage.transactionBundleConfig
-        ? JSON.parse(localStorage.transactionBundleConfig)
+  const [transactionsBundleConfig, setTransactionsBundleConfig] =
+    React.useState<TransactionsBundleConfig>(
+      localStorage.transactionsBundleConfig
+        ? JSON.parse(localStorage.transactionsBundleConfig)
         : {
             isSponsored: true,
             wrapAll: true,
@@ -164,26 +164,26 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
-    transactionBundleConfig.isSponsored &&
+    transactionsBundleConfig.isSponsored &&
     requiredPayment &&
     safeEthBalance &&
-    transactionBundleFeesEstimate
+    transactionsBundleFeesEstimate
       ? requiredPayment
-          .add(transactionBundleFeesEstimate)
+          .add(transactionsBundleFeesEstimate)
           .gt(superTokenBalance.add(safeEthBalance))
       : false;
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
-    !transactionBundleConfig.isSponsored &&
+    !transactionsBundleConfig.isSponsored &&
     safeEthBalance &&
-    transactionBundleFeesEstimate
-      ? transactionBundleFeesEstimate.gt(safeEthBalance)
+    transactionsBundleFeesEstimate
+      ? transactionsBundleFeesEstimate.gt(safeEthBalance)
       : false;
 
   const isSafeSuperTokenBalanceInsufficient =
     smartAccount?.safe &&
-    (!transactionBundleConfig.isSponsored || transactionBundleConfig.noWrap) &&
+    (!transactionsBundleConfig.isSponsored || transactionsBundleConfig.noWrap) &&
     requiredPayment
       ? requiredPayment.gt(superTokenBalance)
       : false;
@@ -408,9 +408,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
-                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-                transactionBundleConfig={transactionBundleConfig}
-                setTransactionBundleConfig={setTransactionBundleConfig}
+                transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+                transactionsBundleConfig={transactionsBundleConfig}
+                setTransactionsBundleConfig={setTransactionsBundleConfig}
                 {...props}
               />
             ) : null}
@@ -491,11 +491,11 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   buttonText={"Place Bid"}
                   encodeFunctionData={encodePlaceBidData}
                   callback={submitBundleCallback}
-                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-                  setTransactionBundleFeesEstimate={
-                    setTransactionBundleFeesEstimate
+                  transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+                  setTransactionsBundleFeesEstimate={
+                    setTransactionsBundleFeesEstimate
                   }
-                  transactionBundleConfig={transactionBundleConfig}
+                  transactionsBundleConfig={transactionsBundleConfig}
                 />
               </>
             )}
@@ -521,10 +521,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               transaction. Click Add Funds above.
             </Alert>
           ) : smartAccount?.safe &&
-            transactionBundleConfig.isSponsored &&
-            !transactionBundleConfig.noWrap &&
+            transactionsBundleConfig.isSponsored &&
+            !transactionsBundleConfig.noWrap &&
             safeEthBalance &&
-            BigNumber.from(transactionBundleConfig.wrapAmount).gt(
+            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
               safeEthBalance
             ) &&
             displayNewForSalePrice &&
@@ -553,14 +553,14 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               profile. Alternatively, enable auto-wrapping in Transaction
               Settings.
             </Alert>
-          ) : transactionBundleConfig.isSponsored &&
-            ((transactionBundleConfig.noWrap &&
+          ) : transactionsBundleConfig.isSponsored &&
+            ((transactionsBundleConfig.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
-                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
+                requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
               )) ||
-              (BigNumber.from(transactionBundleConfig.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
+              (BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+                superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">

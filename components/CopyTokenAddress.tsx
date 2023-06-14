@@ -12,10 +12,15 @@ export type TokenOptions = {
   symbol: string;
   decimals: number;
   image: string;
-  size?: string;
 };
 
-export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
+export const CopyTokenAddress = ({
+  options,
+  size,
+}: {
+  options: TokenOptions;
+  size?: string;
+}) => {
   const { data: signer } = useSigner();
   const { isMobile, isTablet } = useMediaQuery();
 
@@ -37,54 +42,73 @@ export const CopyTokenAddress = ({ options }: { options: TokenOptions }) => {
   }, []);
 
   return (
-    <Card className="bg-gray rounded me-xl-0">
-      <Card.Body className="d-flex justify-content-around flex-wrap p-0">
-        <CopyTooltip
-          contentClick="Copied"
-          contentHover="Copy Address"
-          target={
-            <div className="d-flex flex-shrink-1 align-items-center">
+    <Card
+      className={`"bg-gray rounded me-xl-0 p-0 m-0 ${
+        size === "s" ? "bg-transparent border-0" : ""
+      }`}
+    >
+      <Card.Body className="d-flex justify-content-around p-0">
+        {size === "s" ? (
+          <CopyTooltip
+            contentClick="Copied"
+            contentHover="Copy ETHx Contract Address"
+            target={
               <Image
-                className="me-lg-1 me-xl-0"
-                width={isMobile ? 12 : 16}
-                src="/eth.png"
-                alt="eth"
-              />
-              <span
-                className={`text-black text-break ${
-                  options.size === "small" ? "px-1 small" : "px-2"
-                }`}
-              >
-                <span
-                  style={{
-                    fontSize:
-                      isMobile && options.size === "small"
-                        ? "0.8rem"
-                        : isTablet && options.size === "small"
-                        ? "0.9rem"
-                        : "1rem",
-                  }}
-                >
-                  {truncateStr(options.address, isMobile || isTablet ? 12 : 16)}
-                </span>
-              </span>
-              <Image
-                width={isMobile || isTablet ? 14 : 18}
-                src="/copy-dark.svg"
+                width={
+                  size === "s" && isMobile
+                    ? 13
+                    : size === "s" && isTablet
+                    ? 16
+                    : 18
+                }
+                src="/copy-light.svg"
                 alt="copy"
               />
-            </div>
-          }
-          handleCopy={copyAddress}
-        />
+            }
+            handleCopy={copyAddress}
+          />
+        ) : (
+          <CopyTooltip
+            contentClick="Copied"
+            contentHover="Copy Address"
+            target={
+              <div className="d-flex flex-shrink-1 align-items-center">
+                <Image
+                  className="me-lg-1 me-xl-0"
+                  width={isMobile ? 12 : 16}
+                  src="/eth.png"
+                  alt="eth"
+                />
+                <span className="text-black text-break px-2">
+                  <span
+                    style={{
+                      fontSize: "1rem",
+                    }}
+                  >
+                    {truncateStr(
+                      options.address,
+                      isMobile || isTablet ? 12 : 16
+                    )}
+                  </span>
+                </span>
+                <Image
+                  width={isMobile || isTablet ? 14 : 18}
+                  src="/copy-dark.svg"
+                  alt="copy"
+                />
+              </div>
+            }
+            handleCopy={copyAddress}
+          />
+        )}
         <Button
           className={`bg-transparent border-0 ${
-            options.size === "small" ? "p-0 pb-1 pe-1 p-sm-1" : "px-2"
+            size === "s" ? "d-flex align-items-center ms-1 p-0" : "px-2"
           }`}
           onClick={addToMetaMask}
         >
           <Image
-            width={isMobile || isTablet ? 14 : 16}
+            width={size === "s" && isMobile ? 13 : 16}
             src="/MetaMask.png"
             alt="metamask"
           />
