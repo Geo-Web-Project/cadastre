@@ -825,8 +825,8 @@ function ProfileModal(props: ProfileModalProps) {
               lg="4"
               xl="3"
             >
-              <span>
-                {truncateStr(accountAddress, 13)}
+              <span className={isMobile ? "fs-2" : ""}>
+                {truncateStr(accountAddress, 14)}
               </span>
             </Col>
             <Col
@@ -841,7 +841,7 @@ function ProfileModal(props: ProfileModalProps) {
                   <Image
                     src="copy-light.svg"
                     alt="copy"
-                    width={isMobile ? 28 : 34}
+                    width={isMobile ? 26 : 34}
                   />
                 }
                 handleCopy={() => navigator.clipboard.writeText(accountAddress)}
@@ -864,7 +864,7 @@ function ProfileModal(props: ProfileModalProps) {
                       <Image
                         src="wallet.svg"
                         alt="open safe wallet"
-                        width={isMobile ? 32 : 36}
+                        width={isMobile ? 30 : 36}
                       />
                     </Button>
                   }
@@ -890,7 +890,7 @@ function ProfileModal(props: ProfileModalProps) {
                     <Image
                       src="open-new-tab.svg"
                       alt="open in Etherscan"
-                      width={isMobile ? 30 : 36}
+                      width={isMobile ? 28 : 36}
                     />
                   </Button>
                 }
@@ -906,7 +906,11 @@ function ProfileModal(props: ProfileModalProps) {
                 <Image width={isMobile ? 28 : 36} src="close.svg" />
               </Button>
             </Col>
-            <Col xs="5" lg="2" className="d-flex align-items-center p-0 mt-2 mb-3 my-lg-0">
+            <Col
+              xs="5"
+              lg="2"
+              className="d-flex align-items-center p-0 mt-2 mb-3 my-lg-0"
+            >
               <Button
                 onClick={deactivateProfile}
                 variant="info"
@@ -925,7 +929,7 @@ function ProfileModal(props: ProfileModalProps) {
                 className="p-0 px-1 px-lg-2"
                 onClick={() => handleCloseProfile()}
               >
-                <Image width={isMobile ? 28 : 36} src="close.svg" />
+                <Image width={36} src="close.svg" />
               </Button>
             </Col>
           </Row>
@@ -937,7 +941,7 @@ function ProfileModal(props: ProfileModalProps) {
             <DropdownToggle
               variant="outline-secondary"
               className={`${
-                isMobile ? "w-50" : "w-25"
+                isMobile || isTablet ? "w-50" : "w-25"
               } d-flex justify-content-between align-items-center shadow-none`}
             >
               <span className="fs-3 m-auto ms-0">{viewDropDownSelection}</span>

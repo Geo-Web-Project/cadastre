@@ -175,6 +175,7 @@ function TransactionSummaryView({
         <p>
           Collateral Deposit:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 Bids must be fully collateralized. If your bid is rejected, this
@@ -191,6 +192,7 @@ function TransactionSummaryView({
         <p>
           &emsp;&ensp;Purchase Payment:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 This is the amount that will be transferred to the current
@@ -207,6 +209,7 @@ function TransactionSummaryView({
         <p>
           &emsp;&ensp;Refundable Collateral:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 This is the amount that will be returned to you if your bid is
@@ -228,6 +231,7 @@ function TransactionSummaryView({
       <p>
         Penalty Payment:{" "}
         <InfoTooltip
+          position={{ top: isMobile }}
           content={
             <div style={{ textAlign: "left" }}>
               This is the amount you must pay to the Geo Web treasury to reject
@@ -256,6 +260,7 @@ function TransactionSummaryView({
     >
       Stream:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div style={{ textAlign: "left" }}>
             {collateralDeposit
@@ -280,6 +285,7 @@ function TransactionSummaryView({
     <p className="mb-2">
       Stream Buffer:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div style={{ textAlign: "left" }}>
             This is the required adjustment to your stream buffer deposit. Half
@@ -318,6 +324,7 @@ function TransactionSummaryView({
       Transaction Cost:{" "}
       {interactionState === STATE.PARCEL_ACCEPTING_BID ? "-" : ""}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This is an estimate of the total transaction cost to complete this
@@ -340,6 +347,7 @@ function TransactionSummaryView({
     <p className="border-top pt-2">
       Year 1 Total: ~
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This projection is provided for ETHx token budgeting purposes. If
@@ -367,6 +375,7 @@ function TransactionSummaryView({
     <p className="border-top pt-2">
       Initial Transfer:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This is the total ETHx you'll transfer (or have transferred back to
@@ -402,10 +411,11 @@ function TransactionSummaryView({
     <p className="pt-2">
       Sale Price:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This is how much you'll receive for accepting the bid. Note that
-            this amount is based on your For Sale Price, not the bidders new
+            this amount is based on your For Sale Price, not the bidder's new
             valuation.
           </div>
         }
@@ -427,6 +437,7 @@ function TransactionSummaryView({
     <p>
       Buffer Reduction:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This is how much your stream buffer will be reduced with this sale
@@ -451,6 +462,7 @@ function TransactionSummaryView({
     <p>
       Stream Reduction:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This is the amount your total outgoing ETHx stream will be reduced.
@@ -464,7 +476,7 @@ function TransactionSummaryView({
               ? `${truncateEth(
                   formatBalance(reducedStream),
                   8
-                )} ${PAYMENT_TOKEN}`
+                )} ${PAYMENT_TOKEN}/year`
               : `N/A`}
           </span>
         }
@@ -476,6 +488,7 @@ function TransactionSummaryView({
     <p className="border-top pt-2">
       Net Received:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             {" "}

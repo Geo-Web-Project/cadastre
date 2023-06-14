@@ -361,6 +361,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     const headerText =
       interactionState === STATE.PARCEL_PLACING_BID
         ? "Place Bid"
+        : interactionState === STATE.PARCEL_ACCEPTING_BID
+        ? "Accept Bid"
         : interactionState === STATE.PARCEL_REJECTING_BID
         ? "Reject Bid"
         : interactionState === STATE.PARCEL_EDITING
