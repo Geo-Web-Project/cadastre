@@ -1,63 +1,90 @@
+import { useMemo } from "react";
+import { BigNumber } from "ethers";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
-import {
-  TransactionsBundleConfig,
-  TopUpDropDownSelection,
-} from "../lib/transactionsBundleConfig";
 import { useMediaQuery } from "../lib/mediaQuery";
+import {
+  useBundleSettings,
+  useBundleSettingsDispatch,
+  TopUpDropDownSelection,
+  BundleSettingsActionType,
+} from "../lib/transactionsBundleSettings";
 
 function TransactionsBundleConfigView(props: {
   direction?: string;
-  transactionsBundleConfig: TransactionsBundleConfig;
   showTopUpTotalDropDown: boolean;
   setShowTopUpTotalDropDown: React.Dispatch<React.SetStateAction<boolean>>;
   showTopUpSingleDropDown: boolean;
   setShowTopUpSingleDropDown: React.Dispatch<React.SetStateAction<boolean>>;
-  updateWrapAmount: (
-    strategy: string,
-    dropdownSelection: string,
-    digit: number
-  ) => void;
-  saveTransactionsBundleConfig: (
-    transactionsBundleConfig: TransactionsBundleConfig
-  ) => void;
-  handleTopUpChange: (e: any, strategy: string) => void;
+  existingAnnualNetworkFee: BigNumber;
+  newAnnualNetworkFee: BigNumber;
+  totalNetworkStream: BigNumber;
 }) {
   const {
     direction,
-    transactionsBundleConfig,
     showTopUpTotalDropDown,
     setShowTopUpTotalDropDown,
     showTopUpSingleDropDown,
     setShowTopUpSingleDropDown,
-    updateWrapAmount,
-    saveTransactionsBundleConfig,
-    handleTopUpChange,
+    existingAnnualNetworkFee,
+    newAnnualNetworkFee,
+    totalNetworkStream,
   } = props;
 
   const { isMobile, isTablet, isDesktop } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
+  const bundleSettingsDispatch = useBundleSettingsDispatch();
+
+  useMemo(() => {
+    if (newAnnualNetworkFee && bundleSettings.topUpStrategy) {
+      const digit =
+        bundleSettings.topUpStrategy === "total"
+          ? bundleSettings.topUpTotalDigitsSelection
+          : bundleSettings.topUpSingleDigitsSelection;
+      const dropDownSelection =
+        bundleSettings.topUpStrategy === "total"
+          ? bundleSettings.topUpTotalSelection
+          : bundleSettings.topUpSingleSelection;
+
+      bundleSettingsDispatch({
+        type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+        bundleSettings,
+        strategy: bundleSettings.topUpStrategy,
+        dropDownSelection,
+        digit,
+        stream: {
+          existingAnnualNetworkFee,
+          newAnnualNetworkFee,
+          totalNetworkStream,
+        },
+      });
+    }
+  }, [newAnnualNetworkFee?._hex, bundleSettings.topUpStrategy]);
 
   return (
     <>
       <div className="form-check d-flex align-items-center gap-2 ms-2 ms-sm-1">
         <input
-          defaultChecked={transactionsBundleConfig.isSponsored}
+          defaultChecked={bundleSettings.isSponsored}
           aria-label="Checkbox to choose if payment denominated in ETHx or ETH"
           className="form-check-input"
           type="checkbox"
           style={{ width: 24, height: 24 }}
-          onClick={() => {
-            saveTransactionsBundleConfig({
-              ...transactionsBundleConfig,
-              isSponsored: !transactionsBundleConfig.isSponsored,
-              wrapAll: !transactionsBundleConfig.isSponsored,
-              noWrap: transactionsBundleConfig.isSponsored ? true : false,
-              topUpStrategy: "",
-            });
-          }}
+          onClick={() =>
+            bundleSettingsDispatch({
+              type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
+              bundleSettings: {
+                ...bundleSettings,
+                isSponsored: !bundleSettings.isSponsored,
+                wrapAll: !bundleSettings.isSponsored,
+                noWrap: bundleSettings.isSponsored ? true : false,
+                topUpStrategy: "",
+              },
+            })
+          }
         />
         <label className="form-check-label" htmlFor="flexCheckDefault">
           Enable transaction sponsoring + refunding
@@ -92,29 +119,32 @@ function TransactionsBundleConfigView(props: {
           >
             <Button
               variant={
-                transactionsBundleConfig.wrapAll
+                bundleSettings.wrapAll
                   ? "outline-primary"
-                  : transactionsBundleConfig.isSponsored
+                  : bundleSettings.isSponsored
                   ? "outline-light"
                   : "outline-info"
               }
-              disabled={!transactionsBundleConfig.isSponsored}
+              disabled={!bundleSettings.isSponsored}
               className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
-              onClick={() => {
-                saveTransactionsBundleConfig({
-                  ...transactionsBundleConfig,
-                  wrapAll: true,
-                  noWrap: false,
-                  wrapAmount: "0",
-                  topUpStrategy: "",
-                });
-              }}
+              onClick={() =>
+                bundleSettingsDispatch({
+                  type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
+                  bundleSettings: {
+                    ...bundleSettings,
+                    wrapAll: true,
+                    noWrap: false,
+                    wrapAmount: "0",
+                    topUpStrategy: "",
+                  },
+                })
+              }
             >
               <span
                 className={
-                  transactionsBundleConfig.wrapAll
+                  bundleSettings.wrapAll
                     ? "text-primary"
-                    : transactionsBundleConfig.isSponsored
+                    : bundleSettings.isSponsored
                     ? "text-light"
                     : "text-info"
                 }
@@ -124,31 +154,32 @@ function TransactionsBundleConfigView(props: {
             </Button>
             <Button
               variant={
-                transactionsBundleConfig.noWrap &&
-                transactionsBundleConfig.isSponsored
+                bundleSettings.noWrap && bundleSettings.isSponsored
                   ? "outline-primary"
-                  : transactionsBundleConfig.isSponsored
+                  : bundleSettings.isSponsored
                   ? "outline-light"
                   : "outline-info"
               }
-              disabled={!transactionsBundleConfig.isSponsored}
+              disabled={!bundleSettings.isSponsored}
               className="w-100 p-2 rounded-3 mb-3 shadow-none btn-wrap-strategy"
-              onClick={() => {
-                saveTransactionsBundleConfig({
-                  ...transactionsBundleConfig,
-                  noWrap: true,
-                  wrapAll: false,
-                  wrapAmount: "0",
-                  topUpStrategy: "",
-                });
-              }}
+              onClick={() =>
+                bundleSettingsDispatch({
+                  type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
+                  bundleSettings: {
+                    ...bundleSettings,
+                    noWrap: true,
+                    wrapAll: false,
+                    wrapAmount: "0",
+                    topUpStrategy: "",
+                  },
+                })
+              }
             >
               <span
                 className={
-                  transactionsBundleConfig.noWrap &&
-                  transactionsBundleConfig.isSponsored
+                  bundleSettings.noWrap && bundleSettings.isSponsored
                     ? "text-primary"
-                    : transactionsBundleConfig.isSponsored
+                    : bundleSettings.isSponsored
                     ? "text-light"
                     : "text-info"
                 }
@@ -167,9 +198,9 @@ function TransactionsBundleConfigView(props: {
             <div className="d-flex flex-column gap-1">
               <span
                 className={
-                  !transactionsBundleConfig.isSponsored
+                  !bundleSettings.isSponsored
                     ? "text-info"
-                    : transactionsBundleConfig.topUpStrategy === "total"
+                    : bundleSettings.topUpStrategy === "total"
                     ? "text-primary"
                     : "text-light"
                 }
@@ -179,49 +210,67 @@ function TransactionsBundleConfigView(props: {
               <div className="d-flex justify-content-between align-items-center gap-2 mb-0">
                 <InputGroup className="mb-2 mt-1 rounded-3">
                   <Form.Control
-                    disabled={!transactionsBundleConfig.isSponsored}
+                    disabled={!bundleSettings.isSponsored}
                     type="text"
                     inputMode="numeric"
                     className={`bg-dark ${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "border-info"
-                        : transactionsBundleConfig.topUpStrategy === "total"
+                        : bundleSettings.topUpStrategy === "total"
                         ? "border-primary"
                         : "border-light"
                     } ${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "text-info"
-                        : transactionsBundleConfig.topUpStrategy === "total"
+                        : bundleSettings.topUpStrategy === "total"
                         ? "text-primary"
                         : "text-light"
                     }`}
                     value={
-                      transactionsBundleConfig.topUpStrategy === "total"
-                        ? transactionsBundleConfig.topUpTotalDigitsSelection
+                      bundleSettings.topUpStrategy === "total"
+                        ? bundleSettings.topUpTotalDigitsSelection
                         : ""
                     }
                     placeholder="0"
-                    onChange={(e) => handleTopUpChange(e, "total")}
+                    onChange={(e) => {
+                      if (isNaN(Number(e.target.value))) {
+                        return;
+                      }
+                      bundleSettingsDispatch({
+                        type: BundleSettingsActionType.UPDATE_TOP_UP_SELECTION,
+                        bundleSettings,
+                        digit: Number(e.target.value),
+                        strategy: "total",
+                        stream: {
+                          existingAnnualNetworkFee,
+                          newAnnualNetworkFee,
+                          totalNetworkStream,
+                        },
+                      });
+                    }}
                     onBlur={() => {
                       if (
-                        !transactionsBundleConfig.topUpTotalDigitsSelection ||
-                        transactionsBundleConfig.topUpTotalDigitsSelection == 0
+                        !bundleSettings.topUpTotalDigitsSelection ||
+                        bundleSettings.topUpTotalDigitsSelection == 0
                       ) {
-                        saveTransactionsBundleConfig({
-                          ...transactionsBundleConfig,
-                          wrapAll: true,
-                          topUpStrategy: "",
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
+                          bundleSettings: {
+                            ...bundleSettings,
+                            wrapAll: true,
+                            topUpStrategy: "",
+                          },
                         });
                       }
                     }}
                   />
                 </InputGroup>
                 <Button
-                  disabled={!transactionsBundleConfig.isSponsored}
+                  disabled={!bundleSettings.isSponsored}
                   variant={
-                    !transactionsBundleConfig.isSponsored
+                    !bundleSettings.isSponsored
                       ? "outline-info"
-                      : transactionsBundleConfig.topUpStrategy === "total"
+                      : bundleSettings.topUpStrategy === "total"
                       ? "outline-primary"
                       : "outline-light"
                   }
@@ -235,20 +284,20 @@ function TransactionsBundleConfigView(props: {
                 >
                   <span
                     className={
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "text-info"
-                        : transactionsBundleConfig.topUpStrategy === "total"
+                        : bundleSettings.topUpStrategy === "total"
                         ? "text-primary"
                         : "text-light"
                     }
                   >
-                    {transactionsBundleConfig.topUpTotalSelection}
+                    {bundleSettings.topUpTotalSelection}
                   </span>
                   <Image
                     src={`${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "expand-more-info.svg"
-                        : transactionsBundleConfig.topUpStrategy === "total"
+                        : bundleSettings.topUpStrategy === "total"
                         ? "expand-more-primary.svg"
                         : "expand-more-light.svg"
                     }`}
@@ -277,11 +326,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "total",
-                          TopUpDropDownSelection.DAYS,
-                          transactionsBundleConfig.topUpTotalDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "total",
+                          dropDownSelection: TopUpDropDownSelection.DAYS,
+                          digit: bundleSettings.topUpTotalDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Days
@@ -289,11 +345,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "total",
-                          TopUpDropDownSelection.WEEKS,
-                          transactionsBundleConfig.topUpTotalDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "total",
+                          dropDownSelection: TopUpDropDownSelection.WEEKS,
+                          digit: bundleSettings.topUpTotalDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Weeks
@@ -301,11 +364,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "total",
-                          TopUpDropDownSelection.MONTHS,
-                          transactionsBundleConfig.topUpTotalDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "total",
+                          dropDownSelection: TopUpDropDownSelection.MONTHS,
+                          digit: bundleSettings.topUpTotalDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Months
@@ -313,11 +383,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "total",
-                          TopUpDropDownSelection.YEARS,
-                          transactionsBundleConfig.topUpTotalDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "total",
+                          dropDownSelection: TopUpDropDownSelection.YEARS,
+                          digit: bundleSettings.topUpTotalDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Years
@@ -329,9 +406,9 @@ function TransactionsBundleConfigView(props: {
             <div className="d-flex flex-column gap-1">
               <span
                 className={
-                  !transactionsBundleConfig.isSponsored
+                  !bundleSettings.isSponsored
                     ? "text-info"
-                    : transactionsBundleConfig.topUpStrategy === "single"
+                    : bundleSettings.topUpStrategy === "single"
                     ? "text-primary"
                     : "text-light"
                 }
@@ -341,38 +418,56 @@ function TransactionsBundleConfigView(props: {
               <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
                 <InputGroup className="mb-2 mt-1 rounded-3">
                   <Form.Control
-                    disabled={!transactionsBundleConfig.isSponsored}
+                    disabled={!bundleSettings.isSponsored}
                     type="text"
                     inputMode="numeric"
                     className={`bg-dark ${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "border-info"
-                        : transactionsBundleConfig.topUpStrategy === "single"
+                        : bundleSettings.topUpStrategy === "single"
                         ? "border-primary"
                         : "border-light"
                     } ${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "text-info"
-                        : transactionsBundleConfig.topUpStrategy === "single"
+                        : bundleSettings.topUpStrategy === "single"
                         ? "text-primary"
                         : "text-light"
                     }`}
                     value={
-                      transactionsBundleConfig.topUpStrategy === "single"
-                        ? transactionsBundleConfig.topUpSingleDigitsSelection
+                      bundleSettings.topUpStrategy === "single"
+                        ? bundleSettings.topUpSingleDigitsSelection
                         : ""
                     }
-                    onChange={(e) => handleTopUpChange(e, "single")}
+                    onChange={(e) => {
+                      if (isNaN(Number(e.target.value))) {
+                        return;
+                      }
+                      bundleSettingsDispatch({
+                        type: BundleSettingsActionType.UPDATE_TOP_UP_SELECTION,
+                        bundleSettings,
+                        digit: Number(e.target.value),
+                        strategy: "single",
+                        stream: {
+                          existingAnnualNetworkFee,
+                          newAnnualNetworkFee,
+                          totalNetworkStream,
+                        },
+                      });
+                    }}
                     placeholder="0"
                     onBlur={() => {
                       if (
-                        !transactionsBundleConfig.topUpSingleDigitsSelection ||
-                        transactionsBundleConfig.topUpSingleDigitsSelection == 0
+                        !bundleSettings.topUpSingleDigitsSelection ||
+                        bundleSettings.topUpSingleDigitsSelection == 0
                       ) {
-                        saveTransactionsBundleConfig({
-                          ...transactionsBundleConfig,
-                          wrapAll: true,
-                          topUpStrategy: "",
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
+                          bundleSettings: {
+                            ...bundleSettings,
+                            wrapAll: true,
+                            topUpStrategy: "",
+                          },
                         });
                       }
                     }}
@@ -380,14 +475,14 @@ function TransactionsBundleConfigView(props: {
                 </InputGroup>
                 <Button
                   variant={
-                    !transactionsBundleConfig.isSponsored
+                    !bundleSettings.isSponsored
                       ? "outline-info"
-                      : transactionsBundleConfig.topUpStrategy === "single"
+                      : bundleSettings.topUpStrategy === "single"
                       ? "outline-primary"
                       : "outline-light"
                   }
-                  disabled={!transactionsBundleConfig.isSponsored}
-                  title={`Days`}
+                  disabled={!bundleSettings.isSponsored}
+                  title="Days"
                   className="d-flex justify-content-center align-items-end mb-1 px-5 w-25 shadow-none btn-wrap-strategy"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -397,20 +492,20 @@ function TransactionsBundleConfigView(props: {
                 >
                   <span
                     className={
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "text-info"
-                        : transactionsBundleConfig.topUpStrategy === "single"
+                        : bundleSettings.topUpStrategy === "single"
                         ? "text-primary"
                         : "text-light"
                     }
                   >
-                    {transactionsBundleConfig.topUpSingleSelection}
+                    {bundleSettings.topUpSingleSelection}
                   </span>
                   <Image
                     src={`${
-                      !transactionsBundleConfig.isSponsored
+                      !bundleSettings.isSponsored
                         ? "expand-more-info.svg"
-                        : transactionsBundleConfig.topUpStrategy === "single"
+                        : bundleSettings.topUpStrategy === "single"
                         ? "expand-more-primary.svg"
                         : "expand-more-light.svg"
                     }`}
@@ -439,11 +534,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "single",
-                          TopUpDropDownSelection.DAYS,
-                          transactionsBundleConfig.topUpSingleDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "single",
+                          dropDownSelection: TopUpDropDownSelection.DAYS,
+                          digit: bundleSettings.topUpSingleDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Days
@@ -451,11 +553,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "single",
-                          TopUpDropDownSelection.WEEKS,
-                          transactionsBundleConfig.topUpSingleDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "single",
+                          dropDownSelection: TopUpDropDownSelection.WEEKS,
+                          digit: bundleSettings.topUpSingleDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Weeks
@@ -463,11 +572,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "single",
-                          TopUpDropDownSelection.MONTHS,
-                          transactionsBundleConfig.topUpSingleDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "single",
+                          dropDownSelection: TopUpDropDownSelection.MONTHS,
+                          digit: bundleSettings.topUpSingleDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Months
@@ -475,11 +591,18 @@ function TransactionsBundleConfigView(props: {
                     <span
                       className="text-black px-3 rounded-2 cursor-pointer dropdown-selected"
                       onClick={() =>
-                        updateWrapAmount(
-                          "single",
-                          TopUpDropDownSelection.YEARS,
-                          transactionsBundleConfig.topUpSingleDigitsSelection
-                        )
+                        bundleSettingsDispatch({
+                          type: BundleSettingsActionType.UPDATE_WRAP_AMOUNT,
+                          bundleSettings,
+                          strategy: "single",
+                          dropDownSelection: TopUpDropDownSelection.YEARS,
+                          digit: bundleSettings.topUpSingleDigitsSelection,
+                          stream: {
+                            existingAnnualNetworkFee,
+                            newAnnualNetworkFee,
+                            totalNetworkStream,
+                          },
+                        })
                       }
                     >
                       Years
@@ -490,7 +613,7 @@ function TransactionsBundleConfigView(props: {
             </div>
           </div>
           <span
-            className={!transactionsBundleConfig.isSponsored ? "text-info" : ""}
+            className={!bundleSettings.isSponsored ? "text-info" : ""}
             style={{ fontSize: "0.7rem" }}
           >
             Note: If you don't have enough ETH for your chosen strategy with a

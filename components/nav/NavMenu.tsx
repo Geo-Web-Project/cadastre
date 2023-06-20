@@ -47,7 +47,7 @@ function NavMenuMainnet() {
         Cadastre Testnet
       </NavDropdown.Item>
       <NavDropdown.Item
-        href="https://example.com/"
+        href="https://www.geoweb.network/terms"
         target="_blank"
         rel="noopener"
         className="d-flex gap-2"
@@ -55,7 +55,7 @@ function NavMenuMainnet() {
         Term of Service
       </NavDropdown.Item>
       <NavDropdown.Item
-        href="https://example.com/"
+        href="https://www.geoweb.network/privacy"
         target="_blank"
         rel="noopener"
         className="d-flex gap-2"

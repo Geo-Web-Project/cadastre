@@ -10,7 +10,6 @@ import Card from "react-bootstrap/Card";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import Button from "react-bootstrap/Button";
 import SubmitBundleButton from "../SubmitBundleButton";
 import AddFundsModal from "../profile/AddFundsModal";
@@ -24,6 +23,7 @@ import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -71,27 +71,12 @@ function AcceptBidAction(props: AcceptBidActionProps) {
   );
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.transactionsBundleConfig
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : "",
     paymentToken.address
   );
+  const bundleSettings = useBundleSettings();
 
   const existingForSalePriceDisplay = formatBalance(existingForSalePrice);
   const newForSalePriceDisplay = formatBalance(newForSalePrice);
@@ -126,7 +111,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
 
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
-    transactionsBundleConfig.isSponsored &&
+    bundleSettings.isSponsored &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
       ? transactionsBundleFeesEstimate.gt(superTokenBalance.add(safeEthBalance))
@@ -134,7 +119,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
-    !transactionsBundleConfig.isSponsored &&
+    !bundleSettings.isSponsored &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
       ? transactionsBundleFeesEstimate.gt(safeEthBalance)
@@ -239,8 +224,6 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               newNetworkFee={newNetworkFee}
               currentForSalePrice={existingForSalePrice}
               transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-              transactionsBundleConfig={transactionsBundleConfig}
-              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : null}
@@ -285,7 +268,6 @@ function AcceptBidAction(props: AcceptBidActionProps) {
                 setTransactionsBundleFeesEstimate={
                   setTransactionsBundleFeesEstimate
                 }
-                transactionsBundleConfig={transactionsBundleConfig}
               />
             </>
           )}
@@ -298,10 +280,10 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               transaction. Click Add Funds above.
             </Alert>
           ) : smartAccount?.safe &&
-            transactionsBundleConfig.isSponsored &&
-            !transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
+            BigNumber.from(bundleSettings.wrapAmount).gt(
               safeEthBalance
             ) &&
             newForSalePriceDisplay &&
@@ -320,10 +302,10 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               You must deposit more ETH to your account or enable transaction
               sponsoring in Transaction Settings.
             </Alert>
-          ) : transactionsBundleConfig.isSponsored &&
-            ((transactionsBundleConfig.noWrap &&
+          ) : bundleSettings.isSponsored &&
+            ((bundleSettings.noWrap &&
               superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0)) ||
-              (BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
                 superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
             newForSalePriceDisplay &&
             !isActing ? (

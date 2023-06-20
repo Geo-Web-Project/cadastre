@@ -5,13 +5,13 @@ import Image from "react-bootstrap/Image";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
 import TransactionsBundleConfigModal from "../TransactionsBundleConfigModal";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded } from "../../lib/utils";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 type TransactionSummaryViewProps = OffCanvasPanelProps & {
   existingNetworkFee?: BigNumber;
@@ -24,10 +24,6 @@ type TransactionSummaryViewProps = OffCanvasPanelProps & {
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
   transactionsBundleFeesEstimate: BigNumber | null;
-  transactionsBundleConfig: TransactionsBundleConfig;
-  setTransactionsBundleConfig: React.Dispatch<
-    React.SetStateAction<TransactionsBundleConfig>
-  >;
 };
 
 function TransactionSummaryView({
@@ -46,10 +42,9 @@ function TransactionSummaryView({
   sfFramework,
   paymentToken,
   transactionsBundleFeesEstimate,
-  transactionsBundleConfig,
-  setTransactionsBundleConfig,
 }: TransactionSummaryViewProps) {
   const { isMobile } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
 
   const txnReady = newAnnualNetworkFee != null;
 
@@ -252,8 +247,7 @@ function TransactionSummaryView({
   const streamView = (
     <p
       className={
-        interactionState === STATE.PARCEL_EDITING &&
-        !transactionsBundleConfig.isSponsored
+        interactionState === STATE.PARCEL_EDITING && !bundleSettings.isSponsored
           ? "mb-2"
           : ""
       }
@@ -315,7 +309,7 @@ function TransactionSummaryView({
   const transactionsBundleFeesEstimateView = (
     <p
       className={
-        transactionsBundleConfig.isSponsored &&
+        bundleSettings.isSponsored &&
         interactionState !== STATE.PARCEL_ACCEPTING_BID
           ? "pt-2"
           : "pt-0"
@@ -336,7 +330,7 @@ function TransactionSummaryView({
         target={
           <span className="text-decoration-underline">
             {transactionsBundleFeesDisplay}{" "}
-            {transactionsBundleConfig.isSponsored ? "ETHx" : "ETH"}
+            {bundleSettings.isSponsored ? "ETHx" : "ETH"}
           </span>
         }
       />
@@ -393,7 +387,7 @@ function TransactionSummaryView({
                       .add(collateralDeposit ?? 0)
                       .add(
                         transactionsBundleFeesEstimate &&
-                          transactionsBundleConfig.isSponsored
+                          bundleSettings.isSponsored
                           ? transactionsBundleFeesEstimate
                           : 0
                       )
@@ -533,8 +527,6 @@ function TransactionSummaryView({
               handleClose={() => setShowTransactionsBundleConfigModal(false)}
               smartAccount={smartAccount}
               paymentToken={paymentToken}
-              transactionsBundleConfig={transactionsBundleConfig}
-              setTransactionsBundleConfig={setTransactionsBundleConfig}
               existingAnnualNetworkFee={existingAnnualNetworkFee}
               newAnnualNetworkFee={
                 interactionState === STATE.PARCEL_ACCEPTING_BID
@@ -553,24 +545,24 @@ function TransactionSummaryView({
         {interactionState !== STATE.PARCEL_ACCEPTING_BID && streamBufferView}
         {smartAccount?.safe &&
           interactionState === STATE.PARCEL_EDITING &&
-          !transactionsBundleConfig.isSponsored &&
+          !bundleSettings.isSponsored &&
           streamView}
         {transactionsBundleFeesEstimate &&
         transactionsBundleFeesEstimate.gt(0) &&
-        transactionsBundleConfig.isSponsored
+        bundleSettings.isSponsored
           ? transactionsBundleFeesEstimateView
           : null}
         {interactionState === STATE.PARCEL_ACCEPTING_BID && netReceivedView}
         {transactionsBundleFeesEstimate &&
         transactionsBundleFeesEstimate.gt(0) &&
-        !transactionsBundleConfig.isSponsored &&
+        !bundleSettings.isSponsored &&
         interactionState === STATE.PARCEL_EDITING
           ? transactionsBundleFeesEstimateView
           : null}
         {smartAccount?.safe &&
         interactionState !== STATE.PARCEL_ACCEPTING_BID &&
         (interactionState !== STATE.PARCEL_EDITING ||
-          transactionsBundleConfig.isSponsored)
+          bundleSettings.isSponsored)
           ? initialTransferView
           : interactionState === STATE.CLAIM_SELECTED
           ? yearlyTotalView
@@ -582,11 +574,11 @@ function TransactionSummaryView({
         {interactionState === STATE.PARCEL_ACCEPTING_BID && streamReductionView}
         {smartAccount?.safe &&
           interactionState === STATE.PARCEL_EDITING &&
-          transactionsBundleConfig.isSponsored &&
+          bundleSettings.isSponsored &&
           streamView}
         {transactionsBundleFeesEstimate &&
           transactionsBundleFeesEstimate.gt(0) &&
-          !transactionsBundleConfig.isSponsored &&
+          !bundleSettings.isSponsored &&
           interactionState !== STATE.PARCEL_EDITING &&
           transactionsBundleFeesEstimateView}
       </>

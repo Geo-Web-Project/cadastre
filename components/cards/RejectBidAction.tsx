@@ -12,7 +12,6 @@ import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import WrapModal from "../wrap/WrapModal";
@@ -31,6 +30,7 @@ import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -79,6 +79,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     signer,
   } = props;
   const { isMobile, isTablet } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
 
   const bidForSalePriceDisplay = truncateEth(
     formatBalance(bidForSalePrice),
@@ -109,22 +110,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     React.useState<BigNumber | null>(null);
   const [newRequiredBuffer, setNewRequiredBuffer] =
     React.useState<BigNumber | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.transactionsBundleConfig
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : account,
@@ -208,7 +193,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
-    transactionsBundleConfig.isSponsored &&
+    bundleSettings.isSponsored &&
     requiredPayment &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
@@ -219,7 +204,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
-    !transactionsBundleConfig.isSponsored &&
+    !bundleSettings.isSponsored &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
       ? transactionsBundleFeesEstimate.gt(safeEthBalance)
@@ -227,7 +212,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   const isSafeSuperTokenBalanceInsufficient =
     smartAccount?.safe &&
-    (!transactionsBundleConfig.isSponsored || transactionsBundleConfig.noWrap) &&
+    (!bundleSettings.isSponsored || bundleSettings.noWrap) &&
     requiredPayment
       ? requiredPayment.gt(superTokenBalance)
       : false;
@@ -520,8 +505,6 @@ function RejectBidAction(props: RejectBidActionProps) {
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
                 transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-                transactionsBundleConfig={transactionsBundleConfig}
-                setTransactionsBundleConfig={setTransactionsBundleConfig}
                 {...props}
               />
             ) : null}
@@ -568,7 +551,6 @@ function RejectBidAction(props: RejectBidActionProps) {
                   setTransactionsBundleFeesEstimate={
                     setTransactionsBundleFeesEstimate
                   }
-                  transactionsBundleConfig={transactionsBundleConfig}
                 />
               </>
             ) : (
@@ -627,10 +609,10 @@ function RejectBidAction(props: RejectBidActionProps) {
               transaction. Click Add Funds above.
             </Alert>
           ) : smartAccount?.safe &&
-            transactionsBundleConfig.isSponsored &&
-            !transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
+            BigNumber.from(bundleSettings.wrapAmount).gt(
               safeEthBalance
             ) &&
             displayNewForSalePrice &&
@@ -659,13 +641,13 @@ function RejectBidAction(props: RejectBidActionProps) {
               profile. Alternatively, enable auto-wrapping in Transaction
               Settings.
             </Alert>
-          ) : transactionsBundleConfig.isSponsored &&
-            ((transactionsBundleConfig.noWrap &&
+          ) : bundleSettings.isSponsored &&
+            ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
                 requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
               )) ||
-              (BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
                 superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (

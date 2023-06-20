@@ -14,7 +14,6 @@ import SubmitBundleButton from "../SubmitBundleButton";
 import { truncateEth } from "../../lib/truncate";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import Button from "react-bootstrap/Button";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import Image from "react-bootstrap/Image";
 import WrapModal from "../wrap/WrapModal";
 import { STATE } from "../Map";
@@ -25,6 +24,7 @@ import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -82,27 +82,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
     null
   );
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.transactionsBundleConfig
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : account,
     paymentToken.address
   );
+  const bundleSettings = useBundleSettings();
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -164,7 +149,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
-    transactionsBundleConfig.isSponsored &&
+    bundleSettings.isSponsored &&
     requiredPayment &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
@@ -175,7 +160,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
-    !transactionsBundleConfig.isSponsored &&
+    !bundleSettings.isSponsored &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
       ? transactionsBundleFeesEstimate.gt(safeEthBalance)
@@ -183,7 +168,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   const isSafeSuperTokenBalanceInsufficient =
     smartAccount?.safe &&
-    (!transactionsBundleConfig.isSponsored || transactionsBundleConfig.noWrap) &&
+    (!bundleSettings.isSponsored || bundleSettings.noWrap) &&
     requiredPayment
       ? requiredPayment.gt(superTokenBalance)
       : false;
@@ -409,8 +394,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
                 transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-                transactionsBundleConfig={transactionsBundleConfig}
-                setTransactionsBundleConfig={setTransactionsBundleConfig}
                 {...props}
               />
             ) : null}
@@ -491,11 +474,12 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   buttonText={"Place Bid"}
                   encodeFunctionData={encodePlaceBidData}
                   callback={submitBundleCallback}
-                  transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+                  transactionsBundleFeesEstimate={
+                    transactionsBundleFeesEstimate
+                  }
                   setTransactionsBundleFeesEstimate={
                     setTransactionsBundleFeesEstimate
                   }
-                  transactionsBundleConfig={transactionsBundleConfig}
                 />
               </>
             )}
@@ -521,12 +505,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               transaction. Click Add Funds above.
             </Alert>
           ) : smartAccount?.safe &&
-            transactionsBundleConfig.isSponsored &&
-            !transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
-              safeEthBalance
-            ) &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">
@@ -553,13 +535,13 @@ function PlaceBidAction(props: PlaceBidActionProps) {
               profile. Alternatively, enable auto-wrapping in Transaction
               Settings.
             </Alert>
-          ) : transactionsBundleConfig.isSponsored &&
-            ((transactionsBundleConfig.noWrap &&
+          ) : bundleSettings.isSponsored &&
+            ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
                 requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
               )) ||
-              (BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
                 superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (

@@ -5,10 +5,10 @@ import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
 import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
-import { TransactionsBundleConfig } from "../lib/transactionsBundleConfig";
 import { OffCanvasPanelProps } from "./OffCanvasPanel";
 import { useSafe } from "../lib/safe";
 import { ZERO_ADDRESS } from "../lib/constants";
+import { useBundleSettings } from "../lib/transactionsBundleSettings";
 
 export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
@@ -30,7 +30,6 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   setTransactionsBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
-  transactionsBundleConfig: TransactionsBundleConfig;
 };
 
 export function SubmitBundleButton(props: SubmitBundleButtonProps) {
@@ -54,7 +53,6 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     callback,
     transactionsBundleFeesEstimate,
     setTransactionsBundleFeesEstimate,
-    transactionsBundleConfig,
   } = props;
 
   const [metaTransactions, setMetaTransactions] = useState<
@@ -65,6 +63,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     smartAccount?.safe ?? null
   );
   const { data: signer } = useSigner();
+  const bundleSettings = useBundleSettings();
 
   const isReady =
     requiredPayment && requiredFlowAmount && spender && flowOperator
@@ -94,17 +93,17 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
 
       const isSafeDeployed = await smartAccount?.safe?.isSafeDeployed();
       const receipt = await relayTransaction(metaTransactions, {
-        isSponsored: transactionsBundleConfig.isSponsored,
+        isSponsored: bundleSettings.isSponsored,
         gasToken:
-          transactionsBundleConfig.isSponsored &&
-          transactionsBundleConfig.noWrap &&
+          bundleSettings.isSponsored &&
+          bundleSettings.noWrap &&
           requiredPayment &&
           superTokenBalance.lt(
             requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
           )
             ? ZERO_ADDRESS
-            : transactionsBundleConfig.isSponsored &&
-              (BigNumber.from(transactionsBundleConfig.wrapAmount).eq(0) ||
+            : bundleSettings.isSponsored &&
+              (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
                 superTokenBalance.gt(transactionsBundleFeesEstimate ?? 0))
             ? paymentToken.address
             : ZERO_ADDRESS,
@@ -177,25 +176,25 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       let wrap, approveSpending;
       const safeBalance = await smartAccount.safe.getBalance();
       const wrapAmount =
-        transactionsBundleConfig.isSponsored &&
-        !transactionsBundleConfig.noWrap &&
-        (transactionsBundleConfig.wrapAll ||
-          BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
+        bundleSettings.isSponsored &&
+        !bundleSettings.noWrap &&
+        (bundleSettings.wrapAll ||
+          BigNumber.from(bundleSettings.wrapAmount).gt(
             safeBalance
           )) &&
         safeBalance.gt(0)
           ? safeBalance.toString()
-          : transactionsBundleConfig.isSponsored &&
-            !transactionsBundleConfig.noWrap &&
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+          : bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
             safeBalance.gt(0)
-          ? BigNumber.from(transactionsBundleConfig.wrapAmount)
+          ? BigNumber.from(bundleSettings.wrapAmount)
               .add(requiredPayment ?? 0)
               .toString()
           : "";
 
       if (
-        transactionsBundleConfig.isSponsored &&
+        bundleSettings.isSponsored &&
         wrapAmount &&
         safeBalance.gt(0)
       ) {
@@ -274,10 +273,10 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     spender,
     requiredPayment?._hex,
     requiredFlowAmount?._hex,
-    transactionsBundleConfig.isSponsored,
-    transactionsBundleConfig.wrapAll,
-    transactionsBundleConfig.noWrap,
-    transactionsBundleConfig.wrapAmount,
+    bundleSettings.isSponsored,
+    bundleSettings.wrapAll,
+    bundleSettings.noWrap,
+    bundleSettings.wrapAmount,
     smartAccount,
     isActing,
   ]);

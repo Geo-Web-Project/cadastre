@@ -40,13 +40,8 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownMenu from "react-bootstrap/DropdownMenu";
 import DropdownItem from "react-bootstrap/DropdownItem";
 import DropdownToggle from "react-bootstrap/DropdownToggle";
-import DropdownButton from "react-bootstrap/DropdownButton";
 import { SmartAccount } from "../../pages/index";
 import TransactionsBundleConfigView from "../TransactionsBundleConfigView";
-import {
-  TransactionsBundleConfig,
-  useTransactionsBundleConfig,
-} from "../../lib/transactionsBundleConfig";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
@@ -66,6 +61,9 @@ import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
 import { useSafe } from "../../lib/safe";
+import {
+  useBundleSettings,
+} from "../../lib/transactionsBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -225,24 +223,12 @@ function ProfileModal(props: ProfileModalProps) {
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
   const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
+  const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
+    useState<boolean>(false);
+  const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
+    useState<boolean>(false);
   const [viewDropDownSelection, setViewDropDownSelection] =
     useState<string>("Wallet");
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    useState<TransactionsBundleConfig>(
-      localStorage.getItem("transactionsBundleConfig")
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
 
@@ -261,21 +247,9 @@ function ProfileModal(props: ProfileModalProps) {
   const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
-  const {
-    showTopUpTotalDropDown,
-    setShowTopUpTotalDropDown,
-    showTopUpSingleDropDown,
-    setShowTopUpSingleDropDown,
-    saveTransactionsBundleConfig,
-    updateWrapAmount,
-    handleTopUpChange,
-  } = useTransactionsBundleConfig(
-    smartAccount,
-    transactionsBundleConfig,
-    setTransactionsBundleConfig,
-    paymentToken,
-    BigNumber.from(0),
-    BigNumber.from(0)
+  const bundleSettings = useBundleSettings();
+  const totalNetworkStream = BigNumber.from(
+    accountTokenSnapshot?.totalOutflowRate ?? 0
   );
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
@@ -597,7 +571,6 @@ function ProfileModal(props: ProfileModalProps) {
     action: SuperTokenAction
   ): Promise<void> => {
     let transactionData;
-    let gasToken;
     const weiAmount = ethers.utils.parseEther(amount).toString();
 
     try {
@@ -625,7 +598,6 @@ function ProfileModal(props: ProfileModalProps) {
         const { data, to } = populatedTransaction;
 
         if (data && to) {
-          gasToken = paymentToken.address;
           transactionData = {
             data,
             to,
@@ -644,14 +616,14 @@ function ProfileModal(props: ProfileModalProps) {
         const { transactionFeesEstimate } =
           await estimateTransactionsBundleFees([transactionData]);
         await relayTransaction([transactionData], {
-          isSponsored: transactionsBundleConfig.isSponsored,
+          isSponsored: bundleSettings.isSponsored,
           gasToken:
-            transactionsBundleConfig.isSponsored &&
-            transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            bundleSettings.noWrap &&
             superTokenBalance.lt(transactionFeesEstimate ?? 0)
               ? ZERO_ADDRESS
-              : transactionsBundleConfig.isSponsored &&
-                (BigNumber.from(transactionsBundleConfig.wrapAmount).eq(0) ||
+              : bundleSettings.isSponsored &&
+                (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
                   superTokenBalance.gt(transactionFeesEstimate ?? 0))
               ? paymentToken.address
               : ZERO_ADDRESS,
@@ -1201,14 +1173,13 @@ function ProfileModal(props: ProfileModalProps) {
                 >
                   <TransactionsBundleConfigView
                     direction="row"
-                    transactionsBundleConfig={transactionsBundleConfig}
                     showTopUpTotalDropDown={showTopUpTotalDropDown}
                     setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
                     showTopUpSingleDropDown={showTopUpSingleDropDown}
                     setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
-                    updateWrapAmount={updateWrapAmount}
-                    saveTransactionsBundleConfig={saveTransactionsBundleConfig}
-                    handleTopUpChange={handleTopUpChange}
+                    existingAnnualNetworkFee={BigNumber.from(0)}
+                    newAnnualNetworkFee={BigNumber.from(0)}
+                    totalNetworkStream={totalNetworkStream}
                   />
                 </Row>
               </>

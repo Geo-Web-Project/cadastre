@@ -40,7 +40,7 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
-
+import { BundleSettingsProvider } from "../lib/transactionsBundleSettings";
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
   420: optimismGoerli,
@@ -227,11 +227,13 @@ export function App({ Component, pageProps }: AppProps) {
         <RainbowKitProvider chains={chains} modalSize="compact" theme={myTheme}>
           <ApolloProvider client={client}>
             <MapProvider>
-              <Component
-                {...pageProps}
-                authStatus={authStatus}
-                setAuthStatus={setAuthStatus}
-              />
+              <BundleSettingsProvider>
+                <Component
+                  {...pageProps}
+                  authStatus={authStatus}
+                  setAuthStatus={setAuthStatus}
+                />
+              </BundleSettingsProvider>
             </MapProvider>
           </ApolloProvider>
         </RainbowKitProvider>

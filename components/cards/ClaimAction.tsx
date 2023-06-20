@@ -7,7 +7,6 @@ import StreamingInfo from "./StreamingInfo";
 import { SECONDS_IN_YEAR, SSX_HOST } from "../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import axios from "axios";
 import { DIDSession } from "did-session";
 import { SiweMessage } from "@didtools/cacao";
@@ -51,22 +50,6 @@ function ClaimAction(props: ClaimActionProps) {
   const [flowOperator, setFlowOperator] = React.useState<string>("");
   const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.getItem("transactionsBundleConfig")
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { displayNewForSalePrice } = actionData;
 
@@ -314,8 +297,6 @@ function ClaimAction(props: ClaimActionProps) {
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
               transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-              transactionsBundleConfig={transactionsBundleConfig}
-              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -332,7 +313,6 @@ function ClaimAction(props: ClaimActionProps) {
         encodeFunctionData={encodeClaimData}
         transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
         setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
-        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

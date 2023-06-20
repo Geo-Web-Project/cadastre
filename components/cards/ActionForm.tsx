@@ -19,7 +19,6 @@ import { SubmitBundleButton } from "../SubmitBundleButton";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import WrapModal from "../wrap/WrapModal";
 import { formatBalance } from "../../lib/formatBalance";
 import TransactionError from "./TransactionError";
@@ -27,6 +26,7 @@ import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
@@ -57,7 +57,6 @@ export type ActionFormProps = OffCanvasPanelProps & {
   setTransactionsBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
-  transactionsBundleConfig: TransactionsBundleConfig;
 };
 
 export type ActionData = {
@@ -101,7 +100,6 @@ export function ActionForm(props: ActionFormProps) {
     setParcelFieldsToUpdate,
     encodeFunctionData,
     bundleCallback,
-    transactionsBundleConfig,
     transactionsBundleFeesEstimate,
     setTransactionsBundleFeesEstimate,
   } = props;
@@ -129,6 +127,7 @@ export function ActionForm(props: ActionFormProps) {
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -189,7 +188,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
-    transactionsBundleConfig.isSponsored &&
+    bundleSettings.isSponsored &&
     requiredPayment &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
@@ -200,7 +199,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
-    !transactionsBundleConfig.isSponsored &&
+    !bundleSettings.isSponsored &&
     safeEthBalance &&
     transactionsBundleFeesEstimate
       ? transactionsBundleFeesEstimate.gt(safeEthBalance)
@@ -208,8 +207,8 @@ export function ActionForm(props: ActionFormProps) {
 
   const isSafeSuperTokenBalanceInsufficient =
     smartAccount?.safe &&
-    (!transactionsBundleConfig.isSponsored ||
-      transactionsBundleConfig.noWrap) &&
+    (!bundleSettings.isSponsored ||
+      bundleSettings.noWrap) &&
     requiredPayment
       ? requiredPayment.gt(superTokenBalance)
       : false;
@@ -650,7 +649,6 @@ export function ActionForm(props: ActionFormProps) {
                   }
                   encodeFunctionData={encodeFunctionData}
                   callback={submit}
-                  transactionsBundleConfig={transactionsBundleConfig}
                   setTransactionsBundleFeesEstimate={
                     setTransactionsBundleFeesEstimate
                   }
@@ -727,10 +725,10 @@ export function ActionForm(props: ActionFormProps) {
               transaction. Click Add Funds above.
             </Alert>
           ) : smartAccount?.safe &&
-            transactionsBundleConfig.isSponsored &&
-            !transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
+            BigNumber.from(bundleSettings.wrapAmount).gt(
               safeEthBalance
             ) &&
             displayNewForSalePrice &&
@@ -759,13 +757,13 @@ export function ActionForm(props: ActionFormProps) {
               profile. Alternatively, enable auto-wrapping in Transaction
               Settings.
             </Alert>
-          ) : transactionsBundleConfig.isSponsored &&
-            ((transactionsBundleConfig.noWrap &&
+          ) : bundleSettings.isSponsored &&
+            ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
                 requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
               )) ||
-              (BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
                 superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (

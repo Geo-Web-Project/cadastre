@@ -7,7 +7,6 @@ import { ActionData, ActionForm } from "./ActionForm";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
@@ -54,22 +53,6 @@ function ReclaimAction(props: ReclaimActionProps) {
   );
   const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.transactionsBundleConfig
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { displayNewForSalePrice } = actionData;
 
@@ -235,8 +218,6 @@ function ReclaimAction(props: ReclaimActionProps) {
               newAnnualNetworkFee={newAnnualNetworkFee}
               newNetworkFee={newNetworkFee}
               transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-              transactionsBundleConfig={transactionsBundleConfig}
-              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -255,7 +236,6 @@ function ReclaimAction(props: ReclaimActionProps) {
         bundleCallback={bundleCallback}
         transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
         setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
-        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

@@ -7,7 +7,6 @@ import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
@@ -56,22 +55,6 @@ function EditAction(props: EditActionProps) {
   });
   const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.transactionsBundleConfig
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -272,8 +255,6 @@ function EditAction(props: EditActionProps) {
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
               transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-              transactionsBundleConfig={transactionsBundleConfig}
-              setTransactionsBundleConfig={setTransactionsBundleConfig}
               {...props}
             />
           ) : (
@@ -292,7 +273,6 @@ function EditAction(props: EditActionProps) {
         bundleCallback={async () => void 0}
         transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
         setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
-        transactionsBundleConfig={transactionsBundleConfig}
         {...props}
       />
       <StreamingInfo {...props} />

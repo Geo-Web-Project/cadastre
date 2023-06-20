@@ -2,7 +2,6 @@ import dayjs from "dayjs";
 import { ethers, BigNumber } from "ethers";
 import * as React from "react";
 import { Card, Spinner } from "react-bootstrap";
-import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
@@ -13,14 +12,14 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { useSafe } from "../../lib/safe";
-import { TransactionsBundleConfig } from "../../lib/transactionsBundleConfig";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
-import { ZERO_ADDRESS } from "../../lib/constants";
+import { PAYMENT_TOKEN, NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,22 +64,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     boolean | null
   >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
-  const [transactionsBundleConfig, setTransactionsBundleConfig] =
-    React.useState<TransactionsBundleConfig>(
-      localStorage.getItem("transactionsBundleConfig")
-        ? JSON.parse(localStorage.transactionsBundleConfig)
-        : {
-            isSponsored: true,
-            wrapAll: true,
-            noWrap: false,
-            wrapAmount: "0",
-            topUpTotalDigitsSelection: 0,
-            topUpSingleDigitsSelection: 0,
-            topUpTotalSelection: "Days",
-            topUpSingleSelection: "Days",
-            topUpStrategy: "",
-          }
-    );
 
   const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
     smartAccount?.safe ?? null
@@ -96,6 +79,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     smartAccount?.safe ? smartAccount.address : "",
     paymentToken.address
   );
+  const bundleSettings = useBundleSettings();
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -237,26 +221,20 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         const metaTransactions = [];
         const safeBalance = await smartAccount.safe.getBalance();
         const wrapAmount =
-          transactionsBundleConfig.isSponsored &&
-          !transactionsBundleConfig.noWrap &&
-          (transactionsBundleConfig.wrapAll ||
-            BigNumber.from(transactionsBundleConfig.wrapAmount).gt(
-              safeBalance
-            )) &&
+          bundleSettings.isSponsored &&
+          !bundleSettings.noWrap &&
+          (bundleSettings.wrapAll ||
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
           safeBalance.gt(0)
             ? safeBalance.toString()
-            : transactionsBundleConfig.isSponsored &&
-              !transactionsBundleConfig.noWrap &&
-              BigNumber.from(transactionsBundleConfig.wrapAmount).gt(0) &&
+            : bundleSettings.isSponsored &&
+              !bundleSettings.noWrap &&
+              BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
               safeBalance.gt(0)
-            ? BigNumber.from(transactionsBundleConfig.wrapAmount).toString()
+            ? BigNumber.from(bundleSettings.wrapAmount).toString()
             : "";
 
-        if (
-          transactionsBundleConfig.isSponsored &&
-          wrapAmount &&
-          safeBalance.gt(0)
-        ) {
+        if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
           wrap = await paymentToken.upgrade({
             amount: wrapAmount,
           }).populateTransactionPromise;
@@ -284,14 +262,14 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         const { transactionFeesEstimate } =
           await estimateTransactionsBundleFees(metaTransactions);
         await relayTransaction(metaTransactions, {
-          isSponsored: transactionsBundleConfig.isSponsored,
+          isSponsored: bundleSettings.isSponsored,
           gasToken:
-            transactionsBundleConfig.isSponsored &&
-            transactionsBundleConfig.noWrap &&
+            bundleSettings.isSponsored &&
+            bundleSettings.noWrap &&
             superTokenBalance.lt(transactionFeesEstimate ?? 0)
               ? ZERO_ADDRESS
-              : transactionsBundleConfig.isSponsored &&
-                (BigNumber.from(transactionsBundleConfig.wrapAmount).eq(0) ||
+              : bundleSettings.isSponsored &&
+                (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
                   superTokenBalance.gt(transactionFeesEstimate ?? 0))
               ? paymentToken.address
               : ZERO_ADDRESS,
@@ -304,13 +282,14 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         await txn.wait();
       }
     } catch (err) {
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       if ((err as any).reason) {
         setErrorMessage(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (err as any).errorObject.reason.replace("execution reverted: ", "")
         );
       } else {
         setErrorMessage((err as any).message);
+        /* eslint-disable @typescript-eslint/no-explicit-any */
       }
       setDidFail(true);
       setIsActing(false);

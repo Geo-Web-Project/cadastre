@@ -1,33 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { BigNumber } from "ethers";
 import { NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { sfSubgraph } from "../redux/store";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
-import Card from "react-bootstrap/Card";
-import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
 import InfoTooltip from "./InfoTooltip";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { SmartAccount } from "../pages/index";
 import TransactionsBundleConfigView from "./TransactionsBundleConfigView";
-import {
-  TransactionsBundleConfig,
-  TopUpDropDownSelection,
-  useTransactionsBundleConfig,
-} from "../lib/transactionsBundleConfig";
-import { NETWORK_ID, SECONDS_IN_YEAR } from "../lib/constants";
+import { NETWORK_ID } from "../lib/constants";
 
 type TransactionsBundleConfigModalProps = {
   show: boolean;
   handleClose: () => void;
   smartAccount: SmartAccount;
   paymentToken: NativeAssetSuperToken;
-  transactionsBundleConfig: TransactionsBundleConfig;
-  setTransactionsBundleConfig: React.Dispatch<
-    React.SetStateAction<TransactionsBundleConfig>
-  >;
   existingAnnualNetworkFee?: BigNumber;
   newAnnualNetworkFee: BigNumber | null;
 };
@@ -40,28 +28,26 @@ function TransactionsBundleConfigModal(
     handleClose,
     smartAccount,
     paymentToken,
-    transactionsBundleConfig,
-    setTransactionsBundleConfig,
     existingAnnualNetworkFee,
     newAnnualNetworkFee,
   } = props;
 
+  const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
+    useState<boolean>(false);
+  const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
+    useState<boolean>(false);
+
   const { isMobile } = useMediaQuery();
-  const {
-    showTopUpTotalDropDown,
-    setShowTopUpTotalDropDown,
-    showTopUpSingleDropDown,
-    setShowTopUpSingleDropDown,
-    saveTransactionsBundleConfig,
-    updateWrapAmount,
-    handleTopUpChange,
-  } = useTransactionsBundleConfig(
-    smartAccount,
-    transactionsBundleConfig,
-    setTransactionsBundleConfig,
-    paymentToken,
-    existingAnnualNetworkFee ?? BigNumber.from(0),
-    newAnnualNetworkFee ?? BigNumber.from(0)
+  const { data: accountTokenSnapshot } =
+    sfSubgraph.useAccountTokenSnapshotsQuery({
+      chainId: NETWORK_ID,
+      filter: {
+        account: smartAccount?.address ?? "",
+        token: paymentToken?.address ?? "",
+      },
+    });
+  const totalNetworkStream = BigNumber.from(
+    accountTokenSnapshot?.data[0]?.totalOutflowRate ?? 0
   );
 
   return (
@@ -114,14 +100,15 @@ function TransactionsBundleConfigModal(
       <Modal.Body className="d-flex flex-column justify-content-center bg-dark text-light p-0 p-lg-3 mb-lg-0">
         <TransactionsBundleConfigView
           direction="column"
-          transactionsBundleConfig={transactionsBundleConfig}
           showTopUpTotalDropDown={showTopUpTotalDropDown}
           setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
           showTopUpSingleDropDown={showTopUpSingleDropDown}
           setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
-          updateWrapAmount={updateWrapAmount}
-          saveTransactionsBundleConfig={saveTransactionsBundleConfig}
-          handleTopUpChange={handleTopUpChange}
+          existingAnnualNetworkFee={
+            existingAnnualNetworkFee ?? BigNumber.from(0)
+          }
+          newAnnualNetworkFee={newAnnualNetworkFee ?? BigNumber.from(0)}
+          totalNetworkStream={totalNetworkStream}
         />
       </Modal.Body>
     </Modal>

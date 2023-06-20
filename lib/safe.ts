@@ -342,7 +342,6 @@ function useSafe(safe: Safe | null) {
     let transactionFeesEstimate = "0";
     let gasUsed = "0";
 
-    const isSafeDeployed = await safe.isSafeDeployed();
     const safeAddress = await safe.getAddress();
     const multiSendData = encodeMultiSendData(metaTxs);
     const multiSendTransactionData =
@@ -385,6 +384,7 @@ function useSafe(safe: Safe | null) {
         stateOverride,
       ]);
     } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       simulationResultEncoded = (err as any).error.data;
     }
 
