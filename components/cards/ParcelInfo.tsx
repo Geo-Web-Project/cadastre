@@ -695,6 +695,8 @@ function ParcelInfo(props: ParcelInfoProps) {
         <GalleryModal
           show={interactionState === STATE.EDITING_GALLERY}
           setRootCid={setRootCid}
+          licenseDiamondContract={licenseDiamondContract}
+          existingForSalePrice={currentOwnerBidForSalePrice}
           {...props}
         ></GalleryModal>
       )}

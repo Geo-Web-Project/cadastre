@@ -98,7 +98,7 @@ function ClaimAction(props: ClaimActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
-  function encodeClaimData() {
+  function encodeClaimData(contentHash?: string) {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
@@ -127,14 +127,14 @@ function ClaimAction(props: ClaimActionProps) {
           lngDim: neX - swX + 1,
           latDim: neY - swY + 1,
         },
-        "0x",
+        contentHash ?? "0x",
       ]
     );
 
     return encodedClaimData;
   }
 
-  async function _claim() {
+  async function _claim(contentHash?: string) {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
@@ -161,7 +161,7 @@ function ClaimAction(props: ClaimActionProps) {
           lngDim: neX - swX + 1,
           latDim: neY - swY + 1,
         },
-        "0x"
+        contentHash ?? "0x"
       );
     const receipt = await txn.wait();
 

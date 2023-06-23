@@ -1,10 +1,12 @@
 import * as React from "react";
+import { BigNumber } from "ethers";
 import Modal from "react-bootstrap/Modal";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Container from "react-bootstrap/Container";
+import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { GeoWebContent } from "@geo-web/content";
 import GalleryForm from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
@@ -16,6 +18,8 @@ export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
   geoWebContent: GeoWebContent | null;
   setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
+  licenseDiamondContract: IPCOLicenseDiamond | null;
+  existingForSalePrice: BigNumber | null;
 };
 
 function GalleryModal(props: GalleryModalProps) {

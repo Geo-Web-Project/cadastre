@@ -170,7 +170,7 @@ function EditAction(props: EditActionProps) {
     }
   }, [parcelContent]);
 
-  function encodeEditBidData() {
+  function encodeEditBidData(contentHash?: string) {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -183,27 +183,23 @@ function EditAction(props: EditActionProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
-    // Check for changes
-    if (
-      !displayNewForSalePrice ||
-      !newNetworkFee ||
-      displayNewForSalePrice == displayCurrentForSalePrice
-    ) {
-      // Content change only
-      return;
-    }
-
     const editBidData = licenseDiamondContract.interface.encodeFunctionData(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       "editBid(int96,uint256,bytes)",
-      [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice), "0x"]
+      [
+        newNetworkFee ?? existingNetworkFee,
+        ethers.utils.parseEther(
+          displayNewForSalePrice ?? displayCurrentForSalePrice
+        ),
+        contentHash ?? "0x",
+      ]
     );
 
     return editBidData;
   }
 
-  async function _edit() {
+  async function _edit(contentHash?: string) {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -218,22 +214,14 @@ function EditAction(props: EditActionProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
-    // Check for changes
-    if (
-      !displayNewForSalePrice ||
-      !newNetworkFee ||
-      displayNewForSalePrice == displayCurrentForSalePrice
-    ) {
-      // Content change only
-      return;
-    }
-
     const txn = await licenseDiamondContract
       .connect(signer)
       ["editBid(int96,uint256,bytes)"](
-        newNetworkFee,
-        ethers.utils.parseEther(displayNewForSalePrice),
-        "0x"
+        newNetworkFee ?? existingNetworkFee,
+        ethers.utils.parseEther(
+          displayNewForSalePrice ?? displayCurrentForSalePrice
+        ),
+        contentHash ?? "0x"
       );
     await txn.wait();
   }

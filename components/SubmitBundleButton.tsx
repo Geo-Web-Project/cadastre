@@ -22,7 +22,7 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   setIsActing: (v: boolean) => void;
   setDidFail: (v: boolean) => void;
   buttonText: string;
-  encodeFunctionData: () => string | void;
+  encodeFunctionData: (contentHash?: string) => string;
   callback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
@@ -30,6 +30,7 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   setTransactionsBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
+  getContentHash?: () => Promise<string>;
 };
 
 export function SubmitBundleButton(props: SubmitBundleButtonProps) {
@@ -53,11 +54,13 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     callback,
     transactionsBundleFeesEstimate,
     setTransactionsBundleFeesEstimate,
+    getContentHash,
   } = props;
 
   const [metaTransactions, setMetaTransactions] = useState<
     MetaTransactionData[]
   >([]);
+  const [contentHash, setContentHash] = useState<string | null>(null);
 
   const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
     smartAccount?.safe ?? null
@@ -78,21 +81,34 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
 
   const submit = async () => {
     try {
+      if (!spender) {
+        throw Error("Spender was not found");
+      }
+
       setIsActing(true);
       setDidFail(false);
 
-      const encodedGwContractFunctionData = encodeFunctionData();
+      const isSafeDeployed = await smartAccount?.safe?.isSafeDeployed();
+      let encodedGwContractFunctionData;
 
-      /* Offchain content change only */
-      if (!encodedGwContractFunctionData) {
-        await callback();
-        setIsActing(false);
-
-        return;
+      if (getContentHash) {
+        const contentHash = await getContentHash();
+        encodedGwContractFunctionData = encodeFunctionData(contentHash);
+      } else {
+        encodedGwContractFunctionData = encodeFunctionData();
       }
 
-      const isSafeDeployed = await smartAccount?.safe?.isSafeDeployed();
-      const receipt = await relayTransaction(metaTransactions, {
+      const _metaTransactions = metaTransactions.slice(
+        0,
+        metaTransactions.length - 1
+      );
+      _metaTransactions.push({
+        to: spender,
+        value: "0",
+        data: encodedGwContractFunctionData,
+      });
+
+      const receipt = await relayTransaction(_metaTransactions, {
         isSponsored: bundleSettings.isSponsored,
         gasToken:
           bundleSettings.isSponsored &&
@@ -166,11 +182,15 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       }
 
       const metaTransactions = [];
-      const encodedGwContractFunctionData = encodeFunctionData();
+      let encodedGwContractFunctionData;
 
-      /* Offchain content change only */
-      if (!encodedGwContractFunctionData) {
-        return;
+      if (getContentHash) {
+        /* Dummy content hash for simulations */
+        encodedGwContractFunctionData = encodeFunctionData(
+          "0xe3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f"
+        );
+      } else {
+        encodedGwContractFunctionData = encodeFunctionData();
       }
 
       let wrap, approveSpending;
@@ -179,9 +199,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         bundleSettings.isSponsored &&
         !bundleSettings.noWrap &&
         (bundleSettings.wrapAll ||
-          BigNumber.from(bundleSettings.wrapAmount).gt(
-            safeBalance
-          )) &&
+          BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
         safeBalance.gt(0)
           ? safeBalance.toString()
           : bundleSettings.isSponsored &&
@@ -193,11 +211,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
               .toString()
           : "";
 
-      if (
-        bundleSettings.isSponsored &&
-        wrapAmount &&
-        safeBalance.gt(0)
-      ) {
+      if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
         wrap = await paymentToken.upgrade({
           amount: wrapAmount,
         }).populateTransactionPromise;
@@ -231,7 +245,6 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
           value: wrapAmount,
           data: wrap.data,
         });
-
       }
       if (approveSpending?.to && approveSpending?.data) {
         metaTransactions.push({

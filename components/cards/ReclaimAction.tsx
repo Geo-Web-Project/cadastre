@@ -118,7 +118,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  function encodeReclaimData() {
+  function encodeReclaimData(contentHash?: string) {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -140,7 +140,11 @@ function ReclaimAction(props: ReclaimActionProps) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         "editBid(int96,uint256,bytes)",
-        [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice), "0x"]
+        [
+          newNetworkFee,
+          ethers.utils.parseEther(displayNewForSalePrice),
+          contentHash ?? "0x",
+        ]
       );
     } else {
       encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
@@ -158,7 +162,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     return encodedReclaimData;
   }
 
-  async function _reclaim() {
+  async function _reclaim(contentHash?: string) {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -183,7 +187,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         ["editBid(int96,uint256,bytes)"](
           newNetworkFee,
           ethers.utils.parseEther(displayNewForSalePrice),
-          "0x"
+          contentHash ?? "0x"
         );
     } else {
       txn = await licenseDiamondContract

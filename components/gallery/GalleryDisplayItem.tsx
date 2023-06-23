@@ -1,4 +1,5 @@
 import * as React from "react";
+import { BigNumber } from "ethers";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
@@ -9,7 +10,11 @@ import { AssetId } from "caip";
 import type { MediaObject } from "@geo-web/types";
 import { GalleryModalProps } from "./GalleryModal";
 import { getFormatType } from "./GalleryFileFormat";
-import { NETWORK_ID } from "../../lib/constants";
+import { fromValueToRate } from "../../lib/utils";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useSafe } from "../../lib/safe";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import { NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
 
 const DISPLAY_TYPES: Record<string, string> = {
   "3DModel": "3D Model",
@@ -43,7 +48,23 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
     setRootCid,
+    smartAccount,
+    signer,
+    licenseDiamondContract,
+    paymentToken,
+    perSecondFeeDenominator,
+    perSecondFeeNumerator,
+    existingForSalePrice,
   } = props;
+
+  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+    smartAccount?.safe ?? null
+  );
+  const { superTokenBalance } = useSuperTokenBalance(
+    smartAccount?.safe ? smartAccount.address : "",
+    paymentToken.address
+  );
+  const bundleSettings = useBundleSettings();
 
   const [isHovered, setIsHovered] = React.useState(false);
   const [isRemoving, setIsRemoving] = React.useState(false);
@@ -102,17 +123,109 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       }
     );
 
-    await geoWebContent.raw.commit(newRoot, {
-      ownerDID: ceramic.did?.parent,
-      parcelId: assetId,
-    });
+    const contentHash = await geoWebContent.raw.commit(newRoot);
 
-    const newRootCid = await geoWebContent.raw.resolveRoot({
-      parcelId: assetId,
-      ownerDID: ceramic.did?.parent,
-    });
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
 
-    setRootCid(newRootCid.toString());
+    if (!perSecondFeeNumerator) {
+      throw new Error("Could not find perSecondFeeNumerator");
+    }
+
+    if (!perSecondFeeDenominator) {
+      throw new Error("Could not find perSecondFeeDenominator");
+    }
+
+    if (!existingForSalePrice) {
+      throw new Error("Could not find existingForSalePrice");
+    }
+
+    const existingNetworkFee = fromValueToRate(
+      existingForSalePrice,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+
+    if (smartAccount?.safe) {
+      let wrap;
+      const metaTransactions = [];
+      const safeBalance = await smartAccount.safe.getBalance();
+      const wrapAmount =
+        bundleSettings.isSponsored &&
+        !bundleSettings.noWrap &&
+        (bundleSettings.wrapAll ||
+          BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
+        safeBalance.gt(0)
+          ? safeBalance.toString()
+          : bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
+            safeBalance.gt(0)
+          ? BigNumber.from(bundleSettings.wrapAmount).toString()
+          : "";
+
+      if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
+        wrap = await paymentToken.upgrade({
+          amount: wrapAmount,
+        }).populateTransactionPromise;
+      }
+
+      if (wrap?.to && wrap?.data) {
+        metaTransactions.push({
+          to: wrap.to,
+          value: wrapAmount,
+          data: wrap.data,
+        });
+      }
+
+      const editBidData = licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "editBid(int96,uint256,bytes)",
+        [existingNetworkFee, existingForSalePrice, contentHash]
+      );
+
+      const editBidTransaction = {
+        to: licenseDiamondContract.address,
+        data: editBidData,
+        value: "0",
+      };
+      metaTransactions.push(editBidTransaction);
+
+      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
+        metaTransactions
+      );
+      await relayTransaction(metaTransactions, {
+        isSponsored: bundleSettings.isSponsored,
+        gasToken:
+          bundleSettings.isSponsored &&
+          bundleSettings.noWrap &&
+          superTokenBalance.lt(transactionFeesEstimate ?? 0)
+            ? ZERO_ADDRESS
+            : bundleSettings.isSponsored &&
+              (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
+                superTokenBalance.gt(transactionFeesEstimate ?? 0))
+            ? paymentToken.address
+            : ZERO_ADDRESS,
+      });
+    } else {
+      if (!signer) {
+        throw new Error("Could not find signer");
+      }
+
+      const txn = await licenseDiamondContract
+        .connect(signer)
+        ["editBid(int96,uint256,bytes)"](
+          existingNetworkFee,
+          existingForSalePrice,
+          contentHash
+        );
+
+      await txn.wait();
+    }
+
+    setRootCid(newRoot.toString());
     setShouldMediaGalleryUpdate(true);
   }
 

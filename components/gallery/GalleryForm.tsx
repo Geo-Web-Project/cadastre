@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import * as React from "react";
+import { ethers, BigNumber } from "ethers";
 import BN from "bn.js";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
@@ -16,8 +17,12 @@ import {
   getFormatCS,
 } from "./GalleryFileFormat";
 import { useFirebase } from "../../lib/Firebase";
-import { NETWORK_ID } from "../../lib/constants";
 import { uploadFile } from "@web3-storage/upload-client";
+import { fromValueToRate } from "../../lib/utils";
+import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useSafe } from "../../lib/safe";
+import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import { NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
 
 interface MediaGalleryItem {
   name?: string;
@@ -48,6 +53,13 @@ function GalleryForm(props: GalleryFormProps) {
     setSelectedMediaGalleryItemIndex,
     setShouldMediaGalleryUpdate,
     setRootCid,
+    smartAccount,
+    signer,
+    licenseDiamondContract,
+    paymentToken,
+    perSecondFeeDenominator,
+    perSecondFeeNumerator,
+    existingForSalePrice,
   } = props;
 
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
@@ -59,6 +71,14 @@ function GalleryForm(props: GalleryFormProps) {
     React.useState<MediaGalleryItem>({});
 
   const { firebasePerf } = useFirebase();
+  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+    smartAccount?.safe ?? null
+  );
+  const { superTokenBalance } = useSuperTokenBalance(
+    smartAccount?.safe ? smartAccount.address : "",
+    paymentToken.address
+  );
+  const bundleSettings = useBundleSettings();
 
   React.useEffect(() => {
     if (selectedMediaGalleryItemIndex === null) {
@@ -166,7 +186,7 @@ function GalleryForm(props: GalleryFormProps) {
     const trace = firebasePerf?.trace("add_media_item_to_gallery");
     trace?.start();
 
-    await commitNewRoot(mediaGalleryItem);
+    await updateMediaGallery(mediaGalleryItem);
 
     trace?.stop();
 
@@ -176,7 +196,7 @@ function GalleryForm(props: GalleryFormProps) {
   async function saveChanges() {
     setIsSaving(true);
 
-    await commitNewRoot(mediaGalleryItem);
+    await updateMediaGallery(mediaGalleryItem);
 
     setShouldMediaGalleryUpdate(true);
   }
@@ -190,20 +210,11 @@ function GalleryForm(props: GalleryFormProps) {
     });
   }
 
-  function onSelectPinningService() {
-    // setPinningService(event.target.value);
-    // if (event.target.value != "pinata") {
-    //   setPinningServiceEndpoint("");
-    // } else {
-    //   setPinningServiceEndpoint(PINATA_API_ENDPOINT);
-    // }
-    // setPinningServiceAccessToken("");
-  }
-
   async function commitNewRoot(mediaGalleryItem: MediaGalleryItem) {
-    if (!geoWebContent || !ceramic.did) {
-      return;
+    if (!ceramic?.did) {
+      throw Error("Could not find Ceramic DID");
     }
+
     const assetId = new AssetId({
       chainId: `eip155:${NETWORK_ID}`,
       assetName: {
@@ -213,13 +224,27 @@ function GalleryForm(props: GalleryFormProps) {
       tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
     });
     const ownerDID = ceramic.did.parent;
-    const rootCid = await geoWebContent.raw.resolveRoot({
+    let rootCid;
+    let mediaGallery;
+
+    rootCid = await geoWebContent.raw.resolveRoot({
       ownerDID,
       parcelId: assetId,
     });
-    const mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
+    mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
       schema: "MediaGallery",
     });
+
+    if (!mediaGallery) {
+      rootCid = await geoWebContent.raw.putPath(rootCid, "/mediaGallery", [], {
+        parentSchema: "ParcelRoot",
+        pin: true,
+      });
+      mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
+        schema: "MediaGallery",
+      });
+    }
+
     const cidStr = mediaGalleryItem.content;
     const mediaObject: MediaObject = {
       name: mediaGalleryItem.name ?? "",
@@ -231,17 +256,118 @@ function GalleryForm(props: GalleryFormProps) {
       rootCid,
       selectedMediaGalleryItemIndex !== null
         ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
-        : `/mediaGallery/${mediaGallery.length}`,
+        : `/mediaGallery/${mediaGallery?.length}`,
       mediaObject,
       { parentSchema: "MediaGallery", pin: true }
     );
 
-    await geoWebContent.raw.commit(newRoot, {
-      ownerDID,
-      parcelId: assetId,
-    });
-
+    const contentHash = await geoWebContent.raw.commit(newRoot);
     setRootCid(newRoot.toString());
+
+    return contentHash;
+  }
+
+  async function updateMediaGallery(mediaGalleryItem: MediaGalleryItem) {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!perSecondFeeNumerator) {
+      throw new Error("Could not find perSecondFeeNumerator");
+    }
+
+    if (!perSecondFeeDenominator) {
+      throw new Error("Could not find perSecondFeeDenominator");
+    }
+
+    if (!existingForSalePrice) {
+      throw new Error("Could not find existingForSalePrice");
+    }
+
+    const existingNetworkFee = fromValueToRate(
+      existingForSalePrice,
+      perSecondFeeNumerator,
+      perSecondFeeDenominator
+    );
+    const contentHash = await commitNewRoot(mediaGalleryItem);
+
+    if (smartAccount?.safe) {
+      let wrap;
+      const metaTransactions = [];
+      const safeBalance = await smartAccount.safe.getBalance();
+      const wrapAmount =
+        bundleSettings.isSponsored &&
+        !bundleSettings.noWrap &&
+        (bundleSettings.wrapAll ||
+          BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
+        safeBalance.gt(0)
+          ? safeBalance.toString()
+          : bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
+            safeBalance.gt(0)
+          ? BigNumber.from(bundleSettings.wrapAmount).toString()
+          : "";
+
+      if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
+        wrap = await paymentToken.upgrade({
+          amount: wrapAmount,
+        }).populateTransactionPromise;
+      }
+
+      if (wrap?.to && wrap?.data) {
+        metaTransactions.push({
+          to: wrap.to,
+          value: wrapAmount,
+          data: wrap.data,
+        });
+      }
+
+      const editBidData = licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "editBid(int96,uint256,bytes)",
+        [existingNetworkFee, existingForSalePrice, contentHash]
+      );
+
+      const editBidTransaction = {
+        to: licenseDiamondContract.address,
+        data: editBidData,
+        value: "0",
+      };
+      metaTransactions.push(editBidTransaction);
+
+      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
+        metaTransactions
+      );
+      await relayTransaction(metaTransactions, {
+        isSponsored: bundleSettings.isSponsored,
+        gasToken:
+          bundleSettings.isSponsored &&
+          bundleSettings.noWrap &&
+          superTokenBalance.lt(transactionFeesEstimate ?? 0)
+            ? ZERO_ADDRESS
+            : bundleSettings.isSponsored &&
+              (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
+                superTokenBalance.gt(transactionFeesEstimate ?? 0))
+            ? paymentToken.address
+            : ZERO_ADDRESS,
+      });
+    } else {
+      if (!signer) {
+        throw new Error("Could not find signer");
+      }
+
+      const txn = await licenseDiamondContract
+        .connect(signer)
+        ["editBid(int96,uint256,bytes)"](
+          existingNetworkFee,
+          existingForSalePrice,
+          contentHash
+        );
+
+      await txn.wait();
+    }
   }
 
   const isReadyToAdd =
@@ -341,7 +467,6 @@ function GalleryForm(props: GalleryFormProps) {
               as="select"
               className="text-white mt-1"
               style={{ backgroundColor: "#111320", border: "none" }}
-              onChange={onSelectPinningService}
               disabled
             >
               <option value="buckets">Geo Web Free (Default)</option>

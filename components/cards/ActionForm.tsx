@@ -34,7 +34,7 @@ export type ActionFormProps = OffCanvasPanelProps & {
   licenseAddress: string;
   licenseOwner?: string;
   loading: boolean;
-  performAction: () => Promise<string | void>;
+  performAction: (contentHash?: string) => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
@@ -49,7 +49,7 @@ export type ActionFormProps = OffCanvasPanelProps & {
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
-  encodeFunctionData: () => string | void;
+  encodeFunctionData: () => string;
   bundleCallback?: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
@@ -104,6 +104,14 @@ export function ActionForm(props: ActionFormProps) {
     setTransactionsBundleFeesEstimate,
   } = props;
 
+  const [showWrapModal, setShowWrapModal] = React.useState(false);
+  const [isAllowed, setIsAllowed] = React.useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] =
+    React.useState<boolean>(false);
+  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
+    null
+  );
+
   const {
     parcelName,
     parcelWebContentURI,
@@ -113,13 +121,6 @@ export function ActionForm(props: ActionFormProps) {
     isActing,
     errorMessage,
   } = actionData;
-  const [showWrapModal, setShowWrapModal] = React.useState(false);
-  const [isAllowed, setIsAllowed] = React.useState(false);
-  const [showAddFundsModal, setShowAddFundsModal] =
-    React.useState<boolean>(false);
-  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
-    null
-  );
 
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
   const { superTokenBalance } = useSuperTokenBalance(
@@ -207,8 +208,7 @@ export function ActionForm(props: ActionFormProps) {
 
   const isSafeSuperTokenBalanceInsufficient =
     smartAccount?.safe &&
-    (!bundleSettings.isSponsored ||
-      bundleSettings.noWrap) &&
+    (!bundleSettings.isSponsored || bundleSettings.noWrap) &&
     requiredPayment
       ? requiredPayment.gt(superTokenBalance)
       : false;
@@ -223,16 +223,82 @@ export function ActionForm(props: ActionFormProps) {
     setActionData(_updateData(updatedValues));
   }
 
+  async function getContentHash() {
+    let assetId;
+    let contentHash = "0x";
+    const content: BasicProfile = {};
+
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
+
+    if (selectedParcelId) {
+      assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
+        tokenId: BigNumber.from(selectedParcelId).toString(),
+      });
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const ownerDID = ceramic.did!.parent;
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerDID,
+      });
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/basicProfile",
+        {
+          name: content.name ?? "",
+          url: content.url ?? "",
+        },
+        { parentSchema: "ParcelRoot", pin: true }
+      );
+
+      contentHash = await geoWebContent.raw.commit(newRoot);
+
+      if (
+        interactionState === STATE.PARCEL_RECLAIMING &&
+        accountAddress !== licenseOwner
+      ) {
+        const clearedGalleryRoot = await geoWebContent.raw.putPath(
+          newRoot,
+          "/mediaGallery",
+          [],
+          {
+            parentSchema: "ParcelRoot",
+            pin: true,
+          }
+        );
+        contentHash = await geoWebContent.raw.commit(clearedGalleryRoot);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    return contentHash;
+  }
+
   async function submit(receipt?: ethers.providers.TransactionReceipt) {
+    let licenseId;
+
     updateActionData({ isActing: true, didFail: false });
 
-    let licenseId: string | void;
     try {
-      if (bundleCallback) {
+      if (smartAccount?.safe && bundleCallback) {
         licenseId = await bundleCallback(receipt);
       } else {
         /* Call contract's function directly */
-        licenseId = await performAction();
+        const contentHash = await getContentHash();
+        licenseId = await performAction(contentHash);
       }
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -253,89 +319,11 @@ export function ActionForm(props: ActionFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    const content: BasicProfile = {};
-    if (parcelName) {
-      content["name"] = parcelName;
-    }
-    if (parcelWebContentURI) {
-      content["url"] = parcelWebContentURI;
-    }
-
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: licenseAddress.toLowerCase(),
-      },
-      tokenId: licenseId
-        ? licenseId.toString()
-        : new BN(selectedParcelId.slice(2), "hex").toString(10),
-    });
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const ownerDID = ceramic.did!.parent;
-
-    try {
-      if (
-        licenseId &&
-        (interactionState === STATE.CLAIM_SELECTED ||
-          (interactionState === STATE.PARCEL_RECLAIMING &&
-            accountAddress !== licenseOwner))
-      ) {
-        await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
-        const rootCid = await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerDID,
-        });
-        const mediaGallery: MediaGallery = [];
-        const newRoot = await geoWebContent.raw.putPath(
-          rootCid,
-          "/mediaGallery",
-          mediaGallery,
-          {
-            parentSchema: "ParcelRoot",
-            pin: true,
-          }
-        );
-
-        await geoWebContent.raw.commit(newRoot, {
-          ownerDID,
-          parcelId: assetId,
-        });
-      }
-
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        "/basicProfile",
-        {
-          name: content.name ?? "",
-          url: content.url ?? "",
-        },
-        { parentSchema: "ParcelRoot", pin: true }
-      );
-
-      await geoWebContent.raw.commit(newRoot, {
-        ownerDID,
-        parcelId: assetId,
-      });
-    } catch (err) {
-      console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        errorMessage: (err as Error).message,
-      });
-    }
-
     updateActionData({ isActing: false });
 
     if (setShouldParcelContentUpdate) {
       setShouldParcelContentUpdate(true);
-    } else if (licenseId) {
+    } else if (!selectedParcelId && licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
@@ -652,6 +640,7 @@ export function ActionForm(props: ActionFormProps) {
                   setTransactionsBundleFeesEstimate={
                     setTransactionsBundleFeesEstimate
                   }
+                  getContentHash={getContentHash}
                 />
               </>
             ) : (
@@ -728,9 +717,7 @@ export function ActionForm(props: ActionFormProps) {
             bundleSettings.isSponsored &&
             !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(bundleSettings.wrapAmount).gt(
-              safeEthBalance
-            ) &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">

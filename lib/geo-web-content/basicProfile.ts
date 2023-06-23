@@ -18,21 +18,23 @@ function useBasicProfile(
     useState<boolean>(true);
 
   useEffect(() => {
-    (async () => {
+    if (
+      !geoWebContent ||
+      !licenseContractAddress ||
+      !licenseOwner ||
+      !parcelId ||
+      !shouldParcelContentUpdate
+    ) {
+      return;
+    }
+
+    const prevParcelContent = parcelContent ? { ...parcelContent } : null;
+
+    setParcelContent(null);
+    setRootCid(null);
+
+    const timerId = setInterval(async () => {
       try {
-        if (
-          !geoWebContent ||
-          !licenseContractAddress ||
-          !licenseOwner ||
-          !parcelId ||
-          !shouldParcelContentUpdate
-        ) {
-          return;
-        }
-
-        setParcelContent(null);
-        setRootCid(null);
-
         const assetId = new AssetId({
           chainId: `eip155:${NETWORK_ID}`,
           assetName: {
@@ -61,18 +63,26 @@ function useBasicProfile(
           schema: "ParcelRoot",
         });
 
-        setParcelContent(_parcelContent);
-        setRootCid(
-          root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
-        );
-        setShouldParcelContentUpdate(false);
+        if (
+          JSON.stringify(_parcelContent) !== JSON.stringify(prevParcelContent)
+        ) {
+          setParcelContent(_parcelContent);
+          setRootCid(
+            root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
+          );
+          setShouldParcelContentUpdate(false);
+          clearInterval(timerId);
+        }
       } catch (err) {
         setParcelContent({});
         setRootCid("");
         setShouldParcelContentUpdate(false);
+        clearInterval(timerId);
         console.error(err);
       }
-    })();
+    }, 5000);
+
+    return () => clearInterval(timerId);
   }, [
     geoWebContent,
     licenseContractAddress,

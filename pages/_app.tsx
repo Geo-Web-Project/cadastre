@@ -168,6 +168,11 @@ export function App({ Component, pageProps }: AppProps) {
         link: new HttpLink({
           uri: SUBGRAPH_URL,
         }),
+        defaultOptions: {
+          watchQuery: {
+            fetchPolicy: "cache-and-network",
+          },
+        },
         cache: new InMemoryCache({
           typePolicies: {
             Query: {

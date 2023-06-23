@@ -26,6 +26,12 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
 
+import {
+  useApolloClient,
+  ApolloClient,
+  // eslint-disable-next-line import/named
+  NormalizedCacheObject,
+} from "@apollo/client";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -104,6 +110,8 @@ function IndexPage({
   setAuthStatus: (_: AuthenticationStatus) => void;
 }) {
   const router = useRouter();
+  const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
+
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
   >(null);
@@ -185,7 +193,6 @@ function IndexPage({
     return { session, w3Client };
   };
 
-  console.log(smartAccount?.loginState);
   const loadStorageDelegation = async (
     session: DIDSession,
     w3Client: W3Client
@@ -266,6 +273,7 @@ function IndexPage({
       ipfsGatewayHost: IPFS_GATEWAY,
       ipfs,
       w3InvocationConfig,
+      apolloClient,
     });
 
     setW3InvocationConfig(w3InvocationConfig);
@@ -369,6 +377,7 @@ function IndexPage({
         ceramic: ceramic as any,
         ipfsGatewayHost: IPFS_GATEWAY,
         ipfs,
+        apolloClient,
       });
 
       setGeoWebContent(geoWebContent);
