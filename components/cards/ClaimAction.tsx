@@ -48,7 +48,7 @@ function ClaimAction(props: ClaimActionProps) {
     displayNewForSalePrice: "",
   });
   const [flowOperator, setFlowOperator] = React.useState<string>("");
-  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
 
   const { displayNewForSalePrice } = actionData;
@@ -296,7 +296,7 @@ function ClaimAction(props: ClaimActionProps) {
               claimPayment={minForSalePrice}
               newAnnualNetworkFee={networkFeeRatePerYear}
               newNetworkFee={newFlowRate}
-              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -311,8 +311,8 @@ function ClaimAction(props: ClaimActionProps) {
         flowOperator={flowOperator}
         bundleCallback={smartAccount?.safe ? bundleCallback : void 0}
         encodeFunctionData={encodeClaimData}
-        transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-        setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         {...props}
       />
       <StreamingInfo {...props} />

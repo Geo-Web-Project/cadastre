@@ -39,6 +39,9 @@ $dropdown-dark-color: $gray;
 $dropdown-dark-bg: $dark;
 $dropdown-dark-link-hover-color: $light;
 $dropdown-dark-link-hover-bg: $purple;
+$accordion-bg: $blue;
+$accordion-icon-color: $light;
+$accordion-icon-active-color: $light;
 
 @font-face {
   font-family: "SF Pro Rounded";
@@ -139,6 +142,11 @@ body {
 
 @import "~bootstrap/scss/bootstrap";
 
+.accordion-button {
+  background: $dark !important;
+  color: $light !important;
+}
+
 .fixed-top {
   z-index: 500;
 }
@@ -191,7 +199,7 @@ body {
 .dropdown-selected:hover {
   background: rgba(0, 0, 0, 0.2);
 }
-.btn-wrap-strategy{
+.btn-wrap-strategy {
   background: transparent !important;
 }
 .parcel-list-btn {

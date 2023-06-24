@@ -24,7 +24,7 @@ import { ApproveButton } from "../ApproveButton";
 import { PerformButton } from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 export type PlaceBidActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
@@ -74,7 +74,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   >(null);
   const [isAllowed, setIsAllowed] = React.useState(false);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
-  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
     null
@@ -151,10 +151,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     smartAccount?.safe &&
     bundleSettings.isSponsored &&
     requiredPayment &&
-    safeEthBalance &&
-    transactionsBundleFeesEstimate
+    safeEthBalance
       ? requiredPayment
-          .add(transactionsBundleFeesEstimate)
+          .add(transactionBundleFeesEstimate ?? 0)
           .gt(superTokenBalance.add(safeEthBalance))
       : false;
 
@@ -162,8 +161,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     smartAccount?.safe &&
     !bundleSettings.isSponsored &&
     safeEthBalance &&
-    transactionsBundleFeesEstimate
-      ? transactionsBundleFeesEstimate.gt(safeEthBalance)
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
       : false;
 
   const isSafeSuperTokenBalanceInsufficient =
@@ -393,7 +392,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 collateralDeposit={newForSalePrice ?? undefined}
-                transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                 {...props}
               />
             ) : null}
@@ -474,11 +473,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   buttonText={"Place Bid"}
                   encodeFunctionData={encodePlaceBidData}
                   callback={submitBundleCallback}
-                  transactionsBundleFeesEstimate={
-                    transactionsBundleFeesEstimate
-                  }
-                  setTransactionsBundleFeesEstimate={
-                    setTransactionsBundleFeesEstimate
+                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
                   }
                 />
               </>
@@ -487,7 +484,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
           <br />
           {!smartAccount?.safe &&
-          isSignerBalanceInsufficient &&
           isSignerBalanceInsufficient &&
           displayNewForSalePrice &&
           !isActing ? (
@@ -539,10 +535,10 @@ function PlaceBidAction(props: PlaceBidActionProps) {
             ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
-                requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
+                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
               )) ||
               (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">

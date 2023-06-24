@@ -40,7 +40,7 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
-import { BundleSettingsProvider } from "../lib/transactionsBundleSettings";
+import { BundleSettingsProvider } from "../lib/transactionBundleSettings";
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
   420: optimismGoerli,

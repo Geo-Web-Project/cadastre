@@ -11,9 +11,9 @@ import {
   useBundleSettingsDispatch,
   TopUpDropDownSelection,
   BundleSettingsActionType,
-} from "../lib/transactionsBundleSettings";
+} from "../lib/transactionBundleSettings";
 
-function TransactionsBundleConfigView(props: {
+function TransactionsBundleSettingsView(props: {
   direction?: string;
   showTopUpTotalDropDown: boolean;
   setShowTopUpTotalDropDown: React.Dispatch<React.SetStateAction<boolean>>;
@@ -626,4 +626,4 @@ function TransactionsBundleConfigView(props: {
   );
 }
 
-export default TransactionsBundleConfigView;
+export default TransactionsBundleSettingsView;

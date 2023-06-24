@@ -11,7 +11,7 @@ import type { MediaObject } from "@geo-web/types";
 import { GalleryModalProps } from "./GalleryModal";
 import { getFormatType } from "./GalleryFileFormat";
 import { fromValueToRate } from "../../lib/utils";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useSafe } from "../../lib/safe";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
@@ -57,7 +57,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     existingForSalePrice,
   } = props;
 
-  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
   const { superTokenBalance } = useSuperTokenBalance(
@@ -193,7 +193,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       };
       metaTransactions.push(editBidTransaction);
 
-      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
+      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
         metaTransactions
       );
       await relayTransaction(metaTransactions, {

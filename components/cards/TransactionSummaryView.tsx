@@ -4,14 +4,14 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
-import TransactionsBundleConfigModal from "../TransactionsBundleConfigModal";
+import TransactionBundleSettingsModal from "../TransactionBundleSettingsModal";
 import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded } from "../../lib/utils";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 type TransactionSummaryViewProps = OffCanvasPanelProps & {
   existingNetworkFee?: BigNumber;
@@ -23,7 +23,7 @@ type TransactionSummaryViewProps = OffCanvasPanelProps & {
   penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
-  transactionsBundleFeesEstimate: BigNumber | null;
+  transactionBundleFeesEstimate: BigNumber | null;
 };
 
 function TransactionSummaryView({
@@ -41,7 +41,7 @@ function TransactionSummaryView({
   penaltyPayment,
   sfFramework,
   paymentToken,
-  transactionsBundleFeesEstimate,
+  transactionBundleFeesEstimate,
 }: TransactionSummaryViewProps) {
   const { isMobile } = useMediaQuery();
   const bundleSettings = useBundleSettings();
@@ -60,8 +60,8 @@ function TransactionSummaryView({
       : networkFeeDelta ?? BigNumber.from(0);
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
-  const transactionsBundleFeesDisplay = transactionsBundleFeesEstimate
-    ? truncateEth(formatBalance(transactionsBundleFeesEstimate), 8)
+  const transactionBundleFeesDisplay = transactionBundleFeesEstimate
+    ? truncateEth(formatBalance(transactionBundleFeesEstimate), 8)
     : null;
 
   const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
@@ -75,8 +75,8 @@ function TransactionSummaryView({
     null
   );
   const [
-    showTransactionsBundleConfigModal,
-    setShowTransactionsBundleConfigModal,
+    showTransactionBundleSettingsModal,
+    setShowTransactionBundleSettingsModal,
   ] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -306,7 +306,7 @@ function TransactionSummaryView({
     </p>
   );
 
-  const transactionsBundleFeesEstimateView = (
+  const transactionBundleFeesEstimateView = (
     <p
       className={
         bundleSettings.isSponsored &&
@@ -329,7 +329,7 @@ function TransactionSummaryView({
         }
         target={
           <span className="text-decoration-underline">
-            {transactionsBundleFeesDisplay}{" "}
+            {transactionBundleFeesDisplay}{" "}
             {bundleSettings.isSponsored ? "ETHx" : "ETH"}
           </span>
         }
@@ -386,9 +386,9 @@ function TransactionSummaryView({
                       .add(claimPayment ?? 0)
                       .add(collateralDeposit ?? 0)
                       .add(
-                        transactionsBundleFeesEstimate &&
+                        transactionBundleFeesEstimate &&
                           bundleSettings.isSponsored
-                          ? transactionsBundleFeesEstimate
+                          ? transactionBundleFeesEstimate
                           : 0
                       )
                   ),
@@ -493,12 +493,12 @@ function TransactionSummaryView({
           <span className="text-decoration-underline">
             {currentForSalePrice &&
             reducedBuffer &&
-            transactionsBundleFeesEstimate
+            transactionBundleFeesEstimate
               ? `${truncateEth(
                   formatBalance(
                     currentForSalePrice
                       .add(reducedBuffer)
-                      .sub(transactionsBundleFeesEstimate)
+                      .sub(transactionBundleFeesEstimate)
                   ),
                   8
                 )} ${PAYMENT_TOKEN}`
@@ -518,13 +518,13 @@ function TransactionSummaryView({
             <Button
               variant="link"
               className="shadow-none p-0"
-              onClick={() => setShowTransactionsBundleConfigModal(true)}
+              onClick={() => setShowTransactionBundleSettingsModal(true)}
             >
               <Image src="settings.svg" alt="settings" width={32} />
             </Button>
-            <TransactionsBundleConfigModal
-              show={showTransactionsBundleConfigModal}
-              handleClose={() => setShowTransactionsBundleConfigModal(false)}
+            <TransactionBundleSettingsModal
+              show={showTransactionBundleSettingsModal}
+              handleClose={() => setShowTransactionBundleSettingsModal(false)}
               smartAccount={smartAccount}
               paymentToken={paymentToken}
               existingAnnualNetworkFee={existingAnnualNetworkFee}
@@ -547,17 +547,17 @@ function TransactionSummaryView({
           interactionState === STATE.PARCEL_EDITING &&
           !bundleSettings.isSponsored &&
           streamView}
-        {transactionsBundleFeesEstimate &&
-        transactionsBundleFeesEstimate.gt(0) &&
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
         bundleSettings.isSponsored
-          ? transactionsBundleFeesEstimateView
+          ? transactionBundleFeesEstimateView
           : null}
         {interactionState === STATE.PARCEL_ACCEPTING_BID && netReceivedView}
-        {transactionsBundleFeesEstimate &&
-        transactionsBundleFeesEstimate.gt(0) &&
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
         !bundleSettings.isSponsored &&
         interactionState === STATE.PARCEL_EDITING
-          ? transactionsBundleFeesEstimateView
+          ? transactionBundleFeesEstimateView
           : null}
         {smartAccount?.safe &&
         interactionState !== STATE.PARCEL_ACCEPTING_BID &&
@@ -576,11 +576,11 @@ function TransactionSummaryView({
           interactionState === STATE.PARCEL_EDITING &&
           bundleSettings.isSponsored &&
           streamView}
-        {transactionsBundleFeesEstimate &&
-          transactionsBundleFeesEstimate.gt(0) &&
+        {transactionBundleFeesEstimate &&
+          transactionBundleFeesEstimate.gt(0) &&
           !bundleSettings.isSponsored &&
           interactionState !== STATE.PARCEL_EDITING &&
-          transactionsBundleFeesEstimateView}
+          transactionBundleFeesEstimateView}
       </>
     </div>
   );

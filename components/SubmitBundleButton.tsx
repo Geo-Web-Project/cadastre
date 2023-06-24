@@ -5,10 +5,11 @@ import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
 import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
+import TransactionBundleDetails from "./TransactionBundleDetails";
 import { OffCanvasPanelProps } from "./OffCanvasPanel";
 import { useSafe } from "../lib/safe";
 import { ZERO_ADDRESS } from "../lib/constants";
-import { useBundleSettings } from "../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../lib/transactionBundleSettings";
 
 export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
@@ -26,8 +27,8 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   callback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
-  transactionsBundleFeesEstimate: BigNumber | null;
-  setTransactionsBundleFeesEstimate: React.Dispatch<
+  transactionBundleFeesEstimate: BigNumber | null;
+  setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
   getContentHash?: () => Promise<string>;
@@ -52,17 +53,16 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     buttonText,
     encodeFunctionData,
     callback,
-    transactionsBundleFeesEstimate,
-    setTransactionsBundleFeesEstimate,
+    transactionBundleFeesEstimate,
+    setTransactionBundleFeesEstimate,
     getContentHash,
   } = props;
 
-  const [metaTransactions, setMetaTransactions] = useState<
+  const [metaTransactions, setMetaTransaction] = useState<
     MetaTransactionData[]
   >([]);
-  const [contentHash, setContentHash] = useState<string | null>(null);
 
-  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
   const { data: signer } = useSigner();
@@ -115,12 +115,12 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
           bundleSettings.noWrap &&
           requiredPayment &&
           superTokenBalance.lt(
-            requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
+            requiredPayment.add(transactionBundleFeesEstimate ?? 0)
           )
             ? ZERO_ADDRESS
             : bundleSettings.isSponsored &&
               (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
-                superTokenBalance.gt(transactionsBundleFeesEstimate ?? 0))
+                superTokenBalance.gt(transactionBundleFeesEstimate ?? 0))
             ? paymentToken.address
             : ZERO_ADDRESS,
       });
@@ -172,6 +172,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     const prepareTransaction = async () => {
       if (
         isActing ||
+        !isReady ||
         !flowOperator ||
         !requiredFlowAmount ||
         !spender ||
@@ -193,7 +194,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         encodedGwContractFunctionData = encodeFunctionData();
       }
 
-      let wrap, approveSpending;
+      let wrap, approveSpending, approveFlow;
       const safeBalance = await smartAccount.safe.getBalance();
       const wrapAmount =
         bundleSettings.isSponsored &&
@@ -226,17 +227,13 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         }).populateTransactionPromise;
       }
 
-      const approveFlow = await sfFramework.cfaV1.updateFlowOperatorPermissions(
-        {
+      if (requiredFlowAmount.gt(0)) {
+        approveFlow = await sfFramework.cfaV1.updateFlowOperatorPermissions({
           flowOperator: flowOperator,
           permissions: 3, // Create or update
           flowRateAllowance: requiredFlowAmount.toString(),
           superToken: paymentToken.address,
-        }
-      ).populateTransactionPromise;
-
-      if (!approveFlow.to || !approveFlow.data) {
-        throw new Error("Error populating Superfluid transaction");
+        }).populateTransactionPromise;
       }
 
       if (wrap?.to && wrap?.data) {
@@ -253,24 +250,24 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
           data: approveSpending.data,
         });
       }
-      metaTransactions.push({
-        to: approveFlow.to,
-        value: "0",
-        data: approveFlow.data,
-      });
+      if (approveFlow?.to && approveFlow?.data) {
+        metaTransactions.push({
+          to: approveFlow.to,
+          value: "0",
+          data: approveFlow.data,
+        });
+      }
       metaTransactions.push({
         to: spender,
         value: "0",
         data: encodedGwContractFunctionData,
       });
-      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
+      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
         metaTransactions
       );
 
-      setTransactionsBundleFeesEstimate(
-        BigNumber.from(transactionFeesEstimate)
-      );
-      setMetaTransactions(metaTransactions);
+      setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
+      setMetaTransaction(metaTransactions);
     };
 
     prepareTransaction();
@@ -295,14 +292,28 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
   ]);
 
   return (
-    <Button
-      variant={buttonText === "Reject Bid" ? "danger" : "success"}
-      className="w-100"
-      onClick={() => submit()}
-      disabled={isDisabled || !isReady}
-    >
-      {isActing ? spinner : buttonText}
-    </Button>
+    <>
+      <Button
+        variant={buttonText === "Reject Bid" ? "danger" : "success"}
+        className="w-100"
+        onClick={() => submit()}
+        disabled={isDisabled || !isReady}
+      >
+        {isActing ? spinner : buttonText}
+      </Button>
+      {smartAccount?.safe && transactionBundleFeesEstimate && (
+        <TransactionBundleDetails
+          smartAccount={smartAccount}
+          metaTransactions={metaTransactions}
+          transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+          requiredPayment={requiredPayment}
+          requiredFlowAmount={requiredFlowAmount}
+          isDisabled={!isReady || isDisabled}
+          isActing={isActing}
+          submit={submit}
+        />
+      )}
+    </>
   );
 }
 

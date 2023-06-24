@@ -23,7 +23,7 @@ import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,7 +63,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
   const [didFail, setDidFail] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isActing, setIsActing] = React.useState(false);
-  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
   const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
@@ -113,16 +113,16 @@ function AcceptBidAction(props: AcceptBidActionProps) {
     smartAccount?.safe &&
     bundleSettings.isSponsored &&
     safeEthBalance &&
-    transactionsBundleFeesEstimate
-      ? transactionsBundleFeesEstimate.gt(superTokenBalance.add(safeEthBalance))
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(superTokenBalance.add(safeEthBalance))
       : false;
 
   const isSafeEthBalanceInsufficient =
     smartAccount?.safe &&
     !bundleSettings.isSponsored &&
     safeEthBalance &&
-    transactionsBundleFeesEstimate
-      ? transactionsBundleFeesEstimate.gt(safeEthBalance)
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
       : false;
 
   const spinner = (
@@ -223,7 +223,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               existingNetworkFee={existingNetworkFee}
               newNetworkFee={newNetworkFee}
               currentForSalePrice={existingForSalePrice}
-              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : null}
@@ -264,9 +264,9 @@ function AcceptBidAction(props: AcceptBidActionProps) {
                 buttonText={"Accept Bid"}
                 encodeFunctionData={encodeAcceptBidData}
                 callback={bundleCallback}
-                transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-                setTransactionsBundleFeesEstimate={
-                  setTransactionsBundleFeesEstimate
+                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+                setTransactionBundleFeesEstimate={
+                  setTransactionBundleFeesEstimate
                 }
               />
             </>
@@ -304,9 +304,9 @@ function AcceptBidAction(props: AcceptBidActionProps) {
             </Alert>
           ) : bundleSettings.isSponsored &&
             ((bundleSettings.noWrap &&
-              superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0)) ||
+              superTokenBalance.lt(transactionBundleFeesEstimate ?? 0)) ||
               (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
             newForSalePriceDisplay &&
             !isActing ? (
             <Alert variant="warning">

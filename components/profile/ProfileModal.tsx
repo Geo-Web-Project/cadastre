@@ -41,7 +41,7 @@ import DropdownMenu from "react-bootstrap/DropdownMenu";
 import DropdownItem from "react-bootstrap/DropdownItem";
 import DropdownToggle from "react-bootstrap/DropdownToggle";
 import { SmartAccount } from "../../pages/index";
-import TransactionsBundleConfigView from "../TransactionsBundleConfigView";
+import TransactionBundleSettingsView from "../TransactionBundleSettingsView";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
@@ -63,7 +63,7 @@ import { useParcelNavigation } from "../../lib/parcelNavigation";
 import { useSafe } from "../../lib/safe";
 import {
   useBundleSettings,
-} from "../../lib/transactionsBundleSettings";
+} from "../../lib/transactionBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -244,7 +244,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
-  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
   const bundleSettings = useBundleSettings();
@@ -614,7 +614,7 @@ function ProfileModal(props: ProfileModalProps) {
 
       if (smartAccount?.safe) {
         const { transactionFeesEstimate } =
-          await estimateTransactionsBundleFees([transactionData]);
+          await estimateTransactionBundleFees([transactionData]);
         await relayTransaction([transactionData], {
           isSponsored: bundleSettings.isSponsored,
           gasToken:
@@ -1055,7 +1055,7 @@ function ProfileModal(props: ProfileModalProps) {
                   wrappingAmount !== "" &&
                   Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
                   <span className="d-inline-block text-danger m-0 mt-1 ms-3">
-                    Warning: Leave enough ETH for more transactions
+                    Warning: Leave enough ETH for more transaction
                   </span>
                 ) : null}
               </Col>
@@ -1171,7 +1171,7 @@ function ProfileModal(props: ProfileModalProps) {
                     isMobile || isTablet ? "w-100" : "w-75"
                   } pe-2 mb-3 mb-lg-5 ms-1`}
                 >
-                  <TransactionsBundleConfigView
+                  <TransactionBundleSettingsView
                     direction="row"
                     showTopUpTotalDropDown={showTopUpTotalDropDown}
                     setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BigNumber, Contract } from "ethers";
 import { providers } from "ethers/lib";
 import {
@@ -26,7 +27,6 @@ import {
   ZERO_ADDRESS,
 } from "./constants";
 
-const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
 const MAX_GAS_LIMIT = "15000000";
 
 enum OperationType {
@@ -35,6 +35,14 @@ enum OperationType {
 }
 
 function useSafe(safe: Safe | null) {
+  const [metaTransactionCache, setMetaTransactionsCache] = useState<
+    MetaTransactionData[]
+  >([]);
+  const [simulationGasUsedCache, setSimulationGasUsedCache] =
+    useState<string>("");
+  const [safeSingletonCodeCache, setSafeSingletonCodeCache] =
+    useState<string>("");
+
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
   const proxyFactoryInfo = getProxyFactoryDeployment();
   const multiSendCallOnlyInfo = getMultiSendCallOnlyDeployment();
@@ -144,7 +152,7 @@ function useSafe(safe: Safe | null) {
     let gasEstimate = "0";
 
     if (metaTxs.length === 1) {
-      const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
+      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(metaTxs[0], {
         gasLimit: BigNumber.from(gasUsed),
@@ -168,7 +176,7 @@ function useSafe(safe: Safe | null) {
           multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
             safeMultiSendData,
           ]);
-        const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
+        const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
         const safeTransactionData = await encodeExecTransactionData(
           {
             to: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
@@ -215,7 +223,7 @@ function useSafe(safe: Safe | null) {
         multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
           multiSendData,
         ]);
-      const { gasUsed } = await estimateTransactionsBundleFees(metaTxs);
+      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(
         {
@@ -272,7 +280,7 @@ function useSafe(safe: Safe | null) {
         multiSendData,
       ]);
     const gasEstimate = await ethAdapter.estimateGas({
-      from: WETH_ADDRESS,
+      from: ZERO_ADDRESS,
       to: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
       value: "0",
       data: encodedTransactionData,
@@ -331,16 +339,16 @@ function useSafe(safe: Safe | null) {
     return safeDeploymentData;
   };
 
-  const estimateTransactionsBundleFees = async (
+  const estimateTransactionBundleFees = async (
     metaTxs: MetaTransactionData[]
   ) => {
     if (!safe) {
       throw new Error("Safe was not found");
     }
 
-    let simulationResultEncoded;
     let transactionFeesEstimate = "0";
     let gasUsed = "0";
+    let safeSingletonCode = "0x";
 
     const safeAddress = await safe.getAddress();
     const multiSendData = encodeMultiSendData(metaTxs);
@@ -357,42 +365,63 @@ function useSafe(safe: Safe | null) {
         OperationType.DelegateCall,
       ]
     );
-    const singletonCode = await provider.getCode(
-      safeL2SingletonInfo.networkAddresses[NETWORK_ID]
-    );
+
+    if (safeSingletonCodeCache) {
+      safeSingletonCode = safeSingletonCodeCache;
+    } else {
+      safeSingletonCode = await provider.getCode(
+        safeL2SingletonInfo.networkAddresses[NETWORK_ID]
+      );
+      setSafeSingletonCodeCache(safeSingletonCode);
+    }
     const stateOverride = {
       [safeAddress]: {
-        code: singletonCode,
+        code: safeSingletonCode,
       },
     };
 
-    /*
-     * Simulate a safe transaction with state override in case the safe is not
-     * deployed yet. `simulateAndRevert` cause this function call to throw
-     * even if successful but the data we care about is in the error message.
-     */
-    try {
-      await provider.send("eth_call", [
-        {
-          to: safeAddress,
-          data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
-            simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
-            simulationCalldata,
-          ]),
+    if (JSON.stringify(metaTxs) === JSON.stringify(metaTransactionCache)) {
+      gasUsed = simulationGasUsedCache;
+    } else {
+      /*
+       * Simulate a safe transaction with state override in case the safe is not
+       * deployed yet. `simulateAndRevert` reverts even if successful so the data
+       * we need is in the error message.
+       */
+      const res = await fetch(RPC_URLS[NETWORK_ID], {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        "latest",
-        stateOverride,
-      ]);
-    } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      simulationResultEncoded = (err as any).error.data;
+        body: JSON.stringify({
+          id: 1,
+          jsonrpc: "2.0",
+          method: "eth_call",
+          params: [
+            {
+              to: safeAddress,
+              data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
+                simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
+                simulationCalldata,
+              ]),
+            },
+            "latest",
+            stateOverride,
+          ],
+        }),
+      });
+      const simulationResultEncoded = (await res.json()).error.data;
+
+      const simulationResultDecoded = defaultAbiCoder.decode(
+        ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
+        simulationResultEncoded
+      );
+      gasUsed = simulationResultDecoded[2];
+
+      setMetaTransactionsCache(metaTxs);
+      setSimulationGasUsedCache(gasUsed);
     }
 
-    const simulationResultDecoded = defaultAbiCoder.decode(
-      ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
-      simulationResultEncoded
-    );
-    gasUsed = simulationResultDecoded[2];
     transactionFeesEstimate = await relayKit.getEstimateFee(
       NETWORK_ID,
       BigNumber.from(gasUsed).toString()
@@ -402,7 +431,7 @@ function useSafe(safe: Safe | null) {
   };
 
   const encodeExecTransactionData = async (
-    metaTransaction: MetaTransactionData,
+    metaTransactions: MetaTransactionData,
     options: {
       gasLimit: BigNumber;
       isAutoRefunded: boolean;
@@ -420,9 +449,9 @@ function useSafe(safe: Safe | null) {
       : "0";
 
     const safeTransactionData = {
-      data: metaTransaction.data,
-      to: metaTransaction.to,
-      value: metaTransaction.value,
+      data: metaTransactions.data,
+      to: metaTransactions.to,
+      value: metaTransactions.value,
       baseGas: !isAutoRefunded ? "0" : estimate,
       safeTxGas: gasLimit.mul(120).div(100).toString(),
       gasPrice: isAutoRefunded ? "1" : "0",
@@ -431,7 +460,7 @@ function useSafe(safe: Safe | null) {
         isAutoRefunded && isSponsored
           ? REFUND_RECEIVER
           : relayKit.getFeeCollector(),
-      operation: metaTransaction.operation ?? OperationType.Call,
+      operation: metaTransactions.operation ?? OperationType.Call,
     };
     const safeTransaction = await safe.createTransaction({
       safeTransactionData,
@@ -513,10 +542,12 @@ function useSafe(safe: Safe | null) {
   };
 
   return {
+    encodeSafeDeploymentData,
     deploySafe,
+    encodeMultiSendData,
     relayTransaction,
     waitRelayedTxConfirmation,
-    estimateTransactionsBundleFees,
+    estimateTransactionBundleFees,
   };
 }
 

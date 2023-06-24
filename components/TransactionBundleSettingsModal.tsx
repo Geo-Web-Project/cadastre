@@ -8,10 +8,10 @@ import Image from "react-bootstrap/Image";
 import InfoTooltip from "./InfoTooltip";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { SmartAccount } from "../pages/index";
-import TransactionsBundleConfigView from "./TransactionsBundleConfigView";
+import TransactionBundleSettingsView from "./TransactionBundleSettingsView";
 import { NETWORK_ID } from "../lib/constants";
 
-type TransactionsBundleConfigModalProps = {
+type TransactionBundleSettngsModalProps = {
   show: boolean;
   handleClose: () => void;
   smartAccount: SmartAccount;
@@ -20,8 +20,8 @@ type TransactionsBundleConfigModalProps = {
   newAnnualNetworkFee: BigNumber | null;
 };
 
-function TransactionsBundleConfigModal(
-  props: TransactionsBundleConfigModalProps
+function TransactionBundleSettngsModal(
+  props: TransactionBundleSettngsModalProps
 ) {
   const {
     show,
@@ -98,7 +98,7 @@ function TransactionsBundleConfigModal(
         </Button>
       </Modal.Header>
       <Modal.Body className="d-flex flex-column justify-content-center bg-dark text-light p-0 p-lg-3 mb-lg-0">
-        <TransactionsBundleConfigView
+        <TransactionBundleSettingsView
           direction="column"
           showTopUpTotalDropDown={showTopUpTotalDropDown}
           setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
@@ -115,4 +115,4 @@ function TransactionsBundleConfigModal(
   );
 }
 
-export default TransactionsBundleConfigModal;
+export default TransactionBundleSettngsModal;

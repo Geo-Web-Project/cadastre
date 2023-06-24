@@ -51,7 +51,7 @@ function ReclaimAction(props: ReclaimActionProps) {
   const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
     null
   );
-  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
 
   const { displayNewForSalePrice } = actionData;
@@ -221,7 +221,7 @@ function ReclaimAction(props: ReclaimActionProps) {
               claimPayment={isOwner ? BigNumber.from("0") : requiredBid}
               newAnnualNetworkFee={newAnnualNetworkFee}
               newNetworkFee={newNetworkFee}
-              transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -238,8 +238,8 @@ function ReclaimAction(props: ReclaimActionProps) {
         flowOperator={licenseDiamondContract?.address || null}
         encodeFunctionData={encodeReclaimData}
         bundleCallback={bundleCallback}
-        transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-        setTransactionsBundleFeesEstimate={setTransactionsBundleFeesEstimate}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         {...props}
       />
       <StreamingInfo {...props} />

@@ -19,7 +19,7 @@ import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
 import { PAYMENT_TOKEN, NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,7 +65,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
 
-  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
@@ -260,7 +260,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         metaTransactions.push(triggerTransferTransaction);
 
         const { transactionFeesEstimate } =
-          await estimateTransactionsBundleFees(metaTransactions);
+          await estimateTransactionBundleFees(metaTransactions);
         await relayTransaction(metaTransactions, {
           isSponsored: bundleSettings.isSponsored,
           gasToken:

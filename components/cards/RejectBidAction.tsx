@@ -30,7 +30,7 @@ import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -93,7 +93,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   const [displayNewForSalePrice, setDisplayNewForSalePrice] =
     React.useState<string>(bidForSalePriceDisplay);
   const [isAllowed, setIsAllowed] = React.useState(false);
-  const [transactionsBundleFeesEstimate, setTransactionsBundleFeesEstimate] =
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
     React.useState<BigNumber | null>(null);
   const [showAddFundsModal, setShowAddFundsModal] = React.useState(false);
   const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
@@ -195,10 +195,9 @@ function RejectBidAction(props: RejectBidActionProps) {
     smartAccount?.safe &&
     bundleSettings.isSponsored &&
     requiredPayment &&
-    safeEthBalance &&
-    transactionsBundleFeesEstimate
+    safeEthBalance
       ? requiredPayment
-          .add(transactionsBundleFeesEstimate)
+          .add(transactionBundleFeesEstimate ?? 0)
           .gt(superTokenBalance.add(safeEthBalance))
       : false;
 
@@ -206,8 +205,8 @@ function RejectBidAction(props: RejectBidActionProps) {
     smartAccount?.safe &&
     !bundleSettings.isSponsored &&
     safeEthBalance &&
-    transactionsBundleFeesEstimate
-      ? transactionsBundleFeesEstimate.gt(safeEthBalance)
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
       : false;
 
   const isSafeSuperTokenBalanceInsufficient =
@@ -504,7 +503,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                 newNetworkFee={newNetworkFee}
                 currentForSalePrice={currentForSalePrice}
                 penaltyPayment={penaltyPayment ?? undefined}
-                transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
+                transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                 {...props}
               />
             ) : null}
@@ -547,9 +546,9 @@ function RejectBidAction(props: RejectBidActionProps) {
                   buttonText={"Reject Bid"}
                   encodeFunctionData={encodeRejectBidData}
                   callback={bundleCallback}
-                  transactionsBundleFeesEstimate={transactionsBundleFeesEstimate}
-                  setTransactionsBundleFeesEstimate={
-                    setTransactionsBundleFeesEstimate
+                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
                   }
                 />
               </>
@@ -612,9 +611,7 @@ function RejectBidAction(props: RejectBidActionProps) {
             bundleSettings.isSponsored &&
             !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(bundleSettings.wrapAmount).gt(
-              safeEthBalance
-            ) &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">
@@ -645,10 +642,10 @@ function RejectBidAction(props: RejectBidActionProps) {
             ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
-                requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
+                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
               )) ||
               (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">

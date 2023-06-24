@@ -5,7 +5,7 @@ import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
-import type { BasicProfile, MediaGallery } from "@geo-web/types";
+import type { BasicProfile } from "@geo-web/types";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -26,7 +26,7 @@ import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
@@ -53,8 +53,8 @@ export type ActionFormProps = OffCanvasPanelProps & {
   bundleCallback?: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
-  transactionsBundleFeesEstimate: BigNumber | null;
-  setTransactionsBundleFeesEstimate: React.Dispatch<
+  transactionBundleFeesEstimate: BigNumber | null;
+  setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
 };
@@ -100,8 +100,8 @@ export function ActionForm(props: ActionFormProps) {
     setParcelFieldsToUpdate,
     encodeFunctionData,
     bundleCallback,
-    transactionsBundleFeesEstimate,
-    setTransactionsBundleFeesEstimate,
+    transactionBundleFeesEstimate,
+    setTransactionBundleFeesEstimate,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = React.useState(false);
@@ -191,10 +191,9 @@ export function ActionForm(props: ActionFormProps) {
     smartAccount?.safe &&
     bundleSettings.isSponsored &&
     requiredPayment &&
-    safeEthBalance &&
-    transactionsBundleFeesEstimate
+    safeEthBalance
       ? requiredPayment
-          .add(transactionsBundleFeesEstimate)
+          .add(transactionBundleFeesEstimate ?? 0)
           .gt(superTokenBalance.add(safeEthBalance))
       : false;
 
@@ -202,8 +201,8 @@ export function ActionForm(props: ActionFormProps) {
     smartAccount?.safe &&
     !bundleSettings.isSponsored &&
     safeEthBalance &&
-    transactionsBundleFeesEstimate
-      ? transactionsBundleFeesEstimate.gt(safeEthBalance)
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
       : false;
 
   const isSafeSuperTokenBalanceInsufficient =
@@ -637,8 +636,8 @@ export function ActionForm(props: ActionFormProps) {
                   }
                   encodeFunctionData={encodeFunctionData}
                   callback={submit}
-                  setTransactionsBundleFeesEstimate={
-                    setTransactionsBundleFeesEstimate
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
                   }
                   getContentHash={getContentHash}
                 />
@@ -748,10 +747,10 @@ export function ActionForm(props: ActionFormProps) {
             ((bundleSettings.noWrap &&
               requiredPayment &&
               superTokenBalance.lt(
-                requiredPayment.add(transactionsBundleFeesEstimate ?? 0)
+                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
               )) ||
               (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionsBundleFeesEstimate ?? 0))) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
             displayNewForSalePrice &&
             !isActing ? (
             <Alert variant="warning">

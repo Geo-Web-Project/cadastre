@@ -59,7 +59,7 @@ const initialState = {
 
 function saveBundleSettings(newBundleSettings: BundleSettings) {
   localStorage.setItem(
-    "transactionsBundleSettings",
+    "transactionBundleSettings",
     JSON.stringify(newBundleSettings)
   );
   return newBundleSettings;
@@ -224,10 +224,10 @@ function BundleSettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    if (localStorage.transactionsBundleSettings) {
+    if (localStorage.transactionBundleSettings) {
       dispatch({
         type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
-        bundleSettings: JSON.parse(localStorage.transactionsBundleSettings),
+        bundleSettings: JSON.parse(localStorage.transactionBundleSettings),
       });
     }
   }, []);

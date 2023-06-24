@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import * as React from "react";
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import BN from "bn.js";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
@@ -19,7 +19,7 @@ import {
 import { useFirebase } from "../../lib/Firebase";
 import { uploadFile } from "@web3-storage/upload-client";
 import { fromValueToRate } from "../../lib/utils";
-import { useBundleSettings } from "../../lib/transactionsBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useSafe } from "../../lib/safe";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
@@ -71,7 +71,7 @@ function GalleryForm(props: GalleryFormProps) {
     React.useState<MediaGalleryItem>({});
 
   const { firebasePerf } = useFirebase();
-  const { relayTransaction, estimateTransactionsBundleFees } = useSafe(
+  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
     smartAccount?.safe ?? null
   );
   const { superTokenBalance } = useSuperTokenBalance(
@@ -337,7 +337,7 @@ function GalleryForm(props: GalleryFormProps) {
       };
       metaTransactions.push(editBidTransaction);
 
-      const { transactionFeesEstimate } = await estimateTransactionsBundleFees(
+      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
         metaTransactions
       );
       await relayTransaction(metaTransactions, {
