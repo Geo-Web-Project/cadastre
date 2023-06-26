@@ -72,7 +72,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     bidTimestamp,
     bidForSalePrice,
     setInteractionState,
-    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -370,7 +369,6 @@ function RejectBidAction(props: RejectBidActionProps) {
     }
 
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
@@ -380,7 +378,6 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   async function bundleCallback() {
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,

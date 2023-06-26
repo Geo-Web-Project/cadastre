@@ -27,6 +27,7 @@ import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
@@ -93,7 +94,6 @@ export function ActionForm(props: ActionFormProps) {
     requiredPayment,
     spender,
     hasOutstandingBid = false,
-    setShouldRefetchParcelsData,
     minForSalePrice,
     paymentToken,
     setShouldParcelContentUpdate,
@@ -129,6 +129,12 @@ export function ActionForm(props: ActionFormProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const bundleSettings = useBundleSettings();
+  const { parcelContent } = useBasicProfile(
+    geoWebContent,
+    licenseAddress,
+    accountAddress,
+    selectedParcelId
+  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -320,14 +326,18 @@ export function ActionForm(props: ActionFormProps) {
 
     updateActionData({ isActing: false });
 
-    if (setShouldParcelContentUpdate) {
+    if (
+      setShouldParcelContentUpdate &&
+      (!parcelContent ||
+        parcelContent.name !== parcelName ||
+        parcelContent.url !== parcelWebContentURI)
+    ) {
       setShouldParcelContentUpdate(true);
     } else if (!selectedParcelId && licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
     setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice:
         !displayNewForSalePrice ||

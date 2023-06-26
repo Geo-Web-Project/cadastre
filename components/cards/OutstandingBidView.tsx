@@ -50,7 +50,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     setInteractionState,
-    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -65,9 +64,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
 
-  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
-    smartAccount?.safe ?? null
-  );
+  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
+    useSafe(smartAccount?.safe ?? null);
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
@@ -195,7 +193,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
       licenseOwner: true,
@@ -259,8 +256,10 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
         };
         metaTransactions.push(triggerTransferTransaction);
 
-        const { transactionFeesEstimate } =
-          await estimateTransactionBundleFees(metaTransactions);
+        const gasUsed = await simulateSafeTx(metaTransactions);
+        const transactionFeesEstimate = await estimateTransactionBundleFees(
+          gasUsed
+        );
         await relayTransaction(metaTransactions, {
           isSponsored: bundleSettings.isSponsored,
           gasToken:
@@ -303,7 +302,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     });
     setIsActing(false);
     setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
   }
 
   // Calculate payout if surplus or depleted balance

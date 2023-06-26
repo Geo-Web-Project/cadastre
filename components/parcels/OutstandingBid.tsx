@@ -13,8 +13,6 @@ interface OutstandingBidProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
@@ -55,8 +53,6 @@ function OutstandingBid(props: OutstandingBidProps) {
   const {
     geoWebContent,
     registryContract,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
@@ -155,34 +151,6 @@ function OutstandingBid(props: OutstandingBidProps) {
       isMounted = false;
     };
   }, [data]);
-
-  useEffect(() => {
-    if (!shouldRefetchParcelsData) {
-      return;
-    }
-
-    if (timerId) {
-      clearInterval(timerId);
-      setTimerId(null);
-      setShouldRefetchParcelsData(false);
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      refetch({
-        skip: 0,
-      });
-    }, 4000);
-
-    setParcels(null);
-    setTimerId(intervalId);
-
-    return () => {
-      if (timerId) {
-        clearInterval(timerId);
-      }
-    };
-  }, [shouldRefetchParcelsData, data]);
 
   useEffect(() => {
     if (!hasRefreshed) {

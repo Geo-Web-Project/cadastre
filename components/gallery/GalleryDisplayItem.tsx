@@ -57,9 +57,8 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
     existingForSalePrice,
   } = props;
 
-  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
-    smartAccount?.safe ?? null
-  );
+  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
+    useSafe(smartAccount?.safe ?? null);
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : "",
     paymentToken.address
@@ -193,8 +192,9 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
       };
       metaTransactions.push(editBidTransaction);
 
-      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
-        metaTransactions
+      const gasUsed = await simulateSafeTx(metaTransactions);
+      const transactionFeesEstimate = await estimateTransactionBundleFees(
+        gasUsed
       );
       await relayTransaction(metaTransactions, {
         isSponsored: bundleSettings.isSponsored,

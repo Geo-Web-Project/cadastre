@@ -132,8 +132,6 @@ function IndexPage({
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
-  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
-    React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -473,8 +471,6 @@ function IndexPage({
                 setSelectedParcelId={setSelectedParcelId}
                 interactionState={interactionState}
                 setInteractionState={setInteractionState}
-                shouldRefetchParcelsData={shouldRefetchParcelsData}
-                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               />
             ) : (
               <ConnectWallet
@@ -532,8 +528,6 @@ function IndexPage({
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
-              shouldRefetchParcelsData={shouldRefetchParcelsData}
-              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}
               startingBid={startingBid}

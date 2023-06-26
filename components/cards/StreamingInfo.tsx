@@ -32,8 +32,6 @@ type StreamingInfoProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function StreamingInfo(props: StreamingInfoProps) {

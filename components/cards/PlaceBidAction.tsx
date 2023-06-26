@@ -58,7 +58,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     perSecondFeeDenominator,
     licenseDiamondContract,
     setInteractionState,
-    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
@@ -273,7 +272,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     }
 
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
@@ -283,7 +281,6 @@ function PlaceBidAction(props: PlaceBidActionProps) {
 
   async function submitBundleCallback() {
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,

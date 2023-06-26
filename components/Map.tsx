@@ -191,12 +191,10 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  shouldRefetchParcelsData: boolean;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";

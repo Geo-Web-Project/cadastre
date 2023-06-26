@@ -15,8 +15,6 @@ interface HighestValueProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
@@ -58,8 +56,6 @@ function HighestValue(props: HighestValueProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
@@ -187,33 +183,6 @@ function HighestValue(props: HighestValueProps) {
     };
   }, [data]);
 
-  useEffect(() => {
-    if (!shouldRefetchParcelsData) {
-      return;
-    }
-
-    if (timerId) {
-      clearInterval(timerId);
-      setTimerId(null);
-      setShouldRefetchParcelsData(false);
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      refetch({
-        skip: 0,
-      });
-    }, 4000);
-
-    setParcels(null);
-    setTimerId(intervalId);
-
-    return () => {
-      if (timerId) {
-        clearInterval(timerId);
-      }
-    };
-  }, [shouldRefetchParcelsData, data]);
 
   useEffect(() => {
     if (!hasRefreshed) {

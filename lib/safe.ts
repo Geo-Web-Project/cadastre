@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BigNumber, Contract } from "ethers";
 import { providers } from "ethers/lib";
 import {
@@ -35,14 +34,6 @@ enum OperationType {
 }
 
 function useSafe(safe: Safe | null) {
-  const [metaTransactionCache, setMetaTransactionsCache] = useState<
-    MetaTransactionData[]
-  >([]);
-  const [simulationGasUsedCache, setSimulationGasUsedCache] =
-    useState<string>("");
-  const [safeSingletonCodeCache, setSafeSingletonCodeCache] =
-    useState<string>("");
-
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
   const proxyFactoryInfo = getProxyFactoryDeployment();
   const multiSendCallOnlyInfo = getMultiSendCallOnlyDeployment();
@@ -152,7 +143,7 @@ function useSafe(safe: Safe | null) {
     let gasEstimate = "0";
 
     if (metaTxs.length === 1) {
-      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+      const gasUsed = await simulateSafeTx(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(metaTxs[0], {
         gasLimit: BigNumber.from(gasUsed),
@@ -176,7 +167,7 @@ function useSafe(safe: Safe | null) {
           multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
             safeMultiSendData,
           ]);
-        const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+        const gasUsed = await simulateSafeTx(metaTxs);
         const safeTransactionData = await encodeExecTransactionData(
           {
             to: multiSendCallOnlyInfo.networkAddresses[NETWORK_ID],
@@ -223,7 +214,7 @@ function useSafe(safe: Safe | null) {
         multiSendCallOnlyInterface.encodeFunctionData("multiSend", [
           multiSendData,
         ]);
-      const { gasUsed } = await estimateTransactionBundleFees(metaTxs);
+      const gasUsed = await simulateSafeTx(metaTxs);
       gasEstimate = gasUsed;
       encodedTransactionData = await encodeExecTransactionData(
         {
@@ -339,16 +330,10 @@ function useSafe(safe: Safe | null) {
     return safeDeploymentData;
   };
 
-  const estimateTransactionBundleFees = async (
-    metaTxs: MetaTransactionData[]
-  ) => {
+  const simulateSafeTx = async (metaTxs: MetaTransactionData[]) => {
     if (!safe) {
       throw new Error("Safe was not found");
     }
-
-    let transactionFeesEstimate = "0";
-    let gasUsed = "0";
-    let safeSingletonCode = "0x";
 
     const safeAddress = await safe.getAddress();
     const multiSendData = encodeMultiSendData(metaTxs);
@@ -366,68 +351,62 @@ function useSafe(safe: Safe | null) {
       ]
     );
 
-    if (safeSingletonCodeCache) {
-      safeSingletonCode = safeSingletonCodeCache;
-    } else {
-      safeSingletonCode = await provider.getCode(
-        safeL2SingletonInfo.networkAddresses[NETWORK_ID]
-      );
-      setSafeSingletonCodeCache(safeSingletonCode);
-    }
+    const safeSingletonCode = await provider.getCode(
+      safeL2SingletonInfo.networkAddresses[NETWORK_ID]
+    );
     const stateOverride = {
       [safeAddress]: {
         code: safeSingletonCode,
       },
     };
 
-    if (JSON.stringify(metaTxs) === JSON.stringify(metaTransactionCache)) {
-      gasUsed = simulationGasUsedCache;
-    } else {
-      /*
-       * Simulate a safe transaction with state override in case the safe is not
-       * deployed yet. `simulateAndRevert` reverts even if successful so the data
-       * we need is in the error message.
-       */
-      const res = await fetch(RPC_URLS[NETWORK_ID], {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: 1,
-          jsonrpc: "2.0",
-          method: "eth_call",
-          params: [
-            {
-              to: safeAddress,
-              data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
-                simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
-                simulationCalldata,
-              ]),
-            },
-            "latest",
-            stateOverride,
-          ],
-        }),
-      });
-      const simulationResultEncoded = (await res.json()).error.data;
+    /*
+     * Simulate a safe transaction with state override in case the safe is not
+     * deployed yet. `simulateAndRevert` reverts even if successful so the data
+     * we need is in the error message.
+     */
+    const res = await fetch(RPC_URLS[NETWORK_ID], {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: 1,
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [
+          {
+            to: safeAddress,
+            data: safeL2Singleton.encodeFunctionData("simulateAndRevert", [
+              simulateTxAccessorInfo.networkAddresses[NETWORK_ID],
+              simulationCalldata,
+            ]),
+          },
+          "latest",
+          stateOverride,
+        ],
+      }),
+    });
+    const simulationResultEncoded = (await res.json()).error.data;
 
-      const simulationResultDecoded = defaultAbiCoder.decode(
-        ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
-        simulationResultEncoded
-      );
-      gasUsed = simulationResultDecoded[2];
+    const simulationResultDecoded = defaultAbiCoder.decode(
+      ["bool", "uint256", "uint256", "bool", "uint256", "bytes"],
+      simulationResultEncoded
+    );
+    const gasUsed = simulationResultDecoded[2];
 
-      setMetaTransactionsCache(metaTxs);
-      setSimulationGasUsedCache(gasUsed);
-    }
+    return gasUsed;
+  };
+
+  const estimateTransactionBundleFees = async (gasUsed: string) => {
+    let transactionFeesEstimate = "0";
 
     transactionFeesEstimate = await relayKit.getEstimateFee(
       NETWORK_ID,
       BigNumber.from(gasUsed).toString()
     );
 
-    return { transactionFeesEstimate, gasUsed };
+    return transactionFeesEstimate;
   };
 
   const encodeExecTransactionData = async (
@@ -547,6 +526,7 @@ function useSafe(safe: Safe | null) {
     encodeMultiSendData,
     relayTransaction,
     waitRelayedTxConfirmation,
+    simulateSafeTx,
     estimateTransactionBundleFees,
   };
 }

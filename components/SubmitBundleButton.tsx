@@ -61,10 +61,14 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
   const [metaTransactions, setMetaTransaction] = useState<
     MetaTransactionData[]
   >([]);
+  const [metaTransactionsCache, setMetaTransactionsCache] = useState<
+    MetaTransactionData[]
+  >([]);
+  const [simulationGasUsedCache, setSimulationGasUsedCache] =
+    useState<string>("");
 
-  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
-    smartAccount?.safe ?? null
-  );
+  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
+    useSafe(smartAccount?.safe ?? null);
   const { data: signer } = useSigner();
   const bundleSettings = useBundleSettings();
 
@@ -262,8 +266,21 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
         value: "0",
         data: encodedGwContractFunctionData,
       });
-      const { transactionFeesEstimate } = await estimateTransactionBundleFees(
-        metaTransactions
+      let simulationGasUsed;
+
+      if (
+        JSON.stringify(metaTransactions) ===
+        JSON.stringify(metaTransactionsCache)
+      ) {
+        simulationGasUsed = simulationGasUsedCache;
+      } else {
+        simulationGasUsed = await simulateSafeTx(metaTransactions);
+        setSimulationGasUsedCache(simulationGasUsed);
+        setMetaTransactionsCache(metaTransactions);
+      }
+
+      const transactionFeesEstimate = await estimateTransactionBundleFees(
+        simulationGasUsed
       );
 
       setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
@@ -289,6 +306,8 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     bundleSettings.wrapAmount,
     smartAccount,
     isActing,
+    metaTransactionsCache,
+    simulationGasUsedCache,
   ]);
 
   return (

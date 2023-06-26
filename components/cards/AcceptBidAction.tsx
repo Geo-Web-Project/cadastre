@@ -53,7 +53,6 @@ function AcceptBidAction(props: AcceptBidActionProps) {
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     setInteractionState,
-    setShouldRefetchParcelsData,
     setParcelFieldsToUpdate,
     paymentToken,
     signer,
@@ -186,7 +185,6 @@ function AcceptBidAction(props: AcceptBidActionProps) {
 
   async function bundleCallback() {
     setIsActing(false);
-    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
       licenseOwner: true,

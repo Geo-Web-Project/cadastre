@@ -43,8 +43,6 @@ type ProfileProps = {
   paymentToken: NativeAssetSuperToken;
   portfolioNeedActionCount: number;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function Profile(props: ProfileProps) {

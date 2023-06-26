@@ -83,9 +83,7 @@ interface ProfileModalProps {
   paymentToken: NativeAssetSuperToken;
   showProfile: boolean;
   handleCloseProfile: () => void;
-  shouldRefetchParcelsData: boolean;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface PortfolioParcel {
@@ -204,8 +202,6 @@ function ProfileModal(props: ProfileModalProps) {
     showProfile,
     handleCloseProfile,
     setPortfolioNeedActionCount,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string>("");
@@ -242,9 +238,8 @@ function ProfileModal(props: ProfileModalProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
-  const { relayTransaction, estimateTransactionBundleFees } = useSafe(
-    smartAccount?.safe ?? null
-  );
+  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
+    useSafe(smartAccount?.safe ?? null);
   const bundleSettings = useBundleSettings();
   const totalNetworkStream = BigNumber.from(
     accountTokenSnapshot?.totalOutflowRate ?? 0
@@ -523,31 +518,6 @@ function ProfileModal(props: ProfileModalProps) {
     };
   }, [data]);
 
-  useEffect(() => {
-    if (!shouldRefetchParcelsData || !showProfile) {
-      return;
-    }
-
-    if (timerId) {
-      clearInterval(timerId);
-      setTimerId(null);
-      setShouldRefetchParcelsData(false);
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      refetch({ id: accountAddress });
-    }, 4000);
-
-    setTimerId(intervalId);
-
-    return () => {
-      if (timerId) {
-        clearInterval(timerId);
-      }
-    };
-  }, [shouldRefetchParcelsData, data, showProfile]);
-
   const tokenOptions: TokenOptions = useMemo(
     () => ({
       address: paymentToken.address,
@@ -611,8 +581,9 @@ function ProfileModal(props: ProfileModalProps) {
       }
 
       if (smartAccount?.safe) {
-        const { transactionFeesEstimate } = await estimateTransactionBundleFees(
-          [transactionData]
+        const gasUsed = await simulateSafeTx([transactionData]);
+        const transactionFeesEstimate = await estimateTransactionBundleFees(
+          gasUsed
         );
         await relayTransaction([transactionData], {
           isSponsored: bundleSettings.isSponsored,

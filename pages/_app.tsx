@@ -173,20 +173,7 @@ export function App({ Component, pageProps }: AppProps) {
             fetchPolicy: "cache-and-network",
           },
         },
-        cache: new InMemoryCache({
-          typePolicies: {
-            Query: {
-              fields: {
-                geoWebParcels: {
-                  keyArgs: ["skip", "orderBy"],
-                  merge(existing = [], incoming) {
-                    return [...existing, ...incoming];
-                  },
-                },
-              },
-            },
-          },
-        }),
+        cache: new InMemoryCache(),
       }),
     []
   );
