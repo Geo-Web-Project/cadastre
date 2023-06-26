@@ -172,6 +172,9 @@ export function App({ Component, pageProps }: AppProps) {
           watchQuery: {
             fetchPolicy: "cache-and-network",
           },
+          query: {
+            fetchPolicy: "cache-first",
+          },
         },
         cache: new InMemoryCache(),
       }),

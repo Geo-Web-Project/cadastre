@@ -217,7 +217,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
           {existingAnnualNetworkFee ? (
             <TransactionSummaryView
               existingAnnualNetworkFee={existingAnnualNetworkFee}
-              newAnnualNetworkFee={annualNetworkFeeRate ?? null}
+              newAnnualNetworkFee={BigNumber.from(0)}
               existingNetworkFee={existingNetworkFee}
               newNetworkFee={newNetworkFee}
               currentForSalePrice={existingForSalePrice}
@@ -246,7 +246,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               <SubmitBundleButton
                 {...props}
                 superTokenBalance={superTokenBalance}
-                requiredFlowAmount={annualNetworkFeeRate ?? null}
+                requiredFlowAmount={BigNumber.from(0)}
                 requiredPayment={BigNumber.from(0)}
                 spender={licenseDiamondContract?.address ?? null}
                 flowOperator={licenseDiamondContract?.address ?? null}
@@ -281,9 +281,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
             bundleSettings.isSponsored &&
             !bundleSettings.noWrap &&
             safeEthBalance &&
-            BigNumber.from(bundleSettings.wrapAmount).gt(
-              safeEthBalance
-            ) &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
             newForSalePriceDisplay &&
             !isActing ? (
             <Alert variant="warning">
