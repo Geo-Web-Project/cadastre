@@ -61,9 +61,7 @@ import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
 import { useSafe } from "../../lib/safe";
-import {
-  useBundleSettings,
-} from "../../lib/transactionBundleSettings";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -613,8 +611,9 @@ function ProfileModal(props: ProfileModalProps) {
       }
 
       if (smartAccount?.safe) {
-        const { transactionFeesEstimate } =
-          await estimateTransactionBundleFees([transactionData]);
+        const { transactionFeesEstimate } = await estimateTransactionBundleFees(
+          [transactionData]
+        );
         await relayTransaction([transactionData], {
           isSponsored: bundleSettings.isSponsored,
           gasToken:
@@ -803,8 +802,9 @@ function ProfileModal(props: ProfileModalProps) {
             </Col>
             <Col
               xs="5"
-              lg={smartAccount?.safe ? "2" : "2"}
-              className="p-0 text-end d-flex justify-content-start align-items-center gap-2"
+              lg="3"
+              xl={smartAccount?.safe ? "2" : "2"}
+              className="p-0 text-end d-flex justify-content-start align-items-center gap-2 ms-sm-2"
             >
               <CopyTooltip
                 contentClick="Address Copied"

@@ -116,22 +116,48 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         )} ETHx/year stream`;
         break;
       case FunctionSelector.CLAIM:
-        description = `${index}. Claim Parcel`;
+        description = `${index}. Claim Parcel (Send ${truncateEth(
+          formatBalance(requiredPayment ?? "0"),
+          8
+        )} ETHx)`;
         break;
       case FunctionSelector.EDIT_BID:
-        description = `${index}. Edit Bid`;
+        description = `${index}. Edit Bid (${
+          requiredPayment?.gt(0) ? "Send" : "Receive"
+        } ${truncateEth(
+          formatBalance(
+            requiredPayment?.gt(0)
+              ? requiredPayment
+              : requiredPayment
+              ? requiredPayment.mul(-1)
+              : "0"
+          ),
+          8
+        )} ETHx)`;
         break;
       case FunctionSelector.RECLAIM:
-        description = `${index}. Reclaim Parcel`;
+        description = `${index}. Reclaim Parcel (Send ${truncateEth(
+          formatBalance(requiredPayment ?? "0"),
+          8
+        )} ETHx)`;
         break;
       case FunctionSelector.PLACE_BID:
-        description = `${index}. Place Bid`;
+        description = `${index}. Place Bid (Send ${truncateEth(
+          formatBalance(requiredPayment ?? "0"),
+          8
+        )})`;
         break;
       case FunctionSelector.ACCEPT_BID:
-        description = `${index}. Accept Bid`;
+        description = `${index}. Accept Bid (Receive ${truncateEth(
+          formatBalance(requiredPayment ?? "0"),
+          8
+        )} ETHx)`;
         break;
       case FunctionSelector.REJECT_BID:
-        description = `${index}. Reject Bid`;
+        description = `${index}. Reject Bid (Send ${truncateEth(
+          formatBalance(requiredPayment ?? "0"),
+          8
+        )})`;
         break;
       default:
         break;
