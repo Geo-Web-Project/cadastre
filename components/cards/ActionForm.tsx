@@ -240,7 +240,11 @@ export function ActionForm(props: ActionFormProps) {
       content["url"] = parcelWebContentURI;
     }
 
-    if (selectedParcelId) {
+    if (
+      selectedParcelId &&
+      (interactionState !== STATE.PARCEL_RECLAIMING ||
+        accountAddress === licenseOwner)
+    ) {
       assetId = new AssetId({
         chainId: `eip155:${NETWORK_ID}`,
         assetName: {
@@ -269,22 +273,6 @@ export function ActionForm(props: ActionFormProps) {
       );
 
       contentHash = await geoWebContent.raw.commit(newRoot);
-
-      if (
-        interactionState === STATE.PARCEL_RECLAIMING &&
-        accountAddress !== licenseOwner
-      ) {
-        const clearedGalleryRoot = await geoWebContent.raw.putPath(
-          newRoot,
-          "/mediaGallery",
-          [],
-          {
-            parentSchema: "ParcelRoot",
-            pin: true,
-          }
-        );
-        contentHash = await geoWebContent.raw.commit(clearedGalleryRoot);
-      }
     } catch (err) {
       console.error(err);
     }
@@ -400,9 +388,7 @@ export function ActionForm(props: ActionFormProps) {
         <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
-              {interactionState == STATE.PARCEL_RECLAIMING &&
-              accountAddress.toLowerCase() ==
-                licenseOwner?.toLowerCase() ? null : (
+              {interactionState == STATE.PARCEL_RECLAIMING ? null : (
                 <>
                   <Form.Text className="text-primary mb-1">
                     Parcel Name

@@ -63,7 +63,6 @@ function Recent(props: RecentProps) {
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
-  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(recentQuery, {
     variables: {

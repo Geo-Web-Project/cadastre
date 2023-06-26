@@ -100,14 +100,6 @@ function AcceptBidAction(props: AcceptBidActionProps) {
         )
       : null;
 
-  const annualFeePercentage =
-    (perSecondFeeNumerator.toNumber() * SECONDS_IN_YEAR * 100) /
-    perSecondFeeDenominator.toNumber();
-
-  const annualNetworkFeeRate = newForSalePrice
-    ?.mul(annualFeePercentage)
-    .div(100);
-
   const isSafeBalanceInsufficient =
     smartAccount?.safe &&
     bundleSettings.isSponsored &&

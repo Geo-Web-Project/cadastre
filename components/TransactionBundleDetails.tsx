@@ -104,16 +104,16 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         )} ETH to ETHx`;
         break;
       case FunctionSelector.APPROVE_SPENDING:
-        description = `${index}. Authorize a ${truncateEth(
+        description = `${index}. Authorize ${truncateEth(
           formatBalance(requiredPayment ?? "0"),
           8
         )} ETHx transfer`;
         break;
       case FunctionSelector.APPROVE_FLOW:
-        description = `${index}. Authorize a ${truncateEth(
+        description = `${index}. Set stream authorization to ${truncateEth(
           formatBalance(requiredFlowAmount ?? "0"),
           8
-        )} ETHx/year stream`;
+        )} ETHx/year`;
         break;
       case FunctionSelector.CLAIM:
         description = `${index}. Claim Parcel (Send ${truncateEth(

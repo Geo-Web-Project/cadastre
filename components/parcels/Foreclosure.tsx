@@ -65,7 +65,6 @@ function Foreclosure(props: ForeclosureProps) {
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
-  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(
     foreclosureQuery,

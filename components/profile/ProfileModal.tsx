@@ -215,7 +215,6 @@ function ProfileModal(props: ProfileModalProps) {
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
-  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
   const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
   const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
     useState<boolean>(false);
@@ -227,7 +226,7 @@ function ProfileModal(props: ProfileModalProps) {
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
 
   const { disconnect } = useDisconnect();
-  const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
+  const { data } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
       id: accountAddress,
     },
