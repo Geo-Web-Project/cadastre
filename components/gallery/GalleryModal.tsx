@@ -1,6 +1,7 @@
 import * as React from "react";
 import { BigNumber } from "ethers";
 import Modal from "react-bootstrap/Modal";
+import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
@@ -101,7 +102,17 @@ function GalleryModal(props: GalleryModalProps) {
               . GLB and USDZ (iOS only) files can be viewed in AR on compatible
               devices.
             </p>
-            <div className="border border-secondary rounded p-2 p-sm-3 text-center">
+            <Card
+              border="secondary"
+              className="bg-dark mt-4 mb-2 p-2 p-sm-3 text-center"
+            >
+              <small
+                className="position-absolute bg-dark px-1 text-secondary"
+                style={{ left: 25, top: -12 }}
+              >
+                {" "}
+                Media Upload
+              </small>
               <GalleryForm
                 mediaGalleryItems={mediaGalleryItems}
                 selectedMediaGalleryItemIndex={selectedMediaGalleryItemIndex}
@@ -122,7 +133,7 @@ function GalleryModal(props: GalleryModalProps) {
                 setShouldMediaGalleryUpdate={setShouldMediaGalleryUpdate}
                 {...props}
               />
-            </div>
+            </Card>
           </Modal.Body>
         </>
       )}

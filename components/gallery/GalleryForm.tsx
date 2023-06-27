@@ -6,6 +6,7 @@ import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
 import { AssetId } from "caip";
@@ -22,6 +23,7 @@ import { fromValueToRate } from "../../lib/utils";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useSafe } from "../../lib/safe";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
+import { useMediaQuery } from "../../lib/mediaQuery";
 import { NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
 
 interface MediaGalleryItem {
@@ -71,6 +73,7 @@ function GalleryForm(props: GalleryFormProps) {
     React.useState<MediaGalleryItem>({});
 
   const { firebasePerf } = useFirebase();
+  const { isMobile } = useMediaQuery();
   const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
     useSafe(smartAccount?.safe ?? null);
   const { superTokenBalance } = useSuperTokenBalance(
@@ -388,8 +391,18 @@ function GalleryForm(props: GalleryFormProps) {
       <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary mb-1">CID</Form.Text>
+            <Form.Text className="text-primary">CID</Form.Text>
             <InputGroup>
+              <Button
+                variant="secondary"
+                style={{ height: 35, width: 42 }}
+                className="d-flex justify-content-center mt-1"
+                as="label"
+                htmlFor="uploadCid"
+                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
+              >
+                <Image src="upload.svg" alt="upload" />
+              </Button>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
                 className="text-white mt-1"
@@ -409,15 +422,7 @@ function GalleryForm(props: GalleryFormProps) {
                 onChange={captureFile}
                 hidden
               ></Form.Control>
-              <Button
-                as="label"
-                htmlFor="uploadCid"
-                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
-              >
-                {!isUploading ? "Upload" : spinner}
-              </Button>
             </InputGroup>
-            {/* {isUploading ? <ProgressBar now={uploadProgress} /> : null} */}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <Form.Text className="text-primary mb-1">Name</Form.Text>
@@ -459,19 +464,21 @@ function GalleryForm(props: GalleryFormProps) {
               </Form.Control>
             </div>
           </Col>
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary mb-1">
-              Content Pinning Service
-            </Form.Text>
-            <Form.Control
-              as="select"
-              className="text-white mt-1"
-              style={{ backgroundColor: "#111320", border: "none" }}
-              disabled
-            >
-              <option value="buckets">Geo Web Free (Default)</option>
-            </Form.Control>
-          </Col>
+          {!isMobile && (
+            <Col sm="12" lg="6" className="mb-3">
+              <Form.Text className="text-primary mb-1">
+                Content Pinning Service
+              </Form.Text>
+              <Form.Control
+                as="select"
+                className="text-white mt-1"
+                style={{ backgroundColor: "#111320", border: "none" }}
+                disabled
+              >
+                <option value="buckets">Geo Web Free (Default)</option>
+              </Form.Control>
+            </Col>
+          )}
         </Row>
         <Row className="px-1 px-sm-3 text-end justify-content-end">
           <Col xs="6" md="6" lg="3" className="mb-3">
