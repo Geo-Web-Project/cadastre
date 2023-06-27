@@ -116,7 +116,8 @@ function useSafe(safe: Safe | null) {
       },
     });
 
-    const receipt = await waitRelayedTxConfirmation(res.taskId);
+    const confirmations = 10;
+    const receipt = await waitRelayedTxConfirmation(res.taskId, confirmations);
 
     return receipt;
   };
@@ -204,7 +205,11 @@ function useSafe(safe: Safe | null) {
             gasToken: ZERO_ADDRESS,
           },
         });
-        const receipt = await waitRelayedTxConfirmation(res.taskId);
+        const confirmations = 10;
+        const receipt = await waitRelayedTxConfirmation(
+          res.taskId,
+          confirmations
+        );
 
         return receipt;
       }
@@ -483,7 +488,10 @@ function useSafe(safe: Safe | null) {
     return encoded.slice(2);
   };
 
-  const waitRelayedTxConfirmation = async (taskId: string) => {
+  const waitRelayedTxConfirmation = async (
+    taskId: string,
+    confirmations = 1
+  ) => {
     if (!safe) {
       throw new Error("Safe was not found");
     }
@@ -504,7 +512,8 @@ function useSafe(safe: Safe | null) {
           task.taskState === "WaitingForConfirmation"
         ) {
           const receipt = await provider.waitForTransaction(
-            task.transactionHash
+            task.transactionHash,
+            confirmations
           );
 
           return receipt;
