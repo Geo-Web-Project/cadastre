@@ -96,6 +96,7 @@ export function ActionForm(props: ActionFormProps) {
     hasOutstandingBid = false,
     minForSalePrice,
     paymentToken,
+    setShouldRefetchParcelsData,
     setShouldParcelContentUpdate,
     setParcelFieldsToUpdate,
     encodeFunctionData,
@@ -326,6 +327,7 @@ export function ActionForm(props: ActionFormProps) {
     }
 
     setInteractionState(STATE.PARCEL_SELECTED);
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice:
         !displayNewForSalePrice ||

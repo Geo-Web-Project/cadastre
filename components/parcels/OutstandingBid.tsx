@@ -15,6 +15,8 @@ interface OutstandingBidProps {
   registryContract: Contracts["registryDiamondContract"];
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
   handleAction: (parcel: Parcel) => void;
 }
@@ -55,11 +57,14 @@ function OutstandingBid(props: OutstandingBidProps) {
     registryContract,
     hasRefreshed,
     setHasRefreshed,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     maxListSize,
     handleAction,
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(
     outstandingBidQuery,
@@ -150,6 +155,34 @@ function OutstandingBid(props: OutstandingBidProps) {
       isMounted = false;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!shouldRefetchParcelsData) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({
+        skip: 0,
+      });
+    }, 4000);
+
+    setParcels(null);
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data]);
 
   useEffect(() => {
     if (!hasRefreshed) {

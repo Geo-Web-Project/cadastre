@@ -64,6 +64,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     account,
     smartAccount,
     setSmartAccount,
+    setShouldRefetchParcelsData,
     parcelData,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -370,6 +371,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
     setIsActing(false);
     setInteractionState(STATE.PARCEL_SELECTED);
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,
       licenseOwner: false,
@@ -378,6 +380,7 @@ function RejectBidAction(props: RejectBidActionProps) {
 
   async function bundleCallback() {
     setIsActing(false);
+    setShouldRefetchParcelsData(true);
     setInteractionState(STATE.PARCEL_SELECTED);
     setParcelFieldsToUpdate({
       forSalePrice: displayNewForSalePrice !== displayCurrentForSalePrice,

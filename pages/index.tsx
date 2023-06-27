@@ -18,6 +18,7 @@ import {
   IPFS_GATEWAY,
   IPFS_DELEGATE,
   SSX_HOST,
+  SUBGRAPH_URL,
 } from "../lib/constants";
 import Safe from "@safe-global/protocol-kit";
 import { GeoWebContent } from "@geo-web/content";
@@ -25,12 +26,11 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
-
 import {
-  useApolloClient,
   ApolloClient,
-  // eslint-disable-next-line import/named
-  NormalizedCacheObject,
+  HttpLink,
+  InMemoryCache,
+  ApolloProvider,
 } from "@apollo/client";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
@@ -110,7 +110,6 @@ function IndexPage({
   setAuthStatus: (_: AuthenticationStatus) => void;
 }) {
   const router = useRouter();
-  const apolloClient = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
@@ -132,6 +131,8 @@ function IndexPage({
   const [interactionState, setInteractionState] = React.useState<STATE>(
     STATE.VIEWING
   );
+  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
+    React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
@@ -271,7 +272,17 @@ function IndexPage({
       ipfsGatewayHost: IPFS_GATEWAY,
       ipfs,
       w3InvocationConfig,
-      apolloClient,
+      apolloClient: new ApolloClient({
+        defaultOptions: {
+          watchQuery: {
+            fetchPolicy: "cache-and-network",
+          },
+        },
+        link: new HttpLink({
+          uri: SUBGRAPH_URL,
+        }),
+        cache: new InMemoryCache(),
+      }),
     });
 
     setW3InvocationConfig(w3InvocationConfig);
@@ -375,7 +386,17 @@ function IndexPage({
         ceramic: ceramic as any,
         ipfsGatewayHost: IPFS_GATEWAY,
         ipfs,
-        apolloClient,
+        apolloClient: new ApolloClient({
+          defaultOptions: {
+            watchQuery: {
+              fetchPolicy: "cache-and-network",
+            },
+          },
+          link: new HttpLink({
+            uri: SUBGRAPH_URL,
+          }),
+          cache: new InMemoryCache(),
+        }),
       });
 
       setGeoWebContent(geoWebContent);
@@ -471,6 +492,8 @@ function IndexPage({
                 setSelectedParcelId={setSelectedParcelId}
                 interactionState={interactionState}
                 setInteractionState={setInteractionState}
+                shouldRefetchParcelsData={shouldRefetchParcelsData}
+                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               />
             ) : (
               <ConnectWallet
@@ -528,6 +551,8 @@ function IndexPage({
               setSelectedParcelId={setSelectedParcelId}
               interactionState={interactionState}
               setInteractionState={setInteractionState}
+              shouldRefetchParcelsData={shouldRefetchParcelsData}
+              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               auctionStart={auctionStart}
               auctionEnd={auctionEnd}
               startingBid={startingBid}

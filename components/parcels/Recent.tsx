@@ -17,6 +17,8 @@ interface RecentProps {
   registryContract: Contracts["registryDiamondContract"];
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
   handleAction: (parcel: Parcel) => void;
 }
@@ -58,11 +60,14 @@ function Recent(props: RecentProps) {
     registryContract,
     hasRefreshed,
     setHasRefreshed,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     maxListSize,
     handleAction,
   } = props;
 
   const [parcels, setParcels] = useState<Parcel[] | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(recentQuery, {
     variables: {
@@ -178,6 +183,34 @@ function Recent(props: RecentProps) {
       isMounted = false;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!shouldRefetchParcelsData) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({
+        skip: 0,
+      });
+    }, 4000);
+
+    setParcels(null);
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data]);
 
   useEffect(() => {
     if (!hasRefreshed) {

@@ -84,6 +84,8 @@ interface ProfileModalProps {
   showProfile: boolean;
   handleCloseProfile: () => void;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface PortfolioParcel {
@@ -202,6 +204,8 @@ function ProfileModal(props: ProfileModalProps) {
     showProfile,
     handleCloseProfile,
     setPortfolioNeedActionCount,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
   } = props;
 
   const [ETHBalance, setETHBalance] = useState<string>("");
@@ -215,6 +219,7 @@ function ProfileModal(props: ProfileModalProps) {
   const [portfolioTotal, setPortfolioTotal] = useState<PortfolioTotal>();
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
   const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
   const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
     useState<boolean>(false);
@@ -226,7 +231,7 @@ function ProfileModal(props: ProfileModalProps) {
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
 
   const { disconnect } = useDisconnect();
-  const { data } = useQuery<BidderQuery>(portfolioQuery, {
+  const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
     variables: {
       id: accountAddress,
     },
@@ -516,6 +521,31 @@ function ProfileModal(props: ProfileModalProps) {
       isMounted = false;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!shouldRefetchParcelsData || !showProfile) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({ id: accountAddress });
+    }, 4000);
+
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data, showProfile]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({

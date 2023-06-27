@@ -17,6 +17,8 @@ interface ForeclosureProps {
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
@@ -58,6 +60,8 @@ function Foreclosure(props: ForeclosureProps) {
     sfFramework,
     geoWebContent,
     registryContract,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
     maxListSize,
@@ -65,6 +69,7 @@ function Foreclosure(props: ForeclosureProps) {
   } = props;
 
   const [parcels, setParcels] = useState<Bid[] | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
 
   const { data, refetch, networkStatus } = useQuery<ParcelsQuery>(
     foreclosureQuery,
@@ -168,6 +173,34 @@ function Foreclosure(props: ForeclosureProps) {
       isMounted = false;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!shouldRefetchParcelsData) {
+      return;
+    }
+
+    if (timerId) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setShouldRefetchParcelsData(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch({
+        skip: 0,
+      });
+    }, 4000);
+
+    setParcels(null);
+    setTimerId(intervalId);
+
+    return () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+    };
+  }, [shouldRefetchParcelsData, data]);
 
   useEffect(() => {
     if (!hasRefreshed) {

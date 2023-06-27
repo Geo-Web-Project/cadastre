@@ -168,15 +168,20 @@ export function App({ Component, pageProps }: AppProps) {
         link: new HttpLink({
           uri: SUBGRAPH_URL,
         }),
-        defaultOptions: {
-          watchQuery: {
-            fetchPolicy: "cache-and-network",
+        cache: new InMemoryCache({
+          typePolicies: {
+            Query: {
+              fields: {
+                geoWebParcels: {
+                  keyArgs: ["skip", "orderBy"],
+                  merge(existing = [], incoming) {
+                    return [...existing, ...incoming];
+                  },
+                },
+              },
+            },
           },
-          query: {
-            fetchPolicy: "cache-first",
-          },
-        },
-        cache: new InMemoryCache(),
+        }),
       }),
     []
   );

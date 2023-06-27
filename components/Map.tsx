@@ -191,6 +191,8 @@ export type MapProps = {
   paymentToken: NativeAssetSuperToken;
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
   startingBid: BigNumber;

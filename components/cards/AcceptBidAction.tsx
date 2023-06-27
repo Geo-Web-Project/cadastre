@@ -49,6 +49,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
     registryContract,
     smartAccount,
     setSmartAccount,
+    setShouldRefetchParcelsData,
     licenseDiamondContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -177,6 +178,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
 
   async function bundleCallback() {
     setIsActing(false);
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
       licenseOwner: true,

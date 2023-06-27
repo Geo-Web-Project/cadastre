@@ -134,6 +134,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     variables: {
       id: selectedParcelId,
     },
+    fetchPolicy: "cache-first",
   });
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);

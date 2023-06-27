@@ -30,6 +30,8 @@ type StreamingInfoProps = {
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
 };

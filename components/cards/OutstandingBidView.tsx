@@ -49,6 +49,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     licenseDiamondContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
+    setShouldRefetchParcelsData,
     setInteractionState,
     setParcelFieldsToUpdate,
     sfFramework,
@@ -193,6 +194,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     setIsActing(false);
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: newForSalePriceDisplay !== existingForSalePriceDisplay,
       licenseOwner: true,
@@ -296,6 +298,7 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       return;
     }
 
+    setShouldRefetchParcelsData(true);
     setParcelFieldsToUpdate({
       forSalePrice: false,
       licenseOwner: true,
