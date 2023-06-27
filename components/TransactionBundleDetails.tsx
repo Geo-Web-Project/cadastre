@@ -19,6 +19,7 @@ import { NETWORK_ID } from "../lib/constants";
 
 type TransactionBundleDetailsProps = {
   metaTransactions: MetaTransactionData[];
+  forSalePrice?: BigNumber;
   transactionBundleFeesEstimate: BigNumber;
   requiredPayment: BigNumber | null;
   requiredFlowAmount: BigNumber | null;
@@ -45,6 +46,7 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
     smartAccount,
     metaTransactions,
     transactionBundleFeesEstimate,
+    forSalePrice,
     requiredPayment,
     requiredFlowAmount,
     isActing,
@@ -127,9 +129,9 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         } ${truncateEth(
           formatBalance(
             requiredPayment?.gt(0)
-              ? requiredPayment
+              ? requiredPayment.mul(2)
               : requiredPayment
-              ? requiredPayment.mul(-1)
+              ? requiredPayment.mul(2).mul(-1)
               : "0"
           ),
           8
@@ -149,7 +151,7 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         break;
       case FunctionSelector.ACCEPT_BID:
         description = `${index}. Accept Bid (Receive ${truncateEth(
-          formatBalance(requiredPayment ?? "0"),
+          formatBalance(forSalePrice ?? "0"),
           8
         )} ETHx)`;
         break;

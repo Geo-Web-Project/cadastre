@@ -774,7 +774,7 @@ function ProfileModal(props: ProfileModalProps) {
               xs="5"
               lg="3"
               xl={smartAccount?.safe ? "2" : "2"}
-              className="p-0 text-end d-flex justify-content-start align-items-center gap-2 ms-sm-2"
+              className="p-0 text-end d-flex justify-content-start align-items-center gap-2 ms-lg-4 ms-xl-2"
             >
               <CopyTooltip
                 contentClick="Address Copied"

@@ -13,6 +13,7 @@ import { useBundleSettings } from "../lib/transactionBundleSettings";
 
 export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
+  forSalePrice?: BigNumber;
   requiredPayment: BigNumber | null;
   superTokenBalance: BigNumber;
   requiredFlowAmount: BigNumber | null;
@@ -40,6 +41,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     paymentToken,
     smartAccount,
     setSmartAccount,
+    forSalePrice,
     spender,
     superTokenBalance,
     requiredPayment,
@@ -323,6 +325,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       {smartAccount?.safe && transactionBundleFeesEstimate && (
         <TransactionBundleDetails
           smartAccount={smartAccount}
+          forSalePrice={forSalePrice}
           metaTransactions={metaTransactions}
           transactionBundleFeesEstimate={transactionBundleFeesEstimate}
           requiredPayment={requiredPayment}

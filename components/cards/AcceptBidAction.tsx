@@ -238,6 +238,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
               <SubmitBundleButton
                 {...props}
                 superTokenBalance={superTokenBalance}
+                forSalePrice={existingForSalePrice}
                 requiredFlowAmount={BigNumber.from(0)}
                 requiredPayment={BigNumber.from(0)}
                 spender={licenseDiamondContract?.address ?? null}
