@@ -26,12 +26,7 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  ApolloProvider,
-} from "@apollo/client";
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";

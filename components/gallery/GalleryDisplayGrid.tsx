@@ -6,7 +6,10 @@ import GalleryDisplayItem from "./GalleryDisplayItem";
 import { GalleryModalProps } from "./GalleryModal";
 
 export type GalleryDisplayGridProps = GalleryModalProps & {
-  mediaGalleryItems: MediaObject[];
+  newMediaGallery: MediaObject[];
+  setNewMediaGallery: React.Dispatch<
+    React.SetStateAction<MediaObject[] | null>
+  >;
   selectedMediaGalleryItemIndex: number | null;
   shouldMediaGalleryUpdate: boolean;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
@@ -16,14 +19,14 @@ export type GalleryDisplayGridProps = GalleryModalProps & {
 };
 
 function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
-  const { mediaGalleryItems, selectedMediaGalleryItemIndex } = props;
+  const { newMediaGallery, selectedMediaGalleryItemIndex } = props;
 
   return (
     <Row
-      className="p-2 p-sm-5 m-1 m-sm-3 text-center"
-      style={{ backgroundColor: "#111320" }}
+      className="p-2 m-1 m-sm-3 text-center bg-blue overflow-auto"
+      style={{ height: 250 }}
     >
-      {mediaGalleryItems.map((mediaGalleryItem, i) => (
+      {newMediaGallery.map((mediaGalleryItem, i) => (
         <Col key={i} xs="12" lg="6" xl="4">
           <GalleryDisplayItem
             {...props}
@@ -33,8 +36,8 @@ function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
           />
         </Col>
       ))}
-      {mediaGalleryItems.length == 0 ? (
-        <Col xs="12" className="text-muted">
+      {newMediaGallery.length == 0 ? (
+        <Col xs="12" className="d-flex justify-content-center align-items-center text-muted">
           No items in gallery
         </Col>
       ) : null}

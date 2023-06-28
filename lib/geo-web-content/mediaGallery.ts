@@ -87,6 +87,7 @@ function useMediaGallery(
         ) {
           setMediaGalleryItems(_mediaGalleryItems);
           setShouldMediaGalleryUpdate(false);
+          setRootCid(rootCid.toString());
           clearInterval(timerId);
         }
       } catch (err) {
