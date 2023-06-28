@@ -250,12 +250,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* 
- * NOTE: To have a scrolling table with a sticky header the scrollbar needs to
- * overlay the body, otherwise it would shift the content.
- * Only Chromium based browsers support an overflow overlay property so for now
- * we hide the scrollbar on the others.
- */
 .scrollable-table tbody {
   display: block;
   overflow-y: auto;
@@ -263,32 +257,8 @@ body {
   scrollbar-width: none; // Firefox
 }
 
-.scrollable-table tbody::-webkit-scrollbar-track {
-  border-radius: 4px;
-  background-color: $dark;
-}
-
 .scrollable-table tbody::-webkit-scrollbar {
-  width: 4px;
-  background-color: $dark;
-}
-
-.scrollable-table tbody::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: $secondary;
-}
-
-@supports (overflow: overlay) {
-  .scrollable-table tbody {
-    overflow-y: overlay;
-  }
-}
-
-/* Safari */
-@supports (background: -webkit-named-image(i)) {
-  .scrollable-table tbody::-webkit-scrollbar {
-    display: none;
-  }
+  width: 0 !important;
 }
 
 .account-modal {
