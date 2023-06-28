@@ -793,7 +793,7 @@ function ProfileModal(props: ProfileModalProps) {
             <Col
               className="px-0 ps-lg-2 text-light fs-1 d-flex align-items-center"
               xs="6"
-              lg="4"
+              lg="5"
               xl="3"
             >
               <span className={isMobile ? "fs-2" : ""}>
@@ -803,8 +803,8 @@ function ProfileModal(props: ProfileModalProps) {
             <Col
               xs="5"
               lg="3"
-              xl={smartAccount?.safe ? "2" : "2"}
-              className="p-0 text-end d-flex justify-content-start align-items-center gap-2 ms-md-3 ms-lg-2"
+              xl="2"
+              className="p-0 text-end d-flex justify-content-start align-items-center gap-1 gap-lg-2 ms-md-4 ms-lg-0 ms-xl-4"
             >
               <CopyTooltip
                 contentClick="Address Copied"
@@ -867,8 +867,30 @@ function ProfileModal(props: ProfileModalProps) {
                   </Button>
                 }
               />
+              <InfoTooltip
+                position={{ top: true }}
+                content={
+                  <span style={{ textAlign: "left" }}>Disconnect Wallet</span>
+                }
+                target={
+                  <Button
+                    onClick={deactivateProfile}
+                    variant="link"
+                    className="p-0"
+                  >
+                    <Image
+                      src="power-button.svg"
+                      alt="disconnect"
+                      width={isMobile ? 30 : 40}
+                    />
+                  </Button>
+                }
+              />
             </Col>
-            <Col xs="2" className="d-lg-none position-absolute end-0 pe-0">
+            <Col
+              xs="2"
+              className="d-lg-none position-absolute end-0 top-0 pt-1 pt-sm-2 ps-3 ps-sm-4 pe-0"
+            >
               <Button
                 variant="link"
                 size="sm"
@@ -876,19 +898,6 @@ function ProfileModal(props: ProfileModalProps) {
                 className="p-0 ms-2"
               >
                 <Image width={isMobile ? 28 : 36} src="close.svg" />
-              </Button>
-            </Col>
-            <Col
-              xs="5"
-              lg="2"
-              className="d-flex align-items-center p-0 mt-2 mb-3 my-lg-0"
-            >
-              <Button
-                onClick={deactivateProfile}
-                variant="info"
-                className="p-1 px-lg-3 py-lg-2"
-              >
-                Disconnect
               </Button>
             </Col>
             <Col

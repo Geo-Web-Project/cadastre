@@ -179,9 +179,11 @@ function GalleryModal(props: GalleryModalProps) {
       );
     }
 
-    const contentHash = newRoot
-      ? await geoWebContent.raw.commit(newRoot)
-      : "0x";
+    if (!newRoot) {
+      throw Error("Could not updload parcel content");
+    }
+
+    const contentHash = await geoWebContent.raw.commit(newRoot);
 
     return contentHash;
   };
