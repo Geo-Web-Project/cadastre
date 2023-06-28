@@ -532,6 +532,7 @@ function RejectBidAction(props: RejectBidActionProps) {
                   requiredPayment={requiredPayment}
                   spender={licenseDiamondContract?.address ?? null}
                   flowOperator={licenseDiamondContract?.address ?? null}
+                  requiredBuffer={BigNumber.from(0)}
                   setErrorMessage={setErrorMessage}
                   setIsActing={setIsActing}
                   setDidFail={setDidFail}

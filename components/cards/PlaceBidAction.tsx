@@ -457,6 +457,9 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                       ? newForSalePrice.add(requiredBuffer)
                       : null
                   }
+                  requiredBuffer={
+                    requiredBuffer ? requiredBuffer : BigNumber.from(0)
+                  }
                   spender={licenseDiamondContract?.address ?? null}
                   flowOperator={licenseDiamondContract?.address ?? null}
                   setErrorMessage={setErrorMessage}

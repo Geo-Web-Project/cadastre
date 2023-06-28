@@ -261,6 +261,11 @@ function EditAction(props: EditActionProps) {
         bundleCallback={async () => void 0}
         transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
+        requiredBuffer={
+          requiredNewBuffer && requiredExistingBuffer
+            ? requiredNewBuffer.sub(requiredExistingBuffer)
+            : BigNumber.from(0)
+        }
         {...props}
       />
       <StreamingInfo {...props} />

@@ -27,6 +27,7 @@ type TransactionBundleDetailsProps = {
   isDisabled: boolean;
   submit: () => void;
   smartAccount: SmartAccount;
+  requiredBuffer: BigNumber;
 };
 
 enum FunctionSelector {
@@ -49,6 +50,7 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
     forSalePrice,
     requiredPayment,
     requiredFlowAmount,
+    requiredBuffer,
     isActing,
     isDisabled,
     submit,
@@ -119,7 +121,9 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         break;
       case FunctionSelector.CLAIM:
         description = `${index}. Claim Parcel (Send ${truncateEth(
-          formatBalance(requiredPayment ?? "0"),
+          formatBalance(
+            requiredPayment ? requiredPayment.add(requiredBuffer) : "0"
+          ),
           8
         )} ETHx)`;
         break;
@@ -128,10 +132,10 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
           requiredPayment?.gt(0) ? "Send" : "Receive"
         } ${truncateEth(
           formatBalance(
-            requiredPayment?.gt(0)
-              ? requiredPayment.mul(2)
-              : requiredPayment
-              ? requiredPayment.mul(2).mul(-1)
+            requiredBuffer?.gt(0)
+              ? requiredBuffer.mul(2)
+              : requiredBuffer
+              ? requiredBuffer.mul(2).mul(-1)
               : "0"
           ),
           8
@@ -139,25 +143,33 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
         break;
       case FunctionSelector.RECLAIM:
         description = `${index}. Reclaim Parcel (Send ${truncateEth(
-          formatBalance(requiredPayment ?? "0"),
+          formatBalance(
+            requiredPayment ? requiredPayment.add(requiredBuffer) : "0"
+          ),
           8
         )} ETHx)`;
         break;
       case FunctionSelector.PLACE_BID:
         description = `${index}. Place Bid (Send ${truncateEth(
-          formatBalance(requiredPayment ?? "0"),
+          formatBalance(
+            requiredPayment ? requiredPayment.add(requiredBuffer) : "0"
+          ),
           8
         )})`;
         break;
       case FunctionSelector.ACCEPT_BID:
         description = `${index}. Accept Bid (Receive ${truncateEth(
-          formatBalance(forSalePrice ?? "0"),
+          formatBalance(
+            forSalePrice ? forSalePrice.add(requiredBuffer.mul(2)) : "0"
+          ),
           8
         )} ETHx)`;
         break;
       case FunctionSelector.REJECT_BID:
         description = `${index}. Reject Bid (Send ${truncateEth(
-          formatBalance(requiredPayment ?? "0"),
+          formatBalance(
+            requiredPayment ? requiredPayment.add(requiredBuffer) : "0"
+          ),
           8
         )})`;
         break;

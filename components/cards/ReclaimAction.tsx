@@ -234,6 +234,7 @@ function ReclaimAction(props: ReclaimActionProps) {
             : requiredBuffer
         }
         requiredFlowPermissions={1}
+        requiredBuffer={requiredBuffer ? requiredBuffer : BigNumber.from(0)}
         spender={licenseDiamondContract?.address || null}
         flowOperator={licenseDiamondContract?.address || null}
         encodeFunctionData={encodeReclaimData}

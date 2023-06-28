@@ -45,6 +45,7 @@ export type ActionFormProps = OffCanvasPanelProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
+  requiredBuffer: BigNumber;
   minForSalePrice: BigNumber;
   setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
   setParcelFieldsToUpdate: React.Dispatch<

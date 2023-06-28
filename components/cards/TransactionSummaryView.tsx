@@ -384,6 +384,7 @@ function TransactionSummaryView({
                   formatBalance(
                     streamBuffer
                       .add(claimPayment ?? 0)
+                      .add(penaltyPayment ?? 0)
                       .add(collateralDeposit ?? 0)
                       .add(
                         transactionBundleFeesEstimate &&

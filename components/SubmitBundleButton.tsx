@@ -19,6 +19,7 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   requiredFlowAmount: BigNumber | null;
   spender: string | null;
   flowOperator: string | null;
+  requiredBuffer: BigNumber;
   setErrorMessage: (v: string) => void;
   isActing: boolean;
   setIsActing: (v: boolean) => void;
@@ -47,6 +48,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     requiredPayment,
     sfFramework,
     requiredFlowAmount,
+    requiredBuffer,
     flowOperator,
     setErrorMessage,
     isActing,
@@ -328,6 +330,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
           forSalePrice={forSalePrice}
           metaTransactions={metaTransactions}
           transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+          requiredBuffer={requiredBuffer}
           requiredPayment={requiredPayment}
           requiredFlowAmount={requiredFlowAmount}
           isDisabled={!isReady || isDisabled}

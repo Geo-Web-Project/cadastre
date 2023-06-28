@@ -3,7 +3,7 @@ import { BigNumber } from "ethers";
 import { formatBalance } from "../../lib/formatBalance";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import TransactionSummaryView from "./TransactionSummaryView";
-import { fromValueToRate } from "../../lib/utils";
+import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import StreamingInfo from "./StreamingInfo";
 import Card from "react-bootstrap/Card";
@@ -43,6 +43,7 @@ export type AcceptBidActionProps = ParcelInfoProps & {
 
 function AcceptBidAction(props: AcceptBidActionProps) {
   const {
+    sfFramework,
     newForSalePrice,
     existingForSalePrice,
     bidTimestamp,
@@ -71,6 +72,9 @@ function AcceptBidAction(props: AcceptBidActionProps) {
   );
   const [bidPeriodLength, setBidPeriodLength] =
     React.useState<BigNumber | null>(null);
+  const [requiredBuffer, setRequiredBuffer] = React.useState<BigNumber | null>(
+    null
+  );
 
   const { superTokenBalance } = useSuperTokenBalance(
     smartAccount?.safe ? smartAccount.address : "",
@@ -122,6 +126,20 @@ function AcceptBidAction(props: AcceptBidActionProps) {
       <span className="visually-hidden">Sending Transaction...</span>
     </Spinner>
   );
+
+  React.useEffect(() => {
+    (async () => {
+      if (existingNetworkFee) {
+        const requiredBuffer = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          existingNetworkFee
+        );
+
+        setRequiredBuffer(requiredBuffer);
+      }
+    })();
+  }, [existingNetworkFee]);
 
   React.useEffect(() => {
     let timerId: NodeJS.Timer;
@@ -245,6 +263,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
                 requiredPayment={BigNumber.from(0)}
                 spender={licenseDiamondContract?.address ?? null}
                 flowOperator={licenseDiamondContract?.address ?? null}
+                requiredBuffer={requiredBuffer ?? BigNumber.from(0)}
                 setErrorMessage={setErrorMessage}
                 setIsActing={setIsActing}
                 setDidFail={setDidFail}
