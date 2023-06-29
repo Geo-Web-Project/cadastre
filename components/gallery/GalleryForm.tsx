@@ -5,6 +5,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
+import Spinner from "react-bootstrap/Spinner";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
 import { CID } from "multiformats/cid";
@@ -193,16 +194,27 @@ function GalleryForm(props: GalleryFormProps) {
               <Button
                 variant="secondary"
                 style={{ height: 35, width: 42 }}
-                className="d-flex justify-content-center mt-1"
+                className="d-flex justify-content-center align-items-center mt-1"
                 as="label"
                 htmlFor="uploadCid"
                 disabled={isUploading || selectedMediaGalleryItemIndex !== null}
               >
-                <Image src="upload.svg" alt="upload" />
+                {isUploading ? (
+                  <Spinner
+                    size="sm"
+                    animation="border"
+                    role="status"
+                    variant="light"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </Spinner>
+                ) : (
+                  <Image src="upload.svg" alt="upload" width={24} />
+                )}
               </Button>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
-                className="text-white mt-1"
+                className="text-white mt-1 rounded-2"
                 type="text"
                 placeholder="Upload media or add an existing CID"
                 readOnly={isUploading || selectedMediaGalleryItemIndex !== null}

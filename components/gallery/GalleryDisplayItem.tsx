@@ -102,8 +102,12 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
         </Col>
       </Row>
       <Row>
-        <Col style={{ height: "100px" }}>
-          <Image style={statusView ? { opacity: "0.3" } : {}} src="file.png" />
+        <Col>
+          <Image
+            style={statusView ? { opacity: "0.3" } : {}}
+            src="file.png"
+            width={70}
+          />
           <div className="position-relative bottom-100">{statusView}</div>
         </Col>
       </Row>

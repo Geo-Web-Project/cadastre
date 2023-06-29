@@ -297,6 +297,7 @@ function GalleryModal(props: GalleryModalProps) {
       setIsSaving(false);
       setIsSaved(true);
       setShouldMediaGalleryUpdate(true);
+      handleClose();
     } catch (err) {
       console.error(err);
       setIsSaving(false);
@@ -377,7 +378,7 @@ function GalleryModal(props: GalleryModalProps) {
             </p>
             <Card
               border="secondary"
-              className="bg-dark mt-4 mb-2 p-2 p-sm-3 text-center"
+              className="bg-dark mt-4 mb-2 p-2 p-sm-3 text-center rounded-4"
             >
               <small
                 className="position-absolute bg-dark px-1 text-secondary"
