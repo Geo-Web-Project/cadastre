@@ -36,7 +36,8 @@ enum FunctionSelector {
   APPROVE_FLOW = "0x39255d5b",
   CLAIM = "0x059c73ba",
   EDIT_BID = "0x90c33bba",
-  RECLAIM = "0x0b4ee502",
+  EDIT_CONTENT_HASH = "0x852d1111",
+  RECLAIM = "0x70383cff",
   PLACE_BID = "0x00fa6802",
   ACCEPT_BID = "0xe52a7874",
   REJECT_BID = "0x499ca2f5",
@@ -141,6 +142,9 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
           8
         )} ETHx)`;
         break;
+      case FunctionSelector.EDIT_CONTENT_HASH:
+        description = `${index}. Edit Content (Send 0.0 ETHx)`;
+        break;
       case FunctionSelector.RECLAIM:
         description = `${index}. Reclaim Parcel (Send ${truncateEth(
           formatBalance(
@@ -188,6 +192,7 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
     [FunctionSelector.APPROVE_FLOW]: "callAgreement",
     [FunctionSelector.CLAIM]: "claim",
     [FunctionSelector.EDIT_BID]: "editBid",
+    [FunctionSelector.EDIT_CONTENT_HASH]: "editContentHash",
     [FunctionSelector.RECLAIM]: "reclaim",
     [FunctionSelector.PLACE_BID]: "placeBid",
     [FunctionSelector.ACCEPT_BID]: "acceptBid",

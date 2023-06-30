@@ -15,7 +15,62 @@ function useBasicProfile(
   const [parcelContent, setParcelContent] = useState<BasicProfile | null>(null);
   const [rootCid, setRootCid] = useState<string | null>(null);
   const [shouldParcelContentUpdate, setShouldParcelContentUpdate] =
-    useState<boolean>(true);
+    useState<boolean>(false);
+
+  useEffect(() => {
+    if (
+      !geoWebContent ||
+      !licenseContractAddress ||
+      !licenseOwner ||
+      !parcelId
+    ) {
+      return;
+    }
+
+    setParcelContent(null);
+    setRootCid(null);
+
+    (async () => {
+      try {
+        const assetId = new AssetId({
+          chainId: `eip155:${NETWORK_ID}`,
+          assetName: {
+            namespace: "erc721",
+            reference: licenseContractAddress.toLowerCase(),
+          },
+          tokenId: new BN(parcelId.slice(2), "hex").toString(10),
+        });
+
+        const ownerId = new AccountId({
+          chainId: `eip155:${NETWORK_ID}`,
+          address: ethers.utils.getAddress(licenseOwner),
+        });
+        const _rootCid = await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerDID: `did:pkh:${ownerId}`,
+        });
+        const _parcelContent = await geoWebContent.raw.get(
+          _rootCid,
+          "/basicProfile",
+          {
+            schema: "BasicProfile",
+          }
+        );
+        const root = await geoWebContent.raw.get(_rootCid, "/", {
+          schema: "ParcelRoot",
+        });
+
+        setParcelContent(_parcelContent);
+        setRootCid(
+          root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
+        );
+      } catch (err) {
+        setParcelContent({});
+        setRootCid("");
+        console.error(err);
+      }
+    })();
+  }, [geoWebContent, licenseContractAddress, licenseOwner, parcelId]);
 
   useEffect(() => {
     if (
@@ -28,7 +83,7 @@ function useBasicProfile(
       return;
     }
 
-    const prevParcelContent = parcelContent ? { ...parcelContent } : null;
+    const prevParcelContent = { ...parcelContent };
 
     setParcelContent(null);
     setRootCid(null);

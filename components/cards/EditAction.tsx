@@ -179,10 +179,6 @@ function EditAction(props: EditActionProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
-    if (!signer) {
-      throw new Error("Could not find existingNetworkFee");
-    }
-
     const editBidData = licenseDiamondContract.interface.encodeFunctionData(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -199,7 +195,7 @@ function EditAction(props: EditActionProps) {
     return editBidData;
   }
 
-  async function _edit(contentHash?: string) {
+  async function editBid(contentHash?: string) {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -226,11 +222,52 @@ function EditAction(props: EditActionProps) {
     await txn.wait();
   }
 
+  function encodeEditContentHashData(contentHash?: string) {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    const editContentHashData =
+      licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "editContentHash(bytes)",
+        [contentHash ?? "0x"]
+      );
+
+    return editContentHashData;
+  }
+
+  async function editContentHash(contentHash?: string) {
+    updateActionData({ isActing: true });
+
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!signer) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const txn = await licenseDiamondContract
+      .connect(signer)
+      ["editContentHash(bytes)"](contentHash ?? "0x");
+
+    await txn.wait();
+  }
+
   return (
     <>
       <ActionForm
         loading={false}
-        performAction={_edit}
+        performAction={
+          hasOutstandingBid ||
+          displayNewForSalePrice === displayCurrentForSalePrice
+            ? editContentHash
+            : editBid
+        }
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
@@ -257,7 +294,12 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
-        encodeFunctionData={encodeEditBidData}
+        encodeFunctionData={
+          hasOutstandingBid ||
+          displayNewForSalePrice === displayCurrentForSalePrice
+            ? encodeEditContentHashData
+            : encodeEditBidData
+        }
         bundleCallback={async () => void 0}
         transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}

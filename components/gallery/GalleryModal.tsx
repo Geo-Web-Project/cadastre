@@ -21,7 +21,6 @@ import { useMediaGallery } from "../../lib/geo-web-content/mediaGallery";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useSafe } from "../../lib/safe";
-import { fromValueToRate } from "../../lib/utils";
 import { ZERO_ADDRESS, NETWORK_ID } from "../../lib/constants";
 
 export type GalleryModalProps = ParcelInfoProps & {
@@ -29,7 +28,6 @@ export type GalleryModalProps = ParcelInfoProps & {
   geoWebContent: GeoWebContent | null;
   setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
   licenseDiamondContract: IPCOLicenseDiamond | null;
-  existingForSalePrice: BigNumber | null;
 };
 
 function GalleryModal(props: GalleryModalProps) {
@@ -38,9 +36,6 @@ function GalleryModal(props: GalleryModalProps) {
     smartAccount,
     signer,
     paymentToken,
-    perSecondFeeDenominator,
-    perSecondFeeNumerator,
-    existingForSalePrice,
     licenseDiamondContract,
     ceramic,
     licenseAddress,
@@ -146,42 +141,40 @@ function GalleryModal(props: GalleryModalProps) {
       );
     }
 
-    if (newRoot) {
-      if (newMediaGallery.length < mediaGalleryItems.length) {
-        const itemsDeleted = mediaGalleryItems.length - newMediaGallery.length;
+    if (newMediaGallery.length < mediaGalleryItems.length) {
+      const itemsDeleted = mediaGalleryItems.length - newMediaGallery.length;
 
-        for (
-          let i = mediaGalleryItems.length - 1;
-          i >= mediaGalleryItems.length - itemsDeleted;
-          i--
-        ) {
-          newRoot = await geoWebContent.raw.deletePath(
-            newRoot,
-            `/mediaGallery/${i}`
-          );
-        }
+      for (
+        let i = mediaGalleryItems.length - 1;
+        i >= mediaGalleryItems.length - itemsDeleted;
+        i--
+      ) {
+        newRoot = await geoWebContent.raw.deletePath(
+          newRoot ?? rootCid,
+          `/mediaGallery/${i}`
+        );
       }
-
-      const mediaGalleryPath = await geoWebContent.raw.get(
-        newRoot,
-        "/mediaGallery",
-        { schema: "MediaGallery" }
-      );
-
-      newRoot = await geoWebContent.raw.putPath(
-        newRoot,
-        `/mediaGallery`,
-        mediaGalleryPath,
-        {
-          parentSchema: "ParcelRoot",
-          pin: true,
-        }
-      );
     }
 
     if (!newRoot) {
       throw Error("Could not updload parcel content");
     }
+
+    const mediaGalleryPath = await geoWebContent.raw.get(
+      newRoot,
+      "/mediaGallery",
+      { schema: "MediaGallery" }
+    );
+
+    newRoot = await geoWebContent.raw.putPath(
+      newRoot,
+      `/mediaGallery`,
+      mediaGalleryPath,
+      {
+        parentSchema: "ParcelRoot",
+        pin: true,
+      }
+    );
 
     const contentHash = await geoWebContent.raw.commit(newRoot);
 
@@ -193,26 +186,9 @@ function GalleryModal(props: GalleryModalProps) {
       throw new Error("Could not find licenseDiamondContract");
     }
 
-    if (!perSecondFeeNumerator) {
-      throw new Error("Could not find perSecondFeeNumerator");
-    }
-
-    if (!perSecondFeeDenominator) {
-      throw new Error("Could not find perSecondFeeDenominator");
-    }
-
-    if (!existingForSalePrice) {
-      throw new Error("Could not find existingForSalePrice");
-    }
-
     setIsSaving(true);
 
     try {
-      const existingNetworkFee = fromValueToRate(
-        existingForSalePrice,
-        perSecondFeeNumerator,
-        perSecondFeeDenominator
-      );
       const contentHash = await commitNewRoot();
 
       if (smartAccount?.safe) {
@@ -247,19 +223,20 @@ function GalleryModal(props: GalleryModalProps) {
           });
         }
 
-        const editBidData = licenseDiamondContract.interface.encodeFunctionData(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          "editBid(int96,uint256,bytes)",
-          [existingNetworkFee, existingForSalePrice, contentHash]
-        );
+        const editContentHashData =
+          licenseDiamondContract.interface.encodeFunctionData(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            "editContentHash(bytes)",
+            [contentHash]
+          );
 
-        const editBidTransaction = {
+        const editContentHashTransaction = {
           to: licenseDiamondContract.address,
-          data: editBidData,
+          data: editContentHashData,
           value: "0",
         };
-        metaTransactions.push(editBidTransaction);
+        metaTransactions.push(editContentHashTransaction);
 
         const gasUsed = await simulateSafeTx(metaTransactions);
         const transactionFeesEstimate = await estimateTransactionBundleFees(
@@ -283,13 +260,11 @@ function GalleryModal(props: GalleryModalProps) {
           throw new Error("Could not find signer");
         }
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const txn = await licenseDiamondContract
           .connect(signer)
-          ["editBid(int96,uint256,bytes)"](
-            existingNetworkFee,
-            existingForSalePrice,
-            contentHash
-          );
+          ["editContentHash(bytes)"](contentHash);
 
         await txn.wait();
       }

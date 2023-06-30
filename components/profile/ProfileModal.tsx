@@ -523,7 +523,7 @@ function ProfileModal(props: ProfileModalProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!shouldRefetchParcelsData || !showProfile) {
+    if (!shouldRefetchParcelsData) {
       return;
     }
 
@@ -545,7 +545,7 @@ function ProfileModal(props: ProfileModalProps) {
         clearInterval(timerId);
       }
     };
-  }, [shouldRefetchParcelsData, data, showProfile]);
+  }, [shouldRefetchParcelsData, data]);
 
   const tokenOptions: TokenOptions = useMemo(
     () => ({

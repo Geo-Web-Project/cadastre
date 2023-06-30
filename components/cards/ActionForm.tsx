@@ -327,12 +327,14 @@ export function ActionForm(props: ActionFormProps) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
+    const isContentChangeOnly =
+      displayNewForSalePrice &&
+      displayNewForSalePrice === displayCurrentForSalePrice;
+
     setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
+    setShouldRefetchParcelsData(!isContentChangeOnly);
     setParcelFieldsToUpdate({
-      forSalePrice:
-        !displayNewForSalePrice ||
-        displayNewForSalePrice !== displayCurrentForSalePrice,
+      forSalePrice: !isContentChangeOnly,
       licenseOwner: !licenseOwner || licenseOwner !== accountAddress,
     });
   }
@@ -391,7 +393,8 @@ export function ActionForm(props: ActionFormProps) {
         <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
-              {interactionState == STATE.PARCEL_RECLAIMING ? null : (
+              {interactionState == STATE.PARCEL_RECLAIMING &&
+              account.toLowerCase() == licenseOwner?.toLowerCase() ? null : (
                 <>
                   <Form.Text className="text-primary mb-1">
                     Parcel Name

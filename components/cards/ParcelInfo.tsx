@@ -258,7 +258,11 @@ function ParcelInfo(props: ParcelInfoProps) {
   }, [data]);
 
   React.useEffect(() => {
-    if (parcelFieldsToUpdate && selectedParcelId) {
+    if (
+      (parcelFieldsToUpdate?.forSalePrice ||
+        parcelFieldsToUpdate?.licenseOwner) &&
+      selectedParcelId
+    ) {
       const timerId = setInterval(() => {
         refetch({
           id: selectedParcelId,
@@ -479,7 +483,10 @@ function ParcelInfo(props: ParcelInfoProps) {
   }
 
   let buttons;
-  if (parcelFieldsToUpdate) {
+  if (
+    parcelFieldsToUpdate?.forSalePrice ||
+    parcelFieldsToUpdate?.licenseOwner
+  ) {
     buttons = null;
   } else if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
@@ -573,7 +580,8 @@ function ParcelInfo(props: ParcelInfoProps) {
               <br />
               {invalidLicenseId == selectedParcelId
                 ? null
-                : parcelFieldsToUpdate
+                : parcelFieldsToUpdate?.forSalePrice ||
+                  parcelFieldsToUpdate?.licenseOwner
                 ? null
                 : buttons}
             </div>
@@ -602,7 +610,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           currentOwnerBidForSalePrice &&
-          !parcelFieldsToUpdate ? (
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
             <>
               <OutstandingBidView
                 {...props}
@@ -626,7 +635,10 @@ function ParcelInfo(props: ParcelInfoProps) {
               parcelData={data.geoWebParcel}
               parcelContent={parcelContent}
               hasOutstandingBid={
-                !parcelFieldsToUpdate ? hasOutstandingBid : false
+                !parcelFieldsToUpdate?.forSalePrice &&
+                !parcelFieldsToUpdate?.licenseOwner
+                  ? hasOutstandingBid
+                  : false
               }
               licenseDiamondContract={licenseDiamondContract}
               licenseOwner={licenseOwner}
@@ -650,7 +662,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           currentOwnerBidForSalePrice &&
-          !parcelFieldsToUpdate ? (
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
             <AcceptBidAction
               {...props}
               newForSalePrice={outstandingBidForSalePrice}
@@ -665,7 +678,8 @@ function ParcelInfo(props: ParcelInfoProps) {
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           data?.geoWebParcel &&
-          !parcelFieldsToUpdate ? (
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
             <RejectBidAction
               {...props}
               signer={signer}
@@ -697,7 +711,6 @@ function ParcelInfo(props: ParcelInfoProps) {
           show={interactionState === STATE.EDITING_GALLERY}
           setRootCid={setRootCid}
           licenseDiamondContract={licenseDiamondContract}
-          existingForSalePrice={currentOwnerBidForSalePrice}
           {...props}
         ></GalleryModal>
       )}

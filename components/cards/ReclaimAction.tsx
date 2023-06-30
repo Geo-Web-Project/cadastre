@@ -150,11 +150,12 @@ function ReclaimAction(props: ReclaimActionProps) {
       encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        "reclaim(uint256,int96,uint256)",
+        "reclaim(uint256,int96,uint256,bytes)",
         [
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
           ethers.utils.parseEther(displayNewForSalePrice),
+          contentHash ?? "0x",
         ]
       );
     }
@@ -192,10 +193,13 @@ function ReclaimAction(props: ReclaimActionProps) {
     } else {
       txn = await licenseDiamondContract
         .connect(signer)
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         .reclaim(
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice)
+          ethers.utils.parseEther(displayNewForSalePrice),
+          contentHash ?? "0x"
         );
     }
 
