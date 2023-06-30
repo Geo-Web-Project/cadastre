@@ -20,6 +20,7 @@ export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
 export const RAMP_HOST_KEY = process.env.RAMP_HOST_KEY!;
 export const REFUND_RECEIVER = process.env.REFUND_RECEIVER!;
 export const GELATO_RELAY_API_KEY = process.env.GELATO_RELAY_API_KEY!;
+export const WALLET_CONNECT_PROJECT_ID = process.env.WALLET_CONNECT_PROJECT_ID!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";

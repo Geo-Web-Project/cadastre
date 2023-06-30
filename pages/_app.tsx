@@ -6,7 +6,12 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from "@apollo/client";
-import { SUBGRAPH_URL, NETWORK_ID, RPC_URLS } from "../lib/constants";
+import {
+  SUBGRAPH_URL,
+  NETWORK_ID,
+  RPC_URLS,
+  WALLET_CONNECT_PROJECT_ID,
+} from "../lib/constants";
 import "../styles.scss";
 import { AppProps } from "next/app";
 import { MapProvider } from "react-map-gl";
@@ -61,9 +66,9 @@ const connectors = connectorsForWallets([
     groupName: "Suggested",
     wallets: [
       injectedWallet({ chains }),
-      metaMaskWallet({ chains }),
-      ledgerWallet({ chains }),
-      walletConnectWallet({ chains }),
+      metaMaskWallet({ chains, projectId: WALLET_CONNECT_PROJECT_ID }),
+      ledgerWallet({ chains, projectId: WALLET_CONNECT_PROJECT_ID }),
+      walletConnectWallet({ chains, projectId: WALLET_CONNECT_PROJECT_ID }),
       coinbaseWallet({ appName: "Geo Web Cadastre", chains }),
       braveWallet({ chains }),
     ],
