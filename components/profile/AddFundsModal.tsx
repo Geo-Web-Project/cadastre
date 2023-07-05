@@ -154,7 +154,7 @@ function AddFundsModal(props: AddFundsModalProps) {
                   content={<span>Disconnect from account</span>}
                   target={
                     <Image
-                      src="power-button.svg"
+                      src="logout.svg"
                       alt="disconnect"
                       width={isMobile || isTablet ? 24 : 28}
                       className="cursor-pointer"

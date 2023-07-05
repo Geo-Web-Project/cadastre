@@ -36,10 +36,6 @@ import AddFundsModal from "./AddFundsModal";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import InfoTooltip from "../InfoTooltip";
 import CopyTooltip from "../CopyTooltip";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownMenu from "react-bootstrap/DropdownMenu";
-import DropdownItem from "react-bootstrap/DropdownItem";
-import DropdownToggle from "react-bootstrap/DropdownToggle";
 import { SmartAccount } from "../../pages/index";
 import TransactionBundleSettingsView from "../TransactionBundleSettingsView";
 import {
@@ -149,6 +145,12 @@ enum SortOrder {
   DESC,
 }
 
+enum TabSelection {
+  WALLET,
+  ETHX_SETTINGS,
+  PORTFOLIO,
+}
+
 enum PortfolioAction {
   VIEW = "View",
   RESPOND = "Respond",
@@ -225,8 +227,9 @@ function ProfileModal(props: ProfileModalProps) {
     useState<boolean>(false);
   const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
     useState<boolean>(false);
-  const [viewDropDownSelection, setViewDropDownSelection] =
-    useState<string>("Wallet");
+  const [tabSelection, setTabSelection] = useState<TabSelection>(
+    TabSelection.WALLET
+  );
 
   const accountAddress = smartAccount?.safe ? smartAccount.address : account;
 
@@ -787,7 +790,13 @@ function ProfileModal(props: ProfileModalProps) {
       size="xl"
       contentClassName="bg-dark"
     >
-      <Modal.Header className="bg-dark border-0 pb-0">
+      <Modal.Header
+        className="bg-blue border-0"
+        style={{
+          backgroundImage: "url(Contour_Lines.png)",
+          backgroundSize: "cover",
+        }}
+      >
         <Container className="ps-1 pe-0">
           <Row>
             <Col
@@ -876,12 +885,12 @@ function ProfileModal(props: ProfileModalProps) {
                   <Button
                     onClick={deactivateProfile}
                     variant="link"
-                    className="p-0"
+                    className="p-0 ps-1"
                   >
                     <Image
-                      src="power-button.svg"
+                      src="logout.svg"
                       alt="disconnect"
-                      width={isMobile ? 30 : 40}
+                      width={isMobile ? 28 : 36}
                     />
                   </Button>
                 }
@@ -916,30 +925,51 @@ function ProfileModal(props: ProfileModalProps) {
           </Row>
         </Container>
       </Modal.Header>
-      <Modal.Body className="px-1 px-lg-3 py-0 bg-dark text-light text-start">
-        <Row className="mb-2 px-1 py-2">
-          <Dropdown>
-            <DropdownToggle
-              variant="outline-secondary"
-              className={`${
-                isMobile || isTablet ? "w-50" : "w-25"
-              } d-flex justify-content-between align-items-center shadow-none`}
-            >
-              <span className="fs-3 m-auto ms-0">{viewDropDownSelection}</span>
-            </DropdownToggle>
-            <DropdownMenu className="position-absolute top-0 mt-5 ms-2">
-              <DropdownItem onClick={() => setViewDropDownSelection("Wallet")}>
+      <Modal.Body className="px-1 px-lg-3 py-0 pb-3 bg-dark text-light text-start">
+        <Row className="py-3 ps-1 pe-0 px-lg-3">
+          <div
+            className={`d-flex gap-4 gap-lg-5 text-info cursor-pointer ${
+              isMobile ? "fs-5" : "fs-2"
+            }`}
+          >
+            <div onClick={() => setTabSelection(TabSelection.WALLET)}>
+              <span
+                className={`${
+                  tabSelection === TabSelection.WALLET
+                    ? "text-light fw-bold"
+                    : ""
+                }`}
+              >
                 Wallet
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => setViewDropDownSelection("Portfolio")}
+              </span>
+            </div>
+            {smartAccount?.safe && (
+              <div onClick={() => setTabSelection(TabSelection.ETHX_SETTINGS)}>
+                <span
+                  className={`${
+                    tabSelection === TabSelection.ETHX_SETTINGS
+                      ? "text-light fw-bold"
+                      : ""
+                  }`}
+                >
+                  ETHx Settings
+                </span>
+              </div>
+            )}
+            <div onClick={() => setTabSelection(TabSelection.PORTFOLIO)}>
+              <span
+                className={`${
+                  tabSelection === TabSelection.PORTFOLIO
+                    ? "text-light fw-bold"
+                    : ""
+                }`}
               >
                 Portfolio
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+              </span>
+            </div>
+          </div>
         </Row>
-        {viewDropDownSelection === "Wallet" ? (
+        {tabSelection === TabSelection.WALLET ? (
           <>
             <Row>
               <Col className="d-inline-flex mb-2 mx-2 fs-6 h-100">
@@ -1138,61 +1168,26 @@ function ProfileModal(props: ProfileModalProps) {
                 )}
               </Col>
             </Row>
-            {smartAccount?.safe && (
-              <>
-                <Row className="fw-bold mt-3 mb-3 ps-2 fs-2">
-                  <Col className="d-flex align-items-center gap-3" xs="12">
-                    <span>ETH:ETHx Settings</span>
-                    <InfoTooltip
-                      position={{ top: true }}
-                      content={
-                        <div style={{ textAlign: "left" }}>
-                          Optimism transaction fees (aka gas) are paid in ETH,
-                          but all Geo Web land transactions are denominated in
-                          ETHx. <br />
-                          <br />
-                          Safe smart accounts allow us to sponsor your
-                          transaction bundle's gas with ETH and then get
-                          refunded by you with ETHx.
-                          <br />
-                          <br />
-                          This means you can (optionally) keep all your account
-                          funds in the form ETHx.
-                          <br />
-                          <br />
-                          Otherwise, set how much ETH you want to wrap to ETHx
-                          with each transaction.
-                        </div>
-                      }
-                      target={
-                        <Image
-                          src="info.svg"
-                          alt="info"
-                          width={28}
-                          className="mb-1"
-                        />
-                      }
-                    />
-                  </Col>
-                </Row>
-                <Row
-                  className={`${
-                    isMobile || isTablet ? "w-100" : "w-75"
-                  } pe-2 mb-3 mb-lg-5 ms-1`}
-                >
-                  <TransactionBundleSettingsView
-                    direction="row"
-                    showTopUpTotalDropDown={showTopUpTotalDropDown}
-                    setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
-                    showTopUpSingleDropDown={showTopUpSingleDropDown}
-                    setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
-                    existingAnnualNetworkFee={BigNumber.from(0)}
-                    newAnnualNetworkFee={BigNumber.from(0)}
-                    totalNetworkStream={totalNetworkStream}
-                  />
-                </Row>
-              </>
-            )}
+          </>
+        ) : tabSelection === TabSelection.ETHX_SETTINGS &&
+          smartAccount?.safe ? (
+          <>
+            <Row
+              className={`${
+                isMobile || isTablet ? "w-100" : "w-75"
+              } pe-2 mb-3 mb-lg-4 ms-1`}
+            >
+              <TransactionBundleSettingsView
+                direction="row"
+                showTopUpTotalDropDown={showTopUpTotalDropDown}
+                setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
+                showTopUpSingleDropDown={showTopUpSingleDropDown}
+                setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
+                existingAnnualNetworkFee={BigNumber.from(0)}
+                newAnnualNetworkFee={BigNumber.from(0)}
+                totalNetworkStream={totalNetworkStream}
+              />
+            </Row>
           </>
         ) : (
           <>
@@ -1204,7 +1199,7 @@ function ProfileModal(props: ProfileModalProps) {
               ) : portfolio.length > 0 ? (
                 <Table
                   bordered
-                  className="m-3 text-light border border-purple flex-shrink-1"
+                  className="m-3 mt-0 text-light border border-purple flex-shrink-1"
                 >
                   <thead>
                     <tr className="cursor-pointer">

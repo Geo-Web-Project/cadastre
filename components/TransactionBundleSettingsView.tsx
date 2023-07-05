@@ -5,6 +5,7 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import InfoTooltip from "./InfoTooltip";
 import { useMediaQuery } from "../lib/mediaQuery";
 import {
   useBundleSettings,
@@ -66,13 +67,13 @@ function TransactionsBundleSettingsView(props: {
 
   return (
     <>
-      <div className="form-check d-flex align-items-center gap-2 ms-2 ms-sm-1">
+      <div className="form-check d-flex align-items-center gap-2 ms-0 ms-sm-1">
         <input
           defaultChecked={bundleSettings.isSponsored}
           aria-label="Checkbox to choose if payment denominated in ETHx or ETH"
           className="form-check-input"
           type="checkbox"
-          style={{ width: 24, height: 24 }}
+          style={{ width: isMobile ? 18 : 24, height: isMobile ? 18 : 24 }}
           onClick={() =>
             bundleSettingsDispatch({
               type: BundleSettingsActionType.UPDATE_BUNDLE_SETTINGS,
@@ -86,9 +87,40 @@ function TransactionsBundleSettingsView(props: {
             })
           }
         />
-        <label className="form-check-label" htmlFor="flexCheckDefault">
+        <label
+          className="form-check-label"
+          htmlFor="flexCheckDefault"
+          style={{ fontSize: isMobile ? "0.8rem" : "" }}
+        >
           Enable transaction sponsoring + refunding
         </label>
+        {direction === "row" && (
+          <InfoTooltip
+            position={{ bottom: isMobile || isTablet }}
+            content={
+              <div style={{ textAlign: "left" }}>
+                Optimism transaction fees (aka gas) are paid in ETH, but all Geo
+                Web land transactions are denominated in ETHx. <br />
+                <br />
+                Safe smart accounts allow us to sponsor your transaction
+                bundle's gas with ETH and then get refunded by you with ETHx.
+                <br />
+                <br />
+                This means you can (optionally) keep all your account funds in
+                the form ETHx.
+                <br />
+                <br />
+                Otherwise, set how much ETH you want to wrap to ETHx with each
+                transaction.
+              </div>
+            }
+            target={
+              <span className="d-flex align-content-center">
+                <Image src="info.svg" alt="info" width={isMobile ? 20 : 22} />
+              </span>
+            }
+          />
+        )}
       </div>
       <Card
         border="secondary"
@@ -307,7 +339,7 @@ function TransactionsBundleSettingsView(props: {
                 </Button>
                 {showTopUpTotalDropDown && (
                   <div
-                    className="d-flex flex-column gap-1 position-absolute px-2 py-2 bg-light rounded-2"
+                    className="d-flex flex-column gap-1 position-absolute px-2 py-1 bg-light rounded-2"
                     style={{
                       right:
                         direction === "row" && isDesktop
