@@ -453,22 +453,13 @@ function ParcelInfo(props: ParcelInfoProps) {
                     href={spatialURL}
                     target="_blank"
                   >
-                    <Image
-                      width={24}
-                      src="open-in-browser.svg"
-                    />
+                    <Image width={24} src="open-in-browser.svg" />
                   </Button>
                 </OverlayTrigger>
                 <CopyTooltip
                   contentClick="Link Copied"
                   contentHover="Copy Parcel Link"
-                  target={
-                    <Image
-                      className="me-1"
-                      width={30}
-                      src="link.svg"
-                    />
-                  }
+                  target={<Image className="me-1" width={30} src="link.svg" />}
                   handleCopy={copyParcelLink}
                 />
               </div>
