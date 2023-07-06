@@ -13,7 +13,7 @@ module.exports = {
       config.plugins.push(
         new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
           resource.request = resource.request.replace(/^node:/, "");
-        })
+        }),
       );
       config.resolve.fallback = {
         ...config.resolve.fallback,
