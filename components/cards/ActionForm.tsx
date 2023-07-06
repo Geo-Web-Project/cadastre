@@ -277,6 +277,10 @@ export function ActionForm(props: ActionFormProps) {
       contentHash = await geoWebContent.raw.commit(newRoot);
     } catch (err) {
       console.error(err);
+
+      if (interactionState === STATE.PARCEL_EDITING) {
+        throw Error("Could not update parcel content, please try again later");
+      }
     }
 
     return contentHash;
