@@ -48,6 +48,15 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
               truncateEth(ethers.utils.formatUnits(x), 4) + " ETHx"
             }
             accountTokenSnapshot={data.items[0]}
+            balance={(accountTokenSnapshot) =>
+              accountTokenSnapshot
+                ? ethers.BigNumber.from(
+                    accountTokenSnapshot.balanceUntilUpdatedAt
+                  ).add(
+                    accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt
+                  )
+                : ethers.BigNumber.from("0")
+            }
           />
           <div className="fs-6 text-light text-center">
             <span className="d-none d-sm-block">

@@ -10,17 +10,22 @@ const ANIMATION_MINIMUM_STEP_TIME = 100;
 type FlowingBalanceProps = {
   accountTokenSnapshot: AccountTokenSnapshot | undefined;
   format?: (flowingBalanceWei: string) => string;
+  balance?: (
+    accountTokenSnapshot: AccountTokenSnapshot | undefined
+  ) => ethers.BigNumber;
 };
 
 export const FlowingBalance: FC<FlowingBalanceProps> = ({
   accountTokenSnapshot,
   format = (x) => x,
+  balance = (accountTokenSnapshot: AccountTokenSnapshot | undefined) =>
+    ethers.BigNumber.from(
+      accountTokenSnapshot ? accountTokenSnapshot.balanceUntilUpdatedAt : "0"
+    ),
 }): ReactElement => {
   const [formattedValue, setFormattedValue] = useState("");
   useEffect(() => {
-    const balanceBigNumber = ethers.BigNumber.from(
-      accountTokenSnapshot ? accountTokenSnapshot.balanceUntilUpdatedAt : "0"
-    );
+    const balanceBigNumber = balance(accountTokenSnapshot);
     const flowRateBigNumber = ethers.BigNumber.from(
       accountTokenSnapshot ? accountTokenSnapshot.totalNetFlowRate : "0"
     );
