@@ -306,9 +306,7 @@ function ClaimAction(props: ClaimActionProps) {
         requiredPayment={
           requiredBid && requiredBuffer ? requiredBid.add(requiredBuffer) : null
         }
-        requiredBuffer={
-          requiredBuffer ? requiredBuffer : BigNumber.from(0)
-        }
+        requiredBuffer={requiredBuffer ? requiredBuffer : BigNumber.from(0)}
         requiredFlowPermissions={1}
         spender={registryContract.address}
         flowOperator={flowOperator}
