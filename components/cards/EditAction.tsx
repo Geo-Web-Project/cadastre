@@ -53,6 +53,8 @@ function EditAction(props: EditActionProps) {
       ? displayCurrentForSalePrice
       : "",
   });
+  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
+    React.useState<BigNumber | null>(null);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -168,7 +170,32 @@ function EditAction(props: EditActionProps) {
     }
   }, [parcelContent]);
 
-  async function _edit() {
+  function encodeEditBidData(contentHash?: string) {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!existingNetworkFee) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
+    const editBidData = licenseDiamondContract.interface.encodeFunctionData(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      "editBid(int96,uint256,bytes)",
+      [
+        newNetworkFee ?? existingNetworkFee,
+        ethers.utils.parseEther(
+          displayNewForSalePrice ?? displayCurrentForSalePrice
+        ),
+        contentHash ?? "0x",
+      ]
+    );
+
+    return editBidData;
+  }
+
+  async function editBid(contentHash?: string) {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -183,19 +210,51 @@ function EditAction(props: EditActionProps) {
       throw new Error("Could not find existingNetworkFee");
     }
 
-    // Check for changes
-    if (
-      !displayNewForSalePrice ||
-      !newNetworkFee ||
-      displayNewForSalePrice == displayCurrentForSalePrice
-    ) {
-      // Content change only
-      return;
-    }
-
     const txn = await licenseDiamondContract
       .connect(signer)
-      .editBid(newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice));
+      ["editBid(int96,uint256,bytes)"](
+        newNetworkFee ?? existingNetworkFee,
+        ethers.utils.parseEther(
+          displayNewForSalePrice ?? displayCurrentForSalePrice
+        ),
+        contentHash ?? "0x"
+      );
+    await txn.wait();
+  }
+
+  function encodeEditContentHashData(contentHash?: string) {
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    const editContentHashData =
+      licenseDiamondContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        "editContentHash(bytes)",
+        [contentHash ?? "0x"]
+      );
+
+    return editContentHashData;
+  }
+
+  async function editContentHash(contentHash?: string) {
+    updateActionData({ isActing: true });
+
+    if (!licenseDiamondContract) {
+      throw new Error("Could not find licenseDiamondContract");
+    }
+
+    if (!signer) {
+      throw new Error("Could not find existingNetworkFee");
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const txn = await licenseDiamondContract
+      .connect(signer)
+      ["editContentHash(bytes)"](contentHash ?? "0x");
+
     await txn.wait();
   }
 
@@ -203,7 +262,12 @@ function EditAction(props: EditActionProps) {
     <>
       <ActionForm
         loading={false}
-        performAction={_edit}
+        performAction={
+          hasOutstandingBid ||
+          displayNewForSalePrice === displayCurrentForSalePrice
+            ? editContentHash
+            : editBid
+        }
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
@@ -215,6 +279,7 @@ function EditAction(props: EditActionProps) {
               }
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
+              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -229,6 +294,20 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
+        encodeFunctionData={
+          hasOutstandingBid ||
+          displayNewForSalePrice === displayCurrentForSalePrice
+            ? encodeEditContentHashData
+            : encodeEditBidData
+        }
+        bundleCallback={async () => void 0}
+        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
+        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
+        requiredBuffer={
+          requiredNewBuffer && requiredExistingBuffer
+            ? requiredNewBuffer.sub(requiredExistingBuffer)
+            : BigNumber.from(0)
+        }
         {...props}
       />
       <StreamingInfo {...props} />

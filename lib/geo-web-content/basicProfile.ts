@@ -15,24 +15,23 @@ function useBasicProfile(
   const [parcelContent, setParcelContent] = useState<BasicProfile | null>(null);
   const [rootCid, setRootCid] = useState<string | null>(null);
   const [shouldParcelContentUpdate, setShouldParcelContentUpdate] =
-    useState<boolean>(true);
+    useState<boolean>(false);
 
   useEffect(() => {
+    if (
+      !geoWebContent ||
+      !licenseContractAddress ||
+      !licenseOwner ||
+      !parcelId
+    ) {
+      return;
+    }
+
+    setParcelContent(null);
+    setRootCid(null);
+
     (async () => {
       try {
-        if (
-          !geoWebContent ||
-          !licenseContractAddress ||
-          !licenseOwner ||
-          !parcelId ||
-          !shouldParcelContentUpdate
-        ) {
-          return;
-        }
-
-        setParcelContent(null);
-        setRootCid(null);
-
         const assetId = new AssetId({
           chainId: `eip155:${NETWORK_ID}`,
           assetName: {
@@ -65,14 +64,80 @@ function useBasicProfile(
         setRootCid(
           root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
         );
-        setShouldParcelContentUpdate(false);
+      } catch (err) {
+        setParcelContent({});
+        setRootCid("");
+        console.error(err);
+      }
+    })();
+  }, [geoWebContent, licenseContractAddress, licenseOwner, parcelId]);
+
+  useEffect(() => {
+    if (
+      !geoWebContent ||
+      !licenseContractAddress ||
+      !licenseOwner ||
+      !parcelId ||
+      !shouldParcelContentUpdate
+    ) {
+      return;
+    }
+
+    const prevParcelContent = { ...parcelContent };
+
+    setParcelContent(null);
+    setRootCid(null);
+
+    const timerId = setInterval(async () => {
+      try {
+        const assetId = new AssetId({
+          chainId: `eip155:${NETWORK_ID}`,
+          assetName: {
+            namespace: "erc721",
+            reference: licenseContractAddress.toLowerCase(),
+          },
+          tokenId: new BN(parcelId.slice(2), "hex").toString(10),
+        });
+
+        const ownerId = new AccountId({
+          chainId: `eip155:${NETWORK_ID}`,
+          address: ethers.utils.getAddress(licenseOwner),
+        });
+        const _rootCid = await geoWebContent.raw.resolveRoot({
+          parcelId: assetId,
+          ownerDID: `did:pkh:${ownerId}`,
+        });
+        const _parcelContent = await geoWebContent.raw.get(
+          _rootCid,
+          "/basicProfile",
+          {
+            schema: "BasicProfile",
+          }
+        );
+        const root = await geoWebContent.raw.get(_rootCid, "/", {
+          schema: "ParcelRoot",
+        });
+
+        if (
+          JSON.stringify(_parcelContent) !== JSON.stringify(prevParcelContent)
+        ) {
+          setParcelContent(_parcelContent);
+          setRootCid(
+            root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
+          );
+          setShouldParcelContentUpdate(false);
+          clearInterval(timerId);
+        }
       } catch (err) {
         setParcelContent({});
         setRootCid("");
         setShouldParcelContentUpdate(false);
+        clearInterval(timerId);
         console.error(err);
       }
-    })();
+    }, 5000);
+
+    return () => clearInterval(timerId);
   }, [
     geoWebContent,
     licenseContractAddress,

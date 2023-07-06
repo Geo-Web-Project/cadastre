@@ -4,9 +4,10 @@
 $primary: #2fc1c1;
 $secondary: #4b5588;
 $dark: #202333;
+$blue: #111320;
 $purple: rgba(75, 85, 136, 0.25);
 $info: #707179;
-$gray: #e6e7ee;
+$gray: #b8b8be;
 $danger: #dc3545;
 $light: #f8f9fa;
 $success: #28a745;
@@ -16,6 +17,7 @@ $theme-colors: (
   "primary": $primary,
   "secondary": $secondary,
   "dark": $dark,
+  "blue": $blue,
   "purple": $purple,
   "info": $info,
   "gray": $gray,
@@ -26,10 +28,10 @@ $theme-colors: (
 );
 
 $font-family-base: "Open Sans";
-
+$font-size-base: 1rem;
+$h5-font-size: $font-size-base * 1.2;
 $link-decoration: none;
 $link-hover-decoration: underline;
-
 $tooltip-arrow-height: 0.2rem;
 $dropdown-item-padding-y: 0.4rem;
 $dropdown-border-radius: 6px;
@@ -37,6 +39,14 @@ $dropdown-dark-color: $gray;
 $dropdown-dark-bg: $dark;
 $dropdown-dark-link-hover-color: $light;
 $dropdown-dark-link-hover-bg: $purple;
+$accordion-bg: $blue;
+$accordion-icon-color: $light;
+$accordion-icon-active-color: $light;
+
+@font-face {
+  font-family: "SF Pro Rounded";
+  src: url("/fonts/SF-Pro-Rounded-Regular.otf");
+}
 
 html,
 body {
@@ -132,6 +142,11 @@ body {
 
 @import "~bootstrap/scss/bootstrap";
 
+.accordion-button {
+  background: $dark !important;
+  color: $light !important;
+}
+
 .fixed-top {
   z-index: 500;
 }
@@ -181,6 +196,12 @@ body {
   cursor: pointer;
 }
 
+.dropdown-selected:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+.btn-wrap-strategy {
+  background: transparent !important;
+}
 .parcel-list-btn {
   position: absolute;
   top: 120px;
@@ -229,12 +250,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* 
- * NOTE: To have a scrolling table with a sticky header the scrollbar needs to
- * overlay the body, otherwise it would shift the content.
- * Only Chromium based browsers support an overflow overlay property so for now
- * we hide the scrollbar on the others.
- */
 .scrollable-table tbody {
   display: block;
   overflow-y: auto;
@@ -242,32 +257,41 @@ body {
   scrollbar-width: none; // Firefox
 }
 
-.scrollable-table tbody::-webkit-scrollbar-track {
-  border-radius: 4px;
-  background-color: $dark;
-}
-
 .scrollable-table tbody::-webkit-scrollbar {
-  width: 4px;
-  background-color: $dark;
+  width: 0 !important;
 }
 
-.scrollable-table tbody::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: $secondary;
-}
+.account-modal {
+  font-family: "SF Pro Rounded";
+  max-width: 450px !important;
+  border-radius: 20px !important;
 
-@supports (overflow: overlay) {
-  .scrollable-table tbody {
-    overflow-y: overlay;
+  @media (min-width: 576px) and (max-width: 1200px) {
+    position: fixed;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+  @media (max-width: 576px) {
+    max-width: 100vw !important;
+    border-radius: 20px 20px 0 0 !important;
+    position: fixed;
+    bottom: 0 !important;
+    left: 0 !important;
+    max-height: 570px !important;
   }
 }
 
-/* Safari */
-@supports (background: -webkit-named-image(i)) {
-  .scrollable-table tbody::-webkit-scrollbar {
-    display: none;
-  }
+.underline-hover:hover {
+  text-decoration: underline;
+}
+
+.account-modal.add-funds {
+  max-width: 500px !important;
+}
+
+.wallet-signer:hover {
+  background: rgba(224, 232, 255, 0.2);
 }
 
 .pulsate {

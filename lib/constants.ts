@@ -17,19 +17,26 @@ export const RPC_URLS: Record<number, string> = {
 export const SPATIAL_DOMAIN = process.env.NEXT_PUBLIC_SPATIAL_DOMAIN!;
 export const SSX_HOST = process.env.NEXT_SSX_HOST!;
 export const IPFS_DELEGATE = process.env.NEXT_PUBLIC_IPFS_DELEGATE!;
+export const RAMP_HOST_KEY = process.env.RAMP_HOST_KEY!;
+export const REFUND_RECEIVER = process.env.REFUND_RECEIVER!;
+export const GELATO_RELAY_API_KEY = process.env.GELATO_RELAY_API_KEY!;
+export const WALLET_CONNECT_PROJECT_ID = process.env.WALLET_CONNECT_PROJECT_ID!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";
 
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
-
+export const GW_SAFE_SALT_NONCE =
+  "0x57c20148525f007e74c11aef90f86510f65727a5d018cb83c0cda328136f14b2";
 export const BETA_AGREEMENT_KEY = "storedBetaAgreement";
 export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
 export const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
 
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const MIN_CLAIM_BALANCE = 0.008;
 export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;

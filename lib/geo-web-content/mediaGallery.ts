@@ -20,12 +20,14 @@ function useMediaGallery(
     useState<boolean>(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        if (!parcelId || !shouldMediaGalleryUpdate || !ceramic.did) {
-          return;
-        }
+    if (!parcelId || !shouldMediaGalleryUpdate || !ceramic.did) {
+      return;
+    }
 
+    const ownerDID = ceramic.did.parent;
+
+    const timerId = setInterval(async () => {
+      try {
         const _mediaGalleryItems = [];
         const assetId = new AssetId({
           chainId: `eip155:${NETWORK_ID}`,
@@ -36,7 +38,6 @@ function useMediaGallery(
           tokenId: new BN(parcelId.slice(2), "hex").toString(10),
         });
 
-        const ownerDID = ceramic.did.parent;
         const rootCid = await geoWebContent.raw.resolveRoot({
           ownerDID,
           parcelId: assetId,
@@ -60,9 +61,7 @@ function useMediaGallery(
             );
             _mediaGalleryItems.push(mediaGalleryItem);
           }
-
-          setMediaGalleryItems(_mediaGalleryItems);
-        } else {
+        } else if (mediaGalleryItems === null) {
           const mediaGallery: MediaGallery = [];
           const newRoot = await geoWebContent.raw.putPath(
             rootCid,
@@ -74,21 +73,31 @@ function useMediaGallery(
             }
           );
 
-          await geoWebContent.raw.commit(newRoot, {
-            ownerDID,
-            parcelId: assetId,
-          });
-
           setMediaGalleryItems([]);
           setRootCid(newRoot.toString());
+          setShouldMediaGalleryUpdate(false);
+          clearInterval(timerId);
+
+          return;
         }
 
-        setShouldMediaGalleryUpdate(false);
+        if (
+          JSON.stringify(_mediaGalleryItems) !==
+          JSON.stringify(mediaGalleryItems)
+        ) {
+          setMediaGalleryItems(_mediaGalleryItems);
+          setShouldMediaGalleryUpdate(false);
+          setRootCid(rootCid.toString());
+          clearInterval(timerId);
+        }
       } catch (err) {
         setMediaGalleryItems(null);
         console.error(err);
+        clearInterval(timerId);
       }
-    })();
+    }, 5000);
+
+    return () => clearInterval(timerId);
   }, [parcelId, shouldMediaGalleryUpdate]);
 
   return {

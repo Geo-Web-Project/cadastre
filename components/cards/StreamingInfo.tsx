@@ -9,6 +9,7 @@ import type { IPFS } from "ipfs-core-types";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { GeoWebContent } from "@geo-web/content";
 import ProfileModal from "../profile/ProfileModal";
+import { SmartAccount } from "../../pages/index";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
@@ -21,26 +22,28 @@ type StreamingInfoProps = {
   sfFramework: Framework;
   account: string;
   signer: ethers.Signer;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   ceramic: CeramicClient;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
-  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
-  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
 };
 
 function StreamingInfo(props: StreamingInfoProps) {
-  const { account, paymentToken } = props;
+  const { account, paymentToken, smartAccount } = props;
   const [showProfile, setShowProfile] = React.useState(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
-      account: account,
+      account: smartAccount?.safe ? smartAccount.address : account,
       token: paymentToken.address,
     },
   });

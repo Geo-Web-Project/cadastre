@@ -18,13 +18,15 @@ import {
   IPFS_GATEWAY,
   IPFS_DELEGATE,
   SSX_HOST,
+  SUBGRAPH_URL,
 } from "../lib/constants";
+import Safe from "@safe-global/protocol-kit";
 import { GeoWebContent } from "@geo-web/content";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { CeramicClient } from "@ceramicnetwork/http-client";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
-
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
@@ -81,6 +83,20 @@ async function createW3UpClient(didSession: DIDSession) {
   }
 }
 
+export enum LoginState {
+  CREATE,
+  FUND,
+  CONNECTING,
+  SELECT,
+  CONNECTED,
+}
+
+export interface SmartAccount {
+  safe: Safe | null;
+  address: string;
+  loginState: LoginState;
+}
+
 function IndexPage({
   authStatus,
   setAuthStatus,
@@ -89,6 +105,7 @@ function IndexPage({
   setAuthStatus: (_: AuthenticationStatus) => void;
 }) {
   const router = useRouter();
+
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
   >(null);
@@ -130,6 +147,9 @@ function IndexPage({
     React.useState<GeoWebCoordinate>();
   const [w3InvocationConfig, setW3InvocationConfig] =
     React.useState<InvocationConfig>();
+  const [smartAccount, setSmartAccount] = React.useState<SmartAccount | null>(
+    null
+  );
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -247,6 +267,17 @@ function IndexPage({
       ipfsGatewayHost: IPFS_GATEWAY,
       ipfs,
       w3InvocationConfig,
+      apolloClient: new ApolloClient({
+        defaultOptions: {
+          watchQuery: {
+            fetchPolicy: "cache-and-network",
+          },
+        },
+        link: new HttpLink({
+          uri: SUBGRAPH_URL,
+        }),
+        cache: new InMemoryCache(),
+      }),
     });
 
     setW3InvocationConfig(w3InvocationConfig);
@@ -255,7 +286,7 @@ function IndexPage({
 
   React.useEffect(() => {
     initSession();
-  }, [authStatus, signer, address, ipfs, ceramic]);
+  }, [authStatus, signer, address, smartAccount, ipfs, ceramic]);
 
   React.useEffect(() => {
     const start = async () => {
@@ -350,6 +381,17 @@ function IndexPage({
         ceramic: ceramic as any,
         ipfsGatewayHost: IPFS_GATEWAY,
         ipfs,
+        apolloClient: new ApolloClient({
+          defaultOptions: {
+            watchQuery: {
+              fetchPolicy: "cache-and-network",
+            },
+          },
+          link: new HttpLink({
+            uri: SUBGRAPH_URL,
+          }),
+          cache: new InMemoryCache(),
+        }),
       });
 
       setGeoWebContent(geoWebContent);
@@ -408,6 +450,10 @@ function IndexPage({
           >
             {address &&
             signer &&
+            (smartAccount?.loginState === LoginState.CONNECTED ||
+              smartAccount?.loginState === LoginState.CREATE ||
+              smartAccount?.loginState === LoginState.CONNECTING ||
+              smartAccount?.loginState === LoginState.FUND) &&
             sfFramework &&
             ceramic &&
             ipfs &&
@@ -418,9 +464,16 @@ function IndexPage({
             chain?.id === NETWORK_ID &&
             library ? (
               <Profile
-                account={address.toLowerCase()}
+                account={
+                  smartAccount.safe
+                    ? smartAccount.address
+                    : address.toLowerCase()
+                }
+                authStatus={authStatus}
                 signer={signer}
                 sfFramework={sfFramework}
+                smartAccount={smartAccount}
+                setSmartAccount={setSmartAccount}
                 ceramic={ceramic}
                 setCeramic={setCeramic}
                 ipfs={ipfs}
@@ -438,7 +491,11 @@ function IndexPage({
                 setShouldRefetchParcelsData={setShouldRefetchParcelsData}
               />
             ) : (
-              <ConnectWallet variant="header" />
+              <ConnectWallet
+                variant="header"
+                authStatus={authStatus}
+                setSmartAccount={setSmartAccount}
+              />
             )}
           </Col>
           <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
@@ -468,8 +525,11 @@ function IndexPage({
           <Row>
             <Map
               registryContract={registryContract}
+              authStatus={authStatus}
               signer={signer ?? null}
               account={address?.toLowerCase() ?? ""}
+              smartAccount={smartAccount}
+              setSmartAccount={setSmartAccount}
               ceramic={ceramic}
               setCeramic={setCeramic}
               ipfs={ipfs}

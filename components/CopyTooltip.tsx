@@ -72,7 +72,7 @@ function CopyTooltip(props: CopyTooltipProps) {
       }
     >
       <Button
-        className="p-0 bg-transparent border-0 shadow-none"
+        className="d-flex align-items-center p-0 bg-transparent border-0 shadow-none"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}

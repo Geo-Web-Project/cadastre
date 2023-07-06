@@ -49,6 +49,7 @@ import * as turf from "@turf/turf";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
+import { SmartAccount } from "../pages/index";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
@@ -64,15 +65,16 @@ const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 0.025;
 
 export enum STATE {
-  VIEWING = 0,
-  CLAIM_SELECTING = 1,
-  CLAIM_SELECTED = 2,
-  PARCEL_SELECTED = 3,
-  PARCEL_EDITING = 4,
-  PARCEL_PLACING_BID = 5,
-  EDITING_GALLERY = 6,
-  PARCEL_REJECTING_BID = 7,
-  PARCEL_RECLAIMING = 8,
+  VIEWING,
+  CLAIM_SELECTING,
+  CLAIM_SELECTED,
+  PARCEL_SELECTED,
+  PARCEL_EDITING,
+  PARCEL_PLACING_BID,
+  PARCEL_ACCEPTING_BID,
+  EDITING_GALLERY,
+  PARCEL_REJECTING_BID,
+  PARCEL_RECLAIMING,
 }
 
 export type Coord = {
@@ -173,6 +175,9 @@ export type MapProps = {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
+  authStatus: string;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   signer: ethers.Signer | null;
   ceramic: CeramicClient;
   setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
@@ -187,11 +192,11 @@ export type MapProps = {
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";

@@ -15,10 +15,10 @@ interface RecentProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
   handleAction: (parcel: Parcel) => void;
 }
@@ -58,10 +58,10 @@ function Recent(props: RecentProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     maxListSize,
     handleAction,
   } = props;

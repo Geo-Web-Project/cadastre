@@ -48,7 +48,6 @@ function useSuperTokenBalance(account: string, token: string) {
         }
 
         const currentTimestampBigNumber = BigNumber.from(new Date().getTime());
-
         setSuperTokenBalance(
           balanceBigNumber.add(
             currentTimestampBigNumber
