@@ -660,7 +660,7 @@ function Map(props: MapProps) {
           );
           const x = geoWebCoordinate.get_x(gwCoord);
           const y = geoWebCoordinate.get_y(gwCoord);
-          const gwCoord2 = geoWebCoordinate.make_gw_coord(x + 3, y + 3);
+          const gwCoord2 = geoWebCoordinate.make_gw_coord(x + 5, y + 5);
           const coord1 = {
             x,
             y,
@@ -870,11 +870,12 @@ function Map(props: MapProps) {
           ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (feature.layer.paint as any)["circle-radius"]
           : 0;
+        const tolerance = isMobile ? 4 : 0;
         const isInsideClaimPoint =
-          e.point.x > featureCenter.x - featureRadius &&
-          e.point.x < featureCenter.x + featureRadius &&
-          e.point.y > featureCenter.y - featureRadius &&
-          e.point.y < featureCenter.y + featureRadius;
+          e.point.x > featureCenter.x - featureRadius - tolerance &&
+          e.point.x < featureCenter.x + featureRadius + tolerance &&
+          e.point.y > featureCenter.y - featureRadius - tolerance &&
+          e.point.y < featureCenter.y + featureRadius + tolerance;
 
         if (isInsideClaimPoint) {
           resizePoint = feature.properties?.direction;
