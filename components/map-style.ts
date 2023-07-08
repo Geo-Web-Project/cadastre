@@ -36,6 +36,7 @@ export const claimPointLayer: LayerProps = {
     "circle-radius": {
       stops: [
         [0, 0],
+        [16, 8],
         [17, 10],
         [22, 50],
       ],
