@@ -1,7 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { LngLatLike } from "mapbox-gl";
 import { useMap } from "react-map-gl";
-import { ZOOM_GRID_LEVEL } from "../components/Map";
 import { DRAWER_PREVIEW_HEIGHT_PARCEL } from "./constants";
 import { useMediaQuery } from "./mediaQuery";
 
@@ -80,11 +79,12 @@ function useParcelNavigation(parcelId?: string) {
     }
 
     const mapPadding = map.getPadding();
+    const zoomLevel = isMobile || isTablet ? 16 : 17;
 
     map.flyTo({
       center,
       duration,
-      zoom: isMobile || isTablet ? ZOOM_GRID_LEVEL - 1 : ZOOM_GRID_LEVEL,
+      zoom: zoomLevel,
       padding: {
         ...mapPadding,
         left: !isMobile && !isTablet ? document.body.offsetWidth * 0.25 : 0,
