@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ethers, BigNumber } from "ethers";
 import Safe from "@safe-global/protocol-kit";
 import { useDisconnect } from "wagmi";
-import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
+// import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
@@ -14,7 +14,7 @@ import { useMediaQuery } from "../../lib/mediaQuery";
 import { useSafe } from "../../lib/safe";
 import { SmartAccount } from "../../pages/index";
 import { truncateEth } from "../../lib/truncate";
-import { MIN_CLAIM_BALANCE, RAMP_HOST_KEY } from "../../lib/constants";
+import { MIN_CLAIM_BALANCE } from "../../lib/constants";
 
 interface AddFundsModalProps {
   show: boolean;
