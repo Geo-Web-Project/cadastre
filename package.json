@@ -16,7 +16,7 @@
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@orbisclub/components": "^0.1.60",
     "@popperjs/core": "^2.11.5",
-    "@rainbow-me/rainbowkit": "^0.12.8",
+    "@rainbow-me/rainbowkit": "^0.12.15",
     "@ramp-network/ramp-instant-sdk": "^4.0.3",
     "@reduxjs/toolkit": "^1.8.1",
     "@safe-global/protocol-kit": "^1.0.1",
