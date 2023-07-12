@@ -65,7 +65,7 @@
     "secure-random": "^1.1.2",
     "siwe": "^1.1.6",
     "use-wallet": "^0.8.1",
-    "wagmi": "^0.12.11",
+    "wagmi": "^0.12.16",
     "wasm-loader": "^1.3.0",
     "web3.storage": "^4.4.0"
   },
