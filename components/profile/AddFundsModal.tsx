@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ethers, BigNumber } from "ethers";
 import Safe from "@safe-global/protocol-kit";
 import { useDisconnect } from "wagmi";
-import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
+// import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
@@ -14,7 +14,7 @@ import { useMediaQuery } from "../../lib/mediaQuery";
 import { useSafe } from "../../lib/safe";
 import { SmartAccount } from "../../pages/index";
 import { truncateEth } from "../../lib/truncate";
-import { MIN_CLAIM_BALANCE, RAMP_HOST_KEY } from "../../lib/constants";
+import { MIN_CLAIM_BALANCE } from "../../lib/constants";
 
 interface AddFundsModalProps {
   show: boolean;
@@ -227,23 +227,25 @@ function AddFundsModal(props: AddFundsModalProps) {
           <Button
             variant="secondary"
             className="d-flex justify-content-center gap-1 w-100 rounded-4"
-            onClick={() => {
-              const rampWidget = new RampInstantSDK({
-                hostAppName: "Geo Web Cadastre",
-                hostLogoUrl: "https://assets.ramp.network/misc/test-logo.png",
-                hostApiKey: RAMP_HOST_KEY,
-                variant: isMobile ? "mobile" : "desktop",
-                defaultAsset: "OPTIMISM_ETH",
-                url: "https://app.demo.ramp.network",
-                userAddress: smartAccount?.address ?? "",
-                fiatCurrency: "USD",
-                fiatValue: "20",
-              });
-              rampWidget.show();
-              if (rampWidget.domNodes?.overlay) {
-                rampWidget.domNodes.overlay.style.zIndex = "10000";
-              }
-            }}
+            href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
+            target="_blank"
+            // onClick={() => {
+            //   const rampWidget = new RampInstantSDK({
+            //     hostAppName: "Geo Web Cadastre",
+            //     hostLogoUrl: "https://assets.ramp.network/misc/test-logo.png",
+            //     hostApiKey: RAMP_HOST_KEY,
+            //     variant: isMobile ? "mobile" : "desktop",
+            //     defaultAsset: "OPTIMISM_ETH",
+            //     url: "https://app.demo.ramp.network",
+            //     userAddress: smartAccount?.address ?? "",
+            //     fiatCurrency: "USD",
+            //     fiatValue: "20",
+            //   });
+            //   rampWidget.show();
+            //   if (rampWidget.domNodes?.overlay) {
+            //     rampWidget.domNodes.overlay.style.zIndex = "10000";
+            //   }
+            // }}
           >
             <Image src="credit-card-light.svg" alt="credit card" width={24} />
             <span className="d-lg-none">Buy ETH</span>

@@ -27,7 +27,7 @@ import {
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
 import { GeoWebContent } from "@geo-web/content";
-import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
+// import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPFS } from "ipfs-core-types";
@@ -42,7 +42,7 @@ import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
-  RAMP_HOST_KEY,
+  // RAMP_HOST_KEY,
   ZERO_ADDRESS,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
@@ -1060,24 +1060,26 @@ function ProfileModal(props: ProfileModalProps) {
                     size="sm"
                     className="d-flex justify-content-center gap-1 w-100 mt-2 fs-6 rounded-2"
                     style={{ marginBottom: 7 }}
-                    onClick={() => {
-                      const rampWidget = new RampInstantSDK({
-                        hostAppName: "Geo Web Cadastre",
-                        hostLogoUrl:
-                          "https://assets.ramp.network/misc/test-logo.png",
-                        hostApiKey: RAMP_HOST_KEY,
-                        variant: isMobile ? "mobile" : "desktop",
-                        defaultAsset: "OPTIMISM_ETH",
-                        url: "https://app.demo.ramp.network",
-                        userAddress: accountAddress ?? "",
-                        fiatCurrency: "USD",
-                        fiatValue: "20",
-                      });
-                      rampWidget.show();
-                      if (rampWidget.domNodes?.overlay) {
-                        rampWidget.domNodes.overlay.style.zIndex = "10000";
-                      }
-                    }}
+                    href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
+                    target="_blank"
+                    // onClick={() => {
+                    //   const rampWidget = new RampInstantSDK({
+                    //     hostAppName: "Geo Web Cadastre",
+                    //     hostLogoUrl:
+                    //       "https://assets.ramp.network/misc/test-logo.png",
+                    //     hostApiKey: RAMP_HOST_KEY,
+                    //     variant: isMobile ? "mobile" : "desktop",
+                    //     defaultAsset: "OPTIMISM_ETH",
+                    //     url: "https://app.demo.ramp.network",
+                    //     userAddress: accountAddress ?? "",
+                    //     fiatCurrency: "USD",
+                    //     fiatValue: "20",
+                    //   });
+                    //   rampWidget.show();
+                    //   if (rampWidget.domNodes?.overlay) {
+                    //     rampWidget.domNodes.overlay.style.zIndex = "10000";
+                    //   }
+                    // }}
                   >
                     <Image
                       src="credit-card-dark.svg"
