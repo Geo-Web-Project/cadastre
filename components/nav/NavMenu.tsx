@@ -23,7 +23,7 @@ function NavMenuMainnet() {
         <FAQ />
       </NavDropdown.Item>
       <NavDropdown.Item
-        href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
+        href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
         target="_blank"
         rel="noopener"
         className="d-flex gap-2"
