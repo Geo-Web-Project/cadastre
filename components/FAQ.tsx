@@ -207,7 +207,7 @@ function FAQ() {
                       <li>
                         Buy it through a{" "}
                         <a
-                          href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
+                          href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
                           target="_blank"
                           rel="noreferrer"
                         >

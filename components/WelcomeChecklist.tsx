@@ -125,7 +125,7 @@ function WelcomeChecklist() {
               <div>
                 Buy it on{" "}
                 <a
-                  href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
+                  href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
                   target="_blank"
                   rel="noreferrer"
                   className="text-primary"
