@@ -836,8 +836,7 @@ function ProfileModal(props: ProfileModalProps) {
                   target={
                     <Button
                       variant="link"
-                      href={`https://
-                    https://app.safe.global/home?safe=oeth:${accountAddress}`}
+                      href={`https://app.safe.global/home?safe=oeth:${accountAddress}`}
                       target="_blank"
                       rel="noopener"
                       className="px-1 py-0 shadow-none"
