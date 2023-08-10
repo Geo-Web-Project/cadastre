@@ -282,6 +282,10 @@ body {
   }
 }
 
+.transak_modal {
+  z-index: 1100 !important;
+}
+
 .underline-hover:hover {
   text-decoration: underline;
 }

@@ -2,16 +2,17 @@ import React from "react";
 import Image from "react-bootstrap/Image";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import FAQ from "../FAQ";
+import OnRampWidget from "../OnRampWidget";
 
-export default function NavMenu() {
+export default function NavMenu({ account }: { account?: string }) {
   if (process.env.NEXT_PUBLIC_APP_ENV === "mainnet") {
-    return NavMenuMainnet();
+    return <NavMenuMainnet account={account} />;
   } else {
-    return NavMenuTestnet();
+    return <NavMenuTestnet account={account} />;
   }
 }
 
-function NavMenuMainnet() {
+function NavMenuMainnet({ account }: { account?: string }) {
   return (
     <NavDropdown
       title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
@@ -22,13 +23,8 @@ function NavMenuMainnet() {
       <NavDropdown.Item>
         <FAQ />
       </NavDropdown.Item>
-      <NavDropdown.Item
-        href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
-        target="_blank"
-        rel="noopener"
-        className="d-flex gap-2"
-      >
-        Buy ETH on Optimism
+      <NavDropdown.Item className="d-flex gap-2">
+        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -67,7 +63,7 @@ function NavMenuMainnet() {
   );
 }
 
-function NavMenuTestnet() {
+function NavMenuTestnet({ account }: { account?: string }) {
   return (
     <NavDropdown
       title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
@@ -77,6 +73,9 @@ function NavMenuTestnet() {
     >
       <NavDropdown.Item>
         <FAQ />
+      </NavDropdown.Item>
+      <NavDropdown.Item>
+        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://optimismfaucet.xyz/"

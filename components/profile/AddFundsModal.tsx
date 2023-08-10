@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { ethers, BigNumber } from "ethers";
 import Safe from "@safe-global/protocol-kit";
 import { useDisconnect } from "wagmi";
-// import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Image from "react-bootstrap/Image";
@@ -10,6 +9,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Spinner from "react-bootstrap/Spinner";
 import InfoTooltip from "../InfoTooltip";
+import OnRampWidget from "../OnRampWidget";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useSafe } from "../../lib/safe";
 import { SmartAccount } from "../../pages/index";
@@ -224,33 +224,23 @@ function AddFundsModal(props: AddFundsModalProps) {
           )}
         </div>
         <div className="d-flex justify-content-center gap-3 mt-2 px-3 px-lg-0">
-          <Button
-            variant="secondary"
-            className="d-flex justify-content-center gap-1 w-100 rounded-4"
-            href="https://global.transak.com/?defaultCryptoCurrency=ETH&network=OPTIMISM"
-            target="_blank"
-            // onClick={() => {
-            //   const rampWidget = new RampInstantSDK({
-            //     hostAppName: "Geo Web Cadastre",
-            //     hostLogoUrl: "https://assets.ramp.network/misc/test-logo.png",
-            //     hostApiKey: RAMP_HOST_KEY,
-            //     variant: isMobile ? "mobile" : "desktop",
-            //     defaultAsset: "OPTIMISM_ETH",
-            //     url: "https://app.demo.ramp.network",
-            //     userAddress: smartAccount?.address ?? "",
-            //     fiatCurrency: "USD",
-            //     fiatValue: "20",
-            //   });
-            //   rampWidget.show();
-            //   if (rampWidget.domNodes?.overlay) {
-            //     rampWidget.domNodes.overlay.style.zIndex = "10000";
-            //   }
-            // }}
-          >
-            <Image src="credit-card-light.svg" alt="credit card" width={24} />
-            <span className="d-lg-none">Buy ETH</span>
-            <span className="d-none d-lg-block">Buy ETH on Optimism</span>
-          </Button>
+          <OnRampWidget
+            target={
+              <Button
+                variant="secondary"
+                className="d-flex justify-content-center gap-1 w-100 rounded-4"
+              >
+                <Image
+                  src="credit-card-light.svg"
+                  alt="credit card"
+                  width={24}
+                />
+                <span className="d-lg-none">Buy ETH</span>
+                <span className="d-none d-lg-block">Buy ETH on Optimism</span>
+              </Button>
+            }
+            accountAddress={smartAccount?.address}
+          />
           <OverlayTrigger
             trigger={["click"]}
             show={showCopyAddressTooltip}
