@@ -508,7 +508,7 @@ function IndexPage({
             xl="1"
             className="d-flex justify-content-end justify-content-xl-start"
           >
-            <NavMenu />
+            <NavMenu account={smartAccount?.address ?? address} />
           </Col>
         </Navbar>
       </Container>
