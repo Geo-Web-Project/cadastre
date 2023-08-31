@@ -4083,10 +4083,10 @@
     axios "0.24.0"
     ethers "5.7.2"
 
-"@geo-web/content@^0.7.2":
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.7.2.tgz#52674f34ae34118a37df6bfc6869507a8138423c"
-  integrity sha512-nqPQKYeeOOf1lZhxFjgd7O2boaYWxLMw5RRpv0RCjctoPSLZ3RHXlNbqRCD/B4Z2Q/W2SQ+i6H8onZ1X2nIzTg==
+"@geo-web/content@^0.7.3":
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/@geo-web/content/-/content-0.7.3.tgz#4f100d9c91acc3927e2c31fe8b8318fc3c2d027d"
+  integrity sha512-auQijuPVrTcqXyMqzIYTA5MAWwmO9RTQueL5kjiyIvULFE6XFoQYfnGTiRZKJY5/VC73RanNFPDR13/m8kA3vQ==
   dependencies:
     "@apollo/client" "^3.7.14"
     "@ceramicnetwork/common" "^2.18.0"
@@ -4099,7 +4099,7 @@
     "@ipld/dag-cbor" "^8.0.0"
     "@ipld/schema" "^4.1.2"
     "@typescript-eslint/parser" "^4.33.0"
-    "@web3-storage/upload-client" "^5.4.0"
+    "@web3-storage/upload-client" "^9.1.1"
     axios "^1.2.1"
     caip "^1.1.0"
     eslint "^7.32.0"
@@ -4584,6 +4584,16 @@
     multiformats "^11.0.0"
     varint "^6.0.0"
 
+"@ipld/car@^5.1.1":
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/@ipld/car/-/car-5.2.2.tgz#b1298432e43b23c3a13f2657c2974ceaabb79849"
+  integrity sha512-8IapvzPNB1Z2VwtA7n6olB3quhrLMbFxk4JaENIT4OlQ6YQNz1peY00qb2iJTC/kCDir7yb3TuNHkbdDzSKiXA==
+  dependencies:
+    "@ipld/dag-cbor" "^9.0.0"
+    cborg "^2.0.5"
+    multiformats "^12.1.0"
+    varint "^6.0.0"
+
 "@ipld/dag-cbor@^6.0.3":
   version "6.0.15"
   resolved "https://registry.yarnpkg.com/@ipld/dag-cbor/-/dag-cbor-6.0.15.tgz#aebe7a26c391cae98c32faedb681b1519e3d2372"
@@ -4653,10 +4663,19 @@
   dependencies:
     multiformats "^11.0.0"
 
-"@ipld/dag-ucan@^3.0.1", "@ipld/dag-ucan@^3.2.0":
+"@ipld/dag-ucan@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@ipld/dag-ucan/-/dag-ucan-3.2.0.tgz#5c3cdf3c6f8ee7e96bd5fec98dd28c729e2f3229"
   integrity sha512-CTClaGx4F3iEMJgYaYVOVBEvtNXzPc77Mi6p3vBtylSzDWhbf1Gou9ij7PlblOqWKA1H7XI8fp6yweTb6iXNKQ==
+  dependencies:
+    "@ipld/dag-cbor" "^9.0.0"
+    "@ipld/dag-json" "^10.0.0"
+    multiformats "^11.0.0"
+
+"@ipld/dag-ucan@^3.3.2":
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/@ipld/dag-ucan/-/dag-ucan-3.3.2.tgz#a8ebdb8df59a3aec215f8a75dd4cf5549167f75d"
+  integrity sha512-EhuOrAfnudsVYIbzEIgi3itHAEo3WZNOt1VNPsYhxKBhOzDMeoTXh6/IHc7ZKBW1T2vDQHdgj4m1r64z6MssGA==
   dependencies:
     "@ipld/dag-cbor" "^9.0.0"
     "@ipld/dag-json" "^10.0.0"
@@ -4671,12 +4690,14 @@
     get-stdin "^9.0.0"
     yargs "^17.5.1"
 
-"@ipld/unixfs@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@ipld/unixfs/-/unixfs-2.0.1.tgz#5787a484afa6b1cddd5fa0493073784d54618768"
-  integrity sha512-W3LD67tLrIGpCVYFN6N/x6bL3o03zmsfd7jPAD1aXfGXaQWWa95qXPwc6PMVRTttxha/bHMKQiG2ZeFCqp83Ew==
+"@ipld/unixfs@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@ipld/unixfs/-/unixfs-2.1.1.tgz#a7cb1d13d01937dfb4d1bc06e686dfe047e97327"
+  integrity sha512-g3gr/3XvfQs4x2VFjlICae09ul5fbWCKRInN6Vgeot2+GH0h/krr3PqZCIo4dy4Ou2mQOsIddxUvG8UZ4p9SbQ==
   dependencies:
     "@ipld/dag-pb" "^4.0.0"
+    "@multiformats/murmur3" "^2.1.3"
+    "@perma/map" "^1.0.2"
     "@web-std/stream" "1.0.1"
     actor "^2.3.1"
     multiformats "^11.0.1"
@@ -5950,6 +5971,14 @@
     multiformats "^9.5.4"
     murmurhash3js-revisited "^3.0.0"
 
+"@multiformats/murmur3@^2.1.0", "@multiformats/murmur3@^2.1.3":
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/@multiformats/murmur3/-/murmur3-2.1.6.tgz#7e2d5b09a7db0f8c81148bb975db10b4ef661a85"
+  integrity sha512-kpJDN+o8B0gJaaqbdV/spIVPj35hqew4rEw8VzPmcITsLpHSgP8pJDeaVaGGVeX/UM8n4IGctLCxw7PBfVks+A==
+  dependencies:
+    multiformats "^12.0.1"
+    murmurhash3js-revisited "^3.0.0"
+
 "@next/env@12.3.1":
   version "12.3.1"
   resolved "https://registry.yarnpkg.com/@next/env/-/env-12.3.1.tgz#18266bd92de3b4aa4037b1927aa59e6f11879260"
@@ -6032,7 +6061,7 @@
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-1.6.1.tgz#bad3e77008c7825a0859304ab8b4177703cd438d"
   integrity sha512-Gptpue6qPmg7p1E5LBO5GDtXw5WMc2DVtUmu4EQequOcoCvum1dT9sY6s9M8aSJWq9YopCN4jmTOAvqMdw3q7w==
 
-"@noble/ed25519@^1.6.0", "@noble/ed25519@^1.7.1":
+"@noble/ed25519@^1.6.0":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-1.7.1.tgz#6899660f6fbb97798a6fbd227227c4589a454724"
   integrity sha512-Rk4SkJFaXZiznFyC/t77Q0NKS4FL7TLJJsVG2V2oiEq3kJVeTdxysEe/yRWSpnWMe808XRDJ+VFh5pt/FN5plw==
@@ -6051,6 +6080,11 @@
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.0.tgz#085fd70f6d7d9d109671090ccae1d3bec62554a1"
   integrity sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==
+
+"@noble/hashes@^1.3.1":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.2.tgz#6f26dbc8fbc7205873ce3cee2f690eba0d421b39"
+  integrity sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==
 
 "@noble/secp256k1@1.6.3", "@noble/secp256k1@^1.3.0", "@noble/secp256k1@~1.6.0":
   version "1.6.3"
@@ -6236,6 +6270,14 @@
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@pedrouid/environment/-/environment-1.0.1.tgz#858f0f8a057340e0b250398b75ead77d6f4342ec"
   integrity sha512-HaW78NszGzRZd9SeoI3JD11JqY+lubnaOx7Pewj5pfjqWXOEATpeKIFb9Z4t2WBUK2iryiXX3lzWwmYWgUL0Ug==
+
+"@perma/map@^1.0.2":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@perma/map/-/map-1.0.3.tgz#c80021c9626276298c69a44dec6a4e041bbd47f3"
+  integrity sha512-Bf5njk0fnJGTFE2ETntq0N1oJ6YdCPIpTDn3R3KYZJQdeYSOCNL7mBrFlGnbqav8YQhJA/p81pvHINX9vAtHkQ==
+  dependencies:
+    "@multiformats/murmur3" "^2.1.0"
+    murmurhash3js-revisited "^3.0.0"
 
 "@pmmmwh/react-refresh-webpack-plugin@0.4.3":
   version "0.4.3"
@@ -9821,124 +9863,61 @@
     "@typescript-eslint/types" "5.33.0"
     eslint-visitor-keys "^3.3.0"
 
-"@ucanto/client@^4.0.2", "@ucanto/client@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/client/-/client-4.2.3.tgz#e1d92e5ac076f68884ecd8d214660ea60ab4106a"
-  integrity sha512-vIa0drEAeolQpSePpHtsW1bx8lzDdxtXi2fEdQ4f34xbI2VSOQuAgUURJTtRVmRXa5MweQoEGI9CHPKL4CMyFQ==
+"@ucanto/client@^8.0.0":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@ucanto/client/-/client-8.0.1.tgz#e81a78a9d21408133a3fa4ddaa1a99d66e480aed"
+  integrity sha512-2FQmoGFZa/I23sgeMinNZoPs7VwueNksbxT6+/wTm5VjWHcGCSR5QIJo++z3TfqgWxDpx7UOEucrS2y4DE0jOw==
   dependencies:
-    "@ucanto/interface" "^4.1.0"
-    multiformats "^11.0.0"
+    "@ucanto/core" "^8.1.0"
+    "@ucanto/interface" "^8.0.0"
 
-"@ucanto/client@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@ucanto/client/-/client-5.1.0.tgz#f91370e5701b8b1dc7d9a57e8894aa66ee5b2c79"
-  integrity sha512-Rr2q3ARDmiaaVnvNkPNsIhS+1ORyCqQhGRSqf8ugfJVmvbvjLFA6EYxjknUdg5tqt0aVnYTNuZ/GwIxaqMzliA==
-  dependencies:
-    "@ucanto/interface" "^6.0.0"
-    multiformats "^11.0.0"
-
-"@ucanto/core@^4.0.2", "@ucanto/core@^4.1.0", "@ucanto/core@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/core/-/core-4.2.3.tgz#81f2864ea9f128fca68904b299df8b494949fbd5"
-  integrity sha512-udvp7IMRCE3XFhPYiKISt52r8QjbrqG7d1papdtWwF6RAzTbIWhgXSwAjEbroYCr/gQst7U8aYsgr4xvG2miUQ==
-  dependencies:
-    "@ipld/car" "^5.0.3"
-    "@ipld/dag-cbor" "^9.0.0"
-    "@ipld/dag-ucan" "^3.2.0"
-    "@ucanto/interface" "^4.1.0"
-    multiformats "^11.0.0"
-
-"@ucanto/core@^5.1.0", "@ucanto/core@^5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@ucanto/core/-/core-5.2.0.tgz#ffdc39749ffd4f221f765e2e6854cdffd654d827"
-  integrity sha512-Eblo2LfJyojRKmBk5/w25u1hhSCs6K3zUH/zNknwTrJg7CJYxw0hgsGcXrlkQf1TnSRzJVFEduK1ZzYCV55/Uw==
+"@ucanto/core@^8.0.0", "@ucanto/core@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@ucanto/core/-/core-8.1.0.tgz#1c2eb42845ce853cf041f32b57f88a863b83cbfa"
+  integrity sha512-vklIK55MV8HfXOo0aYBSRJo9nwjPU4VkTIYntLw5akWc7pJKn1h5emqb5Q0U0v338CIolmUeQ4/ANZY4XsQEig==
   dependencies:
     "@ipld/car" "^5.1.0"
     "@ipld/dag-cbor" "^9.0.0"
-    "@ipld/dag-ucan" "^3.2.0"
-    "@ucanto/interface" "^6.2.0"
+    "@ipld/dag-ucan" "^3.3.2"
+    "@ucanto/interface" "^8.0.0"
+    multiformats "^11.0.2"
+
+"@ucanto/interface@^8", "@ucanto/interface@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@ucanto/interface/-/interface-8.0.0.tgz#9a80023497fbade800a78b67587e63410f520ee0"
+  integrity sha512-xeJJYdGAPKOYbCiG8BsGmyoBovZDtVya+42Gtd8fViZeNSS3h0f2BPDBS91YFOxSGswqCd2fqvrfrlg3TTMmZw==
+  dependencies:
+    "@ipld/dag-ucan" "^3.3.2"
     multiformats "^11.0.0"
 
-"@ucanto/interface@^4.0.2", "@ucanto/interface@^4.1.0", "@ucanto/interface@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/interface/-/interface-4.2.3.tgz#361124698b4101e56f7e17b54455097aa5547c8f"
-  integrity sha512-IoccqMc2/vqaPT6U061ylC138mQ3pLp6coqjXTDmlL9OHmskLcEeQh5Mxe0AYHWMhO1ZuB0LRIysBXk7xoK25Q==
+"@ucanto/principal@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@ucanto/principal/-/principal-8.0.0.tgz#9536f9c8c8e04336b32d4b8de62458a9a0eb69fa"
+  integrity sha512-85IXfp8P3FGbQ5rQbLtAA2DkIgjOaqdTPXZHA2W+/UdEsJxfb1jf2TqOjHUt3PWcCbP2hqbRZWBYAKJszkW2uA==
   dependencies:
-    "@ipld/dag-ucan" "^3.2.0"
-    multiformats "^11.0.0"
-
-"@ucanto/interface@^6.0.0", "@ucanto/interface@^6.1.0", "@ucanto/interface@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@ucanto/interface/-/interface-6.2.0.tgz#a2afb83617ca4bad85499790eb4b1b16d4869876"
-  integrity sha512-b37bjTxNWQE+O4f18fvb7/woe41Dvb4AfdbevPLmaJj1fZogssH9fVgWlZdVg8ZsJQhMxRyHDuH40QAvuKRR1w==
-  dependencies:
-    "@ipld/dag-ucan" "^3.2.0"
-    multiformats "^11.0.0"
-
-"@ucanto/principal@^4.0.2", "@ucanto/principal@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/principal/-/principal-4.2.3.tgz#99b6915e4768d9de1949dbf42ff9dbd7a19f3d1d"
-  integrity sha512-S02cKaMcIQhxk9uJfUCUb+f98zEEFsC+5BZC6aBoYVCEpXwVZD6+hc9xI0yIQl8zJyQVA3nnUUpLfLynsSox2A==
-  dependencies:
-    "@ipld/dag-ucan" "^3.2.0"
-    "@noble/ed25519" "^1.7.1"
-    "@ucanto/interface" "^4.1.0"
-    multiformats "^11.0.0"
-    one-webcrypto "^1.0.3"
-
-"@ucanto/principal@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@ucanto/principal/-/principal-5.1.0.tgz#68ad8ff1b43de83235f46bb3a8da9a0a83eb8198"
-  integrity sha512-niZzojYPYAgdszTmra82wGbl5YGHugUblMTPrEjuz3RFjXDCxW50IJFwzus3Z6k6Q6zIbXPU+yVxTbzJWg8/JA==
-  dependencies:
-    "@ipld/dag-ucan" "^3.2.0"
+    "@ipld/dag-ucan" "^3.3.2"
     "@noble/ed25519" "^1.7.3"
-    "@ucanto/interface" "^6.0.0"
+    "@ucanto/interface" "^8"
     multiformats "^11.0.0"
     one-webcrypto "^1.0.3"
 
-"@ucanto/transport@^4.0.2", "@ucanto/transport@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/transport/-/transport-4.2.3.tgz#a90552e47c187452eaaf13327fd0e550a554ff6b"
-  integrity sha512-ZtHB5ybSB/1dBLhzJqjxGDEE+TTTNzc9HMrVA1AP5KHvaHPu2UtAmS2IMr+HrhSjcwWwdavK0qMQbXSfLWM+kg==
+"@ucanto/transport@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@ucanto/transport/-/transport-8.0.0.tgz#9214b150eb2bcf0297d81a3efc6e8c9eaa88d333"
+  integrity sha512-1/3ELUtUAu7zNKq/jy/PjvvCoFt7cFS8198E8U04UM1EsZS0WvK2VnEa/aS8MA5bBy8TjRFmQtXjcndZ0RE5vw==
   dependencies:
-    "@ipld/car" "^5.0.3"
-    "@ipld/dag-cbor" "^9.0.0"
-    "@ucanto/core" "^4.1.0"
-    "@ucanto/interface" "^4.1.0"
-    multiformats "^11.0.0"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8"
 
-"@ucanto/transport@^5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@ucanto/transport/-/transport-5.1.1.tgz#995f370d3fcc669c0d2300bbcbc7d271c4ba2433"
-  integrity sha512-5g2Xiofqalvmaw/UPRTdxV2be+KE3TMbFhG4ZNNPkDIBpdBduVENcLQPJ9ksD29Bc2ArIefXALxGzyGLgUPCBg==
+"@ucanto/validator@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@ucanto/validator/-/validator-8.0.0.tgz#6576ab492ebef03192d53098da30bfdc6415952b"
+  integrity sha512-S+cGKUVu074TT1FaoOyZa3mKf3CuEBLHLlE3TU1UoIC5Yp9WnvX+cDOGKIyfJ/HgHHBvAEDxYNOkNZbCATsRdA==
   dependencies:
     "@ipld/car" "^5.1.0"
     "@ipld/dag-cbor" "^9.0.0"
-    "@ucanto/core" "^5.2.0"
-    "@ucanto/interface" "^6.2.0"
-    multiformats "^11.0.0"
-
-"@ucanto/validator@^4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@ucanto/validator/-/validator-4.2.3.tgz#28ce844e29eee55a401ffecd4c6ea889ae4791ba"
-  integrity sha512-7lA9PK+c0Hu857eHuZIVX3ZBooqvOT25/CXUxGjqs5YFCY7dUhrNCxJYnWsPZnEdriq6x6VSj8pZPwN8I7CyQw==
-  dependencies:
-    "@ipld/car" "^5.0.3"
-    "@ipld/dag-cbor" "^8.0.0"
-    "@ucanto/core" "^4.1.0"
-    "@ucanto/interface" "^4.1.0"
-    multiformats "^11.0.0"
-
-"@ucanto/validator@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@ucanto/validator/-/validator-6.1.0.tgz#2fcfd062f484467c8079bdb6fcfc18550ba2ac57"
-  integrity sha512-vZ40paByLgosllG+YfuI4eD7m3KyYG1ebEa9jZEkLDYjWh7WWBtYvBn40pziIiLfBCzum2zU1uP1SMOf63EqqQ==
-  dependencies:
-    "@ipld/car" "^5.1.0"
-    "@ipld/dag-cbor" "^9.0.0"
-    "@ucanto/core" "^5.1.0"
-    "@ucanto/interface" "^6.1.0"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8"
     multiformats "^11.0.0"
 
 "@ungap/promise-all-settled@1.1.2":
@@ -10823,21 +10802,21 @@
     "@web3-react/abstract-connector" "^6.0.7"
     "@web3-react/types" "^6.0.7"
 
-"@web3-storage/access@^12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@web3-storage/access/-/access-12.0.1.tgz#2bcd4af328641743187a9f836a7c786b23403390"
-  integrity sha512-VQK8gLy/YgcclCQvn3dQZqxeG78OWylcLQU7Qt96N/dpCZyoa5WPuzLmsSN5SmzlMKuRxtnKWbiU1yBLGjAk0w==
+"@web3-storage/access@^15", "@web3-storage/access@^15.2.0":
+  version "15.2.0"
+  resolved "https://registry.yarnpkg.com/@web3-storage/access/-/access-15.2.0.tgz#c77aea197a11c7a7ef0e2086b04cf874b8994c9c"
+  integrity sha512-515WwZZLs2M0Dau3JGgroyK0a6fcuREcFv+i2EjUMLW8neYP7k8j++rpOjBSUNIIHkBbYtqx2aeX6fzmmEPriw==
   dependencies:
-    "@ipld/car" "^5.1.0"
-    "@ipld/dag-ucan" "^3.2.0"
-    "@ucanto/client" "^5.1.0"
-    "@ucanto/core" "^5.2.0"
-    "@ucanto/interface" "^6.2.0"
-    "@ucanto/principal" "^5.1.0"
-    "@ucanto/transport" "^5.1.1"
-    "@ucanto/validator" "^6.1.0"
-    "@web3-storage/capabilities" "^4.0.1"
-    "@web3-storage/did-mailto" "^1.0.0"
+    "@ipld/car" "^5.1.1"
+    "@ipld/dag-ucan" "^3.3.2"
+    "@ucanto/client" "^8.0.0"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8.0.0"
+    "@ucanto/principal" "^8.0.0"
+    "@ucanto/transport" "^8.0.0"
+    "@ucanto/validator" "^8.0.0"
+    "@web3-storage/capabilities" "^9.2.0"
+    "@web3-storage/did-mailto" "^2.0.0"
     bigint-mod-arith "^3.1.2"
     conf "10.2.0"
     inquirer "^9.1.4"
@@ -10853,63 +10832,41 @@
     ws "^8.12.0"
     zod "^3.20.2"
 
-"@web3-storage/access@^9.1.1":
-  version "9.3.0"
-  resolved "https://registry.yarnpkg.com/@web3-storage/access/-/access-9.3.0.tgz#dc23102a7a059bdab1c3d7e821d15795dba0e1b0"
-  integrity sha512-j1HUqREA6etXP0/Rcg2+e3Ug6Vi9zgJBxenFSC4U+AyulGtfkKgJrZG8Qabj6L4+UjNxjrEjSmxUn8V8lq/ULw==
+"@web3-storage/capabilities@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@web3-storage/capabilities/-/capabilities-7.0.0.tgz#50f9239f65af9de43425fe7047abdedd8b6899e8"
+  integrity sha512-pF6fpNduEDkHGVV+aP2+N7lbSD0C1LL1CyrhPEbhf9wUHOJXPWRMbfhIJVcdL06pTvZJDYoRpOWmhB+07QLYwg==
   dependencies:
-    "@ipld/car" "^5.0.3"
-    "@ipld/dag-cbor" "^9.0.0"
-    "@ipld/dag-ucan" "^3.2.0"
-    "@ucanto/client" "^4.2.3"
-    "@ucanto/core" "^4.2.3"
-    "@ucanto/interface" "^4.2.3"
-    "@ucanto/principal" "^4.2.3"
-    "@ucanto/transport" "^4.2.3"
-    "@ucanto/validator" "^4.2.3"
-    "@web3-storage/capabilities" "^2.2.0"
-    bigint-mod-arith "^3.1.2"
-    conf "10.2.0"
-    inquirer "^9.1.4"
-    isomorphic-ws "^5.0.0"
-    kysely "^0.23.4"
-    multiformats "^11.0.1"
-    one-webcrypto "^1.0.3"
-    ora "^6.1.2"
-    p-defer "^4.0.0"
-    p-wait-for "^5.0.0"
-    type-fest "^3.3.0"
-    uint8arrays "^4.0.3"
-    varint "^6.0.0"
-    ws "^8.12.0"
-    zod "^3.20.2"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8.0.0"
+    "@ucanto/principal" "^8.0.0"
+    "@ucanto/transport" "^8.0.0"
+    "@ucanto/validator" "^8.0.0"
 
-"@web3-storage/capabilities@^2.0.0", "@web3-storage/capabilities@^2.1.0", "@web3-storage/capabilities@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@web3-storage/capabilities/-/capabilities-2.2.0.tgz#f5dadd220d36a91b5666b6ec91ceb0160180e2c8"
-  integrity sha512-TCGcpMSVQJa0CI2GzBxJSEZDdbilEe3dtXdCzwi9NWmulsnPPj3KjSil/qHW04pYtnfql4/9n4a+pxjx6iGNCA==
+"@web3-storage/capabilities@^9.2.0":
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/@web3-storage/capabilities/-/capabilities-9.2.1.tgz#3937f398b2b96b0ac1f54d65c2f1e0672de05115"
+  integrity sha512-NBXm9320grYtKYV7g8nI7zzzS6GfOPp7EmDeWxDwOZ3nHvXDuiR77e3Sf7rRY265rMyJCtRUJ7/qRk7unQSfmA==
   dependencies:
-    "@ucanto/core" "^4.2.3"
-    "@ucanto/interface" "^4.2.3"
-    "@ucanto/principal" "^4.2.3"
-    "@ucanto/transport" "^4.2.3"
-    "@ucanto/validator" "^4.2.3"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8.0.0"
+    "@ucanto/principal" "^8.0.0"
+    "@ucanto/transport" "^8.0.0"
+    "@ucanto/validator" "^8.0.0"
+    "@web3-storage/data-segment" "^3.0.1"
 
-"@web3-storage/capabilities@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@web3-storage/capabilities/-/capabilities-4.0.1.tgz#e8bdc3f54fe999985b84f9f1dc5768810cdbe09d"
-  integrity sha512-Shl6ZGXOpCKL+wohQsAMjW6cN+eadk7vigSXyNW8iI2TUSgkILzfNOQtkC1nWhXw/d4bh3OuzS84QN8V0wO4fw==
+"@web3-storage/data-segment@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@web3-storage/data-segment/-/data-segment-3.0.1.tgz#c1c3a1e3a93ea16c3d5f1caffd2a1d682cc5046f"
+  integrity sha512-+e0KeqofejZ/1JLCdNmlEMCCSNf0PeJFXA/2Vw5+vWj4Nfko8sVLIGva86L8hXzm4dZGhWYU5m6JhX2U2Wn5Dg==
   dependencies:
-    "@ucanto/core" "^5.2.0"
-    "@ucanto/interface" "^6.2.0"
-    "@ucanto/principal" "^5.1.0"
-    "@ucanto/transport" "^5.1.1"
-    "@ucanto/validator" "^6.1.0"
+    multiformats "^11.0.2"
+    sync-multihash-sha2 "^1.0.0"
 
-"@web3-storage/did-mailto@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@web3-storage/did-mailto/-/did-mailto-1.0.0.tgz#1c513a597c0b1cd9250ec7818ca5e93b55ece173"
-  integrity sha512-SCDyXtKl8VHmPkQKxaQa2jkpEpP8vs191S37O8mo5Grt6PYIhFq7aoi5Z0hbLy2djFgil/pHGjSf0WOWITXNRQ==
+"@web3-storage/did-mailto@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@web3-storage/did-mailto/-/did-mailto-2.0.0.tgz#6eec09cef74b79cccac9d0af7ada596a69e507ee"
+  integrity sha512-y0uWnAG6V0PmKCPQdiSc8eR+yOpj3kyRqlm4ByNZcYd/HUT5t9UzUFMBO7hks14JOTUbV2bphHMToBS9u+f1GQ==
 
 "@web3-storage/multipart-parser@^1.0.0":
   version "1.0.0"
@@ -10921,36 +10878,37 @@
   resolved "https://registry.yarnpkg.com/@web3-storage/parse-link-header/-/parse-link-header-3.1.0.tgz#4562724987649dd6d3e07c87be1826804d212ef7"
   integrity sha512-K1undnK70vLLauqdE8bq/l98isTF2FDhcP0UPpXVSjkSWe3xhAn5eRXk5jfA1E5ycNm84Ws/rQFUD7ue11nciw==
 
-"@web3-storage/upload-client@^5.3.0", "@web3-storage/upload-client@^5.4.0":
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/@web3-storage/upload-client/-/upload-client-5.4.0.tgz#e859ad914e3adfb3c5856f10e2f5774d5016d4bf"
-  integrity sha512-OMpP2UB3OEukiJvCdbBuK+HcdHyfDBs6+WWxeiVKDjP8YZXrNjBlpWQ7x+spFLxZLERsy8hDJ1i+L2K+enp4gw==
+"@web3-storage/upload-client@^9.1.0", "@web3-storage/upload-client@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@web3-storage/upload-client/-/upload-client-9.1.1.tgz#aaffb18fe1e3febaeaa92a194bf960ea31c44245"
+  integrity sha512-kny/S3jWKEcBS3Bmvs/ii0inclFfUwud1vGk6ejdUvPdh1tcDDRsTxWAEfKb0Jn9qEdCn/sw8m/P5hfvgZueAg==
   dependencies:
     "@ipld/car" "^5.0.3"
     "@ipld/dag-ucan" "^3.2.0"
-    "@ipld/unixfs" "^2.0.1"
-    "@ucanto/client" "^4.2.3"
-    "@ucanto/interface" "^4.2.3"
-    "@ucanto/transport" "^4.2.3"
-    "@web3-storage/capabilities" "^2.1.0"
-    multiformats "^11.0.1"
+    "@ipld/unixfs" "^2.1.1"
+    "@ucanto/client" "^8.0.0"
+    "@ucanto/interface" "^8.0.0"
+    "@ucanto/transport" "^8.0.0"
+    "@web3-storage/capabilities" "^7.0.0"
+    ipfs-utils "^9.0.14"
+    multiformats "^11.0.2"
     p-queue "^7.3.0"
     p-retry "^5.1.2"
 
-"@web3-storage/w3up-client@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@web3-storage/w3up-client/-/w3up-client-4.1.0.tgz#f8adb4bd28017b61e6a33fbb52f9d8ba1dd2bc17"
-  integrity sha512-ekLo576uFJHYpWG3QXJETydV/Xq+GniouVDN1S6ND5QSBmb/TBRbEnzplohqwLztvlPSrkd1/VL+t+IDuosubQ==
+"@web3-storage/w3up-client@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@web3-storage/w3up-client/-/w3up-client-8.0.1.tgz#6359f29f5f9335db21fd8128c2b075d5f5f1ddc8"
+  integrity sha512-diN+Cl98cVnJsRawfucU3t8fIOPWabvFHxcHqH47kKteLVT1Bofa1gQJ9oPM7e1ssoS4Xpqzeg4FzxkgVbqiBg==
   dependencies:
-    "@ipld/dag-ucan" "^3.0.1"
-    "@ucanto/client" "^4.0.2"
-    "@ucanto/core" "^4.0.2"
-    "@ucanto/interface" "^4.0.2"
-    "@ucanto/principal" "^4.0.2"
-    "@ucanto/transport" "^4.0.2"
-    "@web3-storage/access" "^9.1.1"
-    "@web3-storage/capabilities" "^2.0.0"
-    "@web3-storage/upload-client" "^5.3.0"
+    "@ipld/dag-ucan" "^3.3.2"
+    "@ucanto/client" "^8.0.0"
+    "@ucanto/core" "^8.0.0"
+    "@ucanto/interface" "^8.0.0"
+    "@ucanto/principal" "^8.0.0"
+    "@ucanto/transport" "^8.0.0"
+    "@web3-storage/access" "^15"
+    "@web3-storage/capabilities" "^7.0.0"
+    "@web3-storage/upload-client" "^9.1.0"
 
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
@@ -13612,7 +13570,7 @@ browser-process-hrtime@^1.0.0:
   resolved "https://registry.yarnpkg.com/browser-process-hrtime/-/browser-process-hrtime-1.0.0.tgz#3c9b4b7d782c8121e56f10106d84c0d0ffc94626"
   integrity sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==
 
-browser-readablestream-to-it@^1.0.1, browser-readablestream-to-it@^1.0.2, browser-readablestream-to-it@^1.0.3:
+browser-readablestream-to-it@^1.0.0, browser-readablestream-to-it@^1.0.1, browser-readablestream-to-it@^1.0.2, browser-readablestream-to-it@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/browser-readablestream-to-it/-/browser-readablestream-to-it-1.0.3.tgz#ac3e406c7ee6cdf0a502dd55db33bab97f7fba76"
   integrity sha512-+12sHB+Br8HIh6VAMVEG5r3UXCyESIgDW7kzk3BjIXa43DVqVwL7GC5TW3jeh+72dtcH99pPVpw0X8i0jt+/kw==
@@ -14332,6 +14290,11 @@ cborg@^1.9.4:
   version "1.9.6"
   resolved "https://registry.yarnpkg.com/cborg/-/cborg-1.9.6.tgz#bf90de6541d10735db878b60b4af824209b77435"
   integrity sha512-XmiD+NWTk9xg31d8MdXgW46bSZd95ELllxjbjdWGyHAtpTw+cf8iG3NibWgTWRnfWfxtcihVa5Pm0gchHiO3JQ==
+
+cborg@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/cborg/-/cborg-2.0.5.tgz#b5393c8b1843d5c1a61f2b79b4c9f752052a4d44"
+  integrity sha512-xVW1rSIw1ZXbkwl2XhJ7o/jAv0vnVoQv/QlfQxV8a7V5PlA4UU/AcIiXqmpyybwNWy/GPQU1m/aBVNIWr7/T0w==
 
 ceramic-cacao@^1.1.0, ceramic-cacao@^1.1.1:
   version "1.1.1"
@@ -22098,6 +22061,28 @@ ipfs-utils@^9.0.1:
     react-native-fetch-api "^2.0.0"
     stream-to-it "^0.2.2"
 
+ipfs-utils@^9.0.14:
+  version "9.0.14"
+  resolved "https://registry.yarnpkg.com/ipfs-utils/-/ipfs-utils-9.0.14.tgz#24f5fda1f4567685eb32bca2543d518f95fd8704"
+  integrity sha512-zIaiEGX18QATxgaS0/EOQNoo33W0islREABAcxXE8n7y2MGAlB+hdsxXn4J0hGZge8IqVQhW8sWIb+oJz2yEvg==
+  dependencies:
+    any-signal "^3.0.0"
+    browser-readablestream-to-it "^1.0.0"
+    buffer "^6.0.1"
+    electron-fetch "^1.7.2"
+    err-code "^3.0.1"
+    is-electron "^2.2.0"
+    iso-url "^1.1.5"
+    it-all "^1.0.4"
+    it-glob "^1.0.1"
+    it-to-stream "^1.0.0"
+    merge-options "^3.0.4"
+    nanoid "^3.1.20"
+    native-fetch "^3.0.0"
+    node-fetch "^2.6.8"
+    react-native-fetch-api "^3.0.0"
+    stream-to-it "^0.2.2"
+
 ipfs-utils@^9.0.2, ipfs-utils@^9.0.6:
   version "9.0.7"
   resolved "https://registry.yarnpkg.com/ipfs-utils/-/ipfs-utils-9.0.7.tgz#b8644b9d053e4dd258f69773b146ac243921aa1f"
@@ -27503,6 +27488,11 @@ multiformats@^11.0.2:
   resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-11.0.2.tgz#b14735efc42cd8581e73895e66bebb9752151b60"
   integrity sha512-b5mYMkOkARIuVZCpvijFj9a6m5wMVLC7cf/jIPd5D/ARDOfLC5+IFkbgDXQgcU2goIsTD/O9NY4DI/Mt4OGvlg==
 
+multiformats@^12.0.1, multiformats@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-12.1.0.tgz#0c344239c7d8dc60c8079935b1dbb12e39d22214"
+  integrity sha512-/qTOKKnU8nwcVURjRcS+UN0QYgdS5BPZzY10Aiciu2SqncyCVMGV8KtD83EBFmsuJDsSEmT4sGvzcTkCoMw0sQ==
+
 multiformats@^6.0.0:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-6.0.1.tgz#078012d4c705abbd845eb4f94abbb8df9f375783"
@@ -27904,6 +27894,13 @@ node-fetch@2.6.7, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
+  dependencies:
+    whatwg-url "^5.0.0"
+
+node-fetch@^2.6.8:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
+  integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
   dependencies:
     whatwg-url "^5.0.0"
 
@@ -30964,6 +30961,13 @@ react-native-fetch-api@^2.0.0:
   dependencies:
     p-defer "^3.0.0"
 
+react-native-fetch-api@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-fetch-api/-/react-native-fetch-api-3.0.0.tgz#81e1bb6562c292521bc4eca52fe1097f4c1ebab5"
+  integrity sha512-g2rtqPjdroaboDKTsJCTlcmtw54E25OjyaunUP0anOZn4Fuo2IKs8BVfe02zVggA/UysbmfSnRJIqtNkAgggNA==
+  dependencies:
+    p-defer "^3.0.0"
+
 react-query@^3.35.0:
   version "3.39.2"
   resolved "https://registry.yarnpkg.com/react-query/-/react-query-3.39.2.tgz#9224140f0296f01e9664b78ed6e4f69a0cc9216f"
@@ -33832,6 +33836,13 @@ symbol-tree@^3.2.2, symbol-tree@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==
+
+sync-multihash-sha2@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/sync-multihash-sha2/-/sync-multihash-sha2-1.0.0.tgz#b3004253cd0bde75ec303e4db1524d891fdbaac1"
+  integrity sha512-A5gVpmtKF0ov+/XID0M0QRJqF2QxAsj3x/LlDC8yivzgoYCoWkV+XaZPfVu7Vj1T/hYzYS1tfjwboSbXjqocug==
+  dependencies:
+    "@noble/hashes" "^1.3.1"
 
 syntax-error@^1.1.1:
   version "1.4.0"

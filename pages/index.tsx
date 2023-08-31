@@ -53,7 +53,7 @@ import * as API from "@ucanto/interface";
 /* eslint-disable import/no-unresolved */
 import { AgentData } from "@web3-storage/access/agent";
 import { StoreIndexedDB } from "@web3-storage/access/stores/store-indexeddb";
-import { import as importDelegation } from "@ucanto/core/delegation";
+import { importDAG } from "@ucanto/core/delegation";
 /* eslint-enable */
 
 // eslint-disable-next-line import/named
@@ -219,7 +219,7 @@ function IndexPage({
           blocks.push(block as any);
         }
 
-        const delegation = importDelegation(blocks);
+        const delegation = importDAG(blocks);
         await w3Client.addProof(delegation);
       } catch (err) {
         console.error(err);
@@ -261,6 +261,16 @@ function IndexPage({
     setCeramic(ceramic);
 
     const w3InvocationConfig = await loadStorageDelegation(session, w3Client);
+
+    // Check for old providers
+    if (
+      w3InvocationConfig &&
+      w3InvocationConfig?.with !==
+        "did:key:z6MkjcKXuTm4BsFWJz4nffFrihRjvETNcxH3bPKjbqXLXC7G"
+    ) {
+      await resetSession();
+    }
+
     const geoWebContent = new GeoWebContent({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ceramic: ceramic as any,
