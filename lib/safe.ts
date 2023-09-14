@@ -8,7 +8,10 @@ import {
   defaultAbiCoder,
 } from "ethers/lib/utils";
 import Safe from "@safe-global/protocol-kit";
-import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
+import {
+  MetaTransactionData,
+  SafeTransaction,
+} from "@safe-global/safe-core-sdk-types";
 import {
   getProxyFactoryDeployment,
   getSafeL2SingletonDeployment,
@@ -17,6 +20,7 @@ import {
   getSimulateTxAccessorDeployment,
 } from "@safe-global/safe-deployments";
 import { GelatoRelayPack } from "@safe-global/relay-kit";
+import { useMediaQuery } from "./mediaQuery";
 import {
   NETWORK_ID,
   RPC_URLS,
@@ -34,6 +38,8 @@ enum OperationType {
 }
 
 function useSafe(safe: Safe | null) {
+  const { isMobile, isTablet } = useMediaQuery();
+
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
   const proxyFactoryInfo = getProxyFactoryDeployment();
   const multiSendCallOnlyInfo = getMultiSendCallOnlyDeployment();
@@ -449,7 +455,8 @@ function useSafe(safe: Safe | null) {
     const safeTransaction = await safe.createTransaction({
       safeTransactionData,
     });
-    const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+    const signedSafeTransaction = await signSafeTransaction(safeTransaction);
+
     const encodedTransactionData = await safeL2Singleton.encodeFunctionData(
       "execTransaction",
       [
@@ -467,6 +474,25 @@ function useSafe(safe: Safe | null) {
     );
 
     return encodedTransactionData;
+  };
+
+  const signSafeTransaction = async (safeTransaction: SafeTransaction) => {
+    if (!safe) {
+      throw new Error("Safe was not found");
+    }
+
+    let signature;
+
+    if (isMobile || isTablet) {
+      const txHash = await safe.getTransactionHash(safeTransaction);
+      signature = await safe.signTransactionHash(txHash);
+    } else {
+      signature = await safe.signTypedData(safeTransaction, "v4");
+    }
+
+    safeTransaction.addSignature(signature);
+
+    return safeTransaction;
   };
 
   const encodeMultiSendData = (txs: MetaTransactionData[]) => {
