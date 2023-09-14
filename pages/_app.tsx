@@ -106,15 +106,13 @@ export function App({ Component, pageProps }: AppProps) {
           const siweMessage = new CacaoSiweMessage({
             domain: window.location.hostname,
             address,
-            statement:
-              "Give this application access to some of your data on Ceramic",
             uri: didKey,
             version: "1",
             nonce,
             issuedAt: now.toISOString(),
             expirationTime: oneWeekLater.toISOString(),
             chainId: chainId.toString(),
-            resources: ["ceramic://*"],
+            resources: [],
           });
 
           return { siweMessage, keySeed };

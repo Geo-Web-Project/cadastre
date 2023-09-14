@@ -127,10 +127,10 @@
   resolved "https://registry.yarnpkg.com/@assemblyscript/loader/-/loader-0.9.4.tgz#a483c54c1253656bb33babd464e3154a173e1577"
   integrity sha512-HazVq9zwTVwGmqdwYzu7WyQ6FQVZ7SwET0KKQuKm55jD0IfUpZgN0OPIiZG3zV1iSrVYcN0bdwLRXI/VNCYsUA==
 
-"@augmented-worlds/system-babylonjs@^0.1.15":
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/@augmented-worlds/system-babylonjs/-/system-babylonjs-0.1.15.tgz#d4b7b60f07cfa505b470ca050599164c6c4acb75"
-  integrity sha512-B4Xv/u///p0Qokgb5hSdf3PU9IWRmdalj4nOamrSINI+mRSvFQCc6qyc/Alnvm3OX5clgGDOZcQRfPjgbZH2Hw==
+"@augmented-worlds/system-babylonjs@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@augmented-worlds/system-babylonjs/-/system-babylonjs-0.1.16.tgz#73e961adfdd4924799a1ff618343d83314471f88"
+  integrity sha512-0lP3rkAqLqft5feqr/uCuhypRGgWa0GP2zYRL4AMC8vRh0W4H697rBSC+HHakdy5LspPrrETGI6koIHV0y/0SQ==
   dependencies:
     "@babylonjs/core" "^6.3.1"
     "@babylonjs/loaders" "^6.3.1"

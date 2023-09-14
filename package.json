@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@apollo/client": "^3.7.14",
-    "@augmented-worlds/system-babylonjs": "^0.1.15",
+    "@augmented-worlds/system-babylonjs": "^0.1.16",
     "@ceramicnetwork/blockchain-utils-linking": "^2.0.12",
     "@ceramicnetwork/common": "^2.14.0",
     "@ceramicnetwork/http-client": "^2.11.0",
