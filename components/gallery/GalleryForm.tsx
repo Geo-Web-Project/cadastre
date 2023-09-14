@@ -17,6 +17,8 @@ import {
 } from "./GalleryFileFormat";
 import { uploadFile } from "@web3-storage/upload-client";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import UploadNFTModal from "./UploadNFTModal";
 
 interface MediaGalleryItem {
   name?: string;
@@ -50,11 +52,22 @@ function GalleryForm(props: GalleryFormProps) {
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isUploadingNFT, setIsUploadingNFT] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [mediaGalleryItem, setMediaGalleryItem] =
     React.useState<MediaGalleryItem>({});
 
   const { isMobile } = useMediaQuery();
+
+  const [showNFTModal, setShowNFTModal] = React.useState(false);
+
+  const handleOpenModal = () => {
+    setShowNFTModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowNFTModal(false);
+  };
 
   React.useEffect(() => {
     if (selectedMediaGalleryItemIndex === null) {
@@ -133,6 +146,30 @@ function GalleryForm(props: GalleryFormProps) {
     setIsUploading(false);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function uploadNFT(file: File, title: string) {
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingNFT(true);
+
+    const format = getFormat(file.name);
+    const { encoding } = format;
+    setFileFormat(encoding ?? null);
+
+    // Upload to Web3 storage
+    const added = await uploadFile(w3InvocationConfig, file);
+
+    updateMediaGalleryItem({
+      name: title,
+      content: added.toString(),
+      encodingFormat: encoding,
+    });
+
+    setIsUploadingNFT(false);
+  }
+
   function clearForm() {
     const form = document.getElementById("galleryForm") as HTMLFormElement;
     form.reset();
@@ -186,32 +223,93 @@ function GalleryForm(props: GalleryFormProps) {
 
   return (
     <>
+      {showNFTModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(5px)",
+            zIndex: 999,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        />
+      )}
+
       <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
             <Form.Text className="text-primary">CID</Form.Text>
             <InputGroup>
-              <Button
-                variant="secondary"
-                style={{ height: 35, width: 42 }}
-                className="d-flex justify-content-center align-items-center mt-1"
-                as="label"
-                htmlFor="uploadCid"
-                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
+              <OverlayTrigger
+                key="uploadCid"
+                placement="top"
+                overlay={<Tooltip id={`tooltip-key`}>Device Upload</Tooltip>}
               >
-                {isUploading ? (
-                  <Spinner
-                    size="sm"
-                    animation="border"
-                    role="status"
-                    variant="light"
-                  >
-                    <span className="visually-hidden">Loading...</span>
-                  </Spinner>
-                ) : (
-                  <Image src="upload.svg" alt="upload" width={24} />
-                )}
-              </Button>
+                <Button
+                  variant="secondary"
+                  style={{ height: 35, width: 42 }}
+                  className="d-flex justify-content-center align-items-center mt-1"
+                  as="label"
+                  htmlFor="uploadCid"
+                  disabled={
+                    isUploading || selectedMediaGalleryItemIndex !== null
+                  }
+                >
+                  {isUploading ? (
+                    <Spinner
+                      size="sm"
+                      animation="border"
+                      role="status"
+                      variant="light"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    <Image src="upload.svg" alt="upload" width={24} />
+                  )}
+                </Button>
+              </OverlayTrigger>
+              <OverlayTrigger
+                key="uploadNFT"
+                placement="top"
+                overlay={
+                  <Tooltip id={`tooltip-key`}>Select from Wallet</Tooltip>
+                }
+              >
+                <Button
+                  variant="secondary"
+                  style={{ height: 35, width: 42 }}
+                  className="d-flex justify-content-center align-items-center mt-1"
+                  as="label"
+                  onClick={handleOpenModal}
+                  disabled={
+                    isUploadingNFT || selectedMediaGalleryItemIndex !== null
+                  }
+                >
+                  {isUploadingNFT ? (
+                    <Spinner
+                      size="sm"
+                      animation="border"
+                      role="status"
+                      variant="light"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    <Image
+                      src="account-balance-wallet.svg"
+                      alt="upload"
+                      width={24}
+                    />
+                  )}
+                </Button>
+              </OverlayTrigger>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
                 className="text-white mt-1 rounded-2"
@@ -231,6 +329,12 @@ function GalleryForm(props: GalleryFormProps) {
                 onChange={captureFile}
                 hidden
               ></Form.Control>
+              <UploadNFTModal
+                showNFTModal={showNFTModal}
+                onClose={handleCloseModal}
+                uploadNFT={uploadNFT}
+                {...props}
+              />
             </InputGroup>
           </Col>
           <Col sm="12" lg="6" className="mb-3">
