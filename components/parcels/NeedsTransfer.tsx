@@ -15,10 +15,10 @@ interface NeedsTransferProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
   handleAction: (parcel: Parcel) => void;
 }
@@ -59,10 +59,10 @@ function NeedsTransfer(props: NeedsTransferProps) {
     sfFramework,
     geoWebContent,
     registryContract,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     maxListSize,
     handleAction,
   } = props;

@@ -1,13 +1,17 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
+import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import InfoTooltip from "../InfoTooltip";
+import TransactionBundleSettingsModal from "../TransactionBundleSettingsModal";
 import { STATE } from "../Map";
 import { PAYMENT_TOKEN } from "../../lib/constants";
 import { formatBalance } from "../../lib/formatBalance";
 import { truncateEth } from "../../lib/truncate";
 import { calculateBufferNeeded } from "../../lib/utils";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 type TransactionSummaryViewProps = OffCanvasPanelProps & {
   existingNetworkFee?: BigNumber;
@@ -19,7 +23,7 @@ type TransactionSummaryViewProps = OffCanvasPanelProps & {
   penaltyPayment?: BigNumber;
   currentForSalePrice?: BigNumber;
   licenseOwner?: string;
-  /** during the fair launch period (true) or after (false). */
+  transactionBundleFeesEstimate: BigNumber | null;
 };
 
 function TransactionSummaryView({
@@ -27,6 +31,7 @@ function TransactionSummaryView({
   newAnnualNetworkFee,
   existingNetworkFee = BigNumber.from(0),
   newNetworkFee,
+  smartAccount,
   account,
   interactionState,
   licenseOwner,
@@ -36,8 +41,10 @@ function TransactionSummaryView({
   penaltyPayment,
   sfFramework,
   paymentToken,
+  transactionBundleFeesEstimate,
 }: TransactionSummaryViewProps) {
   const { isMobile } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
 
   const txnReady = newAnnualNetworkFee != null;
 
@@ -53,11 +60,24 @@ function TransactionSummaryView({
       : networkFeeDelta ?? BigNumber.from(0);
 
   const streamDisplay = truncateEth(formatBalance(stream), 18);
+  const transactionBundleFeesDisplay = transactionBundleFeesEstimate
+    ? truncateEth(formatBalance(transactionBundleFeesEstimate), 8)
+    : null;
 
   const [streamBuffer, setStreamBuffer] = React.useState<BigNumber | null>(
     null
   );
   const [lastStream, setLastStream] = React.useState<BigNumber | null>(null);
+  const [reducedBuffer, setReducedBuffer] = React.useState<BigNumber | null>(
+    null
+  );
+  const [reducedStream, setReducedStream] = React.useState<BigNumber | null>(
+    null
+  );
+  const [
+    showTransactionBundleSettingsModal,
+    setShowTransactionBundleSettingsModal,
+  ] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const run = async () => {
@@ -86,6 +106,24 @@ function TransactionSummaryView({
     run();
   }, [sfFramework, paymentToken, newNetworkFee]);
 
+  React.useEffect(() => {
+    (async () => {
+      if (
+        interactionState === STATE.PARCEL_ACCEPTING_BID &&
+        existingNetworkFee
+      ) {
+        const reducedBuffer = await calculateBufferNeeded(
+          sfFramework,
+          paymentToken,
+          existingNetworkFee
+        );
+        // Multiply by 2x for user buffer and PCOLicenseDiamond buffer
+        setReducedBuffer(reducedBuffer.mul(2));
+        setReducedStream(existingAnnualNetworkFee);
+      }
+    })();
+  }, [existingNetworkFee]);
+
   const streamBufferDisplay = streamBuffer
     ? truncateEth(formatBalance(streamBuffer), 8)
     : "";
@@ -100,7 +138,7 @@ function TransactionSummaryView({
           ? "Max Claim Payment (to Licensor): "
           : "Claim Payment: "}
         <InfoTooltip
-          top={isMobile}
+          position={{ top: isMobile }}
           content={
             <div style={{ textAlign: "left" }}>
               {interactionState == STATE.PARCEL_RECLAIMING &&
@@ -132,6 +170,7 @@ function TransactionSummaryView({
         <p>
           Collateral Deposit:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 Bids must be fully collateralized. If your bid is rejected, this
@@ -146,8 +185,9 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          Purchase Payment:{" "}
+          &emsp;&ensp;Purchase Payment:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 This is the amount that will be transferred to the current
@@ -162,8 +202,9 @@ function TransactionSummaryView({
           />
         </p>
         <p>
-          Refundable Collateral:{" "}
+          &emsp;&ensp;Refundable Collateral:{" "}
           <InfoTooltip
+            position={{ top: isMobile }}
             content={
               <div style={{ textAlign: "left" }}>
                 This is the amount that will be returned to you if your bid is
@@ -185,6 +226,7 @@ function TransactionSummaryView({
       <p>
         Penalty Payment:{" "}
         <InfoTooltip
+          position={{ top: isMobile }}
           content={
             <div style={{ textAlign: "left" }}>
               This is the amount you must pay to the Geo Web treasury to reject
@@ -203,9 +245,16 @@ function TransactionSummaryView({
   }
 
   const streamView = (
-    <p>
+    <p
+      className={
+        interactionState === STATE.PARCEL_EDITING && !bundleSettings.isSponsored
+          ? "mb-2"
+          : ""
+      }
+    >
       Stream:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div style={{ textAlign: "left" }}>
             {collateralDeposit
@@ -230,6 +279,7 @@ function TransactionSummaryView({
     <p className="mb-2">
       Stream Buffer:{" "}
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div style={{ textAlign: "left" }}>
             This is the required adjustment to your stream buffer deposit. Half
@@ -256,10 +306,42 @@ function TransactionSummaryView({
     </p>
   );
 
+  const transactionBundleFeesEstimateView = (
+    <p
+      className={
+        bundleSettings.isSponsored &&
+        interactionState !== STATE.PARCEL_ACCEPTING_BID
+          ? "pt-2"
+          : "pt-0"
+      }
+    >
+      Transaction Cost:{" "}
+      {interactionState === STATE.PARCEL_ACCEPTING_BID ? "-" : ""}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            This is an estimate of the total transaction cost to complete this
+            action. If you have the default settings enabled, we'll sponsor your
+            transaction with an external ETH balance then refund ourselves via
+            your ETHx balance.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {transactionBundleFeesDisplay}{" "}
+            {bundleSettings.isSponsored ? "ETHx" : "ETH"}
+          </span>
+        }
+      />
+    </p>
+  );
+
   const yearlyTotalView = (
     <p className="border-top pt-2">
-      Year 1 Total:{" "}
+      Year 1 Total: ~
       <InfoTooltip
+        position={{ top: isMobile }}
         content={
           <div className="text-start">
             This projection is provided for ETHx token budgeting purposes. If
@@ -283,14 +365,223 @@ function TransactionSummaryView({
     </p>
   );
 
+  const initialTransferView = (
+    <p className="border-top pt-2">
+      Initial Transfer:{" "}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            This is the total ETHx you'll transfer (or have transferred back to
+            you) to complete this transaction. Always make sure you have enough
+            ETHx above this amount to sustain your Network Fee Stream.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {newAnnualNetworkFee && streamBuffer
+              ? `${truncateEth(
+                  formatBalance(
+                    streamBuffer
+                      .add(claimPayment ?? 0)
+                      .add(penaltyPayment ?? 0)
+                      .add(collateralDeposit ?? 0)
+                      .add(
+                        transactionBundleFeesEstimate &&
+                          bundleSettings.isSponsored
+                          ? transactionBundleFeesEstimate
+                          : 0
+                      )
+                  ),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const salePriceView = (
+    <p className="pt-2">
+      Sale Price:{" "}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            This is how much you'll receive for accepting the bid. Note that
+            this amount is based on your For Sale Price, not the bidder's new
+            valuation.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {currentForSalePrice
+              ? `${truncateEth(
+                  formatBalance(currentForSalePrice),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const bufferReductionView = (
+    <p>
+      Buffer Reduction:{" "}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            This is how much your stream buffer will be reduced with this sale
+            and returned to your ETHx balance.{" "}
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {reducedBuffer
+              ? `${truncateEth(
+                  formatBalance(reducedBuffer),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const streamReductionView = (
+    <p>
+      Stream Reduction:{" "}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            This is the amount your total outgoing ETHx stream will be reduced.
+            (We also should append the text "/year" onto the value shown in this
+            line.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {reducedStream
+              ? `${truncateEth(
+                  formatBalance(reducedStream),
+                  8
+                )} ${PAYMENT_TOKEN}/year`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
+  const netReceivedView = (
+    <p className="border-top pt-2">
+      Net Received:{" "}
+      <InfoTooltip
+        position={{ top: isMobile }}
+        content={
+          <div className="text-start">
+            {" "}
+            This is the net impact on your ETHx balance from this sale.
+          </div>
+        }
+        target={
+          <span className="text-decoration-underline">
+            {currentForSalePrice &&
+            reducedBuffer &&
+            transactionBundleFeesEstimate
+              ? `${truncateEth(
+                  formatBalance(
+                    currentForSalePrice
+                      .add(reducedBuffer)
+                      .sub(transactionBundleFeesEstimate)
+                  ),
+                  8
+                )} ${PAYMENT_TOKEN}`
+              : `N/A`}
+          </span>
+        }
+      />
+    </p>
+  );
+
   return (
     <div>
-      <h3>Transaction Summary</h3>
+      <div className="d-flex justify-content-between gap-2">
+        <h4>Transaction Summary</h4>
+        {smartAccount?.safe && (
+          <div>
+            <Button
+              variant="link"
+              className="shadow-none p-0"
+              onClick={() => setShowTransactionBundleSettingsModal(true)}
+            >
+              <Image src="settings.svg" alt="settings" width={32} />
+            </Button>
+            <TransactionBundleSettingsModal
+              show={showTransactionBundleSettingsModal}
+              handleClose={() => setShowTransactionBundleSettingsModal(false)}
+              smartAccount={smartAccount}
+              paymentToken={paymentToken}
+              existingAnnualNetworkFee={existingAnnualNetworkFee}
+              newAnnualNetworkFee={
+                interactionState === STATE.PARCEL_ACCEPTING_BID
+                  ? BigNumber.from(0)
+                  : newAnnualNetworkFee
+              }
+            />
+          </div>
+        )}
+      </div>
       <>
-        {paymentView}
-        {streamView}
-        {streamBufferView}
-        {interactionState === STATE.CLAIM_SELECTED ? yearlyTotalView : null}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && salePriceView}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && bufferReductionView}
+        {interactionState !== STATE.PARCEL_ACCEPTING_BID && paymentView}
+        {!smartAccount?.safe && streamView}
+        {interactionState !== STATE.PARCEL_ACCEPTING_BID && streamBufferView}
+        {smartAccount?.safe &&
+          interactionState === STATE.PARCEL_EDITING &&
+          !bundleSettings.isSponsored &&
+          streamView}
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
+        bundleSettings.isSponsored
+          ? transactionBundleFeesEstimateView
+          : null}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && netReceivedView}
+        {transactionBundleFeesEstimate &&
+        transactionBundleFeesEstimate.gt(0) &&
+        !bundleSettings.isSponsored &&
+        interactionState === STATE.PARCEL_EDITING
+          ? transactionBundleFeesEstimateView
+          : null}
+        {smartAccount?.safe &&
+        interactionState !== STATE.PARCEL_ACCEPTING_BID &&
+        (interactionState !== STATE.PARCEL_EDITING ||
+          bundleSettings.isSponsored)
+          ? initialTransferView
+          : interactionState === STATE.CLAIM_SELECTED
+          ? yearlyTotalView
+          : null}
+        {smartAccount?.safe &&
+          interactionState !== STATE.PARCEL_EDITING &&
+          interactionState !== STATE.PARCEL_ACCEPTING_BID &&
+          streamView}
+        {interactionState === STATE.PARCEL_ACCEPTING_BID && streamReductionView}
+        {smartAccount?.safe &&
+          interactionState === STATE.PARCEL_EDITING &&
+          bundleSettings.isSponsored &&
+          streamView}
+        {transactionBundleFeesEstimate &&
+          transactionBundleFeesEstimate.gt(0) &&
+          !bundleSettings.isSponsored &&
+          interactionState !== STATE.PARCEL_EDITING &&
+          transactionBundleFeesEstimateView}
       </>
     </div>
   );

@@ -49,13 +49,11 @@ import * as turf from "@turf/turf";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { InvocationConfig } from "@web3-storage/upload-client";
+import { SmartAccount } from "../pages/index";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
 
-export const ZOOM_GRID_LEVEL = 17;
-const GRID_DIM_LAT = 140;
-const GRID_DIM_LON = 80;
 export const GW_CELL_SIZE_LAT = 23;
 export const GW_CELL_SIZE_LON = 24;
 export const GW_MAX_LAT = (1 << (GW_CELL_SIZE_LAT - 1)) - 1;
@@ -64,15 +62,16 @@ const ZOOM_QUERY_LEVEL = 8;
 const QUERY_DIM = 0.025;
 
 export enum STATE {
-  VIEWING = 0,
-  CLAIM_SELECTING = 1,
-  CLAIM_SELECTED = 2,
-  PARCEL_SELECTED = 3,
-  PARCEL_EDITING = 4,
-  PARCEL_PLACING_BID = 5,
-  EDITING_GALLERY = 6,
-  PARCEL_REJECTING_BID = 7,
-  PARCEL_RECLAIMING = 8,
+  VIEWING,
+  CLAIM_SELECTING,
+  CLAIM_SELECTED,
+  PARCEL_SELECTED,
+  PARCEL_EDITING,
+  PARCEL_PLACING_BID,
+  PARCEL_ACCEPTING_BID,
+  EDITING_GALLERY,
+  PARCEL_REJECTING_BID,
+  PARCEL_RECLAIMING,
 }
 
 export type Coord = {
@@ -173,6 +172,9 @@ export type MapProps = {
   interactionState: STATE;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
+  authStatus: string;
+  smartAccount: SmartAccount | null;
+  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   signer: ethers.Signer | null;
   ceramic: CeramicClient;
   setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
@@ -187,11 +189,11 @@ export type MapProps = {
   sfFramework: Framework;
   setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
   shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   auctionStart: BigNumber;
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
@@ -309,8 +311,9 @@ function Map(props: MapProps) {
   const router = useRouter();
   const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
 
+  const gridZoomLevel = isMobile ? 16 : 17;
   const isGridVisible =
-    viewport.zoom >= ZOOM_GRID_LEVEL &&
+    viewport.zoom >= gridZoomLevel &&
     (interactionState === STATE.VIEWING ||
       interactionState === STATE.CLAIM_SELECTING);
 
@@ -353,18 +356,20 @@ function Map(props: MapProps) {
     const gwCoord = geoWebCoordinate.from_gps(lon, lat, GW_MAX_LAT);
     const x = geoWebCoordinate.get_x(gwCoord);
     const y = geoWebCoordinate.get_y(gwCoord);
+    const gridDimLat = isMobile ? 100 : 140;
+    const gridDimLon = isMobile ? 120 : 80;
 
     if (
       oldGrid != null &&
-      Math.abs(oldGrid.center.x - x) < GRID_DIM_LAT / 4 &&
-      Math.abs(oldGrid.center.y - y) < GRID_DIM_LON / 4
+      Math.abs(oldGrid.center.x - x) < gridDimLat / 4 &&
+      Math.abs(oldGrid.center.y - y) < gridDimLon / 4
     ) {
       return;
     }
 
     const features = [];
-    for (let _x = x - GRID_DIM_LAT; _x < x + GRID_DIM_LAT; _x++) {
-      for (let _y = y - GRID_DIM_LON; _y < y + GRID_DIM_LON; _y++) {
+    for (let _x = x - gridDimLat; _x < x + gridDimLat; _x++) {
+      for (let _y = y - gridDimLon; _y < y + gridDimLon; _y++) {
         const gwCoord = geoWebCoordinate.make_gw_coord(_x, _y);
         const coords = geoWebCoordinate.to_gps(gwCoord, GW_MAX_LAT, GW_MAX_LON);
         const gwCoordX = geoWebCoordinate.get_x(gwCoord);
@@ -498,7 +503,7 @@ function Map(props: MapProps) {
   }
 
   function _onMoveEnd(viewState: ViewState) {
-    if (viewState.zoom >= ZOOM_GRID_LEVEL) {
+    if (viewState.zoom >= gridZoomLevel) {
       updateGrid(viewport.latitude, viewport.longitude, grid, setGrid);
       setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
     } else if (interactionState === STATE.VIEWING) {
@@ -655,7 +660,7 @@ function Map(props: MapProps) {
           );
           const x = geoWebCoordinate.get_x(gwCoord);
           const y = geoWebCoordinate.get_y(gwCoord);
-          const gwCoord2 = geoWebCoordinate.make_gw_coord(x + 3, y + 3);
+          const gwCoord2 = geoWebCoordinate.make_gw_coord(x + 5, y + 5);
           const coord1 = {
             x,
             y,
@@ -721,7 +726,7 @@ function Map(props: MapProps) {
         } else {
           mapRef.current?.easeTo({
             center: [event.lngLat.lng, event.lngLat.lat],
-            zoom: ZOOM_GRID_LEVEL,
+            zoom: gridZoomLevel,
             duration: 500,
           });
         }
@@ -753,7 +758,7 @@ function Map(props: MapProps) {
       !mapRef?.current ||
       !claimBase1Coord ||
       !claimBase2Coord ||
-      viewport.zoom < ZOOM_GRID_LEVEL ||
+      viewport.zoom < gridZoomLevel ||
       interactionState !== STATE.CLAIM_SELECTING
     ) {
       return;
@@ -865,11 +870,12 @@ function Map(props: MapProps) {
           ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (feature.layer.paint as any)["circle-radius"]
           : 0;
+        const tolerance = isMobile ? 4 : 0;
         const isInsideClaimPoint =
-          e.point.x > featureCenter.x - featureRadius &&
-          e.point.x < featureCenter.x + featureRadius &&
-          e.point.y > featureCenter.y - featureRadius &&
-          e.point.y < featureCenter.y + featureRadius;
+          e.point.x > featureCenter.x - featureRadius - tolerance &&
+          e.point.x < featureCenter.x + featureRadius + tolerance &&
+          e.point.y > featureCenter.y - featureRadius - tolerance &&
+          e.point.y < featureCenter.y + featureRadius + tolerance;
 
         if (isInsideClaimPoint) {
           resizePoint = feature.properties?.direction;
@@ -1009,7 +1015,7 @@ function Map(props: MapProps) {
     <>
       <OpRewardAlert />
       {interactionState === STATE.CLAIM_SELECTING &&
-        viewport.zoom < ZOOM_GRID_LEVEL && (
+        viewport.zoom < gridZoomLevel && (
           <Alert
             className="position-absolute top-50 start-50 text-center"
             variant="warning"
@@ -1169,7 +1175,7 @@ function Map(props: MapProps) {
         onClick={() =>
           mapRef.current?.easeTo({
             center: [viewport.longitude, viewport.latitude],
-            zoom: ZOOM_GRID_LEVEL,
+            zoom: gridZoomLevel,
             duration: 500,
           })
         }

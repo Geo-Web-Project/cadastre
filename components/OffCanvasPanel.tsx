@@ -8,6 +8,7 @@ import Col from "react-bootstrap/Col";
 import ClaimAction from "./cards/ClaimAction";
 import ClaimInfo from "./cards/ClaimInfo";
 import ParcelInfo from "./cards/ParcelInfo";
+import { LoginState } from "../pages/index";
 import { STATE, MapProps, Coord, ParcelClaimInfo } from "./Map";
 import ConnectWallet from "./ConnectWallet";
 import { useMediaQuery } from "../lib/mediaQuery";
@@ -41,7 +42,10 @@ export interface ParcelFieldsToUpdate {
 function OffCanvasPanel(props: OffCanvasPanelProps) {
   const {
     account,
+    smartAccount,
     signer,
+    authStatus,
+    setSmartAccount,
     registryContract,
     interactionState,
     setInteractionState,
@@ -299,9 +303,14 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
           setIsFullSize={setIsFullSize}
         />
       ) : null}
-      {interactionState === STATE.CLAIM_SELECTED && !account ? (
+      {interactionState === STATE.CLAIM_SELECTED &&
+      (!account || smartAccount?.loginState !== LoginState.CONNECTED) ? (
         <div className="mt-3">
-          <ConnectWallet variant="claim" />
+          <ConnectWallet
+            variant="claim"
+            authStatus={authStatus}
+            setSmartAccount={setSmartAccount}
+          />
         </div>
       ) : interactionState === STATE.CLAIM_SELECTED &&
         account &&

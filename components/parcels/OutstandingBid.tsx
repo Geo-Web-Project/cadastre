@@ -13,10 +13,10 @@ interface OutstandingBidProps {
   sfFramework: Framework;
   geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
-  shouldRefetchParcelsData: boolean;
-  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
   maxListSize: number;
   handleAction: (parcel: Parcel) => void;
 }
@@ -55,10 +55,10 @@ function OutstandingBid(props: OutstandingBidProps) {
   const {
     geoWebContent,
     registryContract,
-    shouldRefetchParcelsData,
-    setShouldRefetchParcelsData,
     hasRefreshed,
     setHasRefreshed,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
     maxListSize,
     handleAction,
   } = props;

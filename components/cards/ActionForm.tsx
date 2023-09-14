@@ -5,7 +5,7 @@ import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
-import type { BasicProfile, MediaGallery } from "@geo-web/types";
+import type { BasicProfile } from "@geo-web/types";
 import {
   PAYMENT_TOKEN,
   NETWORK_ID,
@@ -14,6 +14,8 @@ import {
 import BN from "bn.js";
 import { AssetId } from "caip";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
+import AddFundsModal from "../profile/AddFundsModal";
+import { SubmitBundleButton } from "../SubmitBundleButton";
 import InfoTooltip from "../InfoTooltip";
 import { truncateEth } from "../../lib/truncate";
 import { STATE } from "../Map";
@@ -24,6 +26,8 @@ import ApproveButton from "../ApproveButton";
 import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { useBundleSettings } from "../../lib/transactionBundleSettings";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
@@ -31,7 +35,7 @@ export type ActionFormProps = OffCanvasPanelProps & {
   licenseAddress: string;
   licenseOwner?: string;
   loading: boolean;
-  performAction: () => Promise<string | void>;
+  performAction: (contentHash?: string) => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
@@ -41,10 +45,19 @@ export type ActionFormProps = OffCanvasPanelProps & {
   requiredFlowPermissions: number | null;
   spender: string | null;
   flowOperator: string | null;
+  requiredBuffer: BigNumber;
   minForSalePrice: BigNumber;
   setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
+  >;
+  encodeFunctionData: () => string;
+  bundleCallback?: (
+    receipt?: ethers.providers.TransactionReceipt
+  ) => Promise<string | void>;
+  transactionBundleFeesEstimate: BigNumber | null;
+  setTransactionBundleFeesEstimate: React.Dispatch<
+    React.SetStateAction<BigNumber | null>
   >;
 };
 
@@ -62,6 +75,8 @@ export function ActionForm(props: ActionFormProps) {
   const {
     account,
     licenseOwner,
+    smartAccount,
+    setSmartAccount,
     geoWebContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -80,12 +95,24 @@ export function ActionForm(props: ActionFormProps) {
     requiredPayment,
     spender,
     hasOutstandingBid = false,
-    setShouldRefetchParcelsData,
     minForSalePrice,
     paymentToken,
+    setShouldRefetchParcelsData,
     setShouldParcelContentUpdate,
     setParcelFieldsToUpdate,
+    encodeFunctionData,
+    bundleCallback,
+    transactionBundleFeesEstimate,
+    setTransactionBundleFeesEstimate,
   } = props;
+
+  const [showWrapModal, setShowWrapModal] = React.useState(false);
+  const [isAllowed, setIsAllowed] = React.useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] =
+    React.useState<boolean>(false);
+  const [safeEthBalance, setSafeEthBalance] = React.useState<BigNumber | null>(
+    null
+  );
 
   const {
     parcelName,
@@ -96,16 +123,20 @@ export function ActionForm(props: ActionFormProps) {
     isActing,
     errorMessage,
   } = actionData;
-  const [showWrapModal, setShowWrapModal] = React.useState(false);
-  const [isAllowed, setIsAllowed] = React.useState(false);
-  const [isBalanceInsufficient, setIsBalanceInsufficient] =
-    React.useState(false);
 
+  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
   const { superTokenBalance } = useSuperTokenBalance(
-    account,
+    accountAddress,
     paymentToken.address
   );
   const { isMobile, isTablet } = useMediaQuery();
+  const bundleSettings = useBundleSettings();
+  const { parcelContent } = useBasicProfile(
+    geoWebContent,
+    licenseAddress,
+    accountAddress,
+    selectedParcelId
+  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -160,6 +191,35 @@ export function ActionForm(props: ActionFormProps) {
       ? BigNumber.from(0)
       : annualNetworkFeeRate;
 
+  const isSignerBalanceInsufficient = requiredPayment
+    ? requiredPayment.gt(superTokenBalance)
+    : false;
+
+  const isSafeBalanceInsufficient =
+    smartAccount?.safe &&
+    bundleSettings.isSponsored &&
+    requiredPayment &&
+    safeEthBalance
+      ? requiredPayment
+          .add(transactionBundleFeesEstimate ?? 0)
+          .gt(superTokenBalance.add(safeEthBalance))
+      : false;
+
+  const isSafeEthBalanceInsufficient =
+    smartAccount?.safe &&
+    !bundleSettings.isSponsored &&
+    safeEthBalance &&
+    transactionBundleFeesEstimate
+      ? transactionBundleFeesEstimate.gt(safeEthBalance)
+      : false;
+
+  const isSafeSuperTokenBalanceInsufficient =
+    smartAccount?.safe &&
+    (!bundleSettings.isSponsored || bundleSettings.noWrap) &&
+    requiredPayment
+      ? requiredPayment.gt(superTokenBalance)
+      : false;
+
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
       return (prevState: ActionData) => {
@@ -170,13 +230,75 @@ export function ActionForm(props: ActionFormProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  async function submit() {
+  async function getContentHash() {
+    let assetId;
+    let contentHash = "0x";
+    const content: BasicProfile = {};
+
+    if (parcelName) {
+      content["name"] = parcelName;
+    }
+    if (parcelWebContentURI) {
+      content["url"] = parcelWebContentURI;
+    }
+
+    if (
+      selectedParcelId &&
+      (interactionState !== STATE.PARCEL_RECLAIMING ||
+        accountAddress === licenseOwner)
+    ) {
+      assetId = new AssetId({
+        chainId: `eip155:${NETWORK_ID}`,
+        assetName: {
+          namespace: "erc721",
+          reference: licenseAddress.toLowerCase(),
+        },
+        tokenId: BigNumber.from(selectedParcelId).toString(),
+      });
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const ownerDID = ceramic.did!.parent;
+      const rootCid = await geoWebContent.raw.resolveRoot({
+        parcelId: assetId,
+        ownerDID,
+      });
+      const newRoot = await geoWebContent.raw.putPath(
+        rootCid,
+        "/basicProfile",
+        {
+          name: content.name ?? "",
+          url: content.url ?? "",
+        },
+        { parentSchema: "ParcelRoot", pin: true }
+      );
+
+      contentHash = await geoWebContent.raw.commit(newRoot);
+    } catch (err) {
+      console.error(err);
+
+      if (interactionState === STATE.PARCEL_EDITING) {
+        throw Error("Could not update parcel content, please try again later");
+      }
+    }
+
+    return contentHash;
+  }
+
+  async function submit(receipt?: ethers.providers.TransactionReceipt) {
+    let licenseId;
+
     updateActionData({ isActing: true, didFail: false });
 
-    let licenseId: string | void;
     try {
-      // Perform action
-      licenseId = await performAction();
+      if (smartAccount?.safe && bundleCallback) {
+        licenseId = await bundleCallback(receipt);
+      } else {
+        /* Call contract's function directly */
+        const contentHash = await getContentHash();
+        licenseId = await performAction(contentHash);
+      }
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -196,99 +318,28 @@ export function ActionForm(props: ActionFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    const content: BasicProfile = {};
-    if (parcelName) {
-      content["name"] = parcelName;
-    }
-    if (parcelWebContentURI) {
-      content["url"] = parcelWebContentURI;
-    }
-
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: licenseAddress.toLowerCase(),
-      },
-      tokenId: licenseId
-        ? licenseId.toString()
-        : new BN(selectedParcelId.slice(2), "hex").toString(10),
-    });
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const ownerDID = ceramic.did!.parent;
-
-    try {
-      if (
-        licenseId &&
-        (interactionState === STATE.CLAIM_SELECTED ||
-          (interactionState === STATE.PARCEL_RECLAIMING &&
-            account !== licenseOwner))
-      ) {
-        await geoWebContent.raw.initRoot({ parcelId: assetId, ownerDID });
-        const rootCid = await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerDID,
-        });
-        const mediaGallery: MediaGallery = [];
-        const newRoot = await geoWebContent.raw.putPath(
-          rootCid,
-          "/mediaGallery",
-          mediaGallery,
-          {
-            parentSchema: "ParcelRoot",
-            pin: true,
-          }
-        );
-
-        await geoWebContent.raw.commit(newRoot, {
-          ownerDID,
-          parcelId: assetId,
-        });
-      }
-
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        "/basicProfile",
-        {
-          name: content.name ?? "",
-          url: content.url ?? "",
-        },
-        { parentSchema: "ParcelRoot", pin: true }
-      );
-
-      await geoWebContent.raw.commit(newRoot, {
-        ownerDID,
-        parcelId: assetId,
-      });
-    } catch (err) {
-      console.error(err);
-      updateActionData({
-        isActing: false,
-        didFail: true,
-        errorMessage: (err as Error).message,
-      });
-    }
-
     updateActionData({ isActing: false });
 
-    if (setShouldParcelContentUpdate) {
+    if (
+      setShouldParcelContentUpdate &&
+      (!parcelContent ||
+        parcelContent.name !== parcelName ||
+        parcelContent.url !== parcelWebContentURI)
+    ) {
       setShouldParcelContentUpdate(true);
-    } else if (licenseId) {
+    } else if (!selectedParcelId && licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
+    const isContentChangeOnly =
+      displayNewForSalePrice &&
+      displayNewForSalePrice === displayCurrentForSalePrice;
+
     setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(true);
+    setShouldRefetchParcelsData(!isContentChangeOnly);
     setParcelFieldsToUpdate({
-      forSalePrice:
-        !displayNewForSalePrice ||
-        displayNewForSalePrice !== displayCurrentForSalePrice,
-      licenseOwner: !licenseOwner || licenseOwner !== account,
+      forSalePrice: !isContentChangeOnly,
+      licenseOwner: !licenseOwner || licenseOwner !== accountAddress,
     });
   }
 
@@ -303,10 +354,19 @@ export function ActionForm(props: ActionFormProps) {
   }, [displayCurrentForSalePrice, displayNewForSalePrice, updateActionData]);
 
   React.useEffect(() => {
-    setIsBalanceInsufficient(
-      requiredPayment ? requiredPayment.gt(superTokenBalance) : false
-    );
-  }, [superTokenBalance]);
+    let timerId: NodeJS.Timer;
+
+    if (smartAccount?.safe) {
+      timerId = setInterval(async () => {
+        if (smartAccount?.safe) {
+          const safeEthBalance = await smartAccount.safe.getBalance();
+          setSafeEthBalance(safeEthBalance);
+        }
+      }, 10000);
+    }
+
+    return () => clearInterval(timerId);
+  }, [smartAccount]);
 
   return (
     <>
@@ -327,7 +387,7 @@ export function ActionForm(props: ActionFormProps) {
             {interactionState === STATE.PARCEL_EDITING
               ? "Edit"
               : interactionState === STATE.PARCEL_RECLAIMING &&
-                licenseOwner === account
+                licenseOwner === accountAddress
               ? "Reclaim"
               : interactionState === STATE.PARCEL_RECLAIMING
               ? "Foreclosure Claim"
@@ -436,7 +496,7 @@ export function ActionForm(props: ActionFormProps) {
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
-                  top={isMobile}
+                  position={{ top: isMobile }}
                   content={
                     <div style={{ textAlign: "left" }}>
                       Be honest about your personal valuation! A{" "}
@@ -532,56 +592,179 @@ export function ActionForm(props: ActionFormProps) {
             </div>
             {summaryView}
             <br />
-            <Button
-              variant="secondary"
-              className="w-100 mb-3"
-              onClick={handleWrapModalOpen}
-            >
-              {`Wrap ETH to ${PAYMENT_TOKEN}`}
-            </Button>
-            <ApproveButton
-              {...props}
-              isDisabled={isActing ?? false}
-              requiredFlowAmount={requiredFlowAmount ?? null}
-              requiredPayment={requiredPayment ?? null}
-              spender={spender ?? null}
-              setErrorMessage={(v) => {
-                updateActionData({ errorMessage: v });
-              }}
-              isActing={isActing ?? false}
-              setIsActing={(v) => {
-                updateActionData({ isActing: v });
-              }}
-              setDidFail={(v) => {
-                updateActionData({ didFail: v });
-              }}
-              isAllowed={isAllowed}
-              setIsAllowed={setIsAllowed}
-            />
-            <PerformButton
-              isDisabled={
-                isActing || isLoading || isInvalid || isBalanceInsufficient
-              }
-              isActing={isActing ?? false}
-              buttonText={
-                interactionState === STATE.PARCEL_EDITING
-                  ? "Submit"
-                  : interactionState === STATE.PARCEL_RECLAIMING &&
-                    account.toLowerCase() === licenseOwner?.toLowerCase()
-                  ? "Reclaim"
-                  : "Claim"
-              }
-              performAction={submit}
-              isAllowed={isAllowed}
-            />
+            {smartAccount?.safe ? (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={() => setShowAddFundsModal(true)}
+                >
+                  Add Funds
+                </Button>
+                <AddFundsModal
+                  show={showAddFundsModal}
+                  handleClose={() => setShowAddFundsModal(false)}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                  superTokenBalance={superTokenBalance}
+                />
+                <SubmitBundleButton
+                  {...props}
+                  superTokenBalance={superTokenBalance}
+                  requiredFlowAmount={requiredFlowAmount ?? null}
+                  requiredPayment={requiredPayment ?? null}
+                  spender={spender ?? null}
+                  setErrorMessage={(v) => {
+                    updateActionData({ errorMessage: v });
+                  }}
+                  setIsActing={(v) => {
+                    updateActionData({ isActing: v });
+                  }}
+                  setDidFail={(v) => {
+                    updateActionData({ didFail: v });
+                  }}
+                  isDisabled={
+                    isActing ||
+                    isInvalid ||
+                    isSafeBalanceInsufficient ||
+                    isSafeEthBalanceInsufficient ||
+                    isSafeSuperTokenBalanceInsufficient
+                  }
+                  isActing={isActing ?? false}
+                  buttonText={
+                    interactionState === STATE.PARCEL_EDITING
+                      ? "Submit"
+                      : interactionState === STATE.PARCEL_RECLAIMING &&
+                        accountAddress.toLowerCase() ===
+                          licenseOwner?.toLowerCase()
+                      ? "Reclaim"
+                      : "Claim"
+                  }
+                  encodeFunctionData={encodeFunctionData}
+                  callback={submit}
+                  setTransactionBundleFeesEstimate={
+                    setTransactionBundleFeesEstimate
+                  }
+                  getContentHash={getContentHash}
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={handleWrapModalOpen}
+                >
+                  {`Wrap ETH to ${PAYMENT_TOKEN}`}
+                </Button>
+                <ApproveButton
+                  {...props}
+                  isDisabled={isActing ?? false}
+                  requiredFlowAmount={requiredFlowAmount ?? null}
+                  requiredPayment={requiredPayment ?? null}
+                  spender={spender ?? null}
+                  setErrorMessage={(v) => {
+                    updateActionData({ errorMessage: v });
+                  }}
+                  isActing={isActing ?? false}
+                  setIsActing={(v) => {
+                    updateActionData({ isActing: v });
+                  }}
+                  setDidFail={(v) => {
+                    updateActionData({ didFail: v });
+                  }}
+                  isAllowed={isAllowed}
+                  setIsAllowed={setIsAllowed}
+                />
+                <PerformButton
+                  isDisabled={
+                    isActing ||
+                    isLoading ||
+                    isInvalid ||
+                    isSignerBalanceInsufficient
+                  }
+                  isActing={isActing ?? false}
+                  buttonText={
+                    interactionState === STATE.PARCEL_EDITING
+                      ? "Submit"
+                      : interactionState === STATE.PARCEL_RECLAIMING &&
+                        accountAddress.toLowerCase() ===
+                          licenseOwner?.toLowerCase()
+                      ? "Reclaim"
+                      : "Claim"
+                  }
+                  performAction={submit}
+                  isAllowed={isAllowed}
+                />
+              </>
+            )}
           </Form>
 
           <br />
-          {isBalanceInsufficient && displayNewForSalePrice && !isActing ? (
+          {!smartAccount?.safe &&
+          isSignerBalanceInsufficient &&
+          displayNewForSalePrice &&
+          !isActing ? (
             <Alert key="warning" variant="warning">
               <Alert.Heading>Insufficient ETHx</Alert.Heading>
               Please wrap enough ETH to ETHx to complete this transaction with
               the button above.
+            </Alert>
+          ) : isSafeBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient Funds</Alert.Heading>
+              You must deposit more ETH to your account to complete your
+              transaction. Click Add Funds above.
+            </Alert>
+          ) : smartAccount?.safe &&
+            bundleSettings.isSponsored &&
+            !bundleSettings.noWrap &&
+            safeEthBalance &&
+            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>ETH balance warning</Alert.Heading>
+              You don't have enough ETH to fully fund your ETHx wrapping
+              strategy. We'll wrap your full balance, but consider depositing
+              ETH or changing your transaction settings.
+            </Alert>
+          ) : isSafeEthBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETH for Gas</Alert.Heading>
+              You must deposit more ETH to your account or enable transaction
+              sponsoring in Transaction Settings.
+            </Alert>
+          ) : isSafeSuperTokenBalanceInsufficient &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="danger">
+              <Alert.Heading>Insufficient ETHx</Alert.Heading>
+              You must wrap or deposit ETHx to your account to complete your
+              transaction. You can add funds and wrap your ETH to ETHx in your
+              profile. Alternatively, enable auto-wrapping in Transaction
+              Settings.
+            </Alert>
+          ) : bundleSettings.isSponsored &&
+            ((bundleSettings.noWrap &&
+              requiredPayment &&
+              superTokenBalance.lt(
+                requiredPayment.add(transactionBundleFeesEstimate ?? 0)
+              )) ||
+              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
+                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
+            displayNewForSalePrice &&
+            !isActing ? (
+            <Alert variant="warning">
+              <Alert.Heading>Gas Sponsoring Notice</Alert.Heading>
+              You have transaction sponsoring enabled, but your current ETHx
+              balance doesn't cover the Initial Transfer shown above. We'll use
+              your ETH balance to directly pay for the Transaction Cost then
+              proceed with your chosen auto-wrapping strategy.
             </Alert>
           ) : didFail && !isActing ? (
             <TransactionError

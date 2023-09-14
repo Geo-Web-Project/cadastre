@@ -2,16 +2,17 @@ import React from "react";
 import Image from "react-bootstrap/Image";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import FAQ from "../FAQ";
+import OnRampWidget from "../OnRampWidget";
 
-export default function NavMenu() {
+export default function NavMenu({ account }: { account?: string }) {
   if (process.env.NEXT_PUBLIC_APP_ENV === "mainnet") {
-    return NavMenuMainnet();
+    return <NavMenuMainnet account={account} />;
   } else {
-    return NavMenuTestnet();
+    return <NavMenuTestnet account={account} />;
   }
 }
 
-function NavMenuMainnet() {
+function NavMenuMainnet({ account }: { account?: string }) {
   return (
     <NavDropdown
       title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
@@ -22,14 +23,8 @@ function NavMenuMainnet() {
       <NavDropdown.Item>
         <FAQ />
       </NavDropdown.Item>
-      <NavDropdown.Item
-        href="https://ramp.network/buy/?defaultAsset=OPTIMISM_ETH"
-        target="_blank"
-        rel="noopener"
-        className="d-flex gap-2"
-      >
-        Buy ETH on Optimism
-        <Image src="open-new.svg" alt="open-new" />
+      <NavDropdown.Item className="d-flex gap-2">
+        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -38,7 +33,6 @@ function NavMenuMainnet() {
         className="d-flex gap-2"
       >
         Documentation
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://testnet.geoweb.land/"
@@ -47,14 +41,29 @@ function NavMenuMainnet() {
         className="d-flex gap-2"
       >
         Cadastre Testnet
-        <Image src="open-new.svg" alt="open-new" />
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://www.geoweb.network/terms"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Terms of Service
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://www.geoweb.network/privacy"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Privacy Policy
       </NavDropdown.Item>
       <SocialItems />
     </NavDropdown>
   );
 }
 
-function NavMenuTestnet() {
+function NavMenuTestnet({ account }: { account?: string }) {
   return (
     <NavDropdown
       title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
@@ -65,6 +74,9 @@ function NavMenuTestnet() {
       <NavDropdown.Item>
         <FAQ />
       </NavDropdown.Item>
+      <NavDropdown.Item>
+        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
+      </NavDropdown.Item>
       <NavDropdown.Item
         href="https://optimismfaucet.xyz/"
         target="_blank"
@@ -72,7 +84,6 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Request Testnet ETH
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -81,7 +92,6 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Documentation
-        <Image src="open-new.svg" alt="open-new" />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://geoweb.land/"
@@ -90,7 +100,22 @@ function NavMenuTestnet() {
         className="d-flex gap-2"
       >
         Cadastre Mainnet
-        <Image src="open-new.svg" alt="open-new" />
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://www.geoweb.network/terms"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Terms of Service
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://www.geoweb.network/privacy"
+        target="_blank"
+        rel="noopener"
+        className="d-flex gap-2"
+      >
+        Privacy Policy
       </NavDropdown.Item>
       <SocialItems />
     </NavDropdown>

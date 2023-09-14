@@ -25,10 +25,12 @@ import GalleryModal from "../gallery/GalleryModal";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
+import AcceptBidAction from "./AcceptBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
 import NotificationModal from "../NotificationModal";
+import { LoginState } from "../../pages/index";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { GeoWebContent } from "@geo-web/content";
@@ -112,6 +114,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   const {
     account,
     signer,
+    smartAccount,
+    setSmartAccount,
+    authStatus,
     interactionState,
     licenseAddress,
     setInteractionState,
@@ -133,6 +138,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     variables: {
       id: selectedParcelId,
     },
+    fetchPolicy: "cache-first",
   });
 
   const [requiredBid, setRequiredBid] = React.useState<BigNumber | null>(null);
@@ -160,6 +166,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Spinner>
   );
 
+  const address = smartAccount?.safe ? smartAccount.address : account;
   const selectedParcelCoords = getParcelCoords();
   const forSalePrice =
     data && data.geoWebParcel ? (
@@ -251,11 +258,15 @@ function ParcelInfo(props: ParcelInfoProps) {
       return;
     }
 
-    setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== account));
+    setIsParcelAvailable(!(hasOutstandingBid && outstandingBidder !== address));
   }, [data]);
 
   React.useEffect(() => {
-    if (parcelFieldsToUpdate && selectedParcelId) {
+    if (
+      (parcelFieldsToUpdate?.forSalePrice ||
+        parcelFieldsToUpdate?.licenseOwner) &&
+      selectedParcelId
+    ) {
       const timerId = setInterval(() => {
         refetch({
           id: selectedParcelId,
@@ -267,7 +278,7 @@ function ParcelInfo(props: ParcelInfoProps) {
       if (invalidLicenseId) {
         setInvalidLicenseId("");
 
-        if (licenseOwner === account) {
+        if (licenseOwner === address) {
           setParcelFieldsToUpdate(null);
         }
       }
@@ -359,19 +370,21 @@ function ParcelInfo(props: ParcelInfoProps) {
     const headerText =
       interactionState === STATE.PARCEL_PLACING_BID
         ? "Place Bid"
+        : interactionState === STATE.PARCEL_ACCEPTING_BID
+        ? "Accept Bid"
         : interactionState === STATE.PARCEL_REJECTING_BID
         ? "Reject Bid"
         : interactionState === STATE.PARCEL_EDITING
         ? "Edit Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING &&
-          account === licenseOwner
+          address === licenseOwner
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
         : isMobile ||
           isTablet ||
           interactionState === STATE.CLAIM_SELECTING ||
-          (interactionState === STATE.CLAIM_SELECTED && !account)
+          (interactionState === STATE.CLAIM_SELECTED && !address)
         ? "Claim Parcel"
         : null;
     header = (
@@ -474,19 +487,25 @@ function ParcelInfo(props: ParcelInfoProps) {
   }
 
   let buttons;
-  if (parcelFieldsToUpdate) {
+  if (
+    parcelFieldsToUpdate?.forSalePrice ||
+    parcelFieldsToUpdate?.licenseOwner
+  ) {
     buttons = null;
   } else if (interactionState != STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
-    if (!account) {
+    if (!address || smartAccount?.loginState !== LoginState.CONNECTED) {
       buttons = (
         <>
-          <ConnectWallet />
+          <ConnectWallet
+            authStatus={authStatus}
+            setSmartAccount={setSmartAccount}
+          />
           {!hasOutstandingBid && <AuctionInstructions />}
         </>
       );
-    } else if (account.toLowerCase() == licenseOwner?.toLowerCase()) {
+    } else if (address.toLowerCase() == licenseOwner?.toLowerCase()) {
       buttons = (
         <div>
           {editButton}
@@ -546,6 +565,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         !isTablet &&
         (interactionState == STATE.PARCEL_EDITING ||
           interactionState == STATE.PARCEL_PLACING_BID ||
+          interactionState == STATE.PARCEL_ACCEPTING_BID ||
           interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_GALLERY)) ? (
         <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
@@ -604,7 +624,8 @@ function ParcelInfo(props: ParcelInfoProps) {
               <br />
               {invalidLicenseId == selectedParcelId
                 ? null
-                : parcelFieldsToUpdate
+                : parcelFieldsToUpdate?.forSalePrice ||
+                  parcelFieldsToUpdate?.licenseOwner
                 ? null
                 : buttons}
               {testButtons}
@@ -634,21 +655,22 @@ function ParcelInfo(props: ParcelInfoProps) {
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           currentOwnerBidForSalePrice &&
-          !parcelFieldsToUpdate ? (
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
             <>
               <OutstandingBidView
                 {...props}
                 newForSalePrice={outstandingBidForSalePrice}
                 existingForSalePrice={currentOwnerBidForSalePrice}
                 bidTimestamp={outstandingBidTimestamp ?? null}
-                licensorIsOwner={licenseOwner === account}
+                licensorIsOwner={licenseOwner === address}
                 licenseDiamondContract={licenseDiamondContract}
               />
               <AuctionInstructions />
             </>
           ) : null}
           {interactionState == STATE.PARCEL_EDITING &&
-          account &&
+          address &&
           signer &&
           data?.geoWebParcel &&
           licenseOwner ? (
@@ -658,7 +680,10 @@ function ParcelInfo(props: ParcelInfoProps) {
               parcelData={data.geoWebParcel}
               parcelContent={parcelContent}
               hasOutstandingBid={
-                !parcelFieldsToUpdate ? hasOutstandingBid : false
+                !parcelFieldsToUpdate?.forSalePrice &&
+                !parcelFieldsToUpdate?.licenseOwner
+                  ? hasOutstandingBid
+                  : false
               }
               licenseDiamondContract={licenseDiamondContract}
               licenseOwner={licenseOwner}
@@ -667,7 +692,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             />
           ) : null}
           {interactionState == STATE.PARCEL_PLACING_BID &&
-          account &&
+          address &&
           signer &&
           data?.geoWebParcel ? (
             <PlaceBidAction
@@ -677,13 +702,29 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseDiamondContract={licenseDiamondContract}
             />
           ) : null}
+          {smartAccount?.safe &&
+          interactionState == STATE.PARCEL_ACCEPTING_BID &&
+          hasOutstandingBid &&
+          outstandingBidForSalePrice &&
+          currentOwnerBidForSalePrice &&
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
+            <AcceptBidAction
+              {...props}
+              newForSalePrice={outstandingBidForSalePrice}
+              existingForSalePrice={currentOwnerBidForSalePrice}
+              bidTimestamp={outstandingBidTimestamp ?? null}
+              licenseDiamondContract={licenseDiamondContract}
+            />
+          ) : null}
           {interactionState == STATE.PARCEL_REJECTING_BID &&
-          account &&
+          address &&
           signer &&
           hasOutstandingBid &&
           outstandingBidForSalePrice &&
           data?.geoWebParcel &&
-          !parcelFieldsToUpdate ? (
+          !parcelFieldsToUpdate?.forSalePrice &&
+          !parcelFieldsToUpdate?.licenseOwner ? (
             <RejectBidAction
               {...props}
               signer={signer}
@@ -694,7 +735,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             />
           ) : null}
           {interactionState == STATE.PARCEL_RECLAIMING &&
-          account &&
+          address &&
           signer &&
           licenseOwner ? (
             <ReclaimAction
@@ -714,6 +755,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         <GalleryModal
           show={interactionState === STATE.EDITING_GALLERY}
           setRootCid={setRootCid}
+          licenseDiamondContract={licenseDiamondContract}
           {...props}
         ></GalleryModal>
       )}

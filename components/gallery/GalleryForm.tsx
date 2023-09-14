@@ -1,13 +1,13 @@
 /* eslint-disable import/no-unresolved */
 import * as React from "react";
-import BN from "bn.js";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
+import Spinner from "react-bootstrap/Spinner";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
-import { AssetId } from "caip";
 import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
@@ -15,9 +15,8 @@ import {
   getFormat,
   getFormatCS,
 } from "./GalleryFileFormat";
-import { useFirebase } from "../../lib/Firebase";
-import { NETWORK_ID } from "../../lib/constants";
 import { uploadFile } from "@web3-storage/upload-client";
+import { useMediaQuery } from "../../lib/mediaQuery";
 
 interface MediaGalleryItem {
   name?: string;
@@ -26,7 +25,10 @@ interface MediaGalleryItem {
 }
 
 export type GalleryFormProps = GalleryModalProps & {
-  mediaGalleryItems: MediaObject[];
+  newMediaGallery: MediaObject[];
+  setNewMediaGallery: React.Dispatch<
+    React.SetStateAction<MediaObject[] | null>
+  >;
   selectedMediaGalleryItemIndex: number | null;
   shouldMediaGalleryUpdate: boolean;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
@@ -37,28 +39,22 @@ export type GalleryFormProps = GalleryModalProps & {
 
 function GalleryForm(props: GalleryFormProps) {
   const {
-    licenseAddress,
-    selectedParcelId,
     geoWebContent,
     w3InvocationConfig,
-    ceramic,
-    mediaGalleryItems,
+    newMediaGallery,
+    setNewMediaGallery,
     selectedMediaGalleryItemIndex,
-    shouldMediaGalleryUpdate,
     setSelectedMediaGalleryItemIndex,
-    setShouldMediaGalleryUpdate,
-    setRootCid,
   } = props;
 
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [mediaGalleryItem, setMediaGalleryItem] =
     React.useState<MediaGalleryItem>({});
 
-  const { firebasePerf } = useFirebase();
+  const { isMobile } = useMediaQuery();
 
   React.useEffect(() => {
     if (selectedMediaGalleryItemIndex === null) {
@@ -66,23 +62,16 @@ function GalleryForm(props: GalleryFormProps) {
     }
 
     setFileFormat(
-      mediaGalleryItems[selectedMediaGalleryItemIndex].encodingFormat
+      newMediaGallery[selectedMediaGalleryItemIndex].encodingFormat
     );
     setMediaGalleryItem({
-      name: mediaGalleryItems[selectedMediaGalleryItemIndex].name,
+      name: newMediaGallery[selectedMediaGalleryItemIndex].name,
       content:
-        mediaGalleryItems[selectedMediaGalleryItemIndex].content.toString(),
+        newMediaGallery[selectedMediaGalleryItemIndex].content.toString(),
       encodingFormat:
-        mediaGalleryItems[selectedMediaGalleryItemIndex].encodingFormat,
+        newMediaGallery[selectedMediaGalleryItemIndex].encodingFormat,
     });
   }, [selectedMediaGalleryItemIndex]);
-
-  React.useEffect(() => {
-    if (isSaving && !shouldMediaGalleryUpdate) {
-      setIsSaving(false);
-      clearForm();
-    }
-  }, [shouldMediaGalleryUpdate]);
 
   function updateMediaGalleryItem(updatedValues: MediaGalleryItem) {
     function _updateData(updatedValues: MediaGalleryItem) {
@@ -155,30 +144,33 @@ function GalleryForm(props: GalleryFormProps) {
     setSelectedMediaGalleryItemIndex(null);
   }
 
-  async function addToGallery() {
+  async function updateMediaGalleryView() {
     if (!geoWebContent) {
       return;
     }
 
-    setIsSaving(true);
-    setDidFail(false);
+    const mediaObject = {
+      name: mediaGalleryItem.name ?? "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      content: CID.parse(mediaGalleryItem.content ?? "") as any,
+      encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
+    };
 
-    const trace = firebasePerf?.trace("add_media_item_to_gallery");
-    trace?.start();
+    if (selectedMediaGalleryItemIndex !== null) {
+      setNewMediaGallery(
+        newMediaGallery.map((item, i) => {
+          if (i == selectedMediaGalleryItemIndex) {
+            return mediaObject;
+          } else {
+            return item;
+          }
+        })
+      );
+    } else {
+      setNewMediaGallery([...newMediaGallery, mediaObject]);
+    }
 
-    await commitNewRoot(mediaGalleryItem);
-
-    trace?.stop();
-
-    setShouldMediaGalleryUpdate(true);
-  }
-
-  async function saveChanges() {
-    setIsSaving(true);
-
-    await commitNewRoot(mediaGalleryItem);
-
-    setShouldMediaGalleryUpdate(true);
+    clearForm();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -190,83 +182,39 @@ function GalleryForm(props: GalleryFormProps) {
     });
   }
 
-  function onSelectPinningService() {
-    // setPinningService(event.target.value);
-    // if (event.target.value != "pinata") {
-    //   setPinningServiceEndpoint("");
-    // } else {
-    //   setPinningServiceEndpoint(PINATA_API_ENDPOINT);
-    // }
-    // setPinningServiceAccessToken("");
-  }
-
-  async function commitNewRoot(mediaGalleryItem: MediaGalleryItem) {
-    if (!geoWebContent || !ceramic.did) {
-      return;
-    }
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: licenseAddress.toLowerCase(),
-      },
-      tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-    });
-    const ownerDID = ceramic.did.parent;
-    const rootCid = await geoWebContent.raw.resolveRoot({
-      ownerDID,
-      parcelId: assetId,
-    });
-    const mediaGallery = await geoWebContent.raw.get(rootCid, "/mediaGallery", {
-      schema: "MediaGallery",
-    });
-    const cidStr = mediaGalleryItem.content;
-    const mediaObject: MediaObject = {
-      name: mediaGalleryItem.name ?? "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      content: CID.parse(cidStr ?? "") as any,
-      encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
-    };
-    const newRoot = await geoWebContent.raw.putPath(
-      rootCid,
-      selectedMediaGalleryItemIndex !== null
-        ? `/mediaGallery/${selectedMediaGalleryItemIndex}`
-        : `/mediaGallery/${mediaGallery.length}`,
-      mediaObject,
-      { parentSchema: "MediaGallery", pin: true }
-    );
-
-    await geoWebContent.raw.commit(newRoot, {
-      ownerDID,
-      parcelId: assetId,
-    });
-
-    setRootCid(newRoot.toString());
-  }
-
-  const isReadyToAdd =
-    mediaGalleryItem.content && mediaGalleryItem.name && !isSaving;
-
-  const spinner = (
-    <span
-      className="spinner-border"
-      role="status"
-      style={{ height: "1.5em", width: "1.5em" }}
-    >
-      <span className="visually-hidden"></span>
-    </span>
-  );
+  const isReadyToAdd = mediaGalleryItem.content && mediaGalleryItem.name;
 
   return (
     <>
       <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary mb-1">CID</Form.Text>
+            <Form.Text className="text-primary">CID</Form.Text>
             <InputGroup>
+              <Button
+                variant="secondary"
+                style={{ height: 35, width: 42 }}
+                className="d-flex justify-content-center align-items-center mt-1"
+                as="label"
+                htmlFor="uploadCid"
+                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
+              >
+                {isUploading ? (
+                  <Spinner
+                    size="sm"
+                    animation="border"
+                    role="status"
+                    variant="light"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </Spinner>
+                ) : (
+                  <Image src="upload.svg" alt="upload" width={24} />
+                )}
+              </Button>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
-                className="text-white mt-1"
+                className="text-white mt-1 rounded-2"
                 type="text"
                 placeholder="Upload media or add an existing CID"
                 readOnly={isUploading || selectedMediaGalleryItemIndex !== null}
@@ -283,15 +231,7 @@ function GalleryForm(props: GalleryFormProps) {
                 onChange={captureFile}
                 hidden
               ></Form.Control>
-              <Button
-                as="label"
-                htmlFor="uploadCid"
-                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
-              >
-                {!isUploading ? "Upload" : spinner}
-              </Button>
             </InputGroup>
-            {/* {isUploading ? <ProgressBar now={uploadProgress} /> : null} */}
           </Col>
           <Col sm="12" lg="6" className="mb-3">
             <Form.Text className="text-primary mb-1">Name</Form.Text>
@@ -333,51 +273,42 @@ function GalleryForm(props: GalleryFormProps) {
               </Form.Control>
             </div>
           </Col>
-          <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary mb-1">
-              Content Pinning Service
-            </Form.Text>
-            <Form.Control
-              as="select"
-              className="text-white mt-1"
-              style={{ backgroundColor: "#111320", border: "none" }}
-              onChange={onSelectPinningService}
-              disabled
-            >
-              <option value="buckets">Geo Web Free (Default)</option>
-            </Form.Control>
-          </Col>
+          {!isMobile && (
+            <Col sm="12" lg="6" className="mb-3">
+              <Form.Text className="text-primary mb-1">
+                Content Pinning Service
+              </Form.Text>
+              <Form.Control
+                as="select"
+                className="text-white mt-1"
+                style={{ backgroundColor: "#111320", border: "none" }}
+                disabled
+              >
+                <option value="buckets">Geo Web Free (Default)</option>
+              </Form.Control>
+            </Col>
+          )}
         </Row>
         <Row className="px-1 px-sm-3 text-end justify-content-end">
-          <Col xs="6" md="6" lg="3" className="mb-3">
+          <Col xs="6" md="6" lg="2" className="mb-3">
             <Button
-              variant="danger"
-              disabled={!fileFormat || isSaving}
+              variant="info"
+              disabled={!fileFormat}
               onClick={clearForm}
               className="w-100"
             >
-              Cancel
+              <Image src="close.svg" alt="done" width={28} />
             </Button>
           </Col>
-          <Col xs="6" md="6" lg="3">
-            {selectedMediaGalleryItemIndex !== null ? (
-              <Button
-                variant="secondary"
-                className="w-100"
-                onClick={saveChanges}
-              >
-                {isSaving ? spinner : "Save Changes"}
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                disabled={!isReadyToAdd}
-                className="w-100"
-                onClick={addToGallery}
-              >
-                {isSaving ? spinner : "Add to Gallery"}
-              </Button>
-            )}
+          <Col xs="6" md="6" lg="2">
+            <Button
+              variant="primary"
+              disabled={!isReadyToAdd}
+              className="w-100"
+              onClick={updateMediaGalleryView}
+            >
+              <Image src="done.svg" alt="done" width={28} />
+            </Button>
           </Col>
           {didFail ? (
             <Col className="text-danger">

@@ -4,12 +4,9 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import BN from "bn.js";
-import { AssetId } from "caip";
 import type { MediaObject } from "@geo-web/types";
 import { GalleryModalProps } from "./GalleryModal";
 import { getFormatType } from "./GalleryFileFormat";
-import { NETWORK_ID } from "../../lib/constants";
 
 const DISPLAY_TYPES: Record<string, string> = {
   "3DModel": "3D Model",
@@ -20,6 +17,10 @@ const DISPLAY_TYPES: Record<string, string> = {
 
 export type GalleryDisplayItemProps = GalleryModalProps & {
   mediaGalleryItem: MediaObject;
+  newMediaGallery: MediaObject[];
+  setNewMediaGallery: React.Dispatch<
+    React.SetStateAction<MediaObject[] | null>
+  >;
   index: number;
   selectedMediaGalleryItemIndex: number | null;
   shouldMediaGalleryUpdate: boolean;
@@ -33,16 +34,12 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
 function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const {
     mediaGalleryItem,
-    geoWebContent,
-    ceramic,
-    licenseAddress,
-    selectedParcelId,
+    newMediaGallery,
+    setNewMediaGallery,
     index,
     selectedMediaGalleryItemIndex,
     shouldMediaGalleryUpdate,
     setSelectedMediaGalleryItemIndex,
-    setShouldMediaGalleryUpdate,
-    setRootCid,
   } = props;
 
   const [isHovered, setIsHovered] = React.useState(false);
@@ -76,44 +73,13 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   }, [shouldMediaGalleryUpdate]);
 
   async function removeMediaGalleryItem() {
-    if (!geoWebContent || !ceramic.did) {
-      return;
+    if (newMediaGallery) {
+      setNewMediaGallery(
+        newMediaGallery.filter(
+          (item) => newMediaGallery.indexOf(item) !== index
+        )
+      );
     }
-
-    setIsRemoving(true);
-
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: licenseAddress.toLowerCase(),
-      },
-      tokenId: new BN(selectedParcelId.slice(2), "hex").toString(10),
-    });
-    const rootCid = await geoWebContent.raw.resolveRoot({
-      ownerDID: ceramic.did?.parent,
-      parcelId: assetId,
-    });
-    const newRoot = await geoWebContent.raw.deletePath(
-      rootCid,
-      `/mediaGallery/${index}`,
-      {
-        pin: true,
-      }
-    );
-
-    await geoWebContent.raw.commit(newRoot, {
-      ownerDID: ceramic.did?.parent,
-      parcelId: assetId,
-    });
-
-    const newRootCid = await geoWebContent.raw.resolveRoot({
-      parcelId: assetId,
-      ownerDID: ceramic.did?.parent,
-    });
-
-    setRootCid(newRootCid.toString());
-    setShouldMediaGalleryUpdate(true);
   }
 
   function handleEdit() {
@@ -136,8 +102,12 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
         </Col>
       </Row>
       <Row>
-        <Col style={{ height: "100px" }}>
-          <Image style={statusView ? { opacity: "0.3" } : {}} src="file.png" />
+        <Col>
+          <Image
+            style={statusView ? { opacity: "0.3" } : {}}
+            src="file.png"
+            width={70}
+          />
           <div className="position-relative bottom-100">{statusView}</div>
         </Col>
       </Row>

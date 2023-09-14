@@ -4,11 +4,11 @@ import { OverlayTrigger, Tooltip } from "react-bootstrap";
 export type InfoTooltipProps = {
   content: JSX.Element;
   target: JSX.Element;
-  top?: boolean;
+  position?: { top?: boolean; bottom?: boolean; right?: boolean };
 };
 
 function InfoTooltip(props: InfoTooltipProps) {
-  const { content, target } = props;
+  const { content, target, position } = props;
 
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -25,7 +25,15 @@ function InfoTooltip(props: InfoTooltipProps) {
     <OverlayTrigger
       trigger={["hover", "focus"]}
       show={showTooltip}
-      placement={top ? "top" : "right-end"}
+      placement={
+        position?.top
+          ? "top"
+          : position?.bottom
+          ? "bottom"
+          : position?.right
+          ? "right"
+          : "right-end"
+      }
       overlay={
         <Tooltip
           onMouseEnter={handleMouseEnter}
