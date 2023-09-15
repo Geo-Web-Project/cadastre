@@ -484,7 +484,7 @@ function useSafe(safe: Safe | null) {
     let signature;
 
     if (isMobile || isTablet) {
-      const txHash = await safe.getTransactionHash(safeTransaction);
+      const txHash = await getSafeTransactionHash(safeTransaction);
       signature = await safe.signTransactionHash(txHash);
     } else {
       signature = await safe.signTypedData(safeTransaction, "v4");
@@ -493,6 +493,43 @@ function useSafe(safe: Safe | null) {
     safeTransaction.addSignature(signature);
 
     return safeTransaction;
+  };
+
+  const getSafeTransactionHash = async (safeTransaction: SafeTransaction) => {
+    if (!safe) {
+      throw new Error("Safe was not found");
+    }
+
+    const safeAddress = await safe.getAddress();
+    const safeSingletonCode = await provider.getCode(
+      safeL2SingletonInfo.networkAddresses[NETWORK_ID]
+    );
+    const stateOverride = {
+      [safeAddress]: {
+        code: safeSingletonCode,
+      },
+    };
+    const txHash = await provider.send("eth_call", [
+      {
+        to: safeAddress,
+        data: safeL2Singleton.encodeFunctionData("getTransactionHash", [
+          safeTransaction.data.to,
+          safeTransaction.data.value,
+          safeTransaction.data.data,
+          safeTransaction.data.operation,
+          safeTransaction.data.safeTxGas,
+          safeTransaction.data.baseGas,
+          safeTransaction.data.gasPrice,
+          safeTransaction.data.gasToken,
+          safeTransaction.data.refundReceiver,
+          safeTransaction.data.nonce++,
+        ]),
+      },
+      "latest",
+      stateOverride,
+    ]);
+
+    return txHash;
   };
 
   const encodeMultiSendData = (txs: MetaTransactionData[]) => {
