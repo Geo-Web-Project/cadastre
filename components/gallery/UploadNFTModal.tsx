@@ -8,7 +8,7 @@ import Image from "react-bootstrap/Image";
 import Spinner from "react-bootstrap/Spinner";
 import Container from "react-bootstrap/Container";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
-import { Network, Alchemy } from "alchemy-sdk";
+import { Network, Alchemy, OwnedNft, NftTokenType } from "alchemy-sdk";
 import axios from "axios";
 
 const settings = {
@@ -17,6 +17,25 @@ const settings = {
 };
 
 const alchemy = new Alchemy(settings);
+
+const initialOwnedNFT = {
+  balance: 0,
+  contract: {
+    address: "",
+    tokenType: NftTokenType.UNKNOWN,
+  },
+  tokenId: "",
+  tokenType: NftTokenType.UNKNOWN,
+  title: "",
+  description: "",
+  timeLastUpdated: "",
+  metadataError: undefined,
+  rawMetadata: undefined,
+  tokenUri: undefined,
+  media: [],
+  spamInfo: undefined,
+  acquiredAt: undefined,
+};
 
 export type UploadNFTModalProps = ParcelInfoProps & {
   showNFTModal: boolean;
@@ -29,8 +48,8 @@ function GalleryModal(props: UploadNFTModalProps) {
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
-  const [nftsForOwner, setNftsForOwner] = useState<Array<any>>([]);
-  const [selectedNFT, setSelectedNFT] = useState<any>([]);
+  const [nftsForOwner, setNftsForOwner] = useState<Array<OwnedNft>>([]);
+  const [selectedNFT, setSelectedNFT] = useState<OwnedNft>(initialOwnedNFT);
 
   const spinner = (
     <span className="spinner-border" role="status">
@@ -62,10 +81,11 @@ function GalleryModal(props: UploadNFTModalProps) {
 
     uploadNFT(file, selectedNFT.title);
     onClose();
+    setSelectedNFT(initialOwnedNFT);
   };
 
   const closeModal = async () => {
-    setSelectedNFT({});
+    setSelectedNFT(initialOwnedNFT);
     onClose();
   };
 
@@ -108,7 +128,7 @@ function GalleryModal(props: UploadNFTModalProps) {
             <Col xs="8" sm="11">
               <Modal.Title className="text-primary">
                 NFTs Held by {account.slice(0, 6)}...
-                {account.slice(5)}
+                {account.slice(-4)}
               </Modal.Title>
             </Col>
             <Col xs="4" sm="1" className="text-end">
@@ -133,27 +153,51 @@ function GalleryModal(props: UploadNFTModalProps) {
 
             <Row
               style={{
-                maxHeight: "70vh",
-                overflowY: "auto",
-                paddingBottom: "20px",
+                display: "flex",
+                flexWrap: "wrap",
+                marginBottom: "20px",
               }}
             >
               {nftsForOwner.map((nft) => {
                 return (
-                  <Col key={nft.tokenId} xs="4" sm="4" lg="3">
+                  <Col key={nft.tokenId} xs="6" sm="4" lg="3">
                     <div
                       className={`${
-                        selectedNFT === nft ? "border border-light" : ""
+                        selectedNFT === nft
+                          ? "border border-secondary rounded"
+                          : ""
                       }`}
-                      style={{ cursor: "pointer" }}
+                      style={{
+                        cursor: "pointer",
+                        flex: "1",
+                        height: "90%",
+                        marginBottom: "20px",
+                        boxSizing: "border-box",
+                      }}
                       onClick={() => setSelectedNFT(nft)}
                     >
-                      <Card className="bg-dark p-3">
-                        <Card.Img
-                          src={nft?.media?.[0]?.gateway || "/file.png"}
-                        />
+                      <Card className="bg-dark p-2" style={{ height: "100%" }}>
+                        <div
+                          style={{
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Card.Img
+                            src={nft?.media?.[0]?.gateway || "/file.png"}
+                            className="px-4 pt-4"
+                          />
+                        </div>
                         <Card.Body>
-                          <Card.Title>{nft?.title || ""}</Card.Title>
+                          <Card.Title
+                            style={{
+                              textAlign: "center",
+                            }}
+                          >
+                            {nft?.title || ""}
+                          </Card.Title>
                         </Card.Body>
                       </Card>
                     </div>

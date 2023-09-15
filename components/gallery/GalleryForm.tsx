@@ -283,7 +283,7 @@ function GalleryForm(props: GalleryFormProps) {
                 }
               >
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   style={{ height: 35, width: 42 }}
                   className="d-flex justify-content-center align-items-center mt-1"
                   as="label"
