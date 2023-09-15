@@ -20,6 +20,7 @@ import {
   getSimulateTxAccessorDeployment,
 } from "@safe-global/safe-deployments";
 import { GelatoRelayPack } from "@safe-global/relay-kit";
+import { useAccount } from "wagmi";
 import { useMediaQuery } from "./mediaQuery";
 import {
   NETWORK_ID,
@@ -38,6 +39,7 @@ enum OperationType {
 }
 
 function useSafe(safe: Safe | null) {
+  const { connector } = useAccount();
   const { isMobile, isTablet } = useMediaQuery();
 
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
@@ -483,7 +485,7 @@ function useSafe(safe: Safe | null) {
 
     let signature;
 
-    if (isMobile || isTablet) {
+    if (isMobile || isTablet || connector?.id === "walletConnect") {
       const txHash = await getSafeTransactionHash(safeTransaction);
       signature = await safe.signTransactionHash(txHash);
     } else {
