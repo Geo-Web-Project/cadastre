@@ -5,10 +5,12 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import Spinner from "react-bootstrap/Spinner";
 import Container from "react-bootstrap/Container";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
-import { Network, Alchemy, OwnedNft, NftTokenType } from "alchemy-sdk";
+import { Network, Alchemy, NftTokenType } from "alchemy-sdk";
+
+import type { OwnedNft } from "alchemy-sdk";
+
 import axios from "axios";
 
 const settings = {
@@ -46,8 +48,6 @@ export type UploadNFTModalProps = ParcelInfoProps & {
 function GalleryModal(props: UploadNFTModalProps) {
   const { showNFTModal, onClose, uploadNFT, account } = props;
 
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
   const [nftsForOwner, setNftsForOwner] = useState<Array<OwnedNft>>([]);
   const [selectedNFT, setSelectedNFT] = useState<OwnedNft>(initialOwnedNFT);
 
@@ -62,18 +62,15 @@ function GalleryModal(props: UploadNFTModalProps) {
   const selectNFTFromWallet = async () => {
     //upload to IPFS
 
-    let raw = selectedNFT?.media?.[0]?.raw.slice(6);
+    const raw = selectedNFT?.media?.[0]?.raw.slice(6);
+    const url = process.env.NEXT_PUBLIC_IPFS_GATEWAY + "/ipfs" + raw;
 
-    let url = process.env.NEXT_PUBLIC_IPFS_GATEWAY + "/ipfs" + raw;
-
-    let res = await axios.get(url, { responseType: "arraybuffer" });
-    let data = res.data;
-
+    const res = await axios.get(url, { responseType: "arraybuffer" });
+    const data = res.data;
     const blob = new Blob([data]);
 
-    let type = res.headers["content-type"];
-
-    let fileExt = type.split("/")[1];
+    const type = res.headers["content-type"];
+    const fileExt = type.split("/")[1];
 
     const file = new File([blob], `${selectedNFT.title}.${fileExt}`, {
       type: type,
@@ -92,7 +89,7 @@ function GalleryModal(props: UploadNFTModalProps) {
   useEffect(() => {
     async function getNftsForOwner() {
       try {
-        let nfts = [];
+        const nfts = [];
         // Get the async iterable for the owner's NFTs.
         const nftsIterable = alchemy.nft.getNftsForOwnerIterator(account);
 
@@ -207,34 +204,17 @@ function GalleryModal(props: UploadNFTModalProps) {
             </Row>
             <Row className="text-end justify-content-end">
               <Col xs="6" sm="2">
-                <Button
-                  variant="danger"
-                  disabled={isSaving || showAlert}
-                  onClick={closeModal}
-                  className="w-100"
-                >
+                <Button variant="danger" onClick={closeModal} className="w-100">
                   Cancel
                 </Button>
               </Col>
               <Col xs="6" sm="2">
                 <Button
                   variant="primary"
-                  disabled={isSaving || showAlert}
                   onClick={selectNFTFromWallet}
                   className="w-100"
                 >
-                  {isSaving ? (
-                    <Spinner
-                      size="sm"
-                      animation="border"
-                      role="status"
-                      variant="light"
-                    >
-                      <span className="visually-hidden">Loading...</span>
-                    </Spinner>
-                  ) : (
-                    "Select"
-                  )}
+                  Select
                 </Button>
               </Col>
             </Row>
