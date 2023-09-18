@@ -19,6 +19,9 @@ import { uploadFile } from "@web3-storage/upload-client";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import UploadNFTModal from "./UploadNFTModal";
+import type { OwnedNft } from "alchemy-sdk";
+
+import axios from "axios";
 
 interface MediaGalleryItem {
   name?: string;
@@ -54,6 +57,10 @@ function GalleryForm(props: GalleryFormProps) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [isUploadingNFT, setIsUploadingNFT] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+
+  const [didNFTUploadFail, setDidNFTUploadFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
   const [mediaGalleryItem, setMediaGalleryItem] =
     React.useState<MediaGalleryItem>({});
 
@@ -145,27 +152,46 @@ function GalleryForm(props: GalleryFormProps) {
 
     setIsUploading(false);
   }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function uploadNFT(file: File, title: string) {
-    if (!file) {
-      return;
-    }
-
+  async function uploadNFT(selectedNFT: OwnedNft) {
     setIsUploadingNFT(true);
+    handleCloseModal();
+    try {
+      if (!selectedNFT?.media?.[0]?.raw) {
+        throw Error("No Media attached to asset");
+      }
+      const raw = selectedNFT?.media?.[0]?.raw.slice(6);
+      const url = process.env.NEXT_PUBLIC_IPFS_GATEWAY + "/ipfs" + raw;
 
-    const format = getFormat(file.name);
-    const { encoding } = format;
-    setFileFormat(encoding ?? null);
+      const res = await axios.get(url, { responseType: "arraybuffer" });
+      const data = res.data;
+      const blob = new Blob([data]);
 
-    // Upload to Web3 storage
-    const added = await uploadFile(w3InvocationConfig, file);
+      const type = res.headers["content-type"];
+      const fileExt = type.split("/")[1];
 
-    updateMediaGalleryItem({
-      name: title,
-      content: added.toString(),
-      encodingFormat: encoding,
-    });
+      const file = new File([blob], `${selectedNFT.title}.${fileExt}`, {
+        type: type,
+      });
+
+      const format = getFormat(file.name);
+      const { encoding } = format;
+      setFileFormat(encoding ?? null);
+      // Upload to Web3 storage
+      const added = await uploadFile(w3InvocationConfig, file);
+
+      updateMediaGalleryItem({
+        name: selectedNFT?.title,
+        content: added.toString(),
+        encodingFormat: encoding,
+      });
+      setErrorMessage("");
+      setDidNFTUploadFail(false);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage((err as Error).message);
+      setDidNFTUploadFail(true);
+    }
 
     setIsUploadingNFT(false);
   }
@@ -418,6 +444,9 @@ function GalleryForm(props: GalleryFormProps) {
             <Col className="text-danger">
               Failed to add item. An unknown error occurred.
             </Col>
+          ) : null}
+          {didNFTUploadFail ? (
+            <Col className="text-danger">{errorMessage}</Col>
           ) : null}
         </Row>
       </Form>

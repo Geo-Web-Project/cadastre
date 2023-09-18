@@ -13,12 +13,19 @@ import type { OwnedNft } from "alchemy-sdk";
 
 import axios from "axios";
 
-const settings = {
+const optimismSettings = {
   apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
   network: Network.OPT_GOERLI, // Replace with OPT_MAINNET
 };
 
-const alchemy = new Alchemy(settings);
+const ethMainnetSettings = {
+  apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
+  network: Network.ETH_MAINNET,
+};
+
+const optimismAlchemy = new Alchemy(optimismSettings);
+
+const ethMainnetAlchemy = new Alchemy(ethMainnetSettings);
 
 const initialOwnedNFT = {
   balance: 0,
@@ -42,7 +49,7 @@ const initialOwnedNFT = {
 export type UploadNFTModalProps = ParcelInfoProps & {
   showNFTModal: boolean;
   onClose: () => void;
-  uploadNFT: (file: File, name: string) => void;
+  uploadNFT: (nft: OwnedNft) => void;
 };
 
 function GalleryModal(props: UploadNFTModalProps) {
@@ -60,24 +67,7 @@ function GalleryModal(props: UploadNFTModalProps) {
   const isLoading = false;
 
   const selectNFTFromWallet = async () => {
-    //upload to IPFS
-
-    const raw = selectedNFT?.media?.[0]?.raw.slice(6);
-    const url = process.env.NEXT_PUBLIC_IPFS_GATEWAY + "/ipfs" + raw;
-
-    const res = await axios.get(url, { responseType: "arraybuffer" });
-    const data = res.data;
-    const blob = new Blob([data]);
-
-    const type = res.headers["content-type"];
-    const fileExt = type.split("/")[1];
-
-    const file = new File([blob], `${selectedNFT.title}.${fileExt}`, {
-      type: type,
-    });
-
-    uploadNFT(file, selectedNFT.title);
-    onClose();
+    uploadNFT(selectedNFT);
     setSelectedNFT(initialOwnedNFT);
   };
 
@@ -91,10 +81,20 @@ function GalleryModal(props: UploadNFTModalProps) {
       try {
         const nfts = [];
         // Get the async iterable for the owner's NFTs.
-        const nftsIterable = alchemy.nft.getNftsForOwnerIterator(account);
+        const nftsIterable =
+          optimismAlchemy.nft.getNftsForOwnerIterator(account);
 
         // Iterate over the NFTs and add them to the nfts array.
         for await (const nft of nftsIterable) {
+          nfts.push(nft);
+        }
+
+        // Get the async iterable for the owner's NFTs.
+        const ethMainnetNftsIterable =
+          ethMainnetAlchemy.nft.getNftsForOwnerIterator(account);
+
+        // Iterate over the NFTs and add them to the nfts array.
+        for await (const nft of ethMainnetNftsIterable) {
           nfts.push(nft);
         }
 
@@ -153,6 +153,8 @@ function GalleryModal(props: UploadNFTModalProps) {
                 display: "flex",
                 flexWrap: "wrap",
                 marginBottom: "20px",
+                overflow: "auto",
+                height: "70vh",
               }}
             >
               {nftsForOwner.map((nft) => {
