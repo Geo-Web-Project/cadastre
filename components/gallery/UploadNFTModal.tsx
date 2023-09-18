@@ -11,8 +11,6 @@ import { Network, Alchemy, NftTokenType } from "alchemy-sdk";
 
 import type { OwnedNft } from "alchemy-sdk";
 
-import axios from "axios";
-
 const optimismSettings = {
   apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
   network: Network.OPT_GOERLI, // Replace with OPT_MAINNET
@@ -101,7 +99,7 @@ function GalleryModal(props: UploadNFTModalProps) {
         // store NFTs in state
         setNftsForOwner(nfts);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     }
 
