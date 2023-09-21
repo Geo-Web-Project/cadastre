@@ -1,14 +1,14 @@
 import { useLayoutEffect, useRef } from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import type { MediaObject } from "@geo-web/types";
 import GalleryDisplayItem from "./GalleryDisplayItem";
 import { GalleryModalProps } from "./GalleryModal";
+import { MediaGalleryItem } from "./GalleryForm";
 
 export type GalleryDisplayGridProps = GalleryModalProps & {
-  newMediaGallery: MediaObject[];
+  newMediaGallery: MediaGalleryItem[];
   setNewMediaGallery: React.Dispatch<
-    React.SetStateAction<MediaObject[] | null>
+    React.SetStateAction<MediaGalleryItem[] | null>
   >;
   selectedMediaGalleryItemIndex: number | null;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
@@ -20,7 +20,7 @@ function GalleryDisplayGrid(props: GalleryDisplayGridProps) {
   const { newMediaGallery, selectedMediaGalleryItemIndex } = props;
 
   const galleryDisplayRef = useRef<HTMLElement>(null);
-  const prevMediaGalleryItems = useRef<MediaObject[]>(newMediaGallery);
+  const prevMediaGalleryItems = useRef<MediaGalleryItem[]>(newMediaGallery);
 
   useLayoutEffect(() => {
     if (!galleryDisplayRef?.current) {

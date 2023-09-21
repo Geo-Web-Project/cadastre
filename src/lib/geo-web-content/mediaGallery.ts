@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
-import type { MediaObject } from "@geo-web/types";
-/* eslint-disable import/no-unresolved */
 import { useMUD } from "@geo-web/mud-world-base-setup";
 import { useEntityQuery } from "@latticexyz/react";
 import { Has, getComponentValue } from "@latticexyz/recs";
 import { CID } from "multiformats";
-/* eslint-enable */
-
 import contentHash from "@ensdomains/content-hash";
+import { MediaGalleryItem } from "../../components/gallery/GalleryForm";
 
-enum MediaObjectEncodingFormat {
+export enum MediaObjectEncodingFormat {
   Glb,
   Usdz,
   Gif,
@@ -29,7 +26,7 @@ function useMediaGallery() {
   const mediaObjectIds = useEntityQuery([Has(MediaObject)]);
 
   const [mediaGalleryItems, setMediaGalleryItems] = useState<
-    MediaObject[] | null
+    MediaGalleryItem[] | null
   >(null);
 
   useEffect(() => {
@@ -68,13 +65,13 @@ function useMediaGallery() {
 
         return {
           name: mediaObject.name,
-          content: contentCid as unknown,
+          content: contentCid.toString(),
           contentSize: mediaObject.contentSize,
           encodingFormat: encoding,
-        } as MediaObject;
+        } as MediaGalleryItem;
       })
       .filter((v) => v !== undefined)
-      .map((v) => v as MediaObject);
+      .map((v) => v as MediaGalleryItem);
 
     setMediaGalleryItems(items);
   }, [mediaObjectIds]);

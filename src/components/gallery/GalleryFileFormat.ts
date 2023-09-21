@@ -1,14 +1,40 @@
+import { MediaObjectEncodingFormat } from "../../lib/geo-web-content/mediaGallery";
+
 const galleryFileFormats: Format[] = [
-  { extension: ".gif", encoding: "image/gif", type: "ImageObject" },
-  { extension: ".glb", encoding: "model/gltf-binary", type: "3DModel" },
-  { extension: ".jpeg", encoding: "image/jpeg", type: "ImageObject" },
-  { extension: ".png", encoding: "image/png", type: "ImageObject" },
-  { extension: ".svg", encoding: "image/svg+xml", type: "ImageObject" },
-  { extension: ".usdz", encoding: "model/vnd.usdz+zip", type: "3DModel" },
+  {
+    extension: ".gif",
+    encoding: MediaObjectEncodingFormat.Gif,
+    type: "ImageObject",
+  },
+  {
+    extension: ".glb",
+    encoding: MediaObjectEncodingFormat.Glb,
+    type: "3DModel",
+  },
+  {
+    extension: ".jpeg",
+    encoding: MediaObjectEncodingFormat.Jpeg,
+    type: "ImageObject",
+  },
+  {
+    extension: ".png",
+    encoding: MediaObjectEncodingFormat.Png,
+    type: "ImageObject",
+  },
+  {
+    extension: ".svg",
+    encoding: MediaObjectEncodingFormat.Svg,
+    type: "ImageObject",
+  },
+  {
+    extension: ".usdz",
+    encoding: MediaObjectEncodingFormat.Usdz,
+    type: "3DModel",
+  },
 ];
 
 type Format = {
-  encoding?: string;
+  encoding?: MediaObjectEncodingFormat;
   type?: string;
   extension?: string;
 };
@@ -34,10 +60,12 @@ const getFormatCS = () => {
   return _formats.toString();
 };
 
-const getFormatType = (encoding: string) => {
+const getFormatType = (encoding: MediaObjectEncodingFormat | undefined) => {
   const _type = galleryFileFormats.filter((f) => {
     return f.encoding === encoding;
   });
+  if (_type.length === 0) return undefined;
+
   return _type[0]["type"];
 };
 

@@ -7,7 +7,6 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Spinner from "react-bootstrap/Spinner";
 import InputGroup from "react-bootstrap/InputGroup";
-import type { MediaObject, Encoding } from "@geo-web/types";
 import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
@@ -17,17 +16,18 @@ import {
 } from "./GalleryFileFormat";
 import { uploadFile } from "@web3-storage/upload-client";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { MediaObjectEncodingFormat } from "../../lib/geo-web-content/mediaGallery";
 
-interface MediaGalleryItem {
+export interface MediaGalleryItem {
   name?: string;
   content?: string;
-  encodingFormat?: string;
+  encodingFormat?: MediaObjectEncodingFormat;
 }
 
 export type GalleryFormProps = GalleryModalProps & {
-  newMediaGallery: MediaObject[];
+  newMediaGallery: MediaGalleryItem[];
   setNewMediaGallery: React.Dispatch<
-    React.SetStateAction<MediaObject[] | null>
+    React.SetStateAction<MediaGalleryItem[] | null>
   >;
   selectedMediaGalleryItemIndex: number | null;
   setSelectedMediaGalleryItemIndex: React.Dispatch<
@@ -45,7 +45,9 @@ function GalleryForm(props: GalleryFormProps) {
   } = props;
 
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
-  const [fileFormat, setFileFormat] = React.useState<string | null>(null);
+  const [fileFormat, setFileFormat] = React.useState<
+    MediaObjectEncodingFormat | undefined
+  >(undefined);
   const [isUploading, setIsUploading] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
   const [mediaGalleryItem, setMediaGalleryItem] =
@@ -64,7 +66,7 @@ function GalleryForm(props: GalleryFormProps) {
     setMediaGalleryItem({
       name: newMediaGallery[selectedMediaGalleryItemIndex].name,
       content:
-        newMediaGallery[selectedMediaGalleryItemIndex].content.toString(),
+        newMediaGallery[selectedMediaGalleryItemIndex].content?.toString(),
       encodingFormat:
         newMediaGallery[selectedMediaGalleryItemIndex].encodingFormat,
     });
@@ -90,7 +92,7 @@ function GalleryForm(props: GalleryFormProps) {
       });
 
       setDetectedFileFormat(null);
-      setFileFormat(null);
+      setFileFormat(undefined);
 
       return;
     }
@@ -117,7 +119,7 @@ function GalleryForm(props: GalleryFormProps) {
 
     const format = getFormat(file.name);
     const { encoding } = format;
-    setFileFormat(encoding ?? null);
+    setFileFormat(encoding);
 
     // Upload to Web3 storage
     const added = await uploadFile(w3InvocationConfig, file);
@@ -135,7 +137,7 @@ function GalleryForm(props: GalleryFormProps) {
     form.reset();
 
     setDetectedFileFormat(null);
-    setFileFormat(null);
+    setFileFormat(undefined);
     setMediaGalleryItem({});
     setDidFail(false);
     setSelectedMediaGalleryItemIndex(null);
@@ -144,9 +146,8 @@ function GalleryForm(props: GalleryFormProps) {
   async function updateMediaGalleryView() {
     const mediaObject = {
       name: mediaGalleryItem.name ?? "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      content: CID.parse(mediaGalleryItem.content ?? "") as any,
-      encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
+      content: CID.parse(mediaGalleryItem.content ?? "").toString(),
+      encodingFormat: mediaGalleryItem.encodingFormat,
     };
 
     if (selectedMediaGalleryItemIndex !== null) {

@@ -11,8 +11,8 @@ import Spinner from "react-bootstrap/Spinner";
 import Container from "react-bootstrap/Container";
 import Alert from "react-bootstrap/Alert";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import type { MediaObject } from "@geo-web/types";
 import GalleryForm from "./GalleryForm";
+import { MediaGalleryItem } from "./GalleryForm";
 import GalleryDisplayGrid from "./GalleryDisplayGrid";
 import { STATE } from "../Map";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
@@ -20,7 +20,7 @@ import { useMediaGallery } from "../../lib/geo-web-content/mediaGallery";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useSafe } from "../../lib/safe";
-import { ZERO_ADDRESS, NETWORK_ID } from "../../lib/constants";
+import { ZERO_ADDRESS } from "../../lib/constants";
 
 export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
@@ -51,9 +51,9 @@ function GalleryModal(props: GalleryModalProps) {
 
   const [selectedMediaGalleryItemIndex, setSelectedMediaGalleryItemIndex] =
     useState<number | null>(null);
-  const [newMediaGallery, setNewMediaGallery] = useState<MediaObject[] | null>(
-    null
-  );
+  const [newMediaGallery, setNewMediaGallery] = useState<
+    MediaGalleryItem[] | null
+  >(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -248,6 +248,11 @@ function GalleryModal(props: GalleryModalProps) {
   };
 
   const handleExitIntent = () => {
+    // @ts-ignore
+    BigInt.prototype.toJSON = function () {
+      return this.toString();
+    };
+
     if (
       isSaved ||
       JSON.stringify(mediaGalleryItems) === JSON.stringify(newMediaGallery)

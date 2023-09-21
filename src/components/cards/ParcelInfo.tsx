@@ -37,11 +37,9 @@ import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
-import AWImageCapture from "../augmented-worlds/AWImageCapture";
+// import AWImageCapture from "../augmented-worlds/AWImageCapture";
 // import AWModelScaling from "../augmented-worlds/AWModelScaling";
-/* eslint-disable import/no-unresolved */
 import { MUDProvider, setup, useMUD } from "@geo-web/mud-world-base-setup";
-/* eslint-enable */
 import { supportedMUDChains } from "../../App";
 
 // eslint-disable-next-line import/no-unresolved
@@ -113,14 +111,14 @@ export default function ParcelInfo(props: ParcelInfoProps) {
   React.useEffect(() => {
     (async () => {
       const mudSetup = await setup({
-        NETWORK_ID,
+        chainId: NETWORK_ID,
         worlds: {
           [NETWORK_ID]: {
             address: "0x5D59444Be22c322F0fe0076DaD760962213Ff9F2",
             blockNumber: 14300510,
           },
         },
-        supportedMUDChains,
+        supportedChains: supportedMUDChains,
       });
       setMUDSetup(mudSetup);
     })();
@@ -526,45 +524,45 @@ function ParcelInfoInner(props: ParcelInfoProps) {
     }
   }
 
-  const [showAWImageCapture, setShowAWImageCapture] = React.useState(false);
-  const [showAWModelScaling, setShowAWModelScaling] = React.useState(false);
-  const testButtons = (
-    <>
-      <Button
-        variant="primary"
-        className="w-100 mb-2"
-        onClick={() => {
-          setShowAWImageCapture(true);
-        }}
-      >
-        [TEST] Image Capture
-      </Button>
-      {showAWImageCapture ? (
-        <AWImageCapture onClose={() => setShowAWImageCapture(false)} />
-      ) : null}
-      <Button
-        variant="primary"
-        className="w-100 mb-2"
-        onClick={() => {
-          setShowAWModelScaling(true);
-        }}
-      >
-        [TEST] Adjust Scaling
-      </Button>
-      {showAWModelScaling ? (
-        <></>
-      ) : // <AWModelScaling
-      //   augmentedWorldCid={CID.parse(
-      //     "bafyreietptw7udedbdpro6fje5bzsqdhsktktqdl4273pmvbpjrc2odi3q"
-      //   )}
-      //   modelToScaleCid={CID.parse(
-      //     "bafyreigtrroervbkml26x32cyebwnjxbwiapytse3xulo74zg24ojnizee"
-      //   )}
-      //   onClose={() => setShowAWModelScaling(false)}
-      // />
-      null}
-    </>
-  );
+  // const [showAWImageCapture, setShowAWImageCapture] = React.useState(false);
+  // const [showAWModelScaling, setShowAWModelScaling] = React.useState(false);
+  // const testButtons = (
+  //   <>
+  //     <Button
+  //       variant="primary"
+  //       className="w-100 mb-2"
+  //       onClick={() => {
+  //         setShowAWImageCapture(true);
+  //       }}
+  //     >
+  //       [TEST] Image Capture
+  //     </Button>
+  //     {showAWImageCapture ? (
+  //       <AWImageCapture onClose={() => setShowAWImageCapture(false)} />
+  //     ) : null}
+  //     <Button
+  //       variant="primary"
+  //       className="w-100 mb-2"
+  //       onClick={() => {
+  //         setShowAWModelScaling(true);
+  //       }}
+  //     >
+  //       [TEST] Adjust Scaling
+  //     </Button>
+  //     {showAWModelScaling ? (
+  //       <></>
+  //     ) : // <AWModelScaling
+  //     //   augmentedWorldCid={CID.parse(
+  //     //     "bafyreietptw7udedbdpro6fje5bzsqdhsktktqdl4273pmvbpjrc2odi3q"
+  //     //   )}
+  //     //   modelToScaleCid={CID.parse(
+  //     //     "bafyreigtrroervbkml26x32cyebwnjxbwiapytse3xulo74zg24ojnizee"
+  //     //   )}
+  //     //   onClose={() => setShowAWModelScaling(false)}
+  //     // />
+  //     null}
+  //   </>
+  // );
 
   return (
     <>
@@ -623,7 +621,7 @@ function ParcelInfoInner(props: ParcelInfoProps) {
                   parcelFieldsToUpdate?.licenseOwner
                 ? null
                 : buttons}
-              {testButtons}
+              {/* {testButtons} */}
             </div>
           </Col>
         </Row>

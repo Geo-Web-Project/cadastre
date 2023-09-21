@@ -4,9 +4,9 @@ import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import type { MediaObject } from "@geo-web/types";
 import { GalleryModalProps } from "./GalleryModal";
 import { getFormatType } from "./GalleryFileFormat";
+import { MediaGalleryItem } from "./GalleryForm";
 
 const DISPLAY_TYPES: Record<string, string> = {
   "3DModel": "3D Model",
@@ -16,10 +16,10 @@ const DISPLAY_TYPES: Record<string, string> = {
 };
 
 export type GalleryDisplayItemProps = GalleryModalProps & {
-  mediaGalleryItem: MediaObject;
-  newMediaGallery: MediaObject[];
+  mediaGalleryItem: MediaGalleryItem;
+  newMediaGallery: MediaGalleryItem[];
   setNewMediaGallery: React.Dispatch<
-    React.SetStateAction<MediaObject[] | null>
+    React.SetStateAction<MediaGalleryItem[] | null>
   >;
   index: number;
   selectedMediaGalleryItemIndex: number | null;
@@ -44,7 +44,7 @@ function GalleryDisplayItem(props: GalleryDisplayItemProps) {
   const isEditing = selectedMediaGalleryItemIndex === index;
   const shouldHighlight = !isRemoving && (isHovered || isEditing);
   const name = mediaGalleryItem?.name;
-  const fileType = getFormatType(mediaGalleryItem?.encodingFormat);
+  const fileType = getFormatType(mediaGalleryItem.encodingFormat);
 
   const spinner = (
     <span className="spinner-border" role="status">
