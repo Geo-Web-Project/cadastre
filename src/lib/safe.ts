@@ -8,7 +8,10 @@ import {
   defaultAbiCoder,
 } from "ethers/lib/utils";
 import Safe from "@safe-global/protocol-kit";
-import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
+import {
+  MetaTransactionData,
+  SafeTransaction,
+} from "@safe-global/safe-core-sdk-types";
 import {
   getProxyFactoryDeployment,
   getSafeL2SingletonDeployment,
@@ -17,6 +20,8 @@ import {
   getSimulateTxAccessorDeployment,
 } from "@safe-global/safe-deployments";
 import { GelatoRelayPack } from "@safe-global/relay-kit";
+import { useAccount } from "wagmi";
+import { useMediaQuery } from "./mediaQuery";
 import {
   NETWORK_ID,
   RPC_URLS,
@@ -34,6 +39,9 @@ enum OperationType {
 }
 
 function useSafe(safe: Safe | null) {
+  const { connector } = useAccount();
+  const { isMobile, isTablet } = useMediaQuery();
+
   const safeL2SingletonInfo = getSafeL2SingletonDeployment();
   const proxyFactoryInfo = getProxyFactoryDeployment();
   const multiSendCallOnlyInfo = getMultiSendCallOnlyDeployment();
@@ -449,7 +457,8 @@ function useSafe(safe: Safe | null) {
     const safeTransaction = await safe.createTransaction({
       safeTransactionData,
     });
-    const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+    const signedSafeTransaction = await signSafeTransaction(safeTransaction);
+
     const encodedTransactionData = await safeL2Singleton.encodeFunctionData(
       "execTransaction",
       [
@@ -467,6 +476,62 @@ function useSafe(safe: Safe | null) {
     );
 
     return encodedTransactionData;
+  };
+
+  const signSafeTransaction = async (safeTransaction: SafeTransaction) => {
+    if (!safe) {
+      throw new Error("Safe was not found");
+    }
+
+    let signature;
+
+    if (isMobile || isTablet || connector?.id === "walletConnect") {
+      const txHash = await getSafeTransactionHash(safeTransaction);
+      signature = await safe.signTransactionHash(txHash);
+    } else {
+      signature = await safe.signTypedData(safeTransaction, "v4");
+    }
+
+    safeTransaction.addSignature(signature);
+
+    return safeTransaction;
+  };
+
+  const getSafeTransactionHash = async (safeTransaction: SafeTransaction) => {
+    if (!safe) {
+      throw new Error("Safe was not found");
+    }
+
+    const safeAddress = await safe.getAddress();
+    const safeSingletonCode = await provider.getCode(
+      safeL2SingletonInfo.networkAddresses[NETWORK_ID]
+    );
+    const stateOverride = {
+      [safeAddress]: {
+        code: safeSingletonCode,
+      },
+    };
+    const txHash = await provider.send("eth_call", [
+      {
+        to: safeAddress,
+        data: safeL2Singleton.encodeFunctionData("getTransactionHash", [
+          safeTransaction.data.to,
+          safeTransaction.data.value,
+          safeTransaction.data.data,
+          safeTransaction.data.operation,
+          safeTransaction.data.safeTxGas,
+          safeTransaction.data.baseGas,
+          safeTransaction.data.gasPrice,
+          safeTransaction.data.gasToken,
+          safeTransaction.data.refundReceiver,
+          safeTransaction.data.nonce++,
+        ]),
+      },
+      "latest",
+      stateOverride,
+    ]);
+
+    return txHash;
   };
 
   const encodeMultiSendData = (txs: MetaTransactionData[]) => {
