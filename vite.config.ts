@@ -14,6 +14,7 @@ export default defineConfig({
   },
   define: {
     "process.env": {},
+    "process.browser": {},
   },
   optimizeDeps: {
     exclude: ["as-geo-web-coordinate"],

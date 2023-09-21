@@ -54,7 +54,7 @@ export const supportedMUDChains: MUDChain[] = [
       ...optimismGoerliMud.rpcUrls,
       default: {
         http: [RPC_URLS[NETWORK_ID]],
-        webSocket: [RPC_URLS[NETWORK_ID].replace("http", "ws")],
+        webSocket: [RPC_URLS[NETWORK_ID]?.replace("http", "ws")],
       },
     },
   },
