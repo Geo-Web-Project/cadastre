@@ -8,7 +8,6 @@ import Image from "react-bootstrap/Image";
 import Spinner from "react-bootstrap/Spinner";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
-import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
   galleryFileFormats,
@@ -20,8 +19,6 @@ import { useMediaQuery } from "../../lib/mediaQuery";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import UploadNFTModal from "./UploadNFTModal";
 import type { OwnedNft } from "alchemy-sdk";
-
-import axios from "axios";
 
 interface MediaGalleryItem {
   name?: string;
@@ -160,31 +157,11 @@ function GalleryForm(props: GalleryFormProps) {
       if (!selectedNFT?.media?.[0]?.raw) {
         throw Error("No Media attached to asset");
       }
-      const raw = selectedNFT?.media?.[0]?.raw.slice(6);
-      const url = process.env.NEXT_PUBLIC_IPFS_GATEWAY + "/ipfs" + raw;
-
-      const res = await axios.get(url, { responseType: "arraybuffer" });
-      const data = res.data;
-      const blob = new Blob([data]);
-
-      const type = res.headers["content-type"];
-      const fileExt = type.split("/")[1];
-
-      const file = new File([blob], `${selectedNFT.title}.${fileExt}`, {
-        type: type,
-      });
-
-      const format = getFormat(file.name);
-      const { encoding } = format;
-      setFileFormat(encoding ?? null);
-      // Upload to Web3 storage
-      const added = await uploadFile(w3InvocationConfig, file);
-
       updateMediaGalleryItem({
         name: selectedNFT?.title,
-        content: added.toString(),
-        encodingFormat: encoding,
+        content: selectedNFT?.media?.[0]?.raw,
       });
+
       setErrorMessage("");
       setDidNFTUploadFail(false);
     } catch (err) {
@@ -215,7 +192,7 @@ function GalleryForm(props: GalleryFormProps) {
     const mediaObject = {
       name: mediaGalleryItem.name ?? "",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      content: CID.parse(mediaGalleryItem.content ?? "") as any,
+      content: mediaGalleryItem.content ?? "",
       encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
     };
 
@@ -270,7 +247,7 @@ function GalleryForm(props: GalleryFormProps) {
       <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary">CID</Form.Text>
+            <Form.Text className="text-primary">URI</Form.Text>
             <InputGroup>
               <OverlayTrigger
                 key="uploadCid"
