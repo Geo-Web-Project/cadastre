@@ -8,7 +8,6 @@ import Image from "react-bootstrap/Image";
 import Spinner from "react-bootstrap/Spinner";
 import InputGroup from "react-bootstrap/InputGroup";
 import type { MediaObject, Encoding } from "@geo-web/types";
-import { CID } from "multiformats/cid";
 import { GalleryModalProps } from "./GalleryModal";
 import {
   galleryFileFormats,
@@ -17,6 +16,9 @@ import {
 } from "./GalleryFileFormat";
 import { uploadFile } from "@web3-storage/upload-client";
 import { useMediaQuery } from "../../lib/mediaQuery";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import UploadNFTModal from "./UploadNFTModal";
+import type { OwnedNft } from "alchemy-sdk";
 
 interface MediaGalleryItem {
   name?: string;
@@ -50,11 +52,26 @@ function GalleryForm(props: GalleryFormProps) {
   const [detectedFileFormat, setDetectedFileFormat] = React.useState(null);
   const [fileFormat, setFileFormat] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isUploadingNFT, setIsUploadingNFT] = React.useState(false);
   const [didFail, setDidFail] = React.useState(false);
+
+  const [didNFTUploadFail, setDidNFTUploadFail] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
   const [mediaGalleryItem, setMediaGalleryItem] =
     React.useState<MediaGalleryItem>({});
 
   const { isMobile } = useMediaQuery();
+
+  const [showNFTModal, setShowNFTModal] = React.useState(false);
+
+  const handleOpenModal = () => {
+    setShowNFTModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowNFTModal(false);
+  };
 
   React.useEffect(() => {
     if (selectedMediaGalleryItemIndex === null) {
@@ -132,6 +149,29 @@ function GalleryForm(props: GalleryFormProps) {
 
     setIsUploading(false);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function uploadNFT(selectedNFT: OwnedNft) {
+    setIsUploadingNFT(true);
+    handleCloseModal();
+    try {
+      if (!selectedNFT?.media?.[0]?.raw) {
+        throw Error("No Media attached to asset");
+      }
+      updateMediaGalleryItem({
+        name: selectedNFT?.title,
+        content: selectedNFT?.media?.[0]?.raw,
+      });
+
+      setErrorMessage("");
+      setDidNFTUploadFail(false);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage((err as Error).message);
+      setDidNFTUploadFail(true);
+    }
+
+    setIsUploadingNFT(false);
+  }
 
   function clearForm() {
     const form = document.getElementById("galleryForm") as HTMLFormElement;
@@ -152,7 +192,7 @@ function GalleryForm(props: GalleryFormProps) {
     const mediaObject = {
       name: mediaGalleryItem.name ?? "",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      content: CID.parse(mediaGalleryItem.content ?? "") as any,
+      content: mediaGalleryItem.content ?? "",
       encodingFormat: mediaGalleryItem.encodingFormat as Encoding,
     };
 
@@ -186,32 +226,93 @@ function GalleryForm(props: GalleryFormProps) {
 
   return (
     <>
+      {showNFTModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(5px)",
+            zIndex: 999,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        />
+      )}
+
       <Form id="galleryForm" className="pt-2 text-start">
         <Row className="px-1 px-sm-3 d-flex align-items-end">
           <Col sm="12" lg="6" className="mb-3">
-            <Form.Text className="text-primary">CID</Form.Text>
+            <Form.Text className="text-primary">URI</Form.Text>
             <InputGroup>
-              <Button
-                variant="secondary"
-                style={{ height: 35, width: 42 }}
-                className="d-flex justify-content-center align-items-center mt-1"
-                as="label"
-                htmlFor="uploadCid"
-                disabled={isUploading || selectedMediaGalleryItemIndex !== null}
+              <OverlayTrigger
+                key="uploadCid"
+                placement="top"
+                overlay={<Tooltip id={`tooltip-key`}>Device Upload</Tooltip>}
               >
-                {isUploading ? (
-                  <Spinner
-                    size="sm"
-                    animation="border"
-                    role="status"
-                    variant="light"
-                  >
-                    <span className="visually-hidden">Loading...</span>
-                  </Spinner>
-                ) : (
-                  <Image src="upload.svg" alt="upload" width={24} />
-                )}
-              </Button>
+                <Button
+                  variant="secondary"
+                  style={{ height: 35, width: 42 }}
+                  className="d-flex justify-content-center align-items-center mt-1"
+                  as="label"
+                  htmlFor="uploadCid"
+                  disabled={
+                    isUploading || selectedMediaGalleryItemIndex !== null
+                  }
+                >
+                  {isUploading ? (
+                    <Spinner
+                      size="sm"
+                      animation="border"
+                      role="status"
+                      variant="light"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    <Image src="upload.svg" alt="upload" width={24} />
+                  )}
+                </Button>
+              </OverlayTrigger>
+              <OverlayTrigger
+                key="uploadNFT"
+                placement="top"
+                overlay={
+                  <Tooltip id={`tooltip-key`}>Select from Wallet</Tooltip>
+                }
+              >
+                <Button
+                  variant="primary"
+                  style={{ height: 35, width: 42 }}
+                  className="d-flex justify-content-center align-items-center mt-1"
+                  as="label"
+                  onClick={handleOpenModal}
+                  disabled={
+                    isUploadingNFT || selectedMediaGalleryItemIndex !== null
+                  }
+                >
+                  {isUploadingNFT ? (
+                    <Spinner
+                      size="sm"
+                      animation="border"
+                      role="status"
+                      variant="light"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    <Image
+                      src="account-balance-wallet.svg"
+                      alt="upload"
+                      width={24}
+                    />
+                  )}
+                </Button>
+              </OverlayTrigger>
               <Form.Control
                 style={{ backgroundColor: "#111320", border: "none" }}
                 className="text-white mt-1 rounded-2"
@@ -231,6 +332,12 @@ function GalleryForm(props: GalleryFormProps) {
                 onChange={captureFile}
                 hidden
               ></Form.Control>
+              <UploadNFTModal
+                showNFTModal={showNFTModal}
+                onClose={handleCloseModal}
+                uploadNFT={uploadNFT}
+                {...props}
+              />
             </InputGroup>
           </Col>
           <Col sm="12" lg="6" className="mb-3">
@@ -314,6 +421,9 @@ function GalleryForm(props: GalleryFormProps) {
             <Col className="text-danger">
               Failed to add item. An unknown error occurred.
             </Col>
+          ) : null}
+          {didNFTUploadFail ? (
+            <Col className="text-danger">{errorMessage}</Col>
           ) : null}
         </Row>
       </Form>
