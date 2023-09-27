@@ -137,6 +137,7 @@ function GalleryModal(props: GalleryModalProps) {
         newMediaGallery[i],
         {
           parentSchema: "MediaGallery",
+          pin: true,
         }
       );
     }
@@ -157,7 +158,7 @@ function GalleryModal(props: GalleryModalProps) {
     }
 
     if (!newRoot) {
-      throw Error("Could not updload parcel content");
+      throw Error("Could not upload parcel content");
     }
 
     const mediaGalleryPath = await geoWebContent.raw.get(

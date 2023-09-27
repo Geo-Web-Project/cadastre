@@ -4136,6 +4136,13 @@
   dependencies:
     multiformats "^10.0.2"
 
+"@geo-web/types@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/types/-/types-0.3.0.tgz#a9b6e5a133e0691fbcaf8efdbad104386ab46386"
+  integrity sha512-JbsOZch41Yj5Opzc/4OoXfCFTpwEe1+823tlLCIBk7yMw07ifEOwzEfp0hKpZ6FwksQIvWoqDFg8SCENhCME1g==
+  dependencies:
+    multiformats "^10.0.2"
+
 "@glazed/constants@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@glazed/constants/-/constants-0.2.0.tgz#70be7de8ff068d172bf8fd553d3da66f0af6c8a2"
@@ -6481,10 +6488,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@rainbow-me/rainbowkit@^0.12.17":
-  version "0.12.17"
-  resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-0.12.17.tgz#42be3c151d8f4977c53133bd9077f7b5b735fd24"
-  integrity sha512-H5JT1caMTcAmjMTAYG9rDhZdNeNkfEwwYSbI/x+xfXaeQNqFeSePKHwl2jbrDiTlXWToxxT0AC2lp1b/4t0J9w==
+"@rainbow-me/rainbowkit@^0.12.18":
+  version "0.12.18"
+  resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-0.12.18.tgz#a42f1682e629586fdebdc5606b0617f7f7e52054"
+  integrity sha512-Ehpr8gBCS8v4vdXLi8ZBlQ1yA6GHJOhoP66hLrdgI5iSlr6aUGTEicEfb2RaKNltHJFW/5A4BKst0AK4PkAkuw==
   dependencies:
     "@vanilla-extract/css" "1.9.1"
     "@vanilla-extract/dynamic" "2.0.2"
