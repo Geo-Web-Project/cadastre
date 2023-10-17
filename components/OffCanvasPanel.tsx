@@ -53,6 +53,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
     selectedParcelId,
     isValidClaim,
     delay,
+    isFullScreen,
+    setIsFullScreen,
   } = props;
 
   const { isMobile, isTablet } = useMediaQuery();
@@ -67,7 +69,6 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
   const [minForSalePrice, setMinForSalePrice] = useState<BigNumber | null>(
     null
   );
-  const [isFullSize, setIsFullSize] = useState<boolean>(false);
   const [show, setShow] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -134,7 +135,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
       if (touchYStart > touchYLast) {
         if (containerHeightLast - containerHeightStart > MIN_SWIPE) {
           containerRef.current.style.maxHeight = `${bodyHeight - paddingTop}px`;
-          setIsFullSize(true);
+          setIsFullScreen(true);
         } else if (containerHeightStart === DRAWER_PREVIEW_HEIGHT_PARCEL) {
           containerRef.current.style.maxHeight = `${DRAWER_PREVIEW_HEIGHT_PARCEL}px`;
         } else if (containerHeightStart === DRAWER_PREVIEW_HEIGHT_TRANSACTION) {
@@ -148,7 +149,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
                 ? DRAWER_PREVIEW_HEIGHT_PARCEL
                 : DRAWER_PREVIEW_HEIGHT_TRANSACTION
             }px`;
-            setIsFullSize(false);
+            setIsFullScreen(false);
           } else if (
             containerHeightStart === bodyHeight - paddingTop ||
             containerHeightStart === containerRef.current.scrollHeight
@@ -217,22 +218,22 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
         zIndex: 10,
         paddingTop: isMobile || isTablet ? "0px" : "100px",
         maxHeight:
-          isMobile && isFullSize
+          isMobile && isFullScreen
             ? "calc(100svh - 82px)"
-            : isTablet && isFullSize
+            : isTablet && isFullScreen
             ? "calc(100svh - 96px)"
             : (isMobile || isTablet) &&
-              !isFullSize &&
+              !isFullScreen &&
               interactionState === STATE.PARCEL_SELECTED
             ? `${DRAWER_PREVIEW_HEIGHT_PARCEL}px`
             : (isMobile || isTablet) &&
-              !isFullSize &&
+              !isFullScreen &&
               interactionState === STATE.CLAIM_SELECTING
             ? `${DRAWER_CLAIM_HEIGHT}px`
-            : (isMobile || isTablet) && !isFullSize
+            : (isMobile || isTablet) && !isFullScreen
             ? `${DRAWER_PREVIEW_HEIGHT_TRANSACTION}px`
             : "100%",
-        overflow: (isMobile || isTablet) && !isFullSize ? "hidden" : "auto",
+        overflow: (isMobile || isTablet) && !isFullScreen ? "hidden" : "auto",
         overscrollBehavior: "none",
         transition: "max-height 0.2s ease-in-out",
       }}
@@ -247,7 +248,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
               style={{
                 height: "6px",
               }}
-              onClick={() => setIsFullSize(!isFullSize)}
+              onClick={() => setIsFullScreen(!isFullScreen)}
             ></Button>
           )}
         <Col className="d-flex justify-content-end justify-content-lg-between gap-4 p-1 px-0 pb-0 p-lg-2">
@@ -255,7 +256,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
             variant="link"
             size="sm"
             className={`${
-              ((!isMobile && !isTablet) || isFullSize) &&
+              ((!isMobile && !isTablet) || isFullScreen) &&
               interactionState !== STATE.CLAIM_SELECTING &&
               interactionState !== STATE.PARCEL_SELECTED
                 ? "visible"
@@ -276,7 +277,10 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
               src="close.svg"
               alt="close"
               width={28}
-              onClick={() => setInteractionState(STATE.VIEWING)}
+              onClick={() => {
+                setInteractionState(STATE.VIEWING);
+                setIsFullScreen(false);
+              }}
             />
           </Button>
         </Col>
@@ -290,8 +294,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
           parcelFieldsToUpdate={parcelFieldsToUpdate}
           setParcelFieldsToUpdate={setParcelFieldsToUpdate}
           licenseAddress={registryContract.address}
-          isFullSize={isFullSize}
-          setIsFullSize={setIsFullSize}
+          isFullScreen={isFullScreen}
+          setIsFullScreen={setIsFullScreen}
           key={selectedParcelId}
         ></ParcelInfo>
       ) : null}
@@ -300,7 +304,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
           setInteractionState={setInteractionState}
           parcelClaimInfo={parcelClaimInfo}
           isValidClaim={isValidClaim}
-          setIsFullSize={setIsFullSize}
+          setIsFullScreen={setIsFullScreen}
         />
       ) : null}
       {interactionState === STATE.CLAIM_SELECTED &&

@@ -10,11 +10,11 @@ type ClaimInfoProps = {
   parcelClaimInfo: ParcelClaimInfo;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   isValidClaim: boolean;
-  setIsFullSize: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function ClaimInfo(props: ClaimInfoProps) {
-  const { parcelClaimInfo, setInteractionState, isValidClaim, setIsFullSize } =
+  const { parcelClaimInfo, setInteractionState, isValidClaim, setIsFullScreen } =
     props;
 
   const { isMobile, isTablet } = useMediaQuery();
@@ -59,7 +59,7 @@ function ClaimInfo(props: ClaimInfoProps) {
           disabled={!isValidClaim}
           className="w-100 mb-2"
           onClick={() => {
-            setIsFullSize(true);
+            setIsFullScreen(true);
             setInteractionState(STATE.CLAIM_SELECTED);
           }}
         >

@@ -54,15 +54,43 @@ export const cellHoverLayer: LayerProps = {
     "fill-opacity": 0.75,
   },
 };
-export const parcelLayer: LayerProps = {
-  id: "parcels-layer",
-  type: "fill",
-  paint: {
-    "fill-color": "#2FC1C1",
-    "fill-opacity": 0.5,
-    "fill-outline-color": "#000000",
-  },
-};
+export function parcelBorderLayer(
+  parcelHoverId: string,
+  selectedParcelId: string
+): LayerProps {
+  return {
+    id: "parcel-border-layer",
+    type: "line",
+    paint: {
+      "line-color": "#2FC1C1",
+      "line-width": 2,
+    },
+    filter: [
+      "any",
+      ["==", "parcelId", parcelHoverId],
+      ["==", "parcelId", selectedParcelId],
+    ],
+  };
+}
+export function parcelLayer(
+  parcelHoverId: string,
+  selectedParcelId: string
+): LayerProps {
+  return {
+    id: "parcels-layer",
+    type: "fill",
+    paint: {
+      "fill-color": "#2FC1C1",
+      "fill-opacity": 0.5,
+      "fill-outline-color": "#000000",
+    },
+    filter: [
+      "all",
+      ["!=", "parcelId", parcelHoverId],
+      ["!=", "parcelId", selectedParcelId],
+    ],
+  };
+}
 export function parcelHighlightLayer(
   parcelHoverId: string,
   selectedParcelId: string
@@ -72,8 +100,8 @@ export function parcelHighlightLayer(
     type: "fill",
     paint: {
       "fill-color": "#2FC1C1",
-      "fill-opacity": 0.75,
-      "fill-outline-color": "#000000",
+      "fill-opacity": 0.2,
+      "fill-outline-color": "#2FC1C1",
     },
     filter: [
       "any",

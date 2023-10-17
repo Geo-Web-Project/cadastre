@@ -151,6 +151,7 @@ function IndexPage({
     null
   );
   const [w3Client, setW3Client] = React.useState<W3Client | null>(null);
+  const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -430,102 +431,104 @@ function IndexPage({
 
   return (
     <>
-      <Container fluid>
-        <Navbar
-          bg="dark"
-          variant="dark"
-          fixed="top"
-          className="border-bottom border-purple border-opacity-25"
-        >
-          <Col xl="3" className="d-none d-xl-block ps-5">
-            <div
-              className="d-flex align-items-center text-light"
-              style={{
-                fontSize: "2.5em",
-                fontFamily: "Abel",
-              }}
+      {!isFullScreen && (
+        <Container fluid>
+          <Navbar
+            bg="dark"
+            variant="dark"
+            fixed="top"
+            className="border-bottom border-purple border-opacity-25"
+          >
+            <Col xl="3" className="d-none d-xl-block ps-5">
+              <div
+                className="d-flex align-items-center text-light"
+                style={{
+                  fontSize: "2.5em",
+                  fontFamily: "Abel",
+                }}
+              >
+                <Image
+                  style={{ height: "1.1em", marginRight: "10px" }}
+                  src="logo.png"
+                />
+                <span className="fs-1">Cadastre</span>
+                <span className="fs-6 align-self-start">BETA</span>
+              </div>
+            </Col>
+            <Col xl="5" className="d-none d-xl-block ms-5">
+              <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
+            </Col>
+            <Col
+              xs="3"
+              sm="4"
+              xl="3"
+              className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-3"
             >
-              <Image
-                style={{ height: "1.1em", marginRight: "10px" }}
-                src="logo.png"
-              />
-              <span className="fs-1">Cadastre</span>
-              <span className="fs-6 align-self-start">BETA</span>
-            </div>
-          </Col>
-          <Col xl="5" className="d-none d-xl-block ms-5">
-            <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
-          </Col>
-          <Col
-            xs="3"
-            sm="4"
-            xl="3"
-            className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-3"
-          >
-            {address &&
-            signer &&
-            (smartAccount?.loginState === LoginState.CONNECTED ||
-              smartAccount?.loginState === LoginState.CREATE ||
-              smartAccount?.loginState === LoginState.CONNECTING ||
-              smartAccount?.loginState === LoginState.FUND) &&
-            sfFramework &&
-            ceramic &&
-            ipfs &&
-            ceramic.did &&
-            geoWebContent &&
-            registryContract &&
-            paymentToken &&
-            chain?.id === NETWORK_ID &&
-            library ? (
-              <Profile
-                account={
-                  smartAccount.safe
-                    ? smartAccount.address
-                    : address.toLowerCase()
-                }
-                authStatus={authStatus}
-                signer={signer}
-                sfFramework={sfFramework}
-                smartAccount={smartAccount}
-                setSmartAccount={setSmartAccount}
-                ceramic={ceramic}
-                setCeramic={setCeramic}
-                ipfs={ipfs}
-                setW3InvocationConfig={setW3InvocationConfig}
-                geoWebContent={geoWebContent}
-                setGeoWebContent={setGeoWebContent}
-                registryContract={registryContract}
-                paymentToken={paymentToken}
-                portfolioNeedActionCount={portfolioNeedActionCount}
-                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                setSelectedParcelId={setSelectedParcelId}
-                interactionState={interactionState}
-                setInteractionState={setInteractionState}
-                shouldRefetchParcelsData={shouldRefetchParcelsData}
-                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-              />
-            ) : (
-              <ConnectWallet
-                variant="header"
-                authStatus={authStatus}
-                setSmartAccount={setSmartAccount}
-              />
-            )}
-          </Col>
-          <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
-            <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
-          </Col>
-          <Col
-            xs="2"
-            sm="3"
-            lg="4"
-            xl="1"
-            className="d-flex justify-content-end justify-content-xl-start"
-          >
-            <NavMenu account={smartAccount?.address ?? address} />
-          </Col>
-        </Navbar>
-      </Container>
+              {address &&
+              signer &&
+              (smartAccount?.loginState === LoginState.CONNECTED ||
+                smartAccount?.loginState === LoginState.CREATE ||
+                smartAccount?.loginState === LoginState.CONNECTING ||
+                smartAccount?.loginState === LoginState.FUND) &&
+              sfFramework &&
+              ceramic &&
+              ipfs &&
+              ceramic.did &&
+              geoWebContent &&
+              registryContract &&
+              paymentToken &&
+              chain?.id === NETWORK_ID &&
+              library ? (
+                <Profile
+                  account={
+                    smartAccount.safe
+                      ? smartAccount.address
+                      : address.toLowerCase()
+                  }
+                  authStatus={authStatus}
+                  signer={signer}
+                  sfFramework={sfFramework}
+                  smartAccount={smartAccount}
+                  setSmartAccount={setSmartAccount}
+                  ceramic={ceramic}
+                  setCeramic={setCeramic}
+                  ipfs={ipfs}
+                  setW3InvocationConfig={setW3InvocationConfig}
+                  geoWebContent={geoWebContent}
+                  setGeoWebContent={setGeoWebContent}
+                  registryContract={registryContract}
+                  paymentToken={paymentToken}
+                  portfolioNeedActionCount={portfolioNeedActionCount}
+                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                  setSelectedParcelId={setSelectedParcelId}
+                  interactionState={interactionState}
+                  setInteractionState={setInteractionState}
+                  shouldRefetchParcelsData={shouldRefetchParcelsData}
+                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+                />
+              ) : (
+                <ConnectWallet
+                  variant="header"
+                  authStatus={authStatus}
+                  setSmartAccount={setSmartAccount}
+                />
+              )}
+            </Col>
+            <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
+              <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
+            </Col>
+            <Col
+              xs="2"
+              sm="3"
+              lg="4"
+              xl="1"
+              className="d-flex justify-content-end justify-content-xl-start"
+            >
+              <NavMenu account={smartAccount?.address ?? address} />
+            </Col>
+          </Navbar>
+        </Container>
+      )}
       <Container fluid>
         {registryContract &&
         paymentToken &&
@@ -567,6 +570,8 @@ function IndexPage({
               auctionEnd={auctionEnd}
               startingBid={startingBid}
               endingBid={endingBid}
+              isFullScreen={isFullScreen}
+              setIsFullScreen={setIsFullScreen}
             ></Map>
           </Row>
         ) : (

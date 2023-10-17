@@ -25,7 +25,7 @@ import EditBidAction from "./EditBidAction";
 import EditMetadataAction from "./EditMetadataAction";
 import ReclaimAction from "./ReclaimAction";
 import { BigNumber } from "ethers";
-import GalleryModal from "../gallery/GalleryModal";
+import GeospatialPublisher from "../publisher/GeospatialPublisher";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
@@ -101,6 +101,9 @@ export type ParcelInfoProps = OffCanvasPanelProps & {
   licenseAddress: string;
   isFullSize: boolean;
   setIsFullSize: React.Dispatch<React.SetStateAction<boolean>>;
+  geoWebContent: GeoWebContent;
+  isFullScreen: boolean;
+  setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function ParcelInfo(props: ParcelInfoProps) {
@@ -121,8 +124,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     setParcelFieldsToUpdate,
     sfFramework,
     paymentToken,
-    isFullSize,
-    setIsFullSize,
+    isFullScreen,
+    setIsFullScreen,
   } = props;
   const { isMobile, isTablet } = useMediaQuery();
   const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
@@ -301,10 +304,23 @@ function ParcelInfo(props: ParcelInfoProps) {
       className="w-100"
       onClick={() => {
         setInteractionState(STATE.PARCEL_SELECTED);
-        setIsFullSize(true);
+        setIsFullScreen(true);
       }}
     >
       Cancel
+    </Button>
+  );
+
+  const editButton = (
+    <Button
+      variant="primary"
+      className="w-100 mb-2"
+      onClick={() => {
+        setInteractionState(STATE.PARCEL_EDITING);
+        setIsFullScreen(true);
+      }}
+    >
+      Edit Parcel
     </Button>
   );
 
@@ -313,11 +329,18 @@ function ParcelInfo(props: ParcelInfoProps) {
       variant="secondary"
       className="w-100"
       onClick={() => {
-        setInteractionState(STATE.EDITING_GALLERY);
-        setIsFullSize(true);
+        if (selectedParcelCoords) {
+          flyToParcel({
+            center: selectedParcelCoords,
+            duration: 500,
+          });
+        }
+
+        setInteractionState(STATE.PUBLISHING);
+        setIsFullScreen(true);
       }}
     >
-      Edit Media Gallery
+      Geospatial Publisher
     </Button>
   );
 
@@ -328,7 +351,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         className="w-100"
         onClick={() => {
           setInteractionState(STATE.PARCEL_PLACING_BID);
-          setIsFullSize(true);
+          setIsFullScreen(true);
         }}
       >
         Place Bid
@@ -359,6 +382,8 @@ function ParcelInfo(props: ParcelInfoProps) {
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
+        : interactionState === STATE.PUBLISHING
+        ? "Geospatial Publisher"
         : isMobile ||
           isTablet ||
           interactionState === STATE.CLAIM_SELECTING ||
@@ -368,7 +393,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     header = (
       <Row
         className={`${
-          (!isMobile && !isTablet) || isFullSize ? "pb-0" : "pb-3"
+          (!isMobile && !isTablet) || isFullScreen ? "pb-0" : "pb-3"
         } p-sm-0`}
       >
         <Col sm="10" className="w-75">
@@ -525,38 +550,40 @@ function ParcelInfo(props: ParcelInfoProps) {
           interactionState == STATE.PARCEL_ACCEPTING_BID ||
           interactionState == STATE.PARCEL_REJECTING_BID ||
           interactionState == STATE.EDITING_METADATA ||
-          interactionState == STATE.EDITING_GALLERY)) ? (
-        <Container className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
-          <Row>
-            <Col className="d-flex gap-1">
-              <span className="fw-bold">For Sale Price: </span>
-              <div className="d-flex align-items-center gap-2">
-                {isLoading || parcelFieldsToUpdate?.forSalePrice
-                  ? spinner
-                  : forSalePrice}
-                {!isLoading &&
-                  accountAddress === licenseOwner &&
-                  !invalidLicenseId &&
-                  !parcelFieldsToUpdate?.forSalePrice && (
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Edit Price</Tooltip>}
-                    >
-                      <Button
-                        variant="link"
-                        className="p-0 m-0 shadow-none"
-                        onClick={() => {
-                          setInteractionState(STATE.PARCEL_EDITING_BID);
-                          setIsFullSize(true);
-                        }}
+          interactionState == STATE.PUBLISHING)) ? (
+        <Container>
+          <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
+            <Col className="p-0">
+              <div className="d-flex flex-column gap-1 gap-sm-3">
+                <div>
+                  <span className="fw-bold">For Sale Price:</span>{" "}
+                  {isLoading || parcelFieldsToUpdate?.forSalePrice
+                    ? spinner
+                    : forSalePrice}
+                  {!isLoading &&
+                    accountAddress === licenseOwner &&
+                    !invalidLicenseId &&
+                    !parcelFieldsToUpdate?.forSalePrice && (
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Edit Price</Tooltip>}
                       >
-                        <Image
-                          className="d-flex align-items-center"
-                          src="edit.svg"
-                        />
-                      </Button>
-                    </OverlayTrigger>
-                  )}
+                        <Button
+                          variant="link"
+                          className="p-0 m-0 shadow-none"
+                          onClick={() => {
+                            setInteractionState(STATE.PARCEL_EDITING_BID);
+                            setIsFullSize(true);
+                          }}
+                        >
+                          <Image
+                            className="d-flex align-items-center"
+                            src="edit.svg"
+                          />
+                        </Button>
+                      </OverlayTrigger>
+                    )}
+                </div>
               </div>
             </Col>
           </Row>
@@ -725,12 +752,15 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
         </Col>
       </Row>
-      {interactionState == STATE.EDITING_GALLERY && (
-        <GalleryModal
-          show={interactionState === STATE.EDITING_GALLERY}
+      {interactionState == STATE.PUBLISHING && (
+        <GeospatialPublisher
+        /*
+          show={interactionState === STATE.PUBLISHING}
+          setRootCid={setRootCid}
           licenseDiamondContract={licenseDiamondContract}
           {...props}
-        ></GalleryModal>
+           */
+        ></GeospatialPublisher>
       )}
     </>
   );

@@ -70,8 +70,8 @@ export enum STATE {
   PARCEL_EDITING_BID,
   PARCEL_PLACING_BID,
   PARCEL_ACCEPTING_BID,
-  EDITING_GALLERY,
   EDITING_METADATA,
+  PUBLISHING,
   PARCEL_REJECTING_BID,
   PARCEL_RECLAIMING,
 }
@@ -197,6 +197,8 @@ export type MapProps = {
   auctionEnd: BigNumber;
   startingBid: BigNumber;
   endingBid: BigNumber;
+  isFullScreen: boolean;
+  setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
@@ -218,6 +220,8 @@ function Map(props: MapProps) {
     setSelectedParcelId,
     interactionState,
     setInteractionState,
+    isFullScreen,
+    setIsFullScreen,
   } = props;
   const { data, fetchMore, refetch } = useQuery<PolygonQuery>(query, {
     variables: {
@@ -266,7 +270,7 @@ function Map(props: MapProps) {
   };
 
   const mapPadding = {
-    top: 120,
+    top: isFullScreen ? 0 : 120,
     bottom: 0,
     left: 0,
     right: 0,
@@ -467,7 +471,7 @@ function Map(props: MapProps) {
   }
 
   function _onMove(nextViewport: ViewState) {
-    if (interactionState == STATE.EDITING_GALLERY || mapRef.current == null) {
+    if (interactionState == STATE.PUBLISHING || mapRef.current == null) {
       return;
     }
     setViewport(nextViewport);
@@ -743,7 +747,6 @@ function Map(props: MapProps) {
         if (_checkParcelClick()) {
           return;
         }
-        setInteractionState(STATE.VIEWING);
         break;
       case STATE.PARCEL_EDITING_BID:
       case STATE.PARCEL_RECLAIMING:
@@ -1119,9 +1122,7 @@ function Map(props: MapProps) {
               position="top-right"
               hideSearchBar={() => setShowSearchBar(false)}
             />
-          ) : (!isMobile && !isTablet) ||
-            document.body.clientHeight > 800 ||
-            interactionState !== STATE.CLAIM_SELECTING ? (
+          ) : (!isMobile && !isTablet) || !isFullScreen ? (
             <Button
               variant="light"
               className="search-map-btn"
@@ -1234,9 +1235,7 @@ function Map(props: MapProps) {
           />
         </Button>
       </ButtonGroup>
-      {(!isMobile && !isTablet) ||
-      document.body.clientHeight > 800 ||
-      interactionState !== STATE.CLAIM_SELECTING ? (
+      {(!isMobile && !isTablet) || !isFullScreen ? (
         <Button
           variant="primary"
           className={`p-0 border-0 parcel-list-btn ${

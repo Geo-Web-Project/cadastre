@@ -6,6 +6,7 @@ import {
   parcelLayer,
   parcelHighlightLayer,
   parcelInvalidLayer,
+  parcelBorderLayer,
 } from "../map-style";
 import type { Polygon, MultiPolygon, Position } from "@turf/turf";
 import * as turf from "@turf/turf";
@@ -80,7 +81,8 @@ function ParcelSource(props: Props) {
         features: geoJsonFeatures,
       }}
     >
-      <Layer {...parcelLayer} />
+      <Layer {...parcelLayer(parcelHoverId, selectedParcelId)} />
+      <Layer {...parcelBorderLayer(parcelHoverId, selectedParcelId)} />
       <Layer {...parcelHighlightLayer(parcelHoverId, selectedParcelId)} />
       {invalidLicenseId == selectedParcelId && (
         <Layer {...parcelInvalidLayer(selectedParcelId)} />
