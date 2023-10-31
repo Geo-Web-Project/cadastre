@@ -98,7 +98,7 @@ function ClaimAction(props: ClaimActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
-  function encodeClaimData(contentHash?: string) {
+  async function getClaimMetaTransaction() {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
@@ -118,7 +118,7 @@ function ClaimAction(props: ClaimActionProps) {
     const encodedClaimData = registryContract.interface.encodeFunctionData(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      "claim(int96,uint256,(uint64,uint256,uint256),bytes)",
+      "claim(int96,uint256,(uint64,uint256,uint256))",
       [
         newFlowRate,
         ethers.utils.parseEther(displayNewForSalePrice),
@@ -127,14 +127,13 @@ function ClaimAction(props: ClaimActionProps) {
           lngDim: neX - swX + 1,
           latDim: neY - swY + 1,
         },
-        contentHash ?? "0x",
       ]
     );
 
-    return encodedClaimData;
+    return { to: registryContract.address, data: encodedClaimData, value: "0" };
   }
 
-  async function _claim(contentHash?: string) {
+  async function _claim() {
     if (!claimBase1Coord || !claimBase2Coord) {
       throw new Error(`Unknown coordinates`);
     }
@@ -153,15 +152,14 @@ function ClaimAction(props: ClaimActionProps) {
 
     const txn = await registryContract
       .connect(signer)
-      ["claim(int96,uint256,(uint64,uint256,uint256),bytes)"](
+      ["claim(int96,uint256,(uint64,uint256,uint256))"](
         newFlowRate,
         ethers.utils.parseEther(displayNewForSalePrice),
         {
           swCoordinate: BigNumber.from(swCoord.toString()),
           lngDim: neX - swX + 1,
           latDim: neY - swY + 1,
-        },
-        contentHash ?? "0x"
+        }
       );
     const receipt = await txn.wait();
 
@@ -311,7 +309,7 @@ function ClaimAction(props: ClaimActionProps) {
         spender={registryContract.address}
         flowOperator={flowOperator}
         bundleCallback={smartAccount?.safe ? bundleCallback : void 0}
-        encodeFunctionData={encodeClaimData}
+        metaTransactionCallbacks={[getClaimMetaTransaction]}
         transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         {...props}

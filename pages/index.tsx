@@ -150,6 +150,7 @@ function IndexPage({
   const [smartAccount, setSmartAccount] = React.useState<SmartAccount | null>(
     null
   );
+  const [w3Client, setW3Client] = React.useState<W3Client | null>(null);
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -236,6 +237,8 @@ function IndexPage({
       throw new Error("Could not find any capabilities");
     }
     const space = proofs[0].capabilities[0].with;
+    const did = (await w3Client.addSpace(proofs[0])).did();
+    await w3Client.setCurrentSpace(did);
     const w3InvocationConfig = {
       issuer: w3Client.agent(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -292,6 +295,7 @@ function IndexPage({
 
     setW3InvocationConfig(w3InvocationConfig);
     setGeoWebContent(geoWebContent);
+    setW3Client(w3Client);
   };
 
   React.useEffect(() => {
@@ -545,6 +549,7 @@ function IndexPage({
               ipfs={ipfs}
               geoWebContent={geoWebContent}
               setGeoWebContent={setGeoWebContent}
+              w3Client={w3Client}
               w3InvocationConfig={w3InvocationConfig}
               setW3InvocationConfig={setW3InvocationConfig}
               geoWebCoordinate={geoWebCoordinate}

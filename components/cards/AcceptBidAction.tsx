@@ -172,7 +172,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
     ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
-  function encodeAcceptBidData() {
+  async function getAcceptBidMetaTransaction() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -191,7 +191,11 @@ function AcceptBidAction(props: AcceptBidActionProps) {
     const acceptBidData =
       licenseDiamondContract.interface.encodeFunctionData("acceptBid");
 
-    return acceptBidData;
+    return {
+      to: licenseDiamondContract.address,
+      data: acceptBidData,
+      value: "0",
+    };
   }
 
   async function bundleCallback() {
@@ -274,8 +278,8 @@ function AcceptBidAction(props: AcceptBidActionProps) {
                 }
                 isActing={isActing}
                 buttonText={"Accept Bid"}
-                encodeFunctionData={encodeAcceptBidData}
-                callback={bundleCallback}
+                metaTransactionCallbacks={[getAcceptBidMetaTransaction]}
+                bundleCallback={bundleCallback}
                 transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                 setTransactionBundleFeesEstimate={
                   setTransactionBundleFeesEstimate

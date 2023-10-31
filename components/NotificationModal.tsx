@@ -2,8 +2,6 @@ import { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
 import ListGroup from "react-bootstrap/ListGroup";
 import CopyTooltip from "./CopyTooltip";
 import { truncateStr } from "../lib/truncate";
@@ -20,26 +18,13 @@ function NotificationModal(props: NotificationModalProps) {
 
   return (
     <>
-      <OverlayTrigger
-        key="notification"
-        placement="top"
-        overlay={
-          <Tooltip id={`tooltip-key`}>Set Up Parcel Monitoring Emails</Tooltip>
-        }
+      <Button
+        size="sm"
+        bsPrefix="text-start dropdown-item shadow-none border-0 px-0 py-0 bg-transparent"
+        onClick={() => setShow(true)}
       >
-        <Button
-          variant="link"
-          size="sm"
-          className="py-0 mt-1 shadow-none"
-          onClick={() => setShow(true)}
-        >
-          <Image
-            src="notification-add.svg"
-            alt="add notification"
-            width={26}
-          ></Image>
-        </Button>
-      </OverlayTrigger>
+        Setup Notifications
+      </Button>
       <Modal
         show={show}
         scrollable
@@ -120,18 +105,20 @@ function NotificationModal(props: NotificationModalProps) {
             >
               <div className="text-break">
                 Paste this parcel's address into <b>ETH Address</b>:{" "}
-                {isMobile
-                  ? truncateStr(licenseDiamondAddress, 22)
-                  : licenseDiamondAddress}
                 <CopyTooltip
                   contentClick="Address Copied"
                   contentHover="Copy Parcel Address"
                   target={
-                    <Image
-                      className="ms-1 pb-1"
-                      width={isMobile ? 20 : 20}
-                      src="copy-light.svg"
-                    />
+                    <>
+                      {isMobile
+                        ? truncateStr(licenseDiamondAddress, 22)
+                        : licenseDiamondAddress}
+                      <Image
+                        className="ms-1 pb-1"
+                        width={isMobile ? 20 : 20}
+                        src="copy-light.svg"
+                      />
+                    </>
                   }
                   handleCopy={() =>
                     navigator.clipboard.writeText(licenseDiamondAddress)

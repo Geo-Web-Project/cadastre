@@ -1,6 +1,5 @@
 import * as React from "react";
 import { BigNumber, ethers } from "ethers";
-import type { BasicProfile } from "@geo-web/types";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ActionData, ActionForm } from "./ActionForm";
 import { formatBalance } from "../../lib/formatBalance";
@@ -13,7 +12,6 @@ import { GeoWebParcel, ParcelInfoProps } from "./ParcelInfo";
 
 export type EditActionProps = ParcelInfoProps & {
   signer: ethers.Signer;
-  parcelContent: BasicProfile | null;
   perSecondFeeNumerator: BigNumber;
   perSecondFeeDenominator: BigNumber;
   hasOutstandingBid: boolean;
@@ -24,15 +22,12 @@ export type EditActionProps = ParcelInfoProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
-  setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function EditAction(props: EditActionProps) {
   const {
     signer,
     parcelData,
-    parcelContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     hasOutstandingBid,
@@ -161,16 +156,7 @@ function EditAction(props: EditActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
-  React.useEffect(() => {
-    if (parcelContent) {
-      updateActionData({
-        parcelName: parcelContent.name,
-        parcelWebContentURI: parcelContent.url,
-      });
-    }
-  }, [parcelContent]);
-
-  function encodeEditBidData(contentHash?: string) {
+  async function getEditBidMetaTransaction() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -182,20 +168,23 @@ function EditAction(props: EditActionProps) {
     const editBidData = licenseDiamondContract.interface.encodeFunctionData(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      "editBid(int96,uint256,bytes)",
+      "editBid(int96,uint256)",
       [
         newNetworkFee ?? existingNetworkFee,
         ethers.utils.parseEther(
           displayNewForSalePrice ?? displayCurrentForSalePrice
         ),
-        contentHash ?? "0x",
       ]
     );
 
-    return editBidData;
+    return {
+      to: licenseDiamondContract.address,
+      data: editBidData,
+      value: "0",
+    };
   }
 
-  async function editBid(contentHash?: string) {
+  async function editBid() {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -212,49 +201,12 @@ function EditAction(props: EditActionProps) {
 
     const txn = await licenseDiamondContract
       .connect(signer)
-      ["editBid(int96,uint256,bytes)"](
+      ["editBid(int96,uint256)"](
         newNetworkFee ?? existingNetworkFee,
         ethers.utils.parseEther(
           displayNewForSalePrice ?? displayCurrentForSalePrice
-        ),
-        contentHash ?? "0x"
+        )
       );
-    await txn.wait();
-  }
-
-  function encodeEditContentHashData(contentHash?: string) {
-    if (!licenseDiamondContract) {
-      throw new Error("Could not find licenseDiamondContract");
-    }
-
-    const editContentHashData =
-      licenseDiamondContract.interface.encodeFunctionData(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        "editContentHash(bytes)",
-        [contentHash ?? "0x"]
-      );
-
-    return editContentHashData;
-  }
-
-  async function editContentHash(contentHash?: string) {
-    updateActionData({ isActing: true });
-
-    if (!licenseDiamondContract) {
-      throw new Error("Could not find licenseDiamondContract");
-    }
-
-    if (!signer) {
-      throw new Error("Could not find existingNetworkFee");
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const txn = await licenseDiamondContract
-      .connect(signer)
-      ["editContentHash(bytes)"](contentHash ?? "0x");
-
     await txn.wait();
   }
 
@@ -262,12 +214,7 @@ function EditAction(props: EditActionProps) {
     <>
       <ActionForm
         loading={false}
-        performAction={
-          hasOutstandingBid ||
-          displayNewForSalePrice === displayCurrentForSalePrice
-            ? editContentHash
-            : editBid
-        }
+        performAction={editBid}
         actionData={actionData}
         setActionData={setActionData}
         summaryView={
@@ -294,12 +241,7 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
-        encodeFunctionData={
-          hasOutstandingBid ||
-          displayNewForSalePrice === displayCurrentForSalePrice
-            ? encodeEditContentHashData
-            : encodeEditBidData
-        }
+        metaTransactionCallbacks={[getEditBidMetaTransaction]}
         bundleCallback={async () => void 0}
         transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}

@@ -247,7 +247,7 @@ function TransactionSummaryView({
   const streamView = (
     <p
       className={
-        interactionState === STATE.PARCEL_EDITING && !bundleSettings.isSponsored
+        interactionState === STATE.PARCEL_EDITING_BID && !bundleSettings.isSponsored
           ? "mb-2"
           : ""
       }
@@ -545,7 +545,7 @@ function TransactionSummaryView({
         {!smartAccount?.safe && streamView}
         {interactionState !== STATE.PARCEL_ACCEPTING_BID && streamBufferView}
         {smartAccount?.safe &&
-          interactionState === STATE.PARCEL_EDITING &&
+          interactionState === STATE.PARCEL_EDITING_BID &&
           !bundleSettings.isSponsored &&
           streamView}
         {transactionBundleFeesEstimate &&
@@ -557,30 +557,30 @@ function TransactionSummaryView({
         {transactionBundleFeesEstimate &&
         transactionBundleFeesEstimate.gt(0) &&
         !bundleSettings.isSponsored &&
-        interactionState === STATE.PARCEL_EDITING
+        interactionState === STATE.PARCEL_EDITING_BID
           ? transactionBundleFeesEstimateView
           : null}
         {smartAccount?.safe &&
         interactionState !== STATE.PARCEL_ACCEPTING_BID &&
-        (interactionState !== STATE.PARCEL_EDITING ||
+        (interactionState !== STATE.PARCEL_EDITING_BID ||
           bundleSettings.isSponsored)
           ? initialTransferView
           : interactionState === STATE.CLAIM_SELECTED
           ? yearlyTotalView
           : null}
         {smartAccount?.safe &&
-          interactionState !== STATE.PARCEL_EDITING &&
+          interactionState !== STATE.PARCEL_EDITING_BID &&
           interactionState !== STATE.PARCEL_ACCEPTING_BID &&
           streamView}
         {interactionState === STATE.PARCEL_ACCEPTING_BID && streamReductionView}
         {smartAccount?.safe &&
-          interactionState === STATE.PARCEL_EDITING &&
+          interactionState === STATE.PARCEL_EDITING_BID &&
           bundleSettings.isSponsored &&
           streamView}
         {transactionBundleFeesEstimate &&
           transactionBundleFeesEstimate.gt(0) &&
           !bundleSettings.isSponsored &&
-          interactionState !== STATE.PARCEL_EDITING &&
+          interactionState !== STATE.PARCEL_EDITING_BID &&
           transactionBundleFeesEstimateView}
       </>
     </div>

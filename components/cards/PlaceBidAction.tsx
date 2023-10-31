@@ -205,7 +205,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
     return () => clearInterval(timerId);
   }, [smartAccount]);
 
-  function encodePlaceBidData() {
+  async function getPlaceBidMetaTransaction() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -225,7 +225,11 @@ function PlaceBidAction(props: PlaceBidActionProps) {
       [newNetworkFee, newForSalePrice]
     );
 
-    return placeBidData;
+    return {
+      to: licenseDiamondContract.address,
+      data: placeBidData,
+      value: "0",
+    };
   }
 
   async function placeBid() {
@@ -474,8 +478,8 @@ function PlaceBidAction(props: PlaceBidActionProps) {
                   }
                   isActing={isActing}
                   buttonText={"Place Bid"}
-                  encodeFunctionData={encodePlaceBidData}
-                  callback={submitBundleCallback}
+                  metaTransactionCallbacks={[getPlaceBidMetaTransaction]}
+                  bundleCallback={submitBundleCallback}
                   transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate

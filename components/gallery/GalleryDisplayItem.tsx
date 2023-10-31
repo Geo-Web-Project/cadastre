@@ -28,7 +28,6 @@ export type GalleryDisplayItemProps = GalleryModalProps & {
     React.SetStateAction<number | null>
   >;
   setShouldMediaGalleryUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function GalleryDisplayItem(props: GalleryDisplayItemProps) {

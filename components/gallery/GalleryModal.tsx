@@ -26,7 +26,6 @@ import { ZERO_ADDRESS, NETWORK_ID } from "../../lib/constants";
 export type GalleryModalProps = ParcelInfoProps & {
   show: boolean;
   geoWebContent: GeoWebContent | null;
-  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
   licenseDiamondContract: IPCOLicenseDiamond | null;
 };
 
@@ -42,7 +41,6 @@ function GalleryModal(props: GalleryModalProps) {
     selectedParcelId,
     show,
     setInteractionState,
-    setRootCid,
   } = props;
   const handleClose = () => {
     setInteractionState(STATE.PARCEL_SELECTED);
@@ -57,7 +55,6 @@ function GalleryModal(props: GalleryModalProps) {
     ceramic,
     licenseAddress,
     selectedParcelId,
-    setRootCid
   );
   const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
     useSafe(smartAccount?.safe ?? null);

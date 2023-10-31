@@ -10,8 +10,7 @@ function useMediaGallery(
   geoWebContent: GeoWebContent,
   ceramic: CeramicClient,
   licenseContractAddress: string,
-  parcelId: string,
-  setRootCid: React.Dispatch<React.SetStateAction<string | null>>
+  parcelId: string
 ) {
   const [mediaGalleryItems, setMediaGalleryItems] = useState<
     MediaObject[] | null
@@ -63,7 +62,7 @@ function useMediaGallery(
           }
         } else if (mediaGalleryItems === null) {
           const mediaGallery: MediaGallery = [];
-          const newRoot = await geoWebContent.raw.putPath(
+          await geoWebContent.raw.putPath(
             rootCid,
             "/mediaGallery",
             mediaGallery,
@@ -74,7 +73,6 @@ function useMediaGallery(
           );
 
           setMediaGalleryItems([]);
-          setRootCid(newRoot.toString());
           setShouldMediaGalleryUpdate(false);
           clearInterval(timerId);
 
@@ -87,7 +85,6 @@ function useMediaGallery(
         ) {
           setMediaGalleryItems(_mediaGalleryItems);
           setShouldMediaGalleryUpdate(false);
-          setRootCid(rootCid.toString());
           clearInterval(timerId);
         }
       } catch (err) {

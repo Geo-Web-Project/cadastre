@@ -3,15 +3,13 @@ import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
 import * as turf from "@turf/turf";
-import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
-import { getParcelContent } from "../../lib/utils";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 interface OutstandingBidProps {
   sfFramework: Framework;
-  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,7 +38,6 @@ const outstandingBidQuery = gql`
       bboxS
       bboxE
       bboxW
-      licenseOwner
       licenseDiamond
       pendingBid {
         forSalePrice
@@ -53,7 +50,6 @@ const outstandingBidQuery = gql`
 
 function OutstandingBid(props: OutstandingBidProps) {
   const {
-    geoWebContent,
     registryContract,
     hasRefreshed,
     setHasRefreshed,
@@ -76,6 +72,7 @@ function OutstandingBid(props: OutstandingBidProps) {
       notifyOnNetworkStatusChange: true,
     }
   );
+  const { getBasicProfile } = useBasicProfile(registryContract);
 
   useEffect(() => {
     if (!data) {
@@ -99,7 +96,6 @@ function OutstandingBid(props: OutstandingBidProps) {
 
       const parcelId = parcel.id;
       const createdAtBlock = parcel.createdAtBlock;
-      const licenseOwner = parcel.licenseOwner;
       const pendingBid = parcel.pendingBid;
 
       if (pendingBid) {
@@ -110,16 +106,10 @@ function OutstandingBid(props: OutstandingBidProps) {
         continue;
       }
 
-      const promiseChain = getParcelContent(
-        registryContract.address.toLowerCase(),
-        geoWebContent,
-        parcelId,
-        licenseOwner
-      ).then((parcelContent) => {
-        const name =
-          parcelContent && parcelContent.name
-            ? parcelContent.name
-            : `Parcel ${parcelId}`;
+      const promiseChain = getBasicProfile(parcelId).then((basicProfile) => {
+        const name = basicProfile?.name
+          ? basicProfile.name
+          : `Parcel ${parcelId}`;
 
         const poly = turf.bboxPolygon([
           parcel.bboxW,

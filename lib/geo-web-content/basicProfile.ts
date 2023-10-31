@@ -1,152 +1,100 @@
 import { useState, useEffect } from "react";
-import { AssetId, AccountId } from "caip";
-import BN from "bn.js";
-import { GeoWebContent } from "@geo-web/content";
-import type { BasicProfile } from "@geo-web/types";
-import { NETWORK_ID } from "../constants";
+import { Contracts } from "@geo-web/sdk/dist/contract/types";
+import { IPFS_GATEWAY } from "../constants";
 import { ethers } from "ethers";
 
+export type BasicProfile = { name?: string; external_url?: string };
+
 function useBasicProfile(
-  geoWebContent: GeoWebContent | null,
-  licenseContractAddress?: string,
-  licenseOwner?: string,
+  registryContract: Contracts["registryDiamondContract"],
   parcelId?: string
 ) {
-  const [parcelContent, setParcelContent] = useState<BasicProfile | null>(null);
-  const [rootCid, setRootCid] = useState<string | null>(null);
-  const [shouldParcelContentUpdate, setShouldParcelContentUpdate] =
+  const [basicProfile, setBasicProfile] = useState<BasicProfile | null>(null);
+  const [shouldParcelContentUpdate, setShouldBasicProfileUpdate] =
     useState<boolean>(false);
 
   useEffect(() => {
-    if (
-      !geoWebContent ||
-      !licenseContractAddress ||
-      !licenseOwner ||
-      !parcelId
-    ) {
+    if (!parcelId) {
       return;
     }
 
-    setParcelContent(null);
-    setRootCid(null);
+    setBasicProfile(null);
 
     (async () => {
       try {
-        const assetId = new AssetId({
-          chainId: `eip155:${NETWORK_ID}`,
-          assetName: {
-            namespace: "erc721",
-            reference: licenseContractAddress.toLowerCase(),
-          },
-          tokenId: new BN(parcelId.slice(2), "hex").toString(10),
-        });
+        const _basicProfile = await getBasicProfile(parcelId);
 
-        const ownerId = new AccountId({
-          chainId: `eip155:${NETWORK_ID}`,
-          address: ethers.utils.getAddress(licenseOwner),
-        });
-        const _rootCid = await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerDID: `did:pkh:${ownerId}`,
-        });
-        const _parcelContent = await geoWebContent.raw.get(
-          _rootCid,
-          "/basicProfile",
-          {
-            schema: "BasicProfile",
-          }
-        );
-        const root = await geoWebContent.raw.get(_rootCid, "/", {
-          schema: "ParcelRoot",
-        });
-
-        setParcelContent(_parcelContent);
-        setRootCid(
-          root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
-        );
+        setBasicProfile(_basicProfile);
       } catch (err) {
-        setParcelContent({});
-        setRootCid("");
+        setBasicProfile({});
         console.error(err);
       }
     })();
-  }, [geoWebContent, licenseContractAddress, licenseOwner, parcelId]);
+  }, [parcelId]);
 
   useEffect(() => {
-    if (
-      !geoWebContent ||
-      !licenseContractAddress ||
-      !licenseOwner ||
-      !parcelId ||
-      !shouldParcelContentUpdate
-    ) {
+    if (!parcelId || !shouldParcelContentUpdate) {
       return;
     }
 
-    const prevParcelContent = { ...parcelContent };
+    const prevParcelContent = { ...basicProfile };
 
-    setParcelContent(null);
-    setRootCid(null);
+    setBasicProfile(null);
 
     const timerId = setInterval(async () => {
       try {
-        const assetId = new AssetId({
-          chainId: `eip155:${NETWORK_ID}`,
-          assetName: {
-            namespace: "erc721",
-            reference: licenseContractAddress.toLowerCase(),
-          },
-          tokenId: new BN(parcelId.slice(2), "hex").toString(10),
+        const _basicProfile = await getBasicProfile(parcelId, {
+          nocache: true,
         });
-
-        const ownerId = new AccountId({
-          chainId: `eip155:${NETWORK_ID}`,
-          address: ethers.utils.getAddress(licenseOwner),
-        });
-        const _rootCid = await geoWebContent.raw.resolveRoot({
-          parcelId: assetId,
-          ownerDID: `did:pkh:${ownerId}`,
-        });
-        const _parcelContent = await geoWebContent.raw.get(
-          _rootCid,
-          "/basicProfile",
-          {
-            schema: "BasicProfile",
-          }
-        );
-        const root = await geoWebContent.raw.get(_rootCid, "/", {
-          schema: "ParcelRoot",
-        });
+        setBasicProfile(_basicProfile);
 
         if (
-          JSON.stringify(_parcelContent) !== JSON.stringify(prevParcelContent)
+          JSON.stringify(_basicProfile) !== JSON.stringify(prevParcelContent)
         ) {
-          setParcelContent(_parcelContent);
-          setRootCid(
-            root?.basicProfile || root?.mediaGallery ? _rootCid.toString() : ""
-          );
-          setShouldParcelContentUpdate(false);
+          setBasicProfile(_basicProfile);
+          setShouldBasicProfileUpdate(false);
           clearInterval(timerId);
         }
       } catch (err) {
-        setParcelContent({});
-        setRootCid("");
-        setShouldParcelContentUpdate(false);
+        setBasicProfile({});
+        setShouldBasicProfileUpdate(false);
         clearInterval(timerId);
         console.error(err);
       }
     }, 5000);
 
     return () => clearInterval(timerId);
-  }, [
-    geoWebContent,
-    licenseContractAddress,
-    licenseOwner,
-    parcelId,
-    shouldParcelContentUpdate,
-  ]);
+  }, [parcelId, shouldParcelContentUpdate]);
 
-  return { parcelContent, rootCid, setRootCid, setShouldParcelContentUpdate };
+  const getBasicProfile = async (
+    parcelId: string,
+    opts?: { nocache?: boolean }
+  ) => {
+    let basicProfile: BasicProfile = {};
+
+    try {
+      const tokenURI = await registryContract.tokenURI(
+        ethers.BigNumber.from(parcelId)
+      );
+      const basicProfileRes = await fetch(
+        `${IPFS_GATEWAY}/ipfs/${tokenURI.slice(7)}`,
+        {
+          cache: opts?.nocache ? "no-cache" : "default",
+        }
+      );
+      basicProfile = await basicProfileRes.json();
+    } catch (err) {
+      console.warn(err);
+    }
+
+    return basicProfile;
+  };
+
+  return {
+    basicProfile,
+    setShouldBasicProfileUpdate,
+    getBasicProfile,
+  };
 }
 
 export { useBasicProfile };
