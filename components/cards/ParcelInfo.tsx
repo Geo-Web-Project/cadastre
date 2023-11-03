@@ -392,7 +392,7 @@ function ParcelInfo(props: ParcelInfoProps) {
             }}
           >
             <Row className="justify-content-between m-0">
-              <Col xs="8">
+              <Col xs="8" style={{ height: "70px" }}>
                 <h1 className="fs-3 fw-bold">
                   {basicProfile === null
                     ? spinner
@@ -413,7 +413,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               </Col>
               <Col xs="4">
                 <div className="d-flex gap-2 justify-content-end align-items-center m-0 p-0">
-                  {accountAddress === licenseOwner && (
+                  {accountAddress === licenseOwner && !invalidLicenseId && (
                     <>
                       {!basicProfile?.external_url && (
                         <OverlayTrigger
@@ -423,9 +423,10 @@ function ParcelInfo(props: ParcelInfoProps) {
                           <Button
                             variant="link"
                             className="p-0"
-                            onClick={() =>
-                              setInteractionState(STATE.EDITING_METADATA)
-                            }
+                            onClick={() => {
+                              setInteractionState(STATE.EDITING_METADATA);
+                              setIsFullSize(true);
+                            }}
                           >
                             <Image
                               src="add-link.svg"
@@ -437,14 +438,15 @@ function ParcelInfo(props: ParcelInfoProps) {
                       )}
                       <OverlayTrigger
                         placement="top"
-                        overlay={<Tooltip>Add Link</Tooltip>}
+                        overlay={<Tooltip>Edit Metadata</Tooltip>}
                       >
                         <Button
                           variant="link"
                           className="p-0"
-                          onClick={() =>
-                            setInteractionState(STATE.EDITING_METADATA)
-                          }
+                          onClick={() => {
+                            setInteractionState(STATE.EDITING_METADATA);
+                            setIsFullSize(true);
+                          }}
                         >
                           <Image src="edit.svg" alt="edit" width={18} />
                         </Button>
@@ -525,27 +527,34 @@ function ParcelInfo(props: ParcelInfoProps) {
         <Container className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
           <Row>
             <Col className="d-flex gap-1">
-              {/*<div className="d-flex flex-column gap-1 gap-sm-3">*/}
               <span className="fw-bold">For Sale Price: </span>
               <div className="d-flex align-items-center gap-2">
                 {isLoading || parcelFieldsToUpdate?.forSalePrice
                   ? spinner
                   : forSalePrice}
-                {!isLoading && !parcelFieldsToUpdate?.forSalePrice && (
-                  <Button
-                    variant="link"
-                    className="p-0 m-0 shadow-none"
-                    onClick={() => {
-                      setInteractionState(STATE.PARCEL_EDITING_BID);
-                      setIsFullSize(true);
-                    }}
-                  >
-                    <Image
-                      className="d-flex align-items-center"
-                      src="edit.svg"
-                    />
-                  </Button>
-                )}
+                {!isLoading &&
+                  accountAddress === licenseOwner &&
+                  !invalidLicenseId &&
+                  !parcelFieldsToUpdate?.forSalePrice && (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Edit Price</Tooltip>}
+                    >
+                      <Button
+                        variant="link"
+                        className="p-0 m-0 shadow-none"
+                        onClick={() => {
+                          setInteractionState(STATE.PARCEL_EDITING_BID);
+                          setIsFullSize(true);
+                        }}
+                      >
+                        <Image
+                          className="d-flex align-items-center"
+                          src="edit.svg"
+                        />
+                      </Button>
+                    </OverlayTrigger>
+                  )}
               </div>
             </Col>
           </Row>
