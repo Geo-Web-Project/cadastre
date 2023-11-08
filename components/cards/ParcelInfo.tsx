@@ -388,11 +388,11 @@ function ParcelInfo(props: ParcelInfoProps) {
             style={{
               backgroundImage: "url(Contour_Lines.png)",
               backgroundSize: "cover",
-              height: isMobile || isTablet ? "116px" : "auto",
+              height: isMobile || isTablet ? "80px" : "auto",
             }}
           >
             <Row className="justify-content-between m-0">
-              <Col xs="8" style={{ height: "70px" }}>
+              <Col xs="8" style={{ height: "80px" }}>
                 <h1 className="fs-3 fw-bold">
                   {basicProfile === null
                     ? spinner
@@ -442,7 +442,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                       >
                         <Button
                           variant="link"
-                          className="p-0"
+                          className="p-0 pe-1 me-4"
                           onClick={() => {
                             setInteractionState(STATE.EDITING_METADATA);
                             setIsFullSize(true);
@@ -453,7 +453,12 @@ function ParcelInfo(props: ParcelInfoProps) {
                       </OverlayTrigger>
                     </>
                   )}
-                  <Dropdown as={NavItem}>
+                  <Dropdown
+                    as={NavItem}
+                    drop={isMobile || isTablet ? "up" : "down"}
+                    align="end"
+                    style={{ position: "fixed", zIndex: 10000 }}
+                  >
                     <Dropdown.Toggle as={NavLink} bsPrefix="nav-link">
                       <Image src="more-menu.svg" alt="more-menu" width={24} />
                     </Dropdown.Toggle>
