@@ -46,6 +46,7 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
     selectedParcelId,
     basicProfile,
     setShouldBasicProfileUpdate,
+    setShouldRefetchParcelsData,
     licenseDiamondContract,
     setInteractionState,
     paymentToken,
@@ -151,6 +152,15 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
     return { to: registryContract.address, data: calldata, value: "0" };
   };
 
+  const bundleCallback = async () => {
+    if (basicProfile?.name !== parcelName) {
+      setShouldRefetchParcelsData(true);
+    }
+
+    setShouldBasicProfileUpdate(true);
+    setInteractionState(STATE.PARCEL_SELECTED);
+  };
+
   const updateMetadata = async () => {
     try {
       updateActionData({ isActing: true, didFail: false });
@@ -161,6 +171,10 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
         .updateTokenURI(BigNumber.from(selectedParcelId), tokenURI);
 
       await tx.wait();
+
+      if (basicProfile?.name !== parcelName) {
+        setShouldRefetchParcelsData(true);
+      }
 
       updateActionData({ isActing: false });
       setShouldBasicProfileUpdate(true);
@@ -348,10 +362,7 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
                   isActing={isActing ?? false}
                   buttonText={"Submit"}
                   metaTransactionCallbacks={[getUpdateMetadata]}
-                  bundleCallback={async () => {
-                    setShouldBasicProfileUpdate(true);
-                    setInteractionState(STATE.PARCEL_SELECTED);
-                  }}
+                  bundleCallback={bundleCallback}
                   transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate

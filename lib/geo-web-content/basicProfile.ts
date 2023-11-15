@@ -43,9 +43,7 @@ function useBasicProfile(
 
     const timerId = setInterval(async () => {
       try {
-        const _basicProfile = await getBasicProfile(parcelId, {
-          nocache: true,
-        });
+        const _basicProfile = await getBasicProfile(parcelId);
         setBasicProfile(_basicProfile);
 
         if (
@@ -66,21 +64,20 @@ function useBasicProfile(
     return () => clearInterval(timerId);
   }, [parcelId, shouldParcelContentUpdate]);
 
-  const getBasicProfile = async (
-    parcelId: string,
-    opts?: { nocache?: boolean }
-  ) => {
+  const getBasicProfile = async (parcelId: string) => {
     let basicProfile: BasicProfile = {};
 
     try {
       const tokenURI = await registryContract.tokenURI(
         ethers.BigNumber.from(parcelId)
       );
+
+      if (!tokenURI) {
+        return basicProfile;
+      }
+
       const basicProfileRes = await fetch(
-        `${IPFS_GATEWAY}/ipfs/${tokenURI.slice(7)}`,
-        {
-          cache: opts?.nocache ? "no-cache" : "default",
-        }
+        `${IPFS_GATEWAY}/ipfs/${tokenURI.slice(7)}`
       );
       basicProfile = await basicProfileRes.json();
     } catch (err) {

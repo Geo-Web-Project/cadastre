@@ -156,6 +156,7 @@ const portfolioQuery = gql`
     bidder(id: $id) {
       bids {
         parcel {
+          tokenURI
           id
           licenseOwner
           licenseDiamond
@@ -527,6 +528,7 @@ function ProfileModal(props: ProfileModalProps) {
     }, 4000);
 
     setTimerId(intervalId);
+    setLastSorted("");
 
     return () => {
       if (timerId) {
