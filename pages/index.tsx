@@ -61,6 +61,7 @@ import { SiweMessage } from "@didtools/cacao";
 import axios from "axios";
 import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
+import { useMediaQuery } from "../lib/mediaQuery";
 
 const { httpClient, jsIpfs } = providers;
 
@@ -156,6 +157,7 @@ function IndexPage({
   const { chain } = useNetwork();
   const { address } = useAccount();
   const { data: signer } = useSigner();
+  const { isMobile, isTablet } = useMediaQuery();
 
   async function resetSession() {
     const store = new StoreIndexedDB("w3up-client");
@@ -431,7 +433,7 @@ function IndexPage({
 
   return (
     <>
-      {!isFullScreen && (
+      {(!isMobile && !isTablet) || !isFullScreen ? (
         <Container fluid>
           <Navbar
             bg="dark"
@@ -528,7 +530,7 @@ function IndexPage({
             </Col>
           </Navbar>
         </Container>
-      )}
+      ) : null}
       <Container fluid>
         {registryContract &&
         paymentToken &&

@@ -25,7 +25,7 @@ import EditBidAction from "./EditBidAction";
 import EditMetadataAction from "./EditMetadataAction";
 import ReclaimAction from "./ReclaimAction";
 import { BigNumber } from "ethers";
-import GeospatialPublisher from "../publisher/GeospatialPublisher";
+import AugmentPublisher from "../publisher/AugmentPublisher";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
@@ -99,9 +99,6 @@ export type ParcelInfoProps = OffCanvasPanelProps & {
   >;
   minForSalePrice: BigNumber;
   licenseAddress: string;
-  isFullSize: boolean;
-  setIsFullSize: React.Dispatch<React.SetStateAction<boolean>>;
-  geoWebContent: GeoWebContent;
   isFullScreen: boolean;
   setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -148,7 +145,8 @@ function ParcelInfo(props: ParcelInfoProps) {
     registryContract,
     selectedParcelId
   );
-  const { getParcelCoords } = useParcelNavigation(selectedParcelId);
+  const { getParcelCoords, flyToParcel } =
+    useParcelNavigation(selectedParcelId);
 
   const spinner = (
     <Spinner as="span" size="sm" animation="border" role="status">
@@ -311,19 +309,6 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  const editButton = (
-    <Button
-      variant="primary"
-      className="w-100 mb-2"
-      onClick={() => {
-        setInteractionState(STATE.PARCEL_EDITING);
-        setIsFullScreen(true);
-      }}
-    >
-      Edit Parcel
-    </Button>
-  );
-
   const editGalleryButton = (
     <Button
       variant="secondary"
@@ -340,7 +325,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         setIsFullScreen(true);
       }}
     >
-      Geospatial Publisher
+      Augment Publisher
     </Button>
   );
 
@@ -364,7 +349,9 @@ function ParcelInfo(props: ParcelInfoProps) {
   if (
     interactionState === STATE.CLAIM_SELECTING ||
     interactionState === STATE.CLAIM_SELECTED ||
-    (interactionState !== STATE.PARCEL_SELECTED && (isMobile || isTablet))
+    (interactionState !== STATE.PARCEL_SELECTED &&
+      interactionState !== STATE.PUBLISHING &&
+      (isMobile || isTablet))
   ) {
     const headerText =
       interactionState === STATE.PARCEL_PLACING_BID
@@ -382,8 +369,6 @@ function ParcelInfo(props: ParcelInfoProps) {
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
         ? "Forclosure Claim"
-        : interactionState === STATE.PUBLISHING
-        ? "Geospatial Publisher"
         : isMobile ||
           isTablet ||
           interactionState === STATE.CLAIM_SELECTING ||
@@ -406,7 +391,8 @@ function ParcelInfo(props: ParcelInfoProps) {
       ? `${SPATIAL_DOMAIN}?latitude=${selectedParcelCoords[1]}&longitude=${selectedParcelCoords[0]}`
       : SPATIAL_DOMAIN;
     header =
-      interactionState === STATE.PARCEL_SELECTED || (!isMobile && !isTablet) ? (
+      interactionState === STATE.PARCEL_SELECTED ||
+      (!isMobile && !isTablet && interactionState !== STATE.PUBLISHING) ? (
         <>
           <div
             className="d-flex flex-column justify-content-between rounded-3 p-0 pt-2 m-0 mt-sm-0"
@@ -452,7 +438,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                           className="p-0"
                           onClick={() => {
                             setInteractionState(STATE.EDITING_METADATA);
-                            setIsFullSize(true);
+                            setIsFullScreen(true);
                           }}
                         >
                           <Image src="add-link.svg" alt="add link" width={18} />
@@ -468,7 +454,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                         className="p-0 pe-1 me-4"
                         onClick={() => {
                           setInteractionState(STATE.EDITING_METADATA);
-                          setIsFullSize(true);
+                          setIsFullScreen(true);
                         }}
                       >
                         <Image src="edit.svg" alt="edit" width={18} />
@@ -549,8 +535,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           interactionState == STATE.PARCEL_PLACING_BID ||
           interactionState == STATE.PARCEL_ACCEPTING_BID ||
           interactionState == STATE.PARCEL_REJECTING_BID ||
-          interactionState == STATE.EDITING_METADATA ||
-          interactionState == STATE.PUBLISHING)) ? (
+          interactionState == STATE.EDITING_METADATA)) ? (
         <Container>
           <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
             <Col className="p-0">
@@ -573,7 +558,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                           className="p-0 m-0 shadow-none"
                           onClick={() => {
                             setInteractionState(STATE.PARCEL_EDITING_BID);
-                            setIsFullSize(true);
+                            setIsFullScreen(true);
                           }}
                         >
                           <Image
@@ -753,14 +738,14 @@ function ParcelInfo(props: ParcelInfoProps) {
         </Col>
       </Row>
       {interactionState == STATE.PUBLISHING && (
-        <GeospatialPublisher
+        <AugmentPublisher
         /*
           show={interactionState === STATE.PUBLISHING}
           setRootCid={setRootCid}
           licenseDiamondContract={licenseDiamondContract}
           {...props}
            */
-        ></GeospatialPublisher>
+        ></AugmentPublisher>
       )}
     </>
   );
