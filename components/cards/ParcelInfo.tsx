@@ -392,8 +392,8 @@ function ParcelInfo(props: ParcelInfoProps) {
             }}
           >
             <Row className="justify-content-between m-0">
-              <Col xs="8" style={{ height: "80px" }}>
-                <h1 className="fs-3 fw-bold">
+              <Col xs="9" style={{ height: "80px" }}>
+                <h1 className="fs-3 fw-bold text-truncate">
                   {basicProfile === null
                     ? spinner
                     : basicProfile?.name
@@ -411,79 +411,76 @@ function ParcelInfo(props: ParcelInfoProps) {
                   >{`${hrefWebContent}`}</a>
                 ) : null}
               </Col>
-              <Col xs="4">
-                <div className="d-flex gap-2 justify-content-end align-items-center m-0 p-0">
-                  {accountAddress === licenseOwner && !invalidLicenseId && (
-                    <>
-                      {!basicProfile?.external_url && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={<Tooltip>Add Link</Tooltip>}
-                        >
-                          <Button
-                            variant="link"
-                            className="p-0"
-                            onClick={() => {
-                              setInteractionState(STATE.EDITING_METADATA);
-                              setIsFullSize(true);
-                            }}
-                          >
-                            <Image
-                              src="add-link.svg"
-                              alt="add link"
-                              width={18}
-                            />
-                          </Button>
-                        </OverlayTrigger>
-                      )}
+              <Col
+                xs="3"
+                className="d-flex gap-2 justify-content-end align-items-start m-0 px-1"
+              >
+                {accountAddress === licenseOwner && !invalidLicenseId && (
+                  <>
+                    {!basicProfile?.external_url && (
                       <OverlayTrigger
                         placement="top"
-                        overlay={<Tooltip>Edit Metadata</Tooltip>}
+                        overlay={<Tooltip>Add Link</Tooltip>}
                       >
                         <Button
                           variant="link"
-                          className="p-0 pe-1 me-4"
+                          className="p-0"
                           onClick={() => {
                             setInteractionState(STATE.EDITING_METADATA);
                             setIsFullSize(true);
                           }}
                         >
-                          <Image src="edit.svg" alt="edit" width={18} />
+                          <Image src="add-link.svg" alt="add link" width={18} />
                         </Button>
                       </OverlayTrigger>
-                    </>
-                  )}
-                  <Dropdown
-                    as={NavItem}
-                    drop={isMobile || isTablet ? "up" : "down"}
-                    align="end"
-                    style={{ position: "fixed", zIndex: 10000 }}
-                  >
-                    <Dropdown.Toggle as={NavLink} bsPrefix="nav-link">
-                      <Image src="more-menu.svg" alt="more-menu" width={24} />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu variant="dark">
-                      <Dropdown.Item>
-                        <NotificationModal
-                          isMobile={isMobile}
-                          licenseDiamondAddress={licenseDiamondAddress ?? ""}
-                        />
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        as={NavLink}
-                        href={spatialURL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-2 ms-2"
+                    )}
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Edit Metadata</Tooltip>}
+                    >
+                      <Button
+                        variant="link"
+                        className="p-0 pe-1 me-4"
+                        onClick={() => {
+                          setInteractionState(STATE.EDITING_METADATA);
+                          setIsFullSize(true);
+                        }}
                       >
-                        Open Parcel in Spatial Browser
-                      </Dropdown.Item>
-                      <Dropdown.Item onClick={copyParcelLink}>
-                        Copy a sharable link
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </div>
+                        <Image src="edit.svg" alt="edit" width={18} />
+                      </Button>
+                    </OverlayTrigger>
+                  </>
+                )}
+                <Dropdown
+                  as={NavItem}
+                  drop={isMobile || isTablet ? "up" : "down"}
+                  align="end"
+                  style={{ position: "fixed", zIndex: 10000 }}
+                >
+                  <Dropdown.Toggle as={NavLink} bsPrefix="nav-link">
+                    <Image src="more-menu.svg" alt="more-menu" width={24} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu variant="dark">
+                    <Dropdown.Item>
+                      <NotificationModal
+                        isMobile={isMobile}
+                        licenseDiamondAddress={licenseDiamondAddress ?? ""}
+                      />
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      as={NavLink}
+                      href={spatialURL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-2 ms-2"
+                    >
+                      Open Parcel in Spatial Browser
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={copyParcelLink}>
+                      Copy a sharable link
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               </Col>
             </Row>
           </div>
