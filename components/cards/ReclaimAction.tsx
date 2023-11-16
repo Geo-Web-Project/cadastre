@@ -2,12 +2,12 @@ import * as React from "react";
 import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
-import type { BasicProfile } from "@geo-web/types";
 import { ActionData, ActionForm } from "./ActionForm";
 import { ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import { ParcelInfoProps } from "./ParcelInfo";
 import StreamingInfo from "./StreamingInfo";
 import TransactionSummaryView from "./TransactionSummaryView";
+import { BasicProfile } from "../../lib/geo-web-content/basicProfile";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
 import { SECONDS_IN_YEAR } from "../../lib/constants";
 
@@ -22,9 +22,7 @@ export type ReclaimActionProps = ParcelInfoProps & {
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
   minForSalePrice: BigNumber;
-  parcelContent: BasicProfile | null;
-  setShouldParcelContentUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-  setRootCid: React.Dispatch<React.SetStateAction<string | null>>;
+  basicProfile: BasicProfile | null;
 };
 
 function ReclaimAction(props: ReclaimActionProps) {
@@ -40,7 +38,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     selectedParcelId,
     sfFramework,
     paymentToken,
-    parcelContent,
+    basicProfile,
   } = props;
 
   const [actionData, setActionData] = React.useState<ActionData>({
@@ -100,13 +98,13 @@ function ReclaimAction(props: ReclaimActionProps) {
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
   React.useEffect(() => {
-    if (parcelContent && isOwner) {
+    if (basicProfile && isOwner) {
       updateActionData({
-        parcelName: parcelContent.name,
-        parcelWebContentURI: parcelContent.url,
+        parcelName: basicProfile.name,
+        parcelWebContentURI: basicProfile.external_url,
       });
     }
-  }, [parcelContent]);
+  }, [basicProfile]);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -118,7 +116,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  function encodeReclaimData(contentHash?: string) {
+  async function getReclaimMetaTransaction() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -139,31 +137,30 @@ function ReclaimAction(props: ReclaimActionProps) {
       encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        "editBid(int96,uint256,bytes)",
-        [
-          newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice),
-          contentHash ?? "0x",
-        ]
+        "editBid(int96,uint256)",
+        [newNetworkFee, ethers.utils.parseEther(displayNewForSalePrice)]
       );
     } else {
       encodedReclaimData = licenseDiamondContract.interface.encodeFunctionData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        "reclaim(uint256,int96,uint256,bytes)",
+        "reclaim(uint256,int96,uint256)",
         [
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
           ethers.utils.parseEther(displayNewForSalePrice),
-          contentHash ?? "0x",
         ]
       );
     }
 
-    return encodedReclaimData;
+    return {
+      to: licenseDiamondContract.address,
+      data: encodedReclaimData,
+      value: "0",
+    };
   }
 
-  async function _reclaim(contentHash?: string) {
+  async function _reclaim() {
     updateActionData({ isActing: true });
 
     if (!licenseDiamondContract) {
@@ -185,10 +182,9 @@ function ReclaimAction(props: ReclaimActionProps) {
     if (isOwner) {
       txn = await licenseDiamondContract
         .connect(signer)
-        ["editBid(int96,uint256,bytes)"](
+        ["editBid(int96,uint256)"](
           newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice),
-          contentHash ?? "0x"
+          ethers.utils.parseEther(displayNewForSalePrice)
         );
     } else {
       txn = await licenseDiamondContract
@@ -198,8 +194,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         .reclaim(
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
-          ethers.utils.parseEther(displayNewForSalePrice),
-          contentHash ?? "0x"
+          ethers.utils.parseEther(displayNewForSalePrice)
         );
     }
 
@@ -241,7 +236,7 @@ function ReclaimAction(props: ReclaimActionProps) {
         requiredBuffer={requiredBuffer ? requiredBuffer : BigNumber.from(0)}
         spender={licenseDiamondContract?.address || null}
         flowOperator={licenseDiamondContract?.address || null}
-        encodeFunctionData={encodeReclaimData}
+        metaTransactionCallbacks={[getReclaimMetaTransaction]}
         bundleCallback={bundleCallback}
         transactionBundleFeesEstimate={transactionBundleFeesEstimate}
         setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}

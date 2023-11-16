@@ -3,17 +3,15 @@ import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
 import * as turf from "@turf/turf";
-import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
 import { STATE } from "../Map";
-import { getParcelContent } from "../../lib/utils";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 interface ForeclosureProps {
   sfFramework: Framework;
-  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
@@ -27,7 +25,6 @@ interface ForeclosureProps {
 
 type Bid = Parcel & {
   timestamp: number;
-  licenseOwner: string;
 };
 
 const foreclosureQuery = gql`
@@ -44,7 +41,6 @@ const foreclosureQuery = gql`
       bboxS
       bboxE
       bboxW
-      licenseOwner
       licenseDiamond
       currentBid {
         forSalePrice
@@ -58,7 +54,6 @@ const foreclosureQuery = gql`
 function Foreclosure(props: ForeclosureProps) {
   const {
     sfFramework,
-    geoWebContent,
     registryContract,
     shouldRefetchParcelsData,
     setShouldRefetchParcelsData,
@@ -80,6 +75,7 @@ function Foreclosure(props: ForeclosureProps) {
       notifyOnNetworkStatusChange: true,
     }
   );
+  const { getBasicProfile } = useBasicProfile(registryContract);
 
   useEffect(() => {
     if (!data) {
@@ -129,7 +125,6 @@ function Foreclosure(props: ForeclosureProps) {
               timestamp: timestamp,
               price: forSalePrice,
               center: center.geometry,
-              licenseOwner: parcel.licenseOwner,
             });
           }
         })();
@@ -144,16 +139,12 @@ function Foreclosure(props: ForeclosureProps) {
       for (const foreclosedParcel of foreclosedParcels) {
         promises.push(
           (async () => {
-            const parcelContent = await getParcelContent(
-              registryContract.address.toLowerCase(),
-              geoWebContent,
-              foreclosedParcel.parcelId,
-              foreclosedParcel.licenseOwner
+            const basicProfile = await getBasicProfile(
+              foreclosedParcel.parcelId
             );
-            const name =
-              parcelContent && parcelContent.name
-                ? parcelContent.name
-                : `Parcel ${foreclosedParcel.parcelId}`;
+            const name = basicProfile?.name
+              ? basicProfile.name
+              : `Parcel ${foreclosedParcel.parcelId}`;
 
             foreclosedParcel.name = name;
           })()

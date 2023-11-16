@@ -1,9 +1,5 @@
-import { ethers, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import BN from "bn.js";
-import { AssetId, AccountId } from "caip";
-import { GeoWebContent } from "@geo-web/content";
-import { NETWORK_ID } from "./constants";
 
 export function fromRateToValue(
   contributionRate: BigNumber,
@@ -62,37 +58,4 @@ export function calculateAuctionValue(
   const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
 
   return forSalePrice.sub(priceDecrease);
-}
-
-export async function getParcelContent(
-  registryContractAddress: string,
-  geoWebContent: GeoWebContent,
-  parcelId: string,
-  licenseOwner: string
-) {
-  try {
-    const assetId = new AssetId({
-      chainId: `eip155:${NETWORK_ID}`,
-      assetName: {
-        namespace: "erc721",
-        reference: registryContractAddress,
-      },
-      tokenId: new BN(parcelId.slice(2), "hex").toString(10),
-    });
-    const ownerId = new AccountId({
-      chainId: `eip155:${NETWORK_ID}`,
-      address: ethers.utils.getAddress(licenseOwner),
-    });
-    const parcelContent = await Promise.any([
-      geoWebContent.raw.getPath("/basicProfile", {
-        parcelId: assetId,
-        ownerDID: `did:pkh:${ownerId}`,
-      }),
-      new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
-    ]);
-
-    return parcelContent;
-  } catch (err) {
-    console.error(err);
-  }
 }

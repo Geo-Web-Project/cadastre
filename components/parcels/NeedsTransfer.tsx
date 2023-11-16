@@ -3,17 +3,15 @@ import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
 import * as turf from "@turf/turf";
-import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
-import { getParcelContent } from "../../lib/utils";
 import { SECONDS_IN_WEEK } from "../../lib/constants";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 interface NeedsTransferProps {
   sfFramework: Framework;
-  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,7 +23,6 @@ interface NeedsTransferProps {
 
 type Bid = Parcel & {
   timestamp: number;
-  licenseOwner: string;
 };
 
 const needsTransferQuery = gql`
@@ -43,7 +40,6 @@ const needsTransferQuery = gql`
       bboxS
       bboxE
       bboxW
-      licenseOwner
       licenseDiamond
       pendingBid {
         forSalePrice
@@ -57,7 +53,6 @@ const needsTransferQuery = gql`
 function NeedsTransfer(props: NeedsTransferProps) {
   const {
     sfFramework,
-    geoWebContent,
     registryContract,
     hasRefreshed,
     setHasRefreshed,
@@ -79,6 +74,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
       notifyOnNetworkStatusChange: true,
     }
   );
+  const { getBasicProfile } = useBasicProfile(registryContract);
 
   useEffect(() => {
     if (!data) {
@@ -135,7 +131,6 @@ function NeedsTransfer(props: NeedsTransferProps) {
               timestamp: timestamp,
               price: forSalePrice,
               center: center.geometry,
-              licenseOwner: parcel.licenseOwner,
             });
           }
         })();
@@ -150,16 +145,12 @@ function NeedsTransfer(props: NeedsTransferProps) {
       for (const needsTransferParcel of needsTransferParcels) {
         promises.push(
           (async () => {
-            const parcelContent = await getParcelContent(
-              registryContract.address.toLowerCase(),
-              geoWebContent,
-              needsTransferParcel.parcelId,
-              needsTransferParcel.licenseOwner
+            const basicProfile = await getBasicProfile(
+              needsTransferParcel.parcelId
             );
-            const name =
-              parcelContent && parcelContent.name
-                ? parcelContent.name
-                : `Parcel ${needsTransferParcel.parcelId}`;
+            const name = basicProfile?.name
+              ? basicProfile.name
+              : `Parcel ${needsTransferParcel.parcelId}`;
 
             needsTransferParcel.name = name;
           })()

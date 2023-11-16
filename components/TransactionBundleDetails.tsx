@@ -34,13 +34,14 @@ enum FunctionSelector {
   WRAP = "0xcf81464b",
   APPROVE_SPENDING = "0x095ea7b3",
   APPROVE_FLOW = "0x39255d5b",
-  CLAIM = "0x059c73ba",
-  EDIT_BID = "0x90c33bba",
+  CLAIM = "0xd27a4bd0",
+  EDIT_BID = "0xf11663e8",
   EDIT_CONTENT_HASH = "0x852d1111",
-  RECLAIM = "0x70383cff",
-  PLACE_BID = "0x00fa6802",
+  RECLAIM = "0x0b4ee502",
+  PLACE_BID = "0xe9d1ac25",
   ACCEPT_BID = "0xe52a7874",
   REJECT_BID = "0x499ca2f5",
+  UPDATE_TOKEN_URI = "0x18e97fd1",
 }
 
 function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
@@ -176,6 +177,9 @@ function TransactionBundleDetails(props: TransactionBundleDetailsProps) {
           ),
           8
         )})`;
+        break;
+      case FunctionSelector.UPDATE_TOKEN_URI:
+        description = `${index}. Update Token URI (Send 0.0 ETHx)`;
         break;
       default:
         break;

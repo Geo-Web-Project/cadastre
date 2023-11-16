@@ -6,7 +6,6 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import { ethers, BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { useDisconnect } from "wagmi";
-import type { CeramicClient } from "@ceramicnetwork/http-client";
 import {
   Modal,
   Container,
@@ -26,7 +25,6 @@ import {
 } from "@superfluid-finance/sdk-core";
 import type { Point } from "@turf/turf";
 import * as turf from "@turf/turf";
-import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPFS } from "ipfs-core-types";
@@ -48,16 +46,13 @@ import {
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { truncateStr, truncateEth } from "../../lib/truncate";
-import {
-  calculateBufferNeeded,
-  calculateAuctionValue,
-  getParcelContent,
-} from "../../lib/utils";
+import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
 import { useSafe } from "../../lib/safe";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -70,9 +65,7 @@ interface ProfileModalProps {
   smartAccount: SmartAccount | null;
   setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   sfFramework: Framework;
-  ceramic: CeramicClient;
   ipfs: IPFS;
-  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
@@ -163,6 +156,7 @@ const portfolioQuery = gql`
     bidder(id: $id) {
       bids {
         parcel {
+          tokenURI
           id
           licenseOwner
           licenseDiamond
@@ -198,7 +192,6 @@ function ProfileModal(props: ProfileModalProps) {
     signer,
     smartAccount,
     setSmartAccount,
-    geoWebContent,
     registryContract,
     setSelectedParcelId,
     setInteractionState,
@@ -245,6 +238,7 @@ function ProfileModal(props: ProfileModalProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
+  const { getBasicProfile } = useBasicProfile(registryContract);
   const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
     useSafe(smartAccount?.safe ?? null);
   const bundleSettings = useBundleSettings();
@@ -455,19 +449,11 @@ function ProfileModal(props: ProfileModalProps) {
           }
         })
         .then(() => Promise.resolve(foreclosureInfoPromise))
-        .then(() =>
-          getParcelContent(
-            registryContract.address.toLowerCase(),
-            geoWebContent,
-            parcelId,
-            licenseOwner
-          )
-        )
-        .then((parcelContent) => {
-          const name =
-            parcelContent && parcelContent.name
-              ? parcelContent.name
-              : `Parcel ${parcelId}`;
+        .then(() => getBasicProfile(parcelId))
+        .then((basicProfile) => {
+          const name = basicProfile?.name
+            ? basicProfile.name
+            : `Parcel ${parcelId}`;
 
           const poly = turf.bboxPolygon([
             bid.parcel.bboxW,
@@ -542,6 +528,7 @@ function ProfileModal(props: ProfileModalProps) {
     }, 4000);
 
     setTimerId(intervalId);
+    setLastSorted("");
 
     return () => {
       if (timerId) {

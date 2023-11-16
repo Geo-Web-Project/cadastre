@@ -5,14 +5,9 @@ import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
-import type { BasicProfile } from "@geo-web/types";
-import {
-  PAYMENT_TOKEN,
-  NETWORK_ID,
-  SECONDS_IN_YEAR,
-} from "../../lib/constants";
+import { PAYMENT_TOKEN, SECONDS_IN_YEAR } from "../../lib/constants";
 import BN from "bn.js";
-import { AssetId } from "caip";
+import { MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import AddFundsModal from "../profile/AddFundsModal";
 import { SubmitBundleButton } from "../SubmitBundleButton";
@@ -27,7 +22,6 @@ import PerformButton from "../PerformButton";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useBundleSettings } from "../../lib/transactionBundleSettings";
-import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 export type ActionFormProps = OffCanvasPanelProps & {
   perSecondFeeNumerator: BigNumber;
@@ -35,7 +29,7 @@ export type ActionFormProps = OffCanvasPanelProps & {
   licenseAddress: string;
   licenseOwner?: string;
   loading: boolean;
-  performAction: (contentHash?: string) => Promise<string | void>;
+  performAction: () => Promise<string | void>;
   actionData: ActionData;
   setActionData: React.Dispatch<React.SetStateAction<ActionData>>;
   summaryView: JSX.Element;
@@ -47,11 +41,10 @@ export type ActionFormProps = OffCanvasPanelProps & {
   flowOperator: string | null;
   requiredBuffer: BigNumber;
   minForSalePrice: BigNumber;
-  setShouldParcelContentUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
   setParcelFieldsToUpdate: React.Dispatch<
     React.SetStateAction<ParcelFieldsToUpdate | null>
   >;
-  encodeFunctionData: () => string;
+  metaTransactionCallbacks: (() => Promise<MetaTransactionData>)[] | null;
   bundleCallback?: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
@@ -77,7 +70,6 @@ export function ActionForm(props: ActionFormProps) {
     licenseOwner,
     smartAccount,
     setSmartAccount,
-    geoWebContent,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
     loading,
@@ -86,8 +78,6 @@ export function ActionForm(props: ActionFormProps) {
     setActionData,
     interactionState,
     setInteractionState,
-    licenseAddress,
-    ceramic,
     selectedParcelId,
     setSelectedParcelId,
     summaryView,
@@ -98,9 +88,8 @@ export function ActionForm(props: ActionFormProps) {
     minForSalePrice,
     paymentToken,
     setShouldRefetchParcelsData,
-    setShouldParcelContentUpdate,
     setParcelFieldsToUpdate,
-    encodeFunctionData,
+    metaTransactionCallbacks,
     bundleCallback,
     transactionBundleFeesEstimate,
     setTransactionBundleFeesEstimate,
@@ -115,8 +104,6 @@ export function ActionForm(props: ActionFormProps) {
   );
 
   const {
-    parcelName,
-    parcelWebContentURI,
     displayNewForSalePrice,
     displayCurrentForSalePrice,
     didFail,
@@ -131,12 +118,6 @@ export function ActionForm(props: ActionFormProps) {
   );
   const { isMobile, isTablet } = useMediaQuery();
   const bundleSettings = useBundleSettings();
-  const { parcelContent } = useBasicProfile(
-    geoWebContent,
-    licenseAddress,
-    accountAddress,
-    selectedParcelId
-  );
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -178,12 +159,6 @@ export function ActionForm(props: ActionFormProps) {
           .mul(annualFeePercentage)
           .div(100)
       : null;
-
-  const isParcelNameInvalid = parcelName ? parcelName.length > 150 : false;
-  const isURIInvalid = parcelWebContentURI
-    ? /^(http|https|ipfs|ipns):\/\/[^ "]+$/.test(parcelWebContentURI) ==
-        false || parcelWebContentURI.length > 150
-    : false;
 
   const requiredFlowAmount =
     displayCurrentForSalePrice &&
@@ -230,62 +205,6 @@ export function ActionForm(props: ActionFormProps) {
     setActionData(_updateData(updatedValues));
   }
 
-  async function getContentHash() {
-    let assetId;
-    let contentHash = "0x";
-    const content: BasicProfile = {};
-
-    if (parcelName) {
-      content["name"] = parcelName;
-    }
-    if (parcelWebContentURI) {
-      content["url"] = parcelWebContentURI;
-    }
-
-    if (
-      selectedParcelId &&
-      (interactionState !== STATE.PARCEL_RECLAIMING ||
-        accountAddress === licenseOwner)
-    ) {
-      assetId = new AssetId({
-        chainId: `eip155:${NETWORK_ID}`,
-        assetName: {
-          namespace: "erc721",
-          reference: licenseAddress.toLowerCase(),
-        },
-        tokenId: BigNumber.from(selectedParcelId).toString(),
-      });
-    }
-
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const ownerDID = ceramic.did!.parent;
-      const rootCid = await geoWebContent.raw.resolveRoot({
-        parcelId: assetId,
-        ownerDID,
-      });
-      const newRoot = await geoWebContent.raw.putPath(
-        rootCid,
-        "/basicProfile",
-        {
-          name: content.name ?? "",
-          url: content.url ?? "",
-        },
-        { parentSchema: "ParcelRoot", pin: true }
-      );
-
-      contentHash = await geoWebContent.raw.commit(newRoot);
-    } catch (err) {
-      console.error(err);
-
-      if (interactionState === STATE.PARCEL_EDITING) {
-        throw Error("Could not update parcel content, please try again later");
-      }
-    }
-
-    return contentHash;
-  }
-
   async function submit(receipt?: ethers.providers.TransactionReceipt) {
     let licenseId;
 
@@ -296,8 +215,7 @@ export function ActionForm(props: ActionFormProps) {
         licenseId = await bundleCallback(receipt);
       } else {
         /* Call contract's function directly */
-        const contentHash = await getContentHash();
-        licenseId = await performAction(contentHash);
+        licenseId = await performAction();
       }
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -320,25 +238,17 @@ export function ActionForm(props: ActionFormProps) {
 
     updateActionData({ isActing: false });
 
-    if (
-      setShouldParcelContentUpdate &&
-      (!parcelContent ||
-        parcelContent.name !== parcelName ||
-        parcelContent.url !== parcelWebContentURI)
-    ) {
-      setShouldParcelContentUpdate(true);
-    } else if (!selectedParcelId && licenseId) {
+    if (!selectedParcelId && licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
     }
 
-    const isContentChangeOnly =
-      displayNewForSalePrice &&
-      displayNewForSalePrice === displayCurrentForSalePrice;
+    const didForSalePriceChange =
+      displayNewForSalePrice !== displayCurrentForSalePrice;
 
     setInteractionState(STATE.PARCEL_SELECTED);
-    setShouldRefetchParcelsData(!isContentChangeOnly);
+    setShouldRefetchParcelsData(didForSalePriceChange);
     setParcelFieldsToUpdate({
-      forSalePrice: !isContentChangeOnly,
+      forSalePrice: didForSalePriceChange,
       licenseOwner: !licenseOwner || licenseOwner !== accountAddress,
     });
   }
@@ -384,8 +294,8 @@ export function ActionForm(props: ActionFormProps) {
           </Card.Header>
         ) : (
           <Card.Header className="d-none d-lg-block fs-3">
-            {interactionState === STATE.PARCEL_EDITING
-              ? "Edit"
+            {interactionState === STATE.PARCEL_EDITING_BID
+              ? "Edit Price"
               : interactionState === STATE.PARCEL_RECLAIMING &&
                 licenseOwner === accountAddress
               ? "Reclaim"
@@ -397,102 +307,6 @@ export function ActionForm(props: ActionFormProps) {
         <Card.Body className="p-1 p-lg-3">
           <Form>
             <Form.Group>
-              {interactionState == STATE.PARCEL_RECLAIMING &&
-              account.toLowerCase() == licenseOwner?.toLowerCase() ? null : (
-                <>
-                  <Form.Text className="text-primary mb-1">
-                    Parcel Name
-                  </Form.Text>
-                  <InfoTooltip
-                    content={
-                      <div style={{ textAlign: "left" }}>
-                        Optional - Add a name to your parcel for all visitors to
-                        see.
-                      </div>
-                    }
-                    target={
-                      <Image
-                        style={{
-                          width: "1.1rem",
-                          marginLeft: "4px",
-                        }}
-                        src="info.svg"
-                      />
-                    }
-                  />
-                  <Form.Control
-                    isInvalid={isParcelNameInvalid}
-                    className="bg-dark text-light mt-1"
-                    type="text"
-                    placeholder="Parcel Name"
-                    aria-label="Parcel Name"
-                    aria-describedby="parcel-name"
-                    value={parcelName ?? ""}
-                    disabled={isActing || isLoading}
-                    onChange={(e) =>
-                      updateActionData({ parcelName: e.target.value })
-                    }
-                  />
-                  {isParcelNameInvalid ? (
-                    <Form.Control.Feedback type="invalid">
-                      Parcel name cannot be longer than 150 characters
-                    </Form.Control.Feedback>
-                  ) : null}
-                  <br />
-                  <Form.Text className="text-primary mb-1">
-                    Content Link
-                  </Form.Text>
-                  <InfoTooltip
-                    content={
-                      <div style={{ textAlign: "left" }}>
-                        Optional - Link content to your parcel via URI. This is
-                        displayed in an iframe on the{" "}
-                        <a
-                          href="https://geoweb.app/"
-                          target="_blank"
-                          rel="noopener"
-                        >
-                          Geo Web spatial browser
-                        </a>
-                        .
-                      </div>
-                    }
-                    target={
-                      <Image
-                        style={{
-                          width: "1.1rem",
-                          marginLeft: "4px",
-                        }}
-                        src="info.svg"
-                      />
-                    }
-                  />
-                  <Form.Control
-                    isInvalid={isURIInvalid}
-                    className="bg-dark text-light mt-1"
-                    type="text"
-                    placeholder="URI (http://, https://, ipfs://, ipns://)"
-                    aria-label="Web Content URI"
-                    aria-describedby="web-content-uri"
-                    value={parcelWebContentURI ?? ""}
-                    disabled={isActing || isLoading}
-                    autoCapitalize="off"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    onChange={(e) =>
-                      updateActionData({ parcelWebContentURI: e.target.value })
-                    }
-                  />
-                  {isURIInvalid ? (
-                    <Form.Control.Feedback type="invalid">
-                      Web content URI must be one of
-                      (http://,https://,ipfs://,ipns://) and less than 150
-                      characters
-                    </Form.Control.Feedback>
-                  ) : null}
-                  <br />
-                </>
-              )}
               <Form.Text className="text-primary mb-1">
                 For Sale Price ({PAYMENT_TOKEN})
                 <InfoTooltip
@@ -632,7 +446,7 @@ export function ActionForm(props: ActionFormProps) {
                   }
                   isActing={isActing ?? false}
                   buttonText={
-                    interactionState === STATE.PARCEL_EDITING
+                    interactionState === STATE.PARCEL_EDITING_BID
                       ? "Submit"
                       : interactionState === STATE.PARCEL_RECLAIMING &&
                         accountAddress.toLowerCase() ===
@@ -640,12 +454,13 @@ export function ActionForm(props: ActionFormProps) {
                       ? "Reclaim"
                       : "Claim"
                   }
-                  encodeFunctionData={encodeFunctionData}
-                  callback={submit}
+                  metaTransactionCallbacks={
+                    metaTransactionCallbacks ? metaTransactionCallbacks : null
+                  }
+                  bundleCallback={submit}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
                   }
-                  getContentHash={getContentHash}
                 />
               </>
             ) : (
@@ -685,7 +500,7 @@ export function ActionForm(props: ActionFormProps) {
                   }
                   isActing={isActing ?? false}
                   buttonText={
-                    interactionState === STATE.PARCEL_EDITING
+                    interactionState === STATE.PARCEL_EDITING_BID
                       ? "Submit"
                       : interactionState === STATE.PARCEL_RECLAIMING &&
                         accountAddress.toLowerCase() ===

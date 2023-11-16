@@ -25,15 +25,14 @@ export type SubmitBundleButtonProps = OffCanvasPanelProps & {
   setIsActing: (v: boolean) => void;
   setDidFail: (v: boolean) => void;
   buttonText: string;
-  encodeFunctionData: (contentHash?: string) => string;
-  callback: (
+  metaTransactionCallbacks: (() => Promise<MetaTransactionData>)[] | null;
+  bundleCallback: (
     receipt?: ethers.providers.TransactionReceipt
   ) => Promise<string | void>;
   transactionBundleFeesEstimate: BigNumber | null;
   setTransactionBundleFeesEstimate: React.Dispatch<
     React.SetStateAction<BigNumber | null>
   >;
-  getContentHash?: () => Promise<string>;
 };
 
 export function SubmitBundleButton(props: SubmitBundleButtonProps) {
@@ -55,11 +54,10 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     setIsActing,
     setDidFail,
     buttonText,
-    encodeFunctionData,
-    callback,
+    metaTransactionCallbacks,
+    bundleCallback,
     transactionBundleFeesEstimate,
     setTransactionBundleFeesEstimate,
-    getContentHash,
   } = props;
 
   const [metaTransactions, setMetaTransaction] = useState<
@@ -96,27 +94,10 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
       setIsActing(true);
       setDidFail(false);
 
+      const metaTransactions = await prepareTransaction();
       const isSafeDeployed = await smartAccount?.safe?.isSafeDeployed();
-      let encodedGwContractFunctionData;
 
-      if (getContentHash) {
-        const contentHash = await getContentHash();
-        encodedGwContractFunctionData = encodeFunctionData(contentHash);
-      } else {
-        encodedGwContractFunctionData = encodeFunctionData();
-      }
-
-      const _metaTransactions = metaTransactions.slice(
-        0,
-        metaTransactions.length - 1
-      );
-      _metaTransactions.push({
-        to: spender,
-        value: "0",
-        data: encodedGwContractFunctionData,
-      });
-
-      const receipt = await relayTransaction(_metaTransactions, {
+      const receipt = await relayTransaction(metaTransactions, {
         isSponsored: bundleSettings.isSponsored,
         gasToken:
           bundleSettings.isSponsored &&
@@ -133,7 +114,7 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
             : ZERO_ADDRESS,
       });
 
-      await callback(receipt);
+      await bundleCallback(receipt);
 
       if (!isSafeDeployed && smartAccount) {
         const ethAdapter = signer
@@ -170,126 +151,119 @@ export function SubmitBundleButton(props: SubmitBundleButtonProps) {
     }
   };
 
+  const prepareTransaction = async () => {
+    const metaTransactions: MetaTransactionData[] = [];
+
+    if (
+      isActing ||
+      !isReady ||
+      !flowOperator ||
+      !requiredFlowAmount ||
+      !spender ||
+      !requiredPayment ||
+      !smartAccount?.safe
+    ) {
+      return metaTransactions;
+    }
+
+    let wrap, approveSpending, approveFlow;
+    const safeBalance = await smartAccount.safe.getBalance();
+    const wrapAmount =
+      bundleSettings.isSponsored &&
+      !bundleSettings.noWrap &&
+      (bundleSettings.wrapAll ||
+        BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
+      safeBalance.gt(0)
+        ? safeBalance.toString()
+        : bundleSettings.isSponsored &&
+          !bundleSettings.noWrap &&
+          BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
+          safeBalance.gt(0)
+        ? BigNumber.from(bundleSettings.wrapAmount)
+            .add(requiredPayment ?? 0)
+            .toString()
+        : "";
+
+    if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
+      wrap = await paymentToken.upgrade({
+        amount: wrapAmount,
+      }).populateTransactionPromise;
+    }
+
+    const isPaymentRequired = requiredPayment.gt(0);
+
+    if (isPaymentRequired) {
+      approveSpending = await paymentToken.approve({
+        amount: requiredPayment.toString(),
+        receiver: spender,
+      }).populateTransactionPromise;
+    }
+
+    if (requiredFlowAmount.gt(0)) {
+      approveFlow = await sfFramework.cfaV1.updateFlowOperatorPermissions({
+        flowOperator: flowOperator,
+        permissions: 3, // Create or update
+        flowRateAllowance: requiredFlowAmount.toString(),
+        superToken: paymentToken.address,
+      }).populateTransactionPromise;
+    }
+
+    if (wrap?.to && wrap?.data) {
+      metaTransactions.push({
+        to: wrap.to,
+        value: wrapAmount,
+        data: wrap.data,
+      });
+    }
+    if (approveSpending?.to && approveSpending?.data) {
+      metaTransactions.push({
+        to: approveSpending.to,
+        value: "0",
+        data: approveSpending.data,
+      });
+    }
+    if (approveFlow?.to && approveFlow?.data) {
+      metaTransactions.push({
+        to: approveFlow.to,
+        value: "0",
+        data: approveFlow.data,
+      });
+    }
+
+    if (metaTransactionCallbacks) {
+      for (const i in metaTransactionCallbacks) {
+        metaTransactions.push(await metaTransactionCallbacks[i]());
+      }
+    }
+
+    let simulationGasUsed;
+
+    if (
+      JSON.stringify(metaTransactions) === JSON.stringify(metaTransactionsCache)
+    ) {
+      simulationGasUsed = simulationGasUsedCache;
+    } else {
+      simulationGasUsed = await simulateSafeTx(metaTransactions);
+      setSimulationGasUsedCache(simulationGasUsed);
+      setMetaTransactionsCache(metaTransactions);
+    }
+
+    const transactionFeesEstimate = await estimateTransactionBundleFees(
+      simulationGasUsed
+    );
+
+    setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
+    setMetaTransaction(metaTransactions);
+
+    return metaTransactions;
+  };
+
   useEffect(() => {
     let timerId: NodeJS.Timer | null = null;
 
     if (timerId) {
       clearInterval(timerId);
     }
-
-    const prepareTransaction = async () => {
-      if (
-        isActing ||
-        !isReady ||
-        !flowOperator ||
-        !requiredFlowAmount ||
-        !spender ||
-        !requiredPayment ||
-        !smartAccount?.safe
-      ) {
-        return;
-      }
-
-      const metaTransactions = [];
-      let encodedGwContractFunctionData;
-
-      if (getContentHash) {
-        /* Dummy content hash for simulations */
-        encodedGwContractFunctionData = encodeFunctionData(
-          "0xe3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f"
-        );
-      } else {
-        encodedGwContractFunctionData = encodeFunctionData();
-      }
-
-      let wrap, approveSpending, approveFlow;
-      const safeBalance = await smartAccount.safe.getBalance();
-      const wrapAmount =
-        bundleSettings.isSponsored &&
-        !bundleSettings.noWrap &&
-        (bundleSettings.wrapAll ||
-          BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
-        safeBalance.gt(0)
-          ? safeBalance.toString()
-          : bundleSettings.isSponsored &&
-            !bundleSettings.noWrap &&
-            BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-            safeBalance.gt(0)
-          ? BigNumber.from(bundleSettings.wrapAmount)
-              .add(requiredPayment ?? 0)
-              .toString()
-          : "";
-
-      if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
-        wrap = await paymentToken.upgrade({
-          amount: wrapAmount,
-        }).populateTransactionPromise;
-      }
-
-      const isPaymentRequired = requiredPayment.gt(0);
-
-      if (isPaymentRequired) {
-        approveSpending = await paymentToken.approve({
-          amount: requiredPayment.toString(),
-          receiver: spender,
-        }).populateTransactionPromise;
-      }
-
-      if (requiredFlowAmount.gt(0)) {
-        approveFlow = await sfFramework.cfaV1.updateFlowOperatorPermissions({
-          flowOperator: flowOperator,
-          permissions: 3, // Create or update
-          flowRateAllowance: requiredFlowAmount.toString(),
-          superToken: paymentToken.address,
-        }).populateTransactionPromise;
-      }
-
-      if (wrap?.to && wrap?.data) {
-        metaTransactions.push({
-          to: wrap.to,
-          value: wrapAmount,
-          data: wrap.data,
-        });
-      }
-      if (approveSpending?.to && approveSpending?.data) {
-        metaTransactions.push({
-          to: approveSpending.to,
-          value: "0",
-          data: approveSpending.data,
-        });
-      }
-      if (approveFlow?.to && approveFlow?.data) {
-        metaTransactions.push({
-          to: approveFlow.to,
-          value: "0",
-          data: approveFlow.data,
-        });
-      }
-      metaTransactions.push({
-        to: spender,
-        value: "0",
-        data: encodedGwContractFunctionData,
-      });
-      let simulationGasUsed;
-
-      if (
-        JSON.stringify(metaTransactions) ===
-        JSON.stringify(metaTransactionsCache)
-      ) {
-        simulationGasUsed = simulationGasUsedCache;
-      } else {
-        simulationGasUsed = await simulateSafeTx(metaTransactions);
-        setSimulationGasUsedCache(simulationGasUsed);
-        setMetaTransactionsCache(metaTransactions);
-      }
-
-      const transactionFeesEstimate = await estimateTransactionBundleFees(
-        simulationGasUsed
-      );
-
-      setTransactionBundleFeesEstimate(BigNumber.from(transactionFeesEstimate));
-      setMetaTransaction(metaTransactions);
-    };
 
     prepareTransaction();
     timerId = setInterval(prepareTransaction, 8000);

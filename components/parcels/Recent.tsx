@@ -3,17 +3,15 @@ import { BigNumber } from "ethers";
 import { gql, useQuery } from "@apollo/client";
 import { Framework } from "@superfluid-finance/sdk-core";
 import * as turf from "@turf/turf";
-import { GeoWebContent } from "@geo-web/content";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { Parcel, ParcelsQuery } from "./ParcelList";
 import ParcelTable from "./ParcelTable";
-import { getParcelContent } from "../../lib/utils";
 import { SECONDS_IN_WEEK } from "../../lib/constants";
+import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 interface RecentProps {
   sfFramework: Framework;
-  geoWebContent: GeoWebContent;
   registryContract: Contracts["registryDiamondContract"];
   hasRefreshed: boolean;
   setHasRefreshed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -37,7 +35,6 @@ const recentQuery = gql`
       bboxS
       bboxE
       bboxW
-      licenseOwner
       licenseDiamond
       currentBid {
         forSalePrice
@@ -56,7 +53,6 @@ const recentQuery = gql`
 function Recent(props: RecentProps) {
   const {
     sfFramework,
-    geoWebContent,
     registryContract,
     hasRefreshed,
     setHasRefreshed,
@@ -76,6 +72,7 @@ function Recent(props: RecentProps) {
     },
     notifyOnNetworkStatusChange: true,
   });
+  const { getBasicProfile } = useBasicProfile(registryContract);
 
   useEffect(() => {
     if (!data) {
@@ -98,7 +95,6 @@ function Recent(props: RecentProps) {
 
       const parcelId = parcel.id;
       const createdAtBlock = parcel.createdAtBlock;
-      const licenseOwner = parcel.licenseOwner;
       const currentBid = parcel.currentBid;
       const pendingBid = parcel.pendingBid;
       const licenseDiamondAddress = parcel.licenseDiamond;
@@ -136,19 +132,11 @@ function Recent(props: RecentProps) {
             status = "In Foreclosure";
           }
         })
-        .then(() =>
-          getParcelContent(
-            registryContract.address.toLowerCase(),
-            geoWebContent,
-            parcelId,
-            licenseOwner
-          )
-        )
-        .then((parcelContent) => {
-          const name =
-            parcelContent && parcelContent.name
-              ? parcelContent.name
-              : `Parcel ${parcelId}`;
+        .then(() => getBasicProfile(parcelId))
+        .then((basicProfile) => {
+          const name = basicProfile?.name
+            ? basicProfile.name
+            : `Parcel ${parcelId}`;
 
           const poly = turf.bboxPolygon([
             parcel.bboxW,

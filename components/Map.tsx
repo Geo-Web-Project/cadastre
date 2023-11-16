@@ -39,6 +39,7 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { ethers, BigNumber } from "ethers";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+import { Client as W3Client } from "@web3-storage/w3up-client";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import firebase from "firebase/app";
 import type { IPFS } from "ipfs-core-types";
@@ -66,10 +67,11 @@ export enum STATE {
   CLAIM_SELECTING,
   CLAIM_SELECTED,
   PARCEL_SELECTED,
-  PARCEL_EDITING,
+  PARCEL_EDITING_BID,
   PARCEL_PLACING_BID,
   PARCEL_ACCEPTING_BID,
   EDITING_GALLERY,
+  EDITING_METADATA,
   PARCEL_REJECTING_BID,
   PARCEL_RECLAIMING,
 }
@@ -180,6 +182,7 @@ export type MapProps = {
   setCeramic: React.Dispatch<React.SetStateAction<CeramicClient | null>>;
   ipfs: IPFS;
   geoWebContent: GeoWebContent;
+  w3Client: W3Client | null;
   setGeoWebContent: React.Dispatch<React.SetStateAction<GeoWebContent | null>>;
   w3InvocationConfig: InvocationConfig;
   setW3InvocationConfig: React.Dispatch<React.SetStateAction<InvocationConfig>>;
@@ -742,7 +745,7 @@ function Map(props: MapProps) {
         }
         setInteractionState(STATE.VIEWING);
         break;
-      case STATE.PARCEL_EDITING:
+      case STATE.PARCEL_EDITING_BID:
       case STATE.PARCEL_RECLAIMING:
       case STATE.PARCEL_PLACING_BID:
       case STATE.PARCEL_REJECTING_BID:

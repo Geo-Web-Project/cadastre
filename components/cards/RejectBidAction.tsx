@@ -291,7 +291,7 @@ function RejectBidAction(props: RejectBidActionProps) {
     ? dayjs.unix(bidDeadline.toNumber()).format("YYYY-MM-DD HH:mm z")
     : null;
 
-  function encodeRejectBidData() {
+  async function getRejectBidMetaTransaction() {
     if (!licenseDiamondContract) {
       throw new Error("Could not find licenseDiamondContract");
     }
@@ -318,7 +318,11 @@ function RejectBidAction(props: RejectBidActionProps) {
         newForSalePrice,
       ]);
 
-    return encodedRejectBidData;
+    return {
+      to: licenseDiamondContract.address,
+      data: encodedRejectBidData,
+      value: "0",
+    };
   }
 
   async function rejectBid() {
@@ -549,8 +553,8 @@ function RejectBidAction(props: RejectBidActionProps) {
                   }
                   isActing={isActing}
                   buttonText={"Reject Bid"}
-                  encodeFunctionData={encodeRejectBidData}
-                  callback={bundleCallback}
+                  metaTransactionCallbacks={[getRejectBidMetaTransaction]}
+                  bundleCallback={bundleCallback}
                   transactionBundleFeesEstimate={transactionBundleFeesEstimate}
                   setTransactionBundleFeesEstimate={
                     setTransactionBundleFeesEstimate
