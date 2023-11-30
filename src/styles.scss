@@ -1,0 +1,319 @@
+@import url("https://fonts.googleapis.com/css2?family=Abel&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter&display=swap");
+
+$primary: #2fc1c1;
+$secondary: #4b5588;
+$dark: #202333;
+$blue: #111320;
+$purple: rgba(75, 85, 136, 0.25);
+$info: #707179;
+$gray: #b8b8be;
+$danger: #dc3545;
+$light: #f8f9fa;
+$success: #28a745;
+$warning: #f7bdbd;
+
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "dark": $dark,
+  "blue": $blue,
+  "purple": $purple,
+  "info": $info,
+  "gray": $gray,
+  "danger": $danger,
+  "light": $light,
+  "success": $success,
+  "warning": $warning,
+);
+
+$font-family-base: "Open Sans";
+$font-size-base: 1rem;
+$h5-font-size: $font-size-base * 1.2;
+$link-decoration: none;
+$link-hover-decoration: underline;
+$tooltip-arrow-height: 0.2rem;
+$dropdown-item-padding-y: 0.4rem;
+$dropdown-border-radius: 6px;
+$dropdown-dark-color: $gray;
+$dropdown-dark-bg: $dark;
+$dropdown-dark-link-hover-color: $light;
+$dropdown-dark-link-hover-bg: $purple;
+$accordion-bg: $blue;
+$accordion-icon-color: $light;
+$accordion-icon-active-color: $light;
+
+@font-face {
+  font-family: "SF Pro Rounded";
+  src: url("/fonts/SF-Pro-Rounded-Regular.otf");
+}
+
+@import "bootstrap/scss/bootstrap";
+
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.mapboxgl-canvas {
+  background-color: black;
+}
+
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+  margin: 0 !important;
+}
+
+.mapboxgl-ctrl-geocoder.mapboxgl-ctrl {
+  position: absolute;
+  top: 120px;
+  right: 2vw;
+  width: 240px !important;
+  @media (min-width: 1800px) {
+    width: 350px !important;
+  }
+  @media (max-width: 1200px) {
+    height: 42px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .mapboxgl-ctrl-geocoder--input {
+    height: 42px !important;
+  }
+  .mapboxgl-ctrl-geocoder--icon-search {
+    top: 10px !important;
+  }
+}
+
+.mapboxgl-ctrl-group {
+  position: absolute;
+  bottom: 119px;
+  right: 2vw;
+  border: 1px solid map-get($theme-colors, "secondary");
+  border-radius: 6px 6px 0 0 !important;
+  box-shadow: none !important;
+}
+
+.mapboxgl-ctrl-group button:last-child {
+  border-radius: 0 !important;
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out,
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in {
+  @media (max-width: 1200px) {
+    width: 36px !important;
+    height: 34px !important;
+  }
+}
+
+.mapboxgl-ctrl-icon {
+  background: map-get($theme-colors, "dark");
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon:first-child {
+  background-image: url("/zoom-in.svg");
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon:first-child {
+  background-image: url("/zoom-out.svg");
+}
+.mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon {
+  border-bottom: 1px solid #ddd;
+}
+.mapbox-improve-map {
+  display: none !important;
+}
+
+.map-style-btn {
+  padding: 6px !important;
+  max-width: 46px !important;
+}
+
+.grid-switch.btn:hover,
+.grid-switch.btn:focus,
+.grid-switch.btn:active {
+  background: map-get($theme-colors, "dark");
+  box-shadow: none !important;
+}
+
+.accordion-button {
+  background: $dark !important;
+  color: $light !important;
+}
+
+.fixed-top {
+  z-index: 500;
+}
+
+.fit-content {
+  width: fit-content;
+}
+
+.faucet-link {
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.wrap-modal {
+  @media (min-width: 576px) {
+    .modal-dialog {
+      max-width: 512px;
+      margin: 1.75rem auto;
+    }
+  }
+}
+
+.modal-content {
+  overflow: hidden;
+}
+
+.action-form_divider {
+  margin-right: 8rem;
+  margin-left: 8rem;
+  border-top: 1px solid #ced4da;
+}
+
+.tooltip-inner {
+  max-width: 300px;
+  text-align: left;
+}
+
+.bs-tooltip-bottom {
+  top: 8px !important;
+}
+
+.btn {
+  color: $light !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.dropdown-selected:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+.btn-wrap-strategy {
+  background: transparent !important;
+}
+.parcel-list-btn {
+  position: absolute;
+  top: 120px;
+  right: calc(245px + 2vw);
+  width: 50px !important;
+  @media (min-width: 1800px) {
+    right: 394px;
+  }
+  @media (max-width: 576px) {
+    right: 255px;
+    width: 42px !important;
+    height: 42px !important;
+  }
+  @media (max-width: 1200px) {
+    height: 42px !important;
+  }
+}
+
+.parcel-list-btn.mobile {
+  right: calc(52px + 2vw);
+}
+
+.search-map-btn {
+  position: absolute;
+  top: 120px;
+  right: 2vw;
+  width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+}
+
+.scrollable-table table {
+  width: 100%;
+}
+
+.scrollable-table thead,
+.scrollable-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+.scrollable-table td {
+  overflow: hidden;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scrollable-table tbody {
+  display: block;
+  overflow-y: auto;
+  table-layout: fixed;
+  scrollbar-width: none; // Firefox
+}
+
+.scrollable-table tbody::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+.account-modal {
+  font-family: "SF Pro Rounded";
+  max-width: 450px !important;
+  border-radius: 20px !important;
+
+  @media (min-width: 576px) and (max-width: 1200px) {
+    position: fixed;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+  @media (max-width: 576px) {
+    max-width: 100vw !important;
+    border-radius: 20px 20px 0 0 !important;
+    position: fixed;
+    bottom: 0 !important;
+    left: 0 !important;
+    max-height: 570px !important;
+  }
+}
+
+.transak_modal {
+  z-index: 1100 !important;
+}
+
+.underline-hover:hover {
+  text-decoration: underline;
+}
+
+.account-modal.add-funds {
+  max-width: 500px !important;
+}
+
+.wallet-signer:hover {
+  background: rgba(224, 232, 255, 0.2);
+}
+
+.pulsate {
+  animation: pulsate 2s ease-out;
+  animation-iteration-count: infinite;
+  opacity: 1;
+}
+
+@keyframes pulsate {
+  50% {
+    opacity: 0;
+  }
+}
