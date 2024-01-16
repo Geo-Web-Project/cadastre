@@ -32,6 +32,7 @@
     "firebase": "^8.7.1",
     "graphql": "^15.4.0",
     "key-did-resolver": "^1.4.0",
+    "latlon-geohash": "^2.0.0",
     "local-ssl-proxy": "^2.0.5",
     "mapbox-gl": "^2.14.1",
     "multiformats": "^11.0.2",
@@ -61,7 +62,11 @@
     "node": ">=18.0.0"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",

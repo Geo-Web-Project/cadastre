@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Col from "react-bootstrap/Col";
 import ReactMapGL, {
   AttributionControl,
+  Marker,
   NavigationControl,
 } from "react-map-gl";
 import type { ViewState, MapRef } from "react-map-gl";
@@ -48,6 +49,8 @@ import { SmartAccount } from "../pages/IndexPage";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
+import { useWorld } from "../lib/geo-web-content/world";
+import Geohash from "latlon-geohash";
 
 export const GW_CELL_SIZE_LAT = 23;
 export const GW_CELL_SIZE_LON = 24;
@@ -225,6 +228,8 @@ function Map(props: MapProps) {
     (localStorage.getItem(MAP_STYLE_KEY) as MapStyleName) ||
       MapStyleName.satellite
   );
+
+  const { mediaObjects } = useWorld();
 
   const handleMapstyle = (newStyle: MapStyleName) => {
     localStorage.setItem(MAP_STYLE_KEY, newStyle);
@@ -1119,6 +1124,20 @@ function Map(props: MapProps) {
               <Image src="search.svg" alt="search" width={24} />
             </Button>
           ) : null}
+
+          {mediaObjects.map((mediaObject, i) => {
+            const coords = Geohash.decode(mediaObject.position.geohash);
+            return (
+              <Marker
+                key={`marker-${i}`}
+                longitude={coords.lon}
+                latitude={coords.lat}
+                anchor="bottom"
+              >
+                <Image src={"markerRed.svg"} />
+              </Marker>
+            );
+          })}
 
           <NavigationControl
             position="bottom-right"

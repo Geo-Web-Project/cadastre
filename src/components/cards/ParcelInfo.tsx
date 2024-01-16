@@ -5,10 +5,6 @@ import { STATE } from "../Map";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import {
-  NETWORK_ID,
-  WORLD,
-  RPC_URLS_HTTP,
-  RPC_URLS_WS,
   PAYMENT_TOKEN,
   BLOCK_EXPLORER,
   SPATIAL_DOMAIN,
@@ -23,10 +19,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
 import CID from "cids";
-import { optimism, optimismGoerli } from "viem/chains";
-import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
-import { MUDProvider } from "../../lib/MUDContext";
 import { formatBalance } from "../../lib/formatBalance";
 import EditBidAction from "./EditBidAction";
 import EditMetadataAction from "./EditMetadataAction";
@@ -147,9 +140,6 @@ function ParcelInfo(props: ParcelInfoProps) {
   const [queryTimerId, setQueryTimerId] = React.useState<NodeJS.Timer | null>(
     null
   );
-  const [worldConfig, setWorldConfig] =
-    React.useState<typeof SyncWorldResult>();
-
   const { basicProfile, setShouldBasicProfileUpdate } = useBasicProfile(
     registryContract,
     selectedParcelId
@@ -205,36 +195,6 @@ function ParcelInfo(props: ParcelInfoProps) {
 
     navigator.clipboard.writeText(parcelLink.href);
   }
-
-  React.useEffect(() => {
-    (async () => {
-      if (accountAddress !== licenseOwner) {
-        return;
-      }
-
-      const chain =
-        import.meta.env.MODE === "mainnet" ? optimism : optimismGoerli;
-      const mudChain = {
-        ...chain,
-        rpcUrls: {
-          ...chain.rpcUrls,
-          default: {
-            http: [RPC_URLS_HTTP[NETWORK_ID]],
-            webSocket: [RPC_URLS_WS[NETWORK_ID]],
-          },
-        },
-      };
-      const worldConfig = await syncWorld({
-        mudChain,
-        chainId: NETWORK_ID,
-        world: WORLD,
-        namespaces: [Number(selectedParcelId).toString()],
-        indexerUrl: "https://mud-testnet.geoweb.network/trpc",
-      });
-
-      setWorldConfig(worldConfig);
-    })();
-  }, [accountAddress, licenseOwner]);
 
   React.useEffect(() => {
     const loadLicenseDiamond = async () => {
@@ -776,17 +736,15 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
         </Col>
       </Row>
-      {interactionState === STATE.PUBLISHING && worldConfig && (
-        <MUDProvider value={worldConfig}>
-          <AugmentPublisher
-          /*
+      {interactionState === STATE.PUBLISHING && (
+        <AugmentPublisher
+        /*
           show={interactionState === STATE.PUBLISHING}
           setRootCid={setRootCid}
           licenseDiamondContract={licenseDiamondContract}
           {...props}
            */
-          ></AugmentPublisher>
-        </MUDProvider>
+        ></AugmentPublisher>
       )}
     </>
   );

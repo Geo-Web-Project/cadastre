@@ -10,7 +10,13 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
-import { RPC_URLS_HTTP, NETWORK_ID, SSX_HOST } from "../lib/constants";
+import {
+  RPC_URLS_HTTP,
+  RPC_URLS_WS,
+  NETWORK_ID,
+  SSX_HOST,
+  WORLD,
+} from "../lib/constants";
 import Safe from "@safe-global/protocol-kit";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { ethers, BigNumber } from "ethers";
@@ -41,6 +47,9 @@ import axios from "axios";
 import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
 import { useMediaQuery } from "../lib/mediaQuery";
+import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
+import { optimism, optimismGoerli } from "viem/chains";
+import { MUDProvider } from "../lib/MUDContext";
 
 async function createW3UpClient(didSession: DIDSession) {
   const store = new StoreIndexedDB("w3up-client");
@@ -124,6 +133,9 @@ function IndexPage({
   );
   const [w3Client, setW3Client] = React.useState<W3Client | null>(null);
   const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
+
+  const [worldConfig, setWorldConfig] =
+    React.useState<typeof SyncWorldResult>();
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -322,6 +334,32 @@ function IndexPage({
     }
   }, [params]);
 
+  React.useEffect(() => {
+    (async () => {
+      const chain =
+        import.meta.env.MODE === "mainnet" ? optimism : optimismGoerli;
+      const mudChain = {
+        ...chain,
+        rpcUrls: {
+          ...chain.rpcUrls,
+          default: {
+            http: [RPC_URLS_HTTP[NETWORK_ID]],
+            webSocket: [RPC_URLS_WS[NETWORK_ID]],
+          },
+        },
+      };
+      const worldConfig = await syncWorld({
+        mudChain,
+        chainId: NETWORK_ID,
+        world: WORLD,
+        namespaces: [Number(selectedParcelId).toString()],
+        indexerUrl: "https://mud-testnet.geoweb.network/trpc",
+      });
+
+      setWorldConfig(worldConfig);
+    })();
+  }, [selectedParcelId]);
+
   return (
     <>
       {(!isMobile && !isTablet) || !isFullScreen ? (
@@ -418,34 +456,37 @@ function IndexPage({
         library &&
         geoWebCoordinate &&
         firebasePerf &&
-        sfFramework ? (
+        sfFramework &&
+        worldConfig ? (
           <Row>
-            <Map
-              registryContract={registryContract}
-              authStatus={authStatus}
-              signer={signer ?? null}
-              account={address?.toLowerCase() ?? ""}
-              smartAccount={smartAccount}
-              setSmartAccount={setSmartAccount}
-              w3Client={w3Client}
-              geoWebCoordinate={geoWebCoordinate}
-              firebasePerf={firebasePerf}
-              paymentToken={paymentToken}
-              sfFramework={sfFramework}
-              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-              selectedParcelId={selectedParcelId}
-              setSelectedParcelId={setSelectedParcelId}
-              interactionState={interactionState}
-              setInteractionState={setInteractionState}
-              shouldRefetchParcelsData={shouldRefetchParcelsData}
-              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-              auctionStart={auctionStart}
-              auctionEnd={auctionEnd}
-              startingBid={startingBid}
-              endingBid={endingBid}
-              isFullScreen={isFullScreen}
-              setIsFullScreen={setIsFullScreen}
-            ></Map>
+            <MUDProvider value={worldConfig}>
+              <Map
+                registryContract={registryContract}
+                authStatus={authStatus}
+                signer={signer ?? null}
+                account={address?.toLowerCase() ?? ""}
+                smartAccount={smartAccount}
+                setSmartAccount={setSmartAccount}
+                w3Client={w3Client}
+                geoWebCoordinate={geoWebCoordinate}
+                firebasePerf={firebasePerf}
+                paymentToken={paymentToken}
+                sfFramework={sfFramework}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                selectedParcelId={selectedParcelId}
+                setSelectedParcelId={setSelectedParcelId}
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+                shouldRefetchParcelsData={shouldRefetchParcelsData}
+                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+                auctionStart={auctionStart}
+                auctionEnd={auctionEnd}
+                startingBid={startingBid}
+                endingBid={endingBid}
+                isFullScreen={isFullScreen}
+                setIsFullScreen={setIsFullScreen}
+              ></Map>
+            </MUDProvider>
           </Row>
         ) : (
           <Home />
