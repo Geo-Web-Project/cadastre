@@ -229,6 +229,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         chainId: NETWORK_ID,
         world: WORLD,
         namespaces: [Number(selectedParcelId).toString()],
+        indexerUrl: "https://mud-testnet.geoweb.network/trpc",
       });
 
       setWorldConfig(worldConfig);

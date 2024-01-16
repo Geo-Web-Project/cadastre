@@ -317,3 +317,12 @@ input[type="number"] {
     opacity: 0;
   }
 }
+
+.table-dark {
+  --bs-table-bg: #12141d66;
+  --bs-table-striped-bg: #000000;
+}
+
+td {
+  vertical-align: middle;
+}
