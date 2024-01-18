@@ -1,7 +1,5 @@
 import React from "react";
 
-if (!process.env.browser) React.useLayoutEffect = () => void 0;
-
 function useMediaQuery() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false);
   const [isTablet, setIsTablet] = React.useState<boolean>(false);
