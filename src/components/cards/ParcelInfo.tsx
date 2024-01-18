@@ -367,10 +367,9 @@ function ParcelInfo(props: ParcelInfoProps) {
           accountAddress === licenseOwner
         ? "Reclaim Parcel"
         : interactionState === STATE.PARCEL_RECLAIMING
-        ? "Forclosure Claim"
-        : isMobile ||
-          isTablet ||
-          interactionState === STATE.CLAIM_SELECTING ||
+        ? "Foreclosure Claim"
+        : ((isMobile || isTablet) &&
+            interactionState === STATE.CLAIM_SELECTING) ||
           (interactionState === STATE.CLAIM_SELECTED && !accountAddress)
         ? "Claim Parcel"
         : null;
