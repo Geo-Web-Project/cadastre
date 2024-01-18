@@ -6,6 +6,8 @@ import Table from "react-bootstrap/Table";
 import PublishingForm from "./PublishingForm";
 import Row from "react-bootstrap/Row";
 import { MediaObjectType, useWorld } from "../../lib/geo-web-content/world";
+import { ParcelInfoProps } from "../cards/ParcelInfo";
+import { STATE } from "../Map";
 
 export enum AugmentType {
   MODEL = "3D Model",
@@ -14,8 +16,8 @@ export enum AugmentType {
   VIDEO = "Video",
 }
 
-export default function AugmentPublisher() {
-  const [showForm, setShowForm] = useState<boolean>(false);
+export default function AugmentPublisher(props: ParcelInfoProps) {
+  const { interactionState, setInteractionState } = props;
   const [augmentType, setAugmentType] = useState<AugmentType>(
     AugmentType.MODEL
   );
@@ -24,14 +26,21 @@ export default function AugmentPublisher() {
 
   return (
     <>
-      {!showForm && (
+      {interactionState === STATE.PUBLISHING && (
         <>
           <h3 className="fs4 fw-bold">Augment Publisher</h3>
           <p className="mt-1 mb-4">Add augments to your parcel.</p>
         </>
       )}
-      {showForm ? (
-        <PublishingForm augmentType={augmentType} setShowForm={setShowForm} />
+      {interactionState === STATE.PUBLISHING_NEW_MARKER ? (
+        <PublishingForm
+          augmentType={augmentType}
+          setShowForm={(showForm) => {
+            setInteractionState(
+              showForm ? STATE.PUBLISHING_NEW_MARKER : STATE.PUBLISHING
+            );
+          }}
+        />
       ) : (
         <>
           <div className="d-flex align-items-center gap-2">
@@ -70,7 +79,7 @@ export default function AugmentPublisher() {
             <Button
               variant="secondary"
               className="d-flex align-items-center p-1"
-              onClick={() => setShowForm(true)}
+              onClick={() => setInteractionState(STATE.PUBLISHING_NEW_MARKER)}
             >
               <span>
                 <Image src="plus-sign.svg" />

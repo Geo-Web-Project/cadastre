@@ -391,7 +391,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       : SPATIAL_DOMAIN;
     header =
       interactionState === STATE.PARCEL_SELECTED ||
-      (!isMobile && !isTablet && interactionState !== STATE.PUBLISHING) ? (
+      (!isMobile &&
+        !isTablet &&
+        interactionState !== STATE.PUBLISHING &&
+        interactionState !== STATE.PUBLISHING_NEW_MARKER) ? (
         <>
           <div
             className="d-flex flex-column justify-content-between rounded-3 p-0 pt-2 m-0 mt-sm-0"
@@ -598,7 +601,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                 : truncateStr(licenseOwner, 11)}
             </Col>
           </Row>
-          <Row className="mt-4">
+          <Row className="my-4">
             <Col>
               {invalidLicenseId === selectedParcelId
                 ? null
@@ -736,15 +739,9 @@ function ParcelInfo(props: ParcelInfoProps) {
           ) : null}
         </Col>
       </Row>
-      {interactionState === STATE.PUBLISHING && (
-        <AugmentPublisher
-        /*
-          show={interactionState === STATE.PUBLISHING}
-          setRootCid={setRootCid}
-          licenseDiamondContract={licenseDiamondContract}
-          {...props}
-           */
-        ></AugmentPublisher>
+      {(interactionState === STATE.PUBLISHING ||
+        interactionState === STATE.PUBLISHING_NEW_MARKER) && (
+        <AugmentPublisher {...props}></AugmentPublisher>
       )}
     </>
   );

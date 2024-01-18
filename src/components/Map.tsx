@@ -69,6 +69,7 @@ export enum STATE {
   PARCEL_ACCEPTING_BID,
   EDITING_METADATA,
   PUBLISHING,
+  PUBLISHING_NEW_MARKER,
   PARCEL_REJECTING_BID,
   PARCEL_RECLAIMING,
 }
@@ -304,6 +305,7 @@ function Map(props: MapProps) {
   }>({ id: "", timerId: null });
   const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
+  const [lastClickPoint, setLastClickPoint] = useState<LngLat | null>(null);
 
   const { isMobile, isTablet } = useMediaQuery();
   const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
@@ -463,7 +465,11 @@ function Map(props: MapProps) {
   }
 
   function _onMove(nextViewport: ViewState) {
-    if (interactionState === STATE.PUBLISHING || mapRef.current == null) {
+    if (
+      interactionState === STATE.PUBLISHING ||
+      interactionState === STATE.PUBLISHING_NEW_MARKER ||
+      mapRef.current == null
+    ) {
       return;
     }
     setViewport(nextViewport);
@@ -568,6 +574,8 @@ function Map(props: MapProps) {
     if (viewport.zoom < 5) {
       return;
     }
+
+    setLastClickPoint(event.lngLat);
 
     const parcelFeature = event.features?.find(
       (f) => f.layer.id === "parcels-layer"
@@ -948,6 +956,9 @@ function Map(props: MapProps) {
           "claim-point-layer",
         ]);
         break;
+      case STATE.PUBLISHING_NEW_MARKER:
+        setLastClickPoint(null);
+        break;
       default:
         if (isGridVisible) {
           setInteractiveLayerIds(["parcels-layer", "grid-layer"]);
@@ -1134,10 +1145,26 @@ function Map(props: MapProps) {
                 latitude={coords.lat}
                 anchor="bottom"
               >
-                <Image src={"markerRed.svg"} />
+                {interactionState === STATE.PUBLISHING_NEW_MARKER ? (
+                  <Image src={"markerGray.svg"} />
+                ) : (
+                  <Image src={"markerRed.svg"} />
+                )}
               </Marker>
             );
           })}
+
+          {interactionState === STATE.PUBLISHING_NEW_MARKER &&
+            lastClickPoint && (
+              <Marker
+                key={`marker-add`}
+                longitude={lastClickPoint.lng}
+                latitude={lastClickPoint.lat}
+                anchor="bottom"
+              >
+                <Image src={"markerAdd.svg"} />
+              </Marker>
+            )}
 
           <NavigationControl
             position="bottom-right"

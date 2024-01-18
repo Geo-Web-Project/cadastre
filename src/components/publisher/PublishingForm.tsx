@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import { AugmentType } from "./AugmentPublisher";
+import Stack from "react-bootstrap/Stack";
+import { useMap } from "react-map-gl";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
@@ -13,7 +15,7 @@ type PublishingFormProps = {
 type AugmentArgs = {
   contentURI: string;
   name: string;
-  coords: { lat: string; lon: string };
+  coords: { lat?: number; lon?: number };
   altitude: string;
   orientation: string;
   displayScale: string;
@@ -23,12 +25,13 @@ type AugmentArgs = {
 
 export default function PublishingForm(props: PublishingFormProps) {
   const { augmentType, setShowForm } = props;
+  const { default: map } = useMap();
 
   const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
     contentURI: "",
     name: "",
-    coords: { lat: "", lon: "" },
+    coords: {},
     altitude: "",
     orientation: "",
     displayScale: "",
@@ -67,6 +70,18 @@ export default function PublishingForm(props: PublishingFormProps) {
     </div>
   );
 
+  useEffect(() => {
+    map?.on(`click`, (ev) => {
+      setAugmentArgs({
+        ...augmentArgs,
+        coords: {
+          lat: ev.lngLat.lat,
+          lon: ev.lngLat.lng,
+        },
+      });
+    });
+  }, [map]);
+
   return (
     <>
       {title}
@@ -75,6 +90,14 @@ export default function PublishingForm(props: PublishingFormProps) {
         positioning. For best results, place your anchor within direct view of a
         publicly accessible road (i.e. front yards).
       </small>
+      <Stack className="my-3 px-3 py-5 text-center bg-blue border-0 rounded">
+        <Image
+          src="markerAdd.svg"
+          width={30}
+          className="mb-3 mx-auto col-md-1"
+        />
+        <div>Position your augment by clicking on the map</div>
+      </Stack>
       <Form className="mt-3" onSubmit={(e) => e.preventDefault()}>
         <Form.Group className="mb-3">
           <InputGroup className="mb-3">
@@ -121,7 +144,8 @@ export default function PublishingForm(props: PublishingFormProps) {
             <Button
               variant={isLocationOn ? "secondary" : "info"}
               className="d-flex align-items-center p-0 m-0 px-1"
-              onClick={() => setIsLocationOn(!isLocationOn)}
+              disabled
+              // onClick={() => setIsLocationOn(!isLocationOn)}
             >
               <Image
                 src={isLocationOn ? "location-on.svg" : "location-off.svg"}
@@ -137,13 +161,14 @@ export default function PublishingForm(props: PublishingFormProps) {
               pattern="-?[0-9]*"
               min={-90}
               max={90}
-              value={augmentArgs.coords.lat}
+              disabled
+              value={augmentArgs.coords.lat ?? ""}
               onChange={(e) =>
                 setAugmentArgs({
                   ...augmentArgs,
                   coords: {
                     ...augmentArgs.coords,
-                    lat: e.target.value,
+                    lat: Number(e.target.value),
                   },
                 })
               }
@@ -157,13 +182,14 @@ export default function PublishingForm(props: PublishingFormProps) {
             pattern="-?[0-9]*"
             min={-180}
             max={180}
-            value={augmentArgs.coords.lon}
+            disabled
+            value={augmentArgs.coords.lon ?? ""}
             onChange={(e) =>
               setAugmentArgs({
                 ...augmentArgs,
                 coords: {
                   ...augmentArgs.coords,
-                  lon: e.target.value,
+                  lon: Number(e.target.value),
                 },
               })
             }
