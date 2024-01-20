@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
@@ -6,38 +6,65 @@ import InputGroup from "react-bootstrap/InputGroup";
 import { AugmentType } from "./AugmentPublisher";
 import Stack from "react-bootstrap/Stack";
 import { useMap } from "react-map-gl";
+import ApproveAugmentButton from "./actions/ApproveAugmentButton";
+import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import TransactionError from "../cards/TransactionError";
+import { getAugmentAddress } from "./AugmentPublisher";
+import { encodeAbiParameters, stringToHex } from "viem";
+import { useMUD } from "../../lib/MUDContext";
+import { encodeValueArgs } from "@latticexyz/protocol-parser";
+import Geohash from "latlon-geohash";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
   setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
-};
+} & OffCanvasPanelProps;
 
 type AugmentArgs = {
-  contentURI: string;
-  name: string;
+  contentURI?: string;
+  name?: string;
   coords: { lat?: number; lon?: number };
-  altitude: string;
-  orientation: string;
-  displayScale: string;
-  displayWidth: string;
-  audioVolume: string;
+  altitude?: string;
+  orientation?: string;
+  displayScale?: string;
+  displayWidth?: string;
+  audioVolume?: string;
 };
 
 export default function PublishingForm(props: PublishingFormProps) {
-  const { augmentType, setShowForm } = props;
+  const { augmentType, setShowForm, signer, worldContract, selectedParcelId } =
+    props;
   const { default: map } = useMap();
 
+  const { tables } = useMUD();
+
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [isActing, setIsActing] = useState(false);
+  const [didFail, setDidFail] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
-    contentURI: "",
-    name: "",
+    contentURI: undefined,
+    name: undefined,
     coords: {},
-    altitude: "",
-    orientation: "",
-    displayScale: "",
-    displayWidth: "",
-    audioVolume: "",
+    altitude: undefined,
+    orientation: undefined,
+    displayScale: undefined,
+    displayWidth: undefined,
+    audioVolume: undefined,
   });
+
+  const namespaceId = useMemo(() => {
+    return stringToHex(Number(selectedParcelId).toString(), { size: 14 });
+  }, [selectedParcelId]);
+
+  const isReady =
+    augmentArgs.contentURI !== undefined &&
+    augmentArgs.name !== undefined &&
+    augmentArgs.coords.lat !== undefined &&
+    augmentArgs.coords.lon !== undefined &&
+    augmentArgs.orientation !== undefined &&
+    augmentArgs.displayScale !== undefined;
 
   const title = (
     <div className="d-flex align-items-center gap-2 mb-2 mt-1">
@@ -69,6 +96,111 @@ export default function PublishingForm(props: PublishingFormProps) {
       <h3 className="m-0">{augmentType}</h3>
     </div>
   );
+
+  const installAugment = useCallback(async () => {
+    setIsActing(true);
+    setDidFail(false);
+
+    if (!signer) {
+      throw new Error("Could not find signer");
+    }
+
+    try {
+      let modelComSchema: any = {};
+      Object.keys(tables.ModelCom.valueSchema).forEach((key) => {
+        modelComSchema[key] = tables.ModelCom.valueSchema[key].type;
+      });
+
+      // TODO: Support GLB
+      const modelCom = encodeValueArgs(modelComSchema, {
+        encodingFormat: 1,
+        contentURI: augmentArgs.contentURI ?? "",
+      });
+
+      let nameComSchema: any = {};
+      Object.keys(tables.NameCom.valueSchema).forEach((key) => {
+        nameComSchema[key] = tables.NameCom.valueSchema[key].type;
+      });
+
+      const nameCom = encodeValueArgs(nameComSchema, {
+        value: augmentArgs.name ?? "",
+      });
+
+      let positionComSchema: any = {};
+      Object.keys(tables.PositionCom.valueSchema).forEach((key) => {
+        positionComSchema[key] = tables.PositionCom.valueSchema[key].type;
+      });
+
+      const positionCom = encodeValueArgs(positionComSchema, {
+        h: Number(augmentArgs.altitude),
+        geohash: Geohash.encode(augmentArgs.coords.lat, augmentArgs.coords.lon),
+      });
+
+      let orientationComSchema: any = {};
+      Object.keys(tables.OrientationCom.valueSchema).forEach((key) => {
+        orientationComSchema[key] = tables.OrientationCom.valueSchema[key].type;
+      });
+
+      // TODO: Calculate quaternion
+      const orientationCom = encodeValueArgs(orientationComSchema, {
+        x: 0,
+        y: 0,
+        z: 0,
+        w: 0,
+      });
+
+      let scaleComSchema: any = {};
+      Object.keys(tables.ScaleCom.valueSchema).forEach((key) => {
+        scaleComSchema[key] = tables.ScaleCom.valueSchema[key].type;
+      });
+
+      const scaleCom = encodeValueArgs(scaleComSchema, {
+        x: 10 * Number(augmentArgs.displayScale),
+        y: 10 * Number(augmentArgs.displayScale),
+        z: 10 * Number(augmentArgs.displayScale),
+      });
+
+      const txn = await worldContract.connect(signer).installAugment(
+        getAugmentAddress(augmentType),
+        namespaceId,
+        encodeAbiParameters(
+          [
+            {
+              name: "components",
+              type: "tuple[][]",
+              components: [
+                { name: "staticData", type: "bytes" },
+                { name: "encodedLengths", type: "bytes32" },
+                { name: "dynamicData", type: "bytes" },
+              ],
+            },
+          ],
+          [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
+        )
+      );
+      await txn.wait();
+    } catch (err) {
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      if (
+        (err as any)?.code !== "TRANSACTION_REPLACED" ||
+        (err as any).cancelled
+      ) {
+        console.error(err);
+        setErrorMessage(
+          (err as any).reason
+            ? (err as any).reason.replace("execution reverted: ", "")
+            : (err as Error).message
+        );
+        setDidFail(true);
+        setIsActing(false);
+        return;
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+    }
+
+    setIsActing(false);
+    setShowForm(false);
+  }, [augmentArgs, tables, worldContract, signer]);
 
   useEffect(() => {
     map?.on(`click`, (ev) => {
@@ -325,17 +457,40 @@ export default function PublishingForm(props: PublishingFormProps) {
           </>
         ) : null}
         <small className="text-info mt-3">*Required field</small>
-        <div className="d-flex justify-content-end gap-2 mt-1">
+        <div className="justify-content-end gap-2 mt-1">
           <Button
             variant="danger"
-            className="px-3"
+            className="w-100 my-3"
             onClick={() => setShowForm(false)}
           >
-            <Image src="close.svg" alt="cancel" width={30} />
+            Cancel
           </Button>
-          <Button variant="primary" type="submit" className="px-3">
-            <Image src="confirm.svg" alt="confirm" width={30} />
+          {isReady && (
+            <ApproveAugmentButton
+              {...props}
+              isDisabled={!isReady}
+              setErrorMessage={setErrorMessage}
+              isActing={isActing}
+              setIsActing={setIsActing}
+              setDidFail={setDidFail}
+              isAllowed={isAllowed}
+              setIsAllowed={setIsAllowed}
+            />
+          )}
+          <Button
+            variant={!isAllowed ? "info" : "success"}
+            className="w-100 mb-3"
+            onClick={installAugment}
+            disabled={!isAllowed || !isReady}
+          >
+            Submit
           </Button>
+          {didFail && !isActing ? (
+            <TransactionError
+              message={errorMessage}
+              onClick={() => setDidFail(false)}
+            />
+          ) : null}
         </div>
       </Form>
     </>

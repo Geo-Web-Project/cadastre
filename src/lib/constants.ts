@@ -9,18 +9,17 @@ export const WORLD = {
   blockNumber: import.meta.env.VITE_WORLD_BLOCK_NUMBER,
 };
 export const RPC_URLS_HTTP: Record<number, string> = {
-  10: `https://optimism-mainnet.infura.io/v3/${import.meta.env
-    .VITE_INFURA_PROJECT_ID!}`,
-  420: `https://optimism-goerli.infura.io/v3/${import.meta.env
-    .VITE_INFURA_PROJECT_ID!}`,
+  10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_MAINNET_API_KEY!}`,
+  420: `https://opt-goerli.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_TESTNET_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
-  10: `https://opt-goerli.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
-  420: `https://opt-goerli.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
+  10: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_MAINNET_API_KEY!}`,
+  420: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_TESTNET_API_KEY!}`,
 };
-export const WS_RPC_URL = import.meta.env.VITE_WS_RPC_URL!;
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
 export const SSX_HOST = import.meta.env.VITE_SSX_HOST!;
 export const REFERRAL_HOST = import.meta.env.VITE_REFERRAL_HOST!;

@@ -50,6 +50,7 @@ import { useMediaQuery } from "../lib/mediaQuery";
 import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
 import { optimism, optimismGoerli } from "viem/chains";
 import { MUDProvider } from "../lib/MUDContext";
+import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
 
 async function createW3UpClient(didSession: DIDSession) {
   const store = new StoreIndexedDB("w3up-client");
@@ -136,6 +137,9 @@ function IndexPage({
 
   const [worldConfig, setWorldConfig] =
     React.useState<typeof SyncWorldResult>();
+  const [worldContract, setWorldContract] = React.useState<IWorld | undefined>(
+    undefined
+  );
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -357,8 +361,16 @@ function IndexPage({
       });
 
       setWorldConfig(worldConfig);
+
+      if (signer?.provider) {
+        setWorldContract(
+          IWorld__factory.connect(WORLD.worldAddress, signer.provider)
+        );
+      } else {
+        setWorldContract(undefined);
+      }
     })();
-  }, [selectedParcelId]);
+  }, [selectedParcelId, signer]);
 
   return (
     <>
@@ -457,7 +469,8 @@ function IndexPage({
         geoWebCoordinate &&
         firebasePerf &&
         sfFramework &&
-        worldConfig ? (
+        worldConfig &&
+        worldContract ? (
           <Row>
             <MUDProvider value={worldConfig}>
               <Map
@@ -485,6 +498,7 @@ function IndexPage({
                 endingBid={endingBid}
                 isFullScreen={isFullScreen}
                 setIsFullScreen={setIsFullScreen}
+                worldContract={worldContract}
               ></Map>
             </MUDProvider>
           </Row>

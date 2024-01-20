@@ -8,7 +8,7 @@ import {
 import {
   SUBGRAPH_URL,
   NETWORK_ID,
-  RPC_URLS_HTTP,
+  RPC_URLS_WS,
   WALLET_CONNECT_PROJECT_ID,
 } from "./lib/constants";
 import "./styles.scss";
@@ -54,7 +54,7 @@ const { chains, provider } = configureChains(
   [
     jsonRpcProvider({
       rpc: (chain) => ({
-        http: RPC_URLS_HTTP[chain.id],
+        http: RPC_URLS_WS[chain.id],
       }),
     }),
   ]

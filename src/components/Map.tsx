@@ -51,6 +51,7 @@ import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
 import { useWorld } from "../lib/geo-web-content/world";
 import Geohash from "latlon-geohash";
+import { IWorld } from "@geo-web/mud-world-base-contracts";
 
 export const GW_CELL_SIZE_LAT = 23;
 export const GW_CELL_SIZE_LON = 24;
@@ -190,6 +191,7 @@ export type MapProps = {
   endingBid: BigNumber;
   isFullScreen: boolean;
   setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
+  worldContract: IWorld;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";

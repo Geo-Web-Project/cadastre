@@ -16,6 +16,13 @@ export enum AugmentType {
   VIDEO = "Video",
 }
 
+export function getAugmentAddress(augmentType: AugmentType) {
+  switch (augmentType) {
+    default:
+      return "0x0c2819e12c930089D0F563467Fa6af4f87563019";
+  }
+}
+
 export default function AugmentPublisher(props: ParcelInfoProps) {
   const { interactionState, setInteractionState } = props;
   const [augmentType, setAugmentType] = useState<AugmentType>(
@@ -40,6 +47,7 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
               showForm ? STATE.PUBLISHING_NEW_MARKER : STATE.PUBLISHING
             );
           }}
+          {...props}
         />
       ) : (
         <>
