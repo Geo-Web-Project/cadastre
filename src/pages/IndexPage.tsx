@@ -16,6 +16,7 @@ import {
   NETWORK_ID,
   SSX_HOST,
   WORLD,
+  PAYMENT_TOKEN_ADDRESS,
 } from "../lib/constants";
 import Safe from "@safe-global/protocol-kit";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
@@ -48,7 +49,7 @@ import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
-import { optimism, optimismGoerli } from "viem/chains";
+import { optimism, optimismGoerli, optimismSepolia } from "viem/chains";
 import { MUDProvider } from "../lib/MUDContext";
 import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
 
@@ -309,11 +310,16 @@ function IndexPage({
 
       const framework = await Framework.create({
         chainId: NETWORK_ID,
+        customSubgraphQueriesEndpoint:
+          "https://optimism-sepolia.subgraph.x.superfluid.dev",
+        resolverAddress: "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
         provider: lib,
       });
       setSfFramework(framework);
 
-      const superToken = await framework.loadNativeAssetSuperToken("ETHx");
+      const superToken = await framework.loadNativeAssetSuperToken(
+        PAYMENT_TOKEN_ADDRESS
+      );
       setPaymentToken(superToken);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -341,7 +347,7 @@ function IndexPage({
   React.useEffect(() => {
     (async () => {
       const chain =
-        import.meta.env.MODE === "mainnet" ? optimism : optimismGoerli;
+        import.meta.env.MODE === "mainnet" ? optimism : optimismSepolia;
       const mudChain = {
         ...chain,
         rpcUrls: {

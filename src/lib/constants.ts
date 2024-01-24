@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export const NETWORK_ID = parseInt(import.meta.env.VITE_NETWORK_ID!);
-export const SUBGRAPH_URL = import.meta.env.VITE_SUBGRAPH_URL!;
+export const SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${import.meta
+  .env.VITE_SUBGRAPH_API_KEY!}/subgraphs/id/${import.meta.env
+  .VITE_SUBGRAPH_ID!}`;
 export const CERAMIC_URL = import.meta.env.VITE_CERAMIC_URL!;
 export const CONNECT_NETWORK = import.meta.env.VITE_CERAMIC_CONNECT_NETWORK!;
 export const BLOCK_EXPLORER = import.meta.env.VITE_BLOCK_EXPLORER!;
@@ -11,13 +13,13 @@ export const WORLD = {
 export const RPC_URLS_HTTP: Record<number, string> = {
   10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_MAINNET_API_KEY!}`,
-  420: `https://opt-goerli.g.alchemy.com/v2/${import.meta.env
+  11155420: `https://opt-sepolia.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_TESTNET_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
   10: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_MAINNET_API_KEY!}`,
-  420: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
+  11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_TESTNET_API_KEY!}`,
 };
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
@@ -34,6 +36,7 @@ export const TRANSAK_API_KEY = import.meta.env.VITE_TRANSAK_API_KEY!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";
+export const PAYMENT_TOKEN_ADDRESS = import.meta.env.VITE_NATIVE_SUPER_TOKEN!;
 
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;

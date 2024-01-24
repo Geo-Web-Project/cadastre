@@ -45,9 +45,20 @@ import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
 import { BundleSettingsProvider } from "./lib/transactionBundleSettings";
+const optimismSepolia = {
+  ...optimismGoerli,
+  id: 11155420,
+  name: "Optimism Sepolia",
+  network: "optimism-sepolia",
+  nativeCurrency: {
+    name: "OP Sepolia Ether",
+    symbol: "ETH",
+    decimals: 18,
+  },
+};
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
-  420: optimismGoerli,
+  11155420: optimismSepolia,
 };
 const { chains, provider } = configureChains(
   [networkIdToChain[NETWORK_ID]],

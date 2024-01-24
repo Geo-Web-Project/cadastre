@@ -29,6 +29,9 @@ export const makeStore = () => {
     return await Framework.create({
       chainId: NETWORK_ID,
       provider: new ethers.providers.JsonRpcProvider(RPC_URLS_HTTP[NETWORK_ID]),
+      customSubgraphQueriesEndpoint:
+        "https://optimism-sepolia.subgraph.x.superfluid.dev",
+      resolverAddress: "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
     });
   });
 
