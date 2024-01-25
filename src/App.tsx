@@ -116,8 +116,6 @@ export default function App() {
           const siweMessage = new CacaoSiweMessage({
             domain: window.location.hostname,
             address,
-            statement:
-              "Give this application access to some of your data on Ceramic",
             uri: didKey,
             version: "1",
             nonce,
