@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export const NETWORK_ID = parseInt(import.meta.env.VITE_NETWORK_ID!);
-export const SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${import.meta
-  .env.VITE_SUBGRAPH_API_KEY!}/subgraphs/id/${import.meta.env
-  .VITE_SUBGRAPH_ID!}`;
+export const SUBGRAPH_URL = import.meta.env.VITE_GRAPH_URI!;
 export const CERAMIC_URL = import.meta.env.VITE_CERAMIC_URL!;
 export const CONNECT_NETWORK = import.meta.env.VITE_CERAMIC_CONNECT_NETWORK!;
 export const BLOCK_EXPLORER = import.meta.env.VITE_BLOCK_EXPLORER!;
