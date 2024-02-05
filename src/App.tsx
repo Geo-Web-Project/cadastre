@@ -9,6 +9,7 @@ import {
   SUBGRAPH_URL,
   NETWORK_ID,
   RPC_URLS_WS,
+  RPC_URLS_HTTP,
   WALLET_CONNECT_PROJECT_ID,
 } from "./lib/constants";
 import "./styles.scss";
@@ -44,7 +45,7 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
-import { BundleSettingsProvider } from "./lib/transactionBundleSettings";
+
 const optimismSepolia = {
   ...optimismGoerli,
   id: 11155420,
@@ -56,6 +57,7 @@ const optimismSepolia = {
     decimals: 18,
   },
 };
+
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
   11155420: optimismSepolia,
@@ -65,7 +67,7 @@ const { chains, provider } = configureChains(
   [
     jsonRpcProvider({
       rpc: (chain) => ({
-        http: RPC_URLS_WS[chain.id],
+        http: RPC_URLS_HTTP[chain.id],
       }),
     }),
   ]
@@ -240,12 +242,10 @@ export default function App() {
         <RainbowKitProvider chains={chains} modalSize="compact" theme={myTheme}>
           <ApolloProvider client={client}>
             <MapProvider>
-              <BundleSettingsProvider>
-                <IndexPage
-                  authStatus={authStatus}
-                  setAuthStatus={setAuthStatus}
-                />
-              </BundleSettingsProvider>
+              <IndexPage
+                authStatus={authStatus}
+                setAuthStatus={setAuthStatus}
+              />
             </MapProvider>
           </ApolloProvider>
         </RainbowKitProvider>

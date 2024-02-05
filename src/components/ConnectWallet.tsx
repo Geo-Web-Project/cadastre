@@ -1,25 +1,23 @@
-import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import { useAccount, useNetwork } from "wagmi";
-import { ConnectButton, useChainModal } from "@rainbow-me/rainbowkit";
-import { SmartAccount } from "../pages/IndexPage";
-import ConnectAccountModal from "./profile/ConnectAccountModal";
+import {
+  ConnectButton,
+  useChainModal,
+  useConnectModal,
+} from "@rainbow-me/rainbowkit";
 import { useMediaQuery } from "../lib/mediaQuery";
 
 type ConnectWalletProps = {
   variant?: string;
-  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
-  authStatus: string;
 };
 
 export default function ConnectWallet(props: ConnectWalletProps) {
-  const { variant, authStatus, setSmartAccount } = props;
-
-  const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
+  const { variant } = props;
 
   const { chain } = useNetwork();
   const { status } = useAccount();
   const { openChainModal } = useChainModal();
+  const { openConnectModal } = useConnectModal();
   const { isMobile } = useMediaQuery();
 
   return (
@@ -54,7 +52,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
                         : "w-100 py-2"
                     }`}
                     disabled={!mounted || status === "connecting"}
-                    onClick={() => setShowAccountModal(true)}
+                    onClick={openConnectModal}
                   >
                     {variant === "header" && isMobile
                       ? "Connect"
@@ -64,13 +62,6 @@ export default function ConnectWallet(props: ConnectWalletProps) {
                       ? "Connect to Continue"
                       : "Connect to Transact"}
                   </Button>
-                  <ConnectAccountModal
-                    showAccountModal={showAccountModal}
-                    handleOpenModal={() => setShowAccountModal(true)}
-                    handleCloseModal={() => setShowAccountModal(false)}
-                    authStatus={authStatus}
-                    setSmartAccount={setSmartAccount}
-                  />
                 </>
               );
             })()}

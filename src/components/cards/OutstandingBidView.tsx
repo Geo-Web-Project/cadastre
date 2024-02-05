@@ -11,15 +11,12 @@ import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import Button from "react-bootstrap/Button";
 import { fromValueToRate, calculateBufferNeeded } from "../../lib/utils";
-import { useSafe } from "../../lib/safe";
-import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { STATE } from "../Map";
 import TransactionError from "./TransactionError";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { FlowingBalance } from "../profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
-import { PAYMENT_TOKEN, NETWORK_ID, ZERO_ADDRESS } from "../../lib/constants";
-import { useBundleSettings } from "../../lib/transactionBundleSettings";
+import { PAYMENT_TOKEN, NETWORK_ID } from "../../lib/constants";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -45,7 +42,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     bidTimestamp,
     licensorIsOwner,
     registryContract,
-    smartAccount,
     licenseDiamondContract,
     perSecondFeeNumerator,
     perSecondFeeDenominator,
@@ -65,8 +61,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
   >(null);
   const [actionDate, setActionDate] = React.useState<Date | null>(null);
 
-  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
-    useSafe(smartAccount?.safe ?? null);
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
@@ -74,11 +68,6 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
       token: paymentToken.address,
     },
   });
-  const { superTokenBalance } = useSuperTokenBalance(
-    smartAccount?.safe ? smartAccount.address : "",
-    paymentToken.address
-  );
-  const bundleSettings = useBundleSettings();
 
   const newForSalePriceDisplay = truncateEth(
     formatBalance(newForSalePrice),
@@ -166,14 +155,8 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     try {
-      if (smartAccount?.safe) {
-        setInteractionState(STATE.PARCEL_ACCEPTING_BID);
-
-        return;
-      } else {
-        const txn = await licenseDiamondContract.connect(signer).acceptBid();
-        await txn.wait();
-      }
+      const txn = await licenseDiamondContract.connect(signer).acceptBid();
+      await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -215,73 +198,11 @@ function OutstandingBidView(props: OutstandingBidViewProps) {
     }
 
     try {
-      if (smartAccount?.safe) {
-        let wrap;
-        const metaTransactions = [];
-        const safeBalance = await smartAccount.safe.getBalance();
-        const wrapAmount =
-          bundleSettings.isSponsored &&
-          !bundleSettings.noWrap &&
-          (bundleSettings.wrapAll ||
-            BigNumber.from(bundleSettings.wrapAmount).gt(safeBalance)) &&
-          safeBalance.gt(0)
-            ? safeBalance.toString()
-            : bundleSettings.isSponsored &&
-              !bundleSettings.noWrap &&
-              BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-              safeBalance.gt(0)
-            ? BigNumber.from(bundleSettings.wrapAmount).toString()
-            : "";
+      const txn = await licenseDiamondContract
+        .connect(signer)
+        .triggerTransfer();
 
-        if (bundleSettings.isSponsored && wrapAmount && safeBalance.gt(0)) {
-          wrap = await paymentToken.upgrade({
-            amount: wrapAmount,
-          }).populateTransactionPromise;
-        }
-
-        if (wrap?.to && wrap?.data) {
-          metaTransactions.push({
-            to: wrap.to,
-            value: wrapAmount,
-            data: wrap.data,
-          });
-        }
-
-        const triggerTransferData =
-          licenseDiamondContract.interface.encodeFunctionData(
-            "triggerTransfer"
-          );
-        const triggerTransferTransaction = {
-          to: licenseDiamondContract.address,
-          data: triggerTransferData,
-          value: "0",
-        };
-        metaTransactions.push(triggerTransferTransaction);
-
-        const gasUsed = await simulateSafeTx(metaTransactions);
-        const transactionFeesEstimate = await estimateTransactionBundleFees(
-          gasUsed
-        );
-        await relayTransaction(metaTransactions, {
-          isSponsored: bundleSettings.isSponsored,
-          gasToken:
-            bundleSettings.isSponsored &&
-            bundleSettings.noWrap &&
-            superTokenBalance.lt(transactionFeesEstimate ?? 0)
-              ? ZERO_ADDRESS
-              : bundleSettings.isSponsored &&
-                (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
-                  superTokenBalance.gt(transactionFeesEstimate ?? 0))
-              ? paymentToken.address
-              : ZERO_ADDRESS,
-        });
-      } else {
-        const txn = await licenseDiamondContract
-          .connect(signer)
-          .triggerTransfer();
-
-        await txn.wait();
-      }
+      await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if ((err as any).reason) {

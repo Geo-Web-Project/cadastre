@@ -1,7 +1,9 @@
 import React from "react";
 import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { SmartAccount } from "../../pages/IndexPage";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
@@ -21,8 +23,6 @@ type ProfileProps = {
   sfFramework: Framework;
   account: string;
   signer: ethers.Signer;
-  smartAccount: SmartAccount | null;
-  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   authStatus: string;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
@@ -36,30 +36,10 @@ type ProfileProps = {
 };
 
 function Profile(props: ProfileProps) {
-  const { account, paymentToken, portfolioNeedActionCount, smartAccount } =
+  const { account, paymentToken, portfolioNeedActionCount, } =
     props;
 
   const [showProfile, setShowProfile] = React.useState(false);
-  const [isSafeFunded, setIsSafeFunded] = React.useState<boolean | null>(false);
-
-  React.useEffect(() => {
-    (async () => {
-      if (!smartAccount?.safe) {
-        setIsSafeFunded(false);
-        return;
-      }
-
-      const safeBalance = await smartAccount.safe.getBalance();
-      const isSafeFunded = safeBalance.gt(0);
-      const isSafeDeployed = await smartAccount.safe.isSafeDeployed();
-
-      setIsSafeFunded(isSafeFunded);
-
-      if (!isSafeFunded && !isSafeDeployed) {
-        setShowProfile(true);
-      }
-    })();
-  }, []);
 
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);
@@ -83,7 +63,7 @@ function Profile(props: ProfileProps) {
         onClick={handleShowProfile}
         className="d-none d-xl-block text-light rounded-start"
       >
-        {isLoading || data == null || isSafeFunded == null ? (
+        {isLoading || data == null ? (
           <Spinner animation="border" role="status"></Spinner>
         ) : (
           <>

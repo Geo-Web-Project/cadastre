@@ -29,12 +29,10 @@ import AugmentPublisher from "../publisher/AugmentPublisher";
 import OutstandingBidView from "./OutstandingBidView";
 import AuctionInstructions from "../AuctionInstructions";
 import PlaceBidAction from "./PlaceBidAction";
-import AcceptBidAction from "./AcceptBidAction";
 import RejectBidAction from "./RejectBidAction";
 import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../ConnectWallet";
 import NotificationModal from "../NotificationModal";
-import { LoginState } from "../../pages/IndexPage";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 import BN from "bn.js";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
@@ -107,9 +105,6 @@ function ParcelInfo(props: ParcelInfoProps) {
   const {
     account,
     signer,
-    smartAccount,
-    setSmartAccount,
-    authStatus,
     interactionState,
     setInteractionState,
     selectedParcelId,
@@ -153,7 +148,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Spinner>
   );
 
-  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
+  const accountAddress = account;
   const selectedParcelCoords = getParcelCoords();
   const forSalePrice =
     data && data.geoWebParcel ? (
@@ -509,13 +504,10 @@ function ParcelInfo(props: ParcelInfoProps) {
   } else if (interactionState !== STATE.PARCEL_SELECTED) {
     buttons = cancelButton;
   } else if (!isLoading) {
-    if (!accountAddress || smartAccount?.loginState !== LoginState.CONNECTED) {
+    if (!accountAddress) {
       buttons = (
         <>
-          <ConnectWallet
-            authStatus={authStatus}
-            setSmartAccount={setSmartAccount}
-          />
+          <ConnectWallet />
           {!hasOutstandingBid && <AuctionInstructions />}
         </>
       );
@@ -677,7 +669,6 @@ function ParcelInfo(props: ParcelInfoProps) {
               basicProfile={basicProfile}
               setShouldBasicProfileUpdate={setShouldBasicProfileUpdate}
               signer={signer}
-              licenseDiamondContract={licenseDiamondContract}
             />
           ) : null}
           {interactionState === STATE.PARCEL_PLACING_BID &&
@@ -691,22 +682,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseDiamondContract={licenseDiamondContract}
             />
           ) : null}
-          {smartAccount?.safe &&
-          interactionState === STATE.PARCEL_ACCEPTING_BID &&
-          hasOutstandingBid &&
-          outstandingBidForSalePrice &&
-          currentOwnerBidForSalePrice &&
-          !parcelFieldsToUpdate?.forSalePrice &&
-          !parcelFieldsToUpdate?.licenseOwner ? (
-            <AcceptBidAction
-              {...props}
-              newForSalePrice={outstandingBidForSalePrice}
-              existingForSalePrice={currentOwnerBidForSalePrice}
-              bidTimestamp={outstandingBidTimestamp ?? null}
-              licenseDiamondContract={licenseDiamondContract}
-            />
-          ) : null}
-          {interactionState === STATE.PARCEL_REJECTING_BID &&
+          {interactionState == STATE.PARCEL_REJECTING_BID &&
           accountAddress &&
           signer &&
           hasOutstandingBid &&

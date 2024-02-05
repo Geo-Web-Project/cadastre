@@ -48,8 +48,6 @@ function EditAction(props: EditActionProps) {
       ? displayCurrentForSalePrice
       : "",
   });
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
-    React.useState<BigNumber | null>(null);
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -156,34 +154,6 @@ function EditAction(props: EditActionProps) {
     run();
   }, [sfFramework, paymentToken, displayNewForSalePrice]);
 
-  async function getEditBidMetaTransaction() {
-    if (!licenseDiamondContract) {
-      throw new Error("Could not find licenseDiamondContract");
-    }
-
-    if (!existingNetworkFee) {
-      throw new Error("Could not find existingNetworkFee");
-    }
-
-    const editBidData = licenseDiamondContract.interface.encodeFunctionData(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      "editBid(int96,uint256)",
-      [
-        newNetworkFee ?? existingNetworkFee,
-        ethers.utils.parseEther(
-          displayNewForSalePrice ?? displayCurrentForSalePrice
-        ),
-      ]
-    );
-
-    return {
-      to: licenseDiamondContract.address,
-      data: editBidData,
-      value: "0",
-    };
-  }
-
   async function editBid() {
     updateActionData({ isActing: true });
 
@@ -226,7 +196,6 @@ function EditAction(props: EditActionProps) {
               }
               existingNetworkFee={existingNetworkFee ?? undefined}
               newNetworkFee={newNetworkFee}
-              transactionBundleFeesEstimate={transactionBundleFeesEstimate}
               {...props}
             />
           ) : (
@@ -241,10 +210,6 @@ function EditAction(props: EditActionProps) {
         requiredFlowPermissions={2}
         spender={licenseDiamondContract?.address ?? ""}
         flowOperator={licenseDiamondContract?.address ?? ""}
-        metaTransactionCallbacks={[getEditBidMetaTransaction]}
-        bundleCallback={async () => void 0}
-        transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-        setTransactionBundleFeesEstimate={setTransactionBundleFeesEstimate}
         requiredBuffer={
           requiredNewBuffer && requiredExistingBuffer
             ? requiredNewBuffer.sub(requiredExistingBuffer)

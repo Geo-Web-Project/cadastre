@@ -1,30 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
-import Alert from "react-bootstrap/Alert";
 import Form from "react-bootstrap/Form";
 import { ethers, BigNumber } from "ethers";
 import Image from "react-bootstrap/Image";
 import { PAYMENT_TOKEN } from "../../lib/constants";
-import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { ParcelInfoProps } from "./ParcelInfo";
-import AddFundsModal from "../profile/AddFundsModal";
-import { SubmitBundleButton } from "../SubmitBundleButton";
 import InfoTooltip from "../InfoTooltip";
 import { STATE } from "../Map";
 import WrapModal from "../wrap/WrapModal";
-import TransactionError from "./TransactionError";
 import PerformButton from "../PerformButton";
 import { BasicProfile } from "../../lib/geo-web-content/basicProfile";
-import { useSuperTokenBalance } from "../../lib/superTokenBalance";
 import { useMediaQuery } from "../../lib/mediaQuery";
-import { useBundleSettings } from "../../lib/transactionBundleSettings";
 
 export type EditMetadataActionProps = ParcelInfoProps & {
   basicProfile: BasicProfile;
   signer: ethers.Signer;
   setShouldBasicProfileUpdate: React.Dispatch<React.SetStateAction<boolean>>;
-  licenseDiamondContract: IPCOLicenseDiamond | null;
 };
 
 export type ActionData = {
@@ -38,18 +30,13 @@ export type ActionData = {
 export function EditMetadataAction(props: EditMetadataActionProps) {
   const {
     signer,
-    account,
-    smartAccount,
     registryContract,
-    setSmartAccount,
     w3Client,
     selectedParcelId,
     basicProfile,
     setShouldBasicProfileUpdate,
     setShouldRefetchParcelsData,
-    licenseDiamondContract,
     setInteractionState,
-    paymentToken,
   } = props;
 
   const [showWrapModal, setShowWrapModal] = useState(false);
@@ -60,21 +47,10 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
     isActing: false,
     errorMessage: "",
   });
-  const [showAddFundsModal, setShowAddFundsModal] = useState<boolean>(false);
-  const [transactionBundleFeesEstimate, setTransactionBundleFeesEstimate] =
-    useState<BigNumber | null>(null);
-  const [safeEthBalance, setSafeEthBalance] = useState<BigNumber | null>(null);
 
-  const { parcelName, parcelWebContentURI, didFail, isActing, errorMessage } =
-    actionData;
+  const { parcelName, parcelWebContentURI, isActing } = actionData;
 
-  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
-  const { superTokenBalance } = useSuperTokenBalance(
-    accountAddress,
-    paymentToken.address
-  );
   const { isMobile, isTablet } = useMediaQuery();
-  const bundleSettings = useBundleSettings();
 
   const handleWrapModalOpen = () => setShowWrapModal(true);
   const handleWrapModalClose = () => setShowWrapModal(false);
@@ -88,21 +64,6 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
         false || parcelWebContentURI.length > 150
     : false;
   const isInvalid = isParcelNameInvalid || isURIInvalid;
-  const isSafeBalanceInsufficient =
-    smartAccount?.safe &&
-    bundleSettings.isSponsored &&
-    safeEthBalance &&
-    transactionBundleFeesEstimate
-      ? transactionBundleFeesEstimate.gt(superTokenBalance.add(safeEthBalance))
-      : false;
-
-  const isSafeEthBalanceInsufficient =
-    smartAccount?.safe &&
-    !bundleSettings.isSponsored &&
-    safeEthBalance &&
-    transactionBundleFeesEstimate
-      ? transactionBundleFeesEstimate.gt(safeEthBalance)
-      : false;
 
   function updateActionData(updatedValues: ActionData) {
     function _updateData(updatedValues: ActionData) {
@@ -142,25 +103,6 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
     return tokenURI;
   }
 
-  const getUpdateMetadata = async () => {
-    const tokenURI = await generateTokenURI();
-    const calldata = registryContract.interface.encodeFunctionData(
-      "updateTokenURI",
-      [BigNumber.from(selectedParcelId), tokenURI]
-    );
-
-    return { to: registryContract.address, data: calldata, value: "0" };
-  };
-
-  const bundleCallback = async () => {
-    if (basicProfile?.name !== parcelName) {
-      setShouldRefetchParcelsData(true);
-    }
-
-    setShouldBasicProfileUpdate(true);
-    setInteractionState(STATE.PARCEL_SELECTED);
-  };
-
   const updateMetadata = async () => {
     try {
       updateActionData({ isActing: true, didFail: false });
@@ -198,21 +140,6 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
   };
-
-  useEffect(() => {
-    let timerId: NodeJS.Timer;
-
-    if (smartAccount?.safe) {
-      timerId = setInterval(async () => {
-        if (smartAccount?.safe) {
-          const safeEthBalance = await smartAccount.safe.getBalance();
-          setSafeEthBalance(safeEthBalance);
-        }
-      }, 10000);
-    }
-
-    return () => clearInterval(timerId);
-  }, [smartAccount]);
 
   return (
     <>
@@ -319,120 +246,25 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
               <hr className="action-form_divider" />
             </div>
             <br />
-            {smartAccount?.safe ? (
-              <>
-                <Button
-                  variant="secondary"
-                  className="w-100 mb-3"
-                  onClick={() => setShowAddFundsModal(true)}
-                >
-                  Add Funds
-                </Button>
-                <AddFundsModal
-                  show={showAddFundsModal}
-                  handleClose={() => setShowAddFundsModal(false)}
-                  smartAccount={smartAccount}
-                  setSmartAccount={setSmartAccount}
-                  superTokenBalance={superTokenBalance}
-                />
-                <SubmitBundleButton
-                  {...props}
-                  superTokenBalance={superTokenBalance}
-                  requiredFlowAmount={BigNumber.from(0)}
-                  requiredPayment={BigNumber.from(0)}
-                  flowOperator={licenseDiamondContract?.address ?? null}
-                  spender={licenseDiamondContract?.address ?? null}
-                  requiredBuffer={BigNumber.from(0)}
-                  setErrorMessage={(v) => {
-                    updateActionData({ errorMessage: v });
-                  }}
-                  setIsActing={(v) => {
-                    updateActionData({ isActing: v });
-                  }}
-                  setDidFail={(v) => {
-                    updateActionData({ didFail: v });
-                  }}
-                  isDisabled={
-                    isActing ||
-                    isInvalid ||
-                    isSafeBalanceInsufficient ||
-                    isSafeEthBalanceInsufficient ||
-                    !hasMetatadataChanged
-                  }
-                  isActing={isActing ?? false}
-                  buttonText={"Submit"}
-                  metaTransactionCallbacks={[getUpdateMetadata]}
-                  bundleCallback={bundleCallback}
-                  transactionBundleFeesEstimate={transactionBundleFeesEstimate}
-                  setTransactionBundleFeesEstimate={
-                    setTransactionBundleFeesEstimate
-                  }
-                />
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  className="w-100 mb-3"
-                  onClick={handleWrapModalOpen}
-                >
-                  {`Wrap ETH to ${PAYMENT_TOKEN}`}
-                </Button>
-                <PerformButton
-                  isDisabled={isActing || isInvalid || !hasMetatadataChanged}
-                  isActing={isActing ?? false}
-                  buttonText={"Submit"}
-                  performAction={updateMetadata}
-                  isAllowed={true}
-                />
-              </>
-            )}
+            <>
+              <Button
+                variant="secondary"
+                className="w-100 mb-3"
+                onClick={handleWrapModalOpen}
+              >
+                {`Wrap ETH to ${PAYMENT_TOKEN}`}
+              </Button>
+              <PerformButton
+                isDisabled={isActing || isInvalid || !hasMetatadataChanged}
+                isActing={isActing ?? false}
+                buttonText={"Submit"}
+                performAction={updateMetadata}
+                isAllowed={true}
+              />
+            </>
           </Form>
 
           <br />
-          {isSafeBalanceInsufficient && !isActing ? (
-            <Alert variant="danger">
-              <Alert.Heading>Insufficient Funds</Alert.Heading>
-              You must deposit more ETH to your account to complete your
-              transaction. Click Add Funds above.
-            </Alert>
-          ) : smartAccount?.safe &&
-            bundleSettings.isSponsored &&
-            !bundleSettings.noWrap &&
-            safeEthBalance &&
-            BigNumber.from(bundleSettings.wrapAmount).gt(safeEthBalance) &&
-            !isActing ? (
-            <Alert variant="warning">
-              <Alert.Heading>ETH balance warning</Alert.Heading>
-              You don't have enough ETH to fully fund your ETHx wrapping
-              strategy. We'll wrap your full balance, but consider depositing
-              ETH or changing your transaction settings.
-            </Alert>
-          ) : isSafeEthBalanceInsufficient && !isActing ? (
-            <Alert variant="danger">
-              <Alert.Heading>Insufficient ETH for Gas</Alert.Heading>
-              You must deposit more ETH to your account or enable transaction
-              sponsoring in Transaction Settings.
-            </Alert>
-          ) : bundleSettings.isSponsored &&
-            ((bundleSettings.noWrap &&
-              superTokenBalance.lt(transactionBundleFeesEstimate ?? 0)) ||
-              (BigNumber.from(bundleSettings.wrapAmount).gt(0) &&
-                superTokenBalance.lt(transactionBundleFeesEstimate ?? 0))) &&
-            !isActing ? (
-            <Alert variant="warning">
-              <Alert.Heading>Gas Sponsoring Notice</Alert.Heading>
-              You have transaction sponsoring enabled, but your current ETHx
-              balance doesn't cover the Initial Transfer shown above. We'll use
-              your ETH balance to directly pay for the Transaction Cost then
-              proceed with your chosen auto-wrapping strategy.
-            </Alert>
-          ) : didFail && !isActing ? (
-            <TransactionError
-              message={errorMessage}
-              onClick={() => updateActionData({ didFail: false })}
-            />
-          ) : null}
         </Card.Body>
       </Card>
 

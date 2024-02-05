@@ -28,18 +28,14 @@ import * as turf from "@turf/turf";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import { FlowingBalance } from "./FlowingBalance";
-import AddFundsModal from "./AddFundsModal";
 import { CopyTokenAddress, TokenOptions } from "../CopyTokenAddress";
 import InfoTooltip from "../InfoTooltip";
 import CopyTooltip from "../CopyTooltip";
-import { SmartAccount } from "../../pages/IndexPage";
-import TransactionBundleSettingsView from "../TransactionBundleSettingsView";
 import OnRampWidget from "../OnRampWidget";
 import {
   PAYMENT_TOKEN,
   SECONDS_IN_WEEK,
   SECONDS_IN_YEAR,
-  ZERO_ADDRESS,
 } from "../../lib/constants";
 import { getETHBalance } from "../../lib/getBalance";
 import { useSuperTokenBalance } from "../../lib/superTokenBalance";
@@ -48,8 +44,6 @@ import { calculateBufferNeeded, calculateAuctionValue } from "../../lib/utils";
 import { STATE } from "../Map";
 import { useMediaQuery } from "../../lib/mediaQuery";
 import { useParcelNavigation } from "../../lib/parcelNavigation";
-import { useSafe } from "../../lib/safe";
-import { useBundleSettings } from "../../lib/transactionBundleSettings";
 import { useBasicProfile } from "../../lib/geo-web-content/basicProfile";
 
 dayjs.extend(utc);
@@ -60,8 +54,6 @@ interface ProfileModalProps {
   accountTokenSnapshot: AccountTokenSnapshot;
   account: string;
   signer: ethers.Signer;
-  smartAccount: SmartAccount | null;
-  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   sfFramework: Framework;
   registryContract: Contracts["registryDiamondContract"];
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
@@ -187,8 +179,6 @@ function ProfileModal(props: ProfileModalProps) {
     sfFramework,
     account,
     signer,
-    smartAccount,
-    setSmartAccount,
     registryContract,
     setSelectedParcelId,
     setInteractionState,
@@ -212,16 +202,11 @@ function ProfileModal(props: ProfileModalProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
   const [lastSorted, setLastSorted] = useState("");
   const [timerId, setTimerId] = useState<NodeJS.Timer | null>(null);
-  const [isSafeDeployed, setIsSafeDeployed] = useState<boolean | null>(null);
-  const [showTopUpTotalDropDown, setShowTopUpTotalDropDown] =
-    useState<boolean>(false);
-  const [showTopUpSingleDropDown, setShowTopUpSingleDropDown] =
-    useState<boolean>(false);
   const [tabSelection, setTabSelection] = useState<TabSelection>(
     TabSelection.WALLET
   );
 
-  const accountAddress = smartAccount?.safe ? smartAccount.address : account;
+  const accountAddress = account;
 
   const { disconnect } = useDisconnect();
   const { data, refetch } = useQuery<BidderQuery>(portfolioQuery, {
@@ -236,12 +221,6 @@ function ProfileModal(props: ProfileModalProps) {
   const { isMobile, isTablet } = useMediaQuery();
   const { flyToParcel } = useParcelNavigation();
   const { getBasicProfile } = useBasicProfile(registryContract);
-  const { relayTransaction, simulateSafeTx, estimateTransactionBundleFees } =
-    useSafe(smartAccount?.safe ?? null);
-  const bundleSettings = useBundleSettings();
-  const totalNetworkStream = BigNumber.from(
-    accountTokenSnapshot?.totalOutflowRate ?? 0
-  );
 
   const paymentTokenBalance = ethers.utils.formatEther(superTokenBalance);
   const isOutOfBalanceWrap =
@@ -259,12 +238,6 @@ function ProfileModal(props: ProfileModalProps) {
     const initBalance = async () => {
       if (sfFramework.settings.provider && accountAddress && showProfile) {
         try {
-          if (smartAccount?.safe) {
-            const isSafeDeployed = await smartAccount?.safe.isSafeDeployed();
-
-            setIsSafeDeployed(isSafeDeployed ? true : false);
-          }
-
           const ethBalance = await getETHBalance(
             sfFramework.settings.provider,
             accountAddress
@@ -284,7 +257,7 @@ function ProfileModal(props: ProfileModalProps) {
     return () => {
       isMounted = false;
     };
-  }, [sfFramework, accountAddress, smartAccount, showProfile]);
+  }, [sfFramework, accountAddress, showProfile]);
 
   useEffect(() => {
     if (!data) {
@@ -545,7 +518,6 @@ function ProfileModal(props: ProfileModalProps) {
   );
 
   const deactivateProfile = (): void => {
-    setSmartAccount(null);
     disconnect();
     handleCloseProfile();
   };
@@ -596,29 +568,9 @@ function ProfileModal(props: ProfileModalProps) {
         throw new Error("Error populating transaction");
       }
 
-      if (smartAccount?.safe) {
-        const gasUsed = await simulateSafeTx([transactionData]);
-        const transactionFeesEstimate = await estimateTransactionBundleFees(
-          gasUsed
-        );
-        await relayTransaction([transactionData], {
-          isSponsored: bundleSettings.isSponsored,
-          gasToken:
-            bundleSettings.isSponsored &&
-            bundleSettings.noWrap &&
-            superTokenBalance.lt(transactionFeesEstimate ?? 0)
-              ? ZERO_ADDRESS
-              : bundleSettings.isSponsored &&
-                (BigNumber.from(bundleSettings.wrapAmount).eq(0) ||
-                  superTokenBalance.gt(transactionFeesEstimate ?? 0))
-              ? paymentToken.address
-              : ZERO_ADDRESS,
-        });
-      } else {
-        const tx = await signer.sendTransaction(transactionData);
+      const tx = await signer.sendTransaction(transactionData);
 
-        await tx.wait();
-      }
+      await tx.wait();
 
       const ethBalance = await getETHBalance(
         sfFramework.settings.provider,
@@ -742,21 +694,6 @@ function ProfileModal(props: ProfileModalProps) {
     });
   };
 
-  if (smartAccount?.safe && isSafeDeployed === null) {
-    return null;
-  } else if (smartAccount?.safe && !isSafeDeployed) {
-    return (
-      <AddFundsModal
-        show={showProfile}
-        handleClose={handleCloseProfile}
-        smartAccount={smartAccount}
-        setSmartAccount={setSmartAccount}
-        setIsSafeDeployed={setIsSafeDeployed}
-        superTokenBalance={superTokenBalance}
-      />
-    );
-  }
-
   return (
     <Modal
       show={showProfile}
@@ -766,10 +703,6 @@ function ProfileModal(props: ProfileModalProps) {
       onExit={() => {
         setWrappingError("");
         setUnwrappingError("");
-      }}
-      onClick={() => {
-        setShowTopUpTotalDropDown(false);
-        setShowTopUpSingleDropDown(false);
       }}
       size="xl"
       contentClassName="bg-dark"
@@ -811,29 +744,6 @@ function ProfileModal(props: ProfileModalProps) {
                 }
                 handleCopy={() => navigator.clipboard.writeText(accountAddress)}
               />
-              {smartAccount?.safe && (
-                <InfoTooltip
-                  position={{ top: true }}
-                  content={
-                    <span style={{ textAlign: "left" }}>Open Safe Wallet</span>
-                  }
-                  target={
-                    <Button
-                      variant="link"
-                      href={`https://app.safe.global/home?safe=oeth:${accountAddress}`}
-                      target="_blank"
-                      rel="noopener"
-                      className="px-1 py-0 shadow-none"
-                    >
-                      <Image
-                        src="wallet.svg"
-                        alt="open safe wallet"
-                        width={isMobile ? 30 : 36}
-                      />
-                    </Button>
-                  }
-                />
-              )}
               <InfoTooltip
                 position={{ top: true }}
                 content={
@@ -926,19 +836,6 @@ function ProfileModal(props: ProfileModalProps) {
                 Wallet
               </span>
             </div>
-            {smartAccount?.safe && (
-              <div onClick={() => setTabSelection(TabSelection.ETHX_SETTINGS)}>
-                <span
-                  className={`${
-                    tabSelection === TabSelection.ETHX_SETTINGS
-                      ? "text-light fw-bold"
-                      : ""
-                  }`}
-                >
-                  ETHx Settings
-                </span>
-              </div>
-            )}
             <div onClick={() => setTabSelection(TabSelection.PORTFOLIO)}>
               <span
                 className={`${
@@ -1059,13 +956,6 @@ function ProfileModal(props: ProfileModalProps) {
                 </Form>
                 {wrappingError ? (
                   <span className="d-inline-block text-danger m-0 mt-1 ms-3 text-break">{`Error: ${wrappingError}`}</span>
-                ) : !smartAccount?.safe &&
-                  !isOutOfBalanceWrap &&
-                  wrappingAmount !== "" &&
-                  Number(ETHBalance) - Number(wrappingAmount) < 0.001 ? (
-                  <span className="d-inline-block text-danger m-0 mt-1 ms-3">
-                    Warning: Leave enough ETH for more transaction
-                  </span>
                 ) : null}
               </Col>
               <Col
@@ -1137,26 +1027,6 @@ function ProfileModal(props: ProfileModalProps) {
                   <span className="d-inline-block text-danger m-0 ms-3">{`Error: ${unwrappingError}`}</span>
                 )}
               </Col>
-            </Row>
-          </>
-        ) : tabSelection === TabSelection.ETHX_SETTINGS &&
-          smartAccount?.safe ? (
-          <>
-            <Row
-              className={`${
-                isMobile || isTablet ? "w-100" : "w-75"
-              } pe-2 mb-3 mb-lg-4 ms-1`}
-            >
-              <TransactionBundleSettingsView
-                direction="row"
-                showTopUpTotalDropDown={showTopUpTotalDropDown}
-                setShowTopUpTotalDropDown={setShowTopUpTotalDropDown}
-                showTopUpSingleDropDown={showTopUpSingleDropDown}
-                setShowTopUpSingleDropDown={setShowTopUpSingleDropDown}
-                existingAnnualNetworkFee={BigNumber.from(0)}
-                newAnnualNetworkFee={BigNumber.from(0)}
-                totalNetworkStream={totalNetworkStream}
-              />
             </Row>
           </>
         ) : (

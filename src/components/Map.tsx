@@ -45,7 +45,10 @@ import firebase from "firebase/app";
 
 import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
-import { SmartAccount } from "../pages/IndexPage";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import type { InvocationConfig } from "@web3-storage/upload-client";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
@@ -174,8 +177,6 @@ export type MapProps = {
   setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
   account: string;
   authStatus: string;
-  smartAccount: SmartAccount | null;
-  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   signer: ethers.Signer | null;
   w3Client: W3Client | null;
   geoWebCoordinate: GeoWebCoordinate;

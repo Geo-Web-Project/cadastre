@@ -6,7 +6,6 @@ import Container from "react-bootstrap/Container";
 import Spinner from "react-bootstrap/Spinner";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import ProfileModal from "../profile/ProfileModal";
-import { SmartAccount } from "../../pages/IndexPage";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";
 import { FlowingBalance } from "../profile/FlowingBalance";
@@ -19,8 +18,6 @@ type StreamingInfoProps = {
   sfFramework: Framework;
   account: string;
   signer: ethers.Signer;
-  smartAccount: SmartAccount | null;
-  setSmartAccount: React.Dispatch<React.SetStateAction<SmartAccount | null>>;
   registryContract: Contracts["registryDiamondContract"];
   paymentToken: NativeAssetSuperToken;
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
@@ -31,13 +28,13 @@ type StreamingInfoProps = {
 };
 
 function StreamingInfo(props: StreamingInfoProps) {
-  const { account, paymentToken, smartAccount } = props;
+  const { account, paymentToken } = props;
   const [showProfile, setShowProfile] = React.useState(false);
 
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
-      account: smartAccount?.safe ? smartAccount.address : account,
+      account,
       token: paymentToken.address,
     },
   });

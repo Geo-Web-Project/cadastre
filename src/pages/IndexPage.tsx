@@ -18,7 +18,6 @@ import {
   WORLD,
   PAYMENT_TOKEN_ADDRESS,
 } from "../lib/constants";
-import Safe from "@safe-global/protocol-kit";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
@@ -72,20 +71,6 @@ async function createW3UpClient(didSession: DIDSession) {
   }
 }
 
-export enum LoginState {
-  CREATE,
-  FUND,
-  CONNECTING,
-  SELECT,
-  CONNECTED,
-}
-
-export interface SmartAccount {
-  safe: Safe | null;
-  address: string;
-  loginState: LoginState;
-}
-
 function IndexPage({
   authStatus,
   setAuthStatus,
@@ -130,9 +115,6 @@ function IndexPage({
   );
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
-  const [smartAccount, setSmartAccount] = React.useState<SmartAccount | null>(
-    null
-  );
   const [w3Client, setW3Client] = React.useState<W3Client | null>(null);
   const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
 
@@ -267,7 +249,7 @@ function IndexPage({
 
   React.useEffect(() => {
     initSession();
-  }, [authStatus, signer, address, smartAccount]);
+  }, [authStatus, signer, address]);
 
   React.useEffect(() => {
     const start = async () => {
@@ -368,15 +350,13 @@ function IndexPage({
 
       setWorldConfig(worldConfig);
 
-      if (signer?.provider) {
+      if (library) {
         setWorldContract(
-          IWorld__factory.connect(WORLD.worldAddress, signer.provider)
+          IWorld__factory.connect(WORLD.worldAddress, library)
         );
-      } else {
-        setWorldContract(undefined);
       }
     })();
-  }, [selectedParcelId, signer]);
+  }, [selectedParcelId, library]);
 
   return (
     <>
@@ -415,26 +395,16 @@ function IndexPage({
             >
               {address &&
               signer &&
-              (smartAccount?.loginState === LoginState.CONNECTED ||
-                smartAccount?.loginState === LoginState.CREATE ||
-                smartAccount?.loginState === LoginState.CONNECTING ||
-                smartAccount?.loginState === LoginState.FUND) &&
               sfFramework &&
               registryContract &&
               paymentToken &&
               chain?.id === NETWORK_ID &&
               library ? (
                 <Profile
-                  account={
-                    smartAccount.safe
-                      ? smartAccount.address
-                      : address.toLowerCase()
-                  }
+                  account={address.toLowerCase()}
                   authStatus={authStatus}
                   signer={signer}
                   sfFramework={sfFramework}
-                  smartAccount={smartAccount}
-                  setSmartAccount={setSmartAccount}
                   registryContract={registryContract}
                   paymentToken={paymentToken}
                   portfolioNeedActionCount={portfolioNeedActionCount}
@@ -446,11 +416,7 @@ function IndexPage({
                   setShouldRefetchParcelsData={setShouldRefetchParcelsData}
                 />
               ) : (
-                <ConnectWallet
-                  variant="header"
-                  authStatus={authStatus}
-                  setSmartAccount={setSmartAccount}
-                />
+                <ConnectWallet variant="header" />
               )}
             </Col>
             <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
@@ -463,7 +429,7 @@ function IndexPage({
               xl="1"
               className="d-flex justify-content-end justify-content-xl-start"
             >
-              <NavMenu account={smartAccount?.address ?? address} />
+              <NavMenu account={address} />
             </Col>
           </Navbar>
         </Container>
@@ -484,8 +450,6 @@ function IndexPage({
                 authStatus={authStatus}
                 signer={signer ?? null}
                 account={address?.toLowerCase() ?? ""}
-                smartAccount={smartAccount}
-                setSmartAccount={setSmartAccount}
                 w3Client={w3Client}
                 geoWebCoordinate={geoWebCoordinate}
                 firebasePerf={firebasePerf}
