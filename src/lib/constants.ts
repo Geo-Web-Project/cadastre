@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export const NETWORK_ID = parseInt(import.meta.env.VITE_NETWORK_ID!);
 export const SUBGRAPH_URL = import.meta.env.VITE_GRAPH_URI!;
-export const CERAMIC_URL = import.meta.env.VITE_CERAMIC_URL!;
-export const CONNECT_NETWORK = import.meta.env.VITE_CERAMIC_CONNECT_NETWORK!;
 export const BLOCK_EXPLORER = import.meta.env.VITE_BLOCK_EXPLORER!;
 export const WORLD = {
   worldAddress: import.meta.env.VITE_WORLD_ADDRESS,
@@ -23,7 +21,6 @@ export const RPC_URLS_WS: Record<number, string> = {
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
 export const SSX_HOST = import.meta.env.VITE_SSX_HOST!;
 export const REFERRAL_HOST = import.meta.env.VITE_REFERRAL_HOST!;
-export const IPFS_DELEGATE = import.meta.env.VITE_IPFS_DELEGATE!;
 export const RAMP_HOST_KEY = import.meta.env.VITE_RAMP_HOST_KEY!;
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN!;
 export const REFUND_RECEIVER = import.meta.env.VITE_REFUND_RECEIVER!;
@@ -37,7 +34,6 @@ export const PAYMENT_TOKEN = "ETHx";
 export const PAYMENT_TOKEN_ADDRESS = import.meta.env.VITE_NATIVE_SUPER_TOKEN!;
 
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
-export const CERAMIC_EXPLORER = `https://cerscan.com/${CONNECT_NETWORK}/stream`;
 export const GW_SAFE_SALT_NONCE =
   "0x57c20148525f007e74c11aef90f86510f65727a5d018cb83c0cda328136f14b2";
 export const BETA_AGREEMENT_KEY = "storedBetaAgreement";
