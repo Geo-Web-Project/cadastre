@@ -41,6 +41,7 @@
     "local-ssl-proxy": "^2.0.5",
     "mapbox-gl": "^2.14.1",
     "multiformats": "^11.0.2",
+    "quaternion": "^1.5.1",
     "queue-promise": "^2.2.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.9.1",

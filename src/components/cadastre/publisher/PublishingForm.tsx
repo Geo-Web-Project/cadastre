@@ -14,6 +14,7 @@ import { encodeAbiParameters, stringToHex } from "viem";
 import { useMUD } from "../../../context/MUD";
 import { encodeValueArgs } from "@latticexyz/protocol-parser";
 import Geohash from "latlon-geohash";
+import Quaternion from "quaternion";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
@@ -142,12 +143,15 @@ export default function PublishingForm(props: PublishingFormProps) {
         orientationComSchema[key] = tables.OrientationCom.valueSchema[key].type;
       });
 
-      // TODO: Calculate quaternion
+      const q = Quaternion.fromAxisAngle(
+        [0, 1, 0],
+        Number(augmentArgs.orientation)
+      );
       const orientationCom = encodeValueArgs(orientationComSchema, {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 0,
+        x: q.x,
+        y: q.y,
+        z: q.z,
+        w: q.w,
       });
 
       let scaleComSchema: any = {};
