@@ -8,15 +8,15 @@ export const WORLD = {
 };
 export const RPC_URLS_HTTP: Record<number, string> = {
   10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_MAINNET_API_KEY!}`,
+    .VITE_ALCHEMY_API_KEY!}`,
   11155420: `https://opt-sepolia.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_TESTNET_API_KEY!}`,
+    .VITE_ALCHEMY_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
   10: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_MAINNET_API_KEY!}`,
+    .VITE_ALCHEMY_API_KEY!}`,
   11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_TESTNET_API_KEY!}`,
+    .VITE_ALCHEMY_API_KEY!}`,
 };
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
 export const SSX_HOST = import.meta.env.VITE_SSX_HOST!;
