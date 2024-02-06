@@ -8,14 +8,13 @@ import {
 import {
   SUBGRAPH_URL,
   NETWORK_ID,
-  RPC_URLS_WS,
   RPC_URLS_HTTP,
   WALLET_CONNECT_PROJECT_ID,
 } from "./lib/constants";
 import "./styles.scss";
 import { MapProvider } from "react-map-gl";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { optimism, optimismGoerli } from "wagmi/chains";
+import { configureChains, createConfig, WagmiConfig } from "wagmi";
+import { optimism, optimismSepolia } from "wagmi/chains";
 import type { Chain } from "wagmi";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import {
@@ -46,23 +45,11 @@ import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
 
-const optimismSepolia = {
-  ...optimismGoerli,
-  id: 11155420,
-  name: "Optimism Sepolia",
-  network: "optimism-sepolia",
-  nativeCurrency: {
-    name: "OP Sepolia Ether",
-    symbol: "ETH",
-    decimals: 18,
-  },
-};
-
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
   11155420: optimismSepolia,
 };
-const { chains, provider } = configureChains(
+const { chains, publicClient } = configureChains(
   [networkIdToChain[NETWORK_ID]],
   [
     jsonRpcProvider({
@@ -87,10 +74,10 @@ const connectors = connectorsForWallets([
   },
 ]);
 
-const wagmiClient = createClient({
+const wagmiConfig = createConfig({
   autoConnect: false,
   connectors,
-  provider,
+  publicClient,
 });
 
 export default function App() {
@@ -234,7 +221,7 @@ export default function App() {
   });
 
   return (
-    <WagmiConfig client={wagmiClient}>
+    <WagmiConfig config={wagmiConfig}>
       <RainbowKitAuthenticationProvider
         adapter={authenticationAdapter}
         status={authStatus}

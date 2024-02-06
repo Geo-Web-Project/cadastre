@@ -24,7 +24,7 @@ import { useFirebase } from "../lib/Firebase";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { useAccount, useSigner, useNetwork } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 import NavMenu from "../components/nav/NavMenu";
 import ConnectWallet from "../components/ConnectWallet";
 import { useSearchParams } from "react-router-dom";
@@ -48,8 +48,9 @@ import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
-import { optimism, optimismGoerli, optimismSepolia } from "viem/chains";
+import { optimism, optimismSepolia } from "viem/chains";
 import { MUDProvider } from "../lib/MUDContext";
+import { useEthersSigner } from "../hooks/ethersAdapters";
 import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
 
 async function createW3UpClient(didSession: DIDSession) {
@@ -126,7 +127,7 @@ function IndexPage({
 
   const { chain } = useNetwork();
   const { address } = useAccount();
-  const { data: signer } = useSigner();
+  const ethersSigner = useEthersSigner();
   const { isMobile, isTablet } = useMediaQuery();
 
   async function resetSession() {
@@ -223,7 +224,7 @@ function IndexPage({
   };
 
   const initSession = async () => {
-    if (!address || !signer || chain?.id !== NETWORK_ID) {
+    if (!address || !ethersSigner || chain?.id !== NETWORK_ID) {
       return;
     }
 
@@ -249,7 +250,7 @@ function IndexPage({
 
   React.useEffect(() => {
     initSession();
-  }, [authStatus, signer, address]);
+  }, [authStatus, ethersSigner, address]);
 
   React.useEffect(() => {
     const start = async () => {
@@ -351,9 +352,7 @@ function IndexPage({
       setWorldConfig(worldConfig);
 
       if (library) {
-        setWorldContract(
-          IWorld__factory.connect(WORLD.worldAddress, library)
-        );
+        setWorldContract(IWorld__factory.connect(WORLD.worldAddress, library));
       }
     })();
   }, [selectedParcelId, library]);
@@ -394,7 +393,7 @@ function IndexPage({
               className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-3"
             >
               {address &&
-              signer &&
+              ethersSigner &&
               sfFramework &&
               registryContract &&
               paymentToken &&
@@ -403,7 +402,7 @@ function IndexPage({
                 <Profile
                   account={address.toLowerCase()}
                   authStatus={authStatus}
-                  signer={signer}
+                  signer={ethersSigner}
                   sfFramework={sfFramework}
                   registryContract={registryContract}
                   paymentToken={paymentToken}
@@ -448,7 +447,7 @@ function IndexPage({
               <Map
                 registryContract={registryContract}
                 authStatus={authStatus}
-                signer={signer ?? null}
+                signer={ethersSigner ?? null}
                 account={address?.toLowerCase() ?? ""}
                 w3Client={w3Client}
                 geoWebCoordinate={geoWebCoordinate}

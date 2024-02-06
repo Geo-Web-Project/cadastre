@@ -682,7 +682,7 @@ function ParcelInfo(props: ParcelInfoProps) {
               licenseDiamondContract={licenseDiamondContract}
             />
           ) : null}
-          {interactionState == STATE.PARCEL_REJECTING_BID &&
+          {interactionState === STATE.PARCEL_REJECTING_BID &&
           accountAddress &&
           signer &&
           hasOutstandingBid &&

@@ -42,7 +42,6 @@ export default function PublishingForm(props: PublishingFormProps) {
   const [isActing, setIsActing] = useState(false);
   const [didFail, setDidFail] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
     contentURI: undefined,
     name: undefined,
@@ -53,6 +52,8 @@ export default function PublishingForm(props: PublishingFormProps) {
     displayWidth: undefined,
     audioVolume: undefined,
   });
+
+  const isLocationOn = false;
 
   const namespaceId = useMemo(() => {
     return stringToHex(Number(selectedParcelId).toString(), { size: 14 });

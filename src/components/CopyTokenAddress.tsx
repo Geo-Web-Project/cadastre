@@ -1,8 +1,8 @@
 import { useCallback } from "react";
+import { useWalletClient } from "wagmi";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Card from "react-bootstrap/Card";
-import { useSigner } from "wagmi";
 import CopyTooltip from "./CopyTooltip";
 import { truncateStr } from "../lib/truncate";
 import { useMediaQuery } from "../lib/mediaQuery";
@@ -21,7 +21,7 @@ export const CopyTokenAddress = ({
   options: TokenOptions;
   size?: string;
 }) => {
-  const { data: signer } = useSigner();
+  const { data: walletClient } = useWalletClient();
   const { isMobile, isTablet } = useMediaQuery();
 
   const copyAddress = useCallback(() => {
@@ -32,7 +32,7 @@ export const CopyTokenAddress = ({
     if (!options.address) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (signer?.provider as any).provider.request({
+    walletClient?.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20",

@@ -1,9 +1,6 @@
 import React from "react";
 import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import type { InvocationConfig } from "@web3-storage/upload-client";
 import ProfileModal from "./ProfileModal";
 import { sfSubgraph } from "../../redux/store";
 import { NETWORK_ID } from "../../lib/constants";

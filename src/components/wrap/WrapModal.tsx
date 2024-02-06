@@ -2,9 +2,8 @@ import * as React from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { ethers } from "ethers";
-import { useProvider } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 import { NETWORK_ID, PAYMENT_TOKEN } from "../../lib/constants";
-import { getETHBalance } from "../../lib/getBalance";
 import { truncateEth } from "../../lib/truncate";
 import { sfSubgraph } from "../../redux/store";
 import { FlowingBalance } from "../profile/FlowingBalance";
@@ -28,13 +27,17 @@ function WrapModal({
   handleClose,
   paymentToken,
 }: WrapModalProps) {
-  const [ETHBalance, setETHBalance] = React.useState<string | undefined>();
   const [isWrapping, setIsWrapping] = React.useState<boolean>(false);
   const [amount, setAmount] = React.useState<string>("");
   const [error, setError] = React.useState<string>("");
 
-  const provider = useProvider();
-
+  const { address } = useAccount();
+  const { data: ETHBalance } = useBalance({
+    address,
+    cacheTime: 10000,
+    staleTime: 10000,
+    watch: true,
+  });
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery({
     chainId: NETWORK_ID,
     filter: {
@@ -44,29 +47,7 @@ function WrapModal({
   });
 
   const isOutOfBalance =
-    amount !== "" && ETHBalance !== "" && Number(amount) > Number(ETHBalance);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      if (signer && account) {
-        try {
-          const ethBalance = await getETHBalance(provider, account);
-
-          if (isMounted) {
-            setETHBalance(ethBalance);
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [signer, account]);
+    amount !== "" && Number(amount) > Number(ETHBalance?.formatted);
 
   const wrapETH = async (amount: string) => {
     try {
@@ -80,10 +61,7 @@ function WrapModal({
       setIsWrapping(true);
 
       await txn.wait();
-      // Wrap ETHx successfully!
-      const ethBalance = await getETHBalance(provider, account);
-      // Update balances
-      setETHBalance(ethBalance);
+
       setAmount("");
       setError("");
     } catch (err) {
@@ -111,7 +89,7 @@ function WrapModal({
   const onSubmit = (e: any) => {
     e.preventDefault();
 
-    if (Number(amount) <= Number(ETHBalance)) {
+    if (Number(amount) <= Number(ETHBalance?.formatted)) {
       if (!Number.isNaN(amount) && Number(amount) > 0) {
         console.log("amount is valid", amount);
         (async () => {
@@ -153,7 +131,7 @@ function WrapModal({
       </Modal.Header>
       <Modal.Body className="bg-dark text-light position-relative">
         <p className="fw-bold">Current Balances</p>
-        <p>ETH: {ETHBalance ? truncateEth(ETHBalance, 8) : "---"}</p>
+        <p>ETH: {ETHBalance ? truncateEth(ETHBalance.formatted, 8) : "---"}</p>
         <p className="mb-0 me-3">
           ETHx:{" "}
           {isLoading || data == null ? (
@@ -208,7 +186,7 @@ function WrapModal({
           <span className="d-inline-block w-100 px-1 me-0 text-danger">{`Error: ${error}`}</span>
         ) : !isOutOfBalance &&
           amount !== "" &&
-          Number(ETHBalance) - Number(amount) < 0.001 ? (
+          Number(ETHBalance?.formatted) - Number(amount) < 0.001 ? (
           <span className="d-inline-block w-100 px-1 me-0 text-danger">
             Warning: Leave enough ETH for more transactions
           </span>

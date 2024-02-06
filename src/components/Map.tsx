@@ -46,9 +46,6 @@ import firebase from "firebase/app";
 import type { MultiPolygon, Polygon } from "@turf/turf";
 import * as turf from "@turf/turf";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import type { InvocationConfig } from "@web3-storage/upload-client";
 import ParcelList from "./parcels/ParcelList";
 import { useMediaQuery } from "../lib/mediaQuery";
 import { useParcelNavigation } from "../lib/parcelNavigation";
