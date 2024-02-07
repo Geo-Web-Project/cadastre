@@ -29,7 +29,7 @@ function ParcelTable(props: ParcelTableProps) {
         ) : parcels.length > 0 ? (
           <Table
             bordered
-            className="m-3 mt-0 text-light border border-purple flex-shrink-1"
+            className="m-3 mt-0 text-light border border-secondary flex-shrink-1"
           >
             <thead>
               <tr>

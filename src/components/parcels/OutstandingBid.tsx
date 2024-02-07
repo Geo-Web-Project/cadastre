@@ -69,7 +69,7 @@ function OutstandingBid(props: OutstandingBidProps) {
         first: maxListSize,
         skip: 0 * maxListSize,
       },
-      notifyOnNetworkStatusChange: true,
+      fetchPolicy: "no-cache",
     }
   );
   const { getBasicProfile } = useBasicProfile(registryContract);

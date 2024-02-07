@@ -755,7 +755,7 @@ function ProfileModal(props: ProfileModalProps) {
                     href={`https://${
                       process.env.MODE === "mainnet"
                         ? "optimistic"
-                        : "goerli-optimism"
+                        : "sepolia-optimism"
                     }.etherscan.io/address/${accountAddress}`}
                     target="_blank"
                     rel="noopener"
@@ -893,7 +893,7 @@ function ProfileModal(props: ProfileModalProps) {
             </Row>
             <Row className="align-items-start mb-4">
               <Col
-                className="p-2 p-lg-3 ms-3 fs-6 border border-purple rounded"
+                className="p-2 p-lg-3 ms-3 fs-6 border border-secondary rounded"
                 xs="5"
                 lg="4"
                 xl="3"
@@ -966,7 +966,7 @@ function ProfileModal(props: ProfileModalProps) {
                 <Image src="exchange.svg" width={isMobile ? 36 : 64} />
               </Col>
               <Col
-                className="p-2 p-lg-3 fs-6 border border-purple rounded"
+                className="p-2 p-lg-3 fs-6 border border-secondary rounded"
                 xs="5"
                 lg="4"
                 xl="3"
@@ -1039,7 +1039,7 @@ function ProfileModal(props: ProfileModalProps) {
               ) : portfolio.length > 0 ? (
                 <Table
                   bordered
-                  className="m-3 mt-0 text-light border border-purple flex-shrink-1"
+                  className="m-3 mt-0 text-light border border-secondary flex-shrink-1"
                 >
                   <thead>
                     <tr className="cursor-pointer">

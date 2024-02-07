@@ -77,7 +77,7 @@ function useBasicProfile(
       }
 
       const basicProfileRes = await fetch(
-        `${IPFS_GATEWAY}/ipfs/${tokenURI.slice(7)}`
+        `${IPFS_GATEWAY}/${tokenURI.slice(7)}`
       );
       basicProfile = await basicProfileRes.json();
     } catch (err) {

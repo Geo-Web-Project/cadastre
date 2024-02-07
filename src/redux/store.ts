@@ -11,7 +11,11 @@ import {
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { ethers } from "ethers";
-import { NETWORK_ID, RPC_URLS_HTTP } from "../lib/constants";
+import {
+  NETWORK_ID,
+  RPC_URLS_HTTP,
+  SUPERFLUID_RESOLVER_ADDRESS,
+} from "../lib/constants";
 import { Framework } from "@superfluid-finance/sdk-core";
 
 export const sfApi = initializeRpcApiSlice(
@@ -30,8 +34,10 @@ export const makeStore = () => {
       chainId: NETWORK_ID,
       provider: new ethers.providers.JsonRpcProvider(RPC_URLS_HTTP[NETWORK_ID]),
       customSubgraphQueriesEndpoint:
-        "https://optimism-sepolia.subgraph.x.superfluid.dev",
-      resolverAddress: "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
+        import.meta.env.MODE === "mainnet"
+          ? "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
+          : "https://optimism-sepolia.subgraph.x.superfluid.dev",
+      resolverAddress: SUPERFLUID_RESOLVER_ADDRESS,
     });
   });
 

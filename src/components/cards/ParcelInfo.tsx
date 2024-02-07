@@ -1,9 +1,6 @@
 import * as React from "react";
-import Col from "react-bootstrap/Col";
 import { gql, useQuery } from "@apollo/client";
 import { STATE } from "../Map";
-import Button from "react-bootstrap/Button";
-import Spinner from "react-bootstrap/Spinner";
 import {
   PAYMENT_TOKEN,
   BLOCK_EXPLORER,
@@ -13,6 +10,10 @@ import { truncateStr } from "../../lib/truncate";
 import Image from "react-bootstrap/Image";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
+import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import Tooltip from "react-bootstrap/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -303,10 +304,11 @@ function ParcelInfo(props: ParcelInfoProps) {
     </Button>
   );
 
-  const editGalleryButton = (
+  const publisherButton = (
     <Button
       variant="secondary"
       className="w-100"
+      disabled={import.meta.env.MODE === "mainnet"}
       onClick={() => {
         if (selectedParcelCoords) {
           flyToParcel({
@@ -512,7 +514,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         </>
       );
     } else if (accountAddress.toLowerCase() === licenseOwner?.toLowerCase()) {
-      buttons = <div>{editGalleryButton}</div>;
+      buttons = <div>{publisherButton}</div>;
     } else if (!hasOutstandingBid) {
       buttons = placeBidButton;
     }
@@ -530,7 +532,7 @@ function ParcelInfo(props: ParcelInfoProps) {
           interactionState === STATE.PARCEL_REJECTING_BID ||
           interactionState === STATE.EDITING_METADATA)) ? (
         <Container>
-          <Row className="m-0 mt-2 mt-sm-3 pb-1 pb-lg-5">
+          <Row className="m-0 mt-2 mt-sm-3">
             <Col className="p-0">
               <div className="d-flex flex-column gap-1 gap-sm-3">
                 <div>
@@ -718,6 +720,43 @@ function ParcelInfo(props: ParcelInfoProps) {
         interactionState === STATE.PUBLISHING_NEW_MARKER) && (
         <AugmentPublisher {...props}></AugmentPublisher>
       )}
+      {interactionState === STATE.PARCEL_SELECTED &&
+        accountAddress.toLowerCase() === licenseOwner?.toLowerCase() && (
+          <Card className="bg-dark border-secondary rounded-3">
+            <Card.Header className="fs-6 fw-bold border-0">
+              A new era of the Geo Web is almost here!
+            </Card.Header>
+            <Card.Body className="small">
+              We’re moving the Geo Web’s default content layer onchain with{" "}
+              <Card.Link href="https://mud.dev/" target="_blank">
+                Lattice MUD
+              </Card.Link>{" "}
+              to expand developer opportunities, maximize composability, and
+              increase network resiliency. But it’s not ready for mainnet yet…
+              <br />
+              <br />- Try the{" "}
+              <Card.Link href="https://testnet.geoweb.land/" target="_blank">
+                Augment Publisher on testnet
+              </Card.Link>{" "}
+              <br />- Read more about{" "}
+              <Card.Link
+                href="https://docs.geoweb.network/developers/geospatial-publishing/augments"
+                target="_blank"
+              >
+                the Geo Web approach to geospatial AR and start building an
+                Augment
+              </Card.Link>{" "}
+              <br />- Join{" "}
+              <Card.Link
+                href="https://discord.com/invite/reXgPru7ck"
+                target="_blank"
+              >
+                the Geo Web Discord
+              </Card.Link>{" "}
+              and request access to the Spatial Browser TestFlight
+            </Card.Body>
+          </Card>
+        )}
     </>
   );
 }

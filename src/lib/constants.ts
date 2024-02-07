@@ -13,7 +13,7 @@ export const RPC_URLS_HTTP: Record<number, string> = {
     .VITE_ALCHEMY_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
-  10: `wss://opt-goerli.g.alchemy.com/v2/${import.meta.env
+  10: `wss://optimism.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_API_KEY!}`,
   11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_API_KEY!}`,
@@ -31,7 +31,8 @@ export const TRANSAK_API_KEY = import.meta.env.VITE_TRANSAK_API_KEY!;
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export const PAYMENT_TOKEN = "ETHx";
-export const PAYMENT_TOKEN_ADDRESS = import.meta.env.VITE_NATIVE_SUPER_TOKEN!;
+export const SUPERFLUID_RESOLVER_ADDRESS = import.meta.env
+  .VITE_SUPERFLUID_RESOLVER_ADDRESS!;
 
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const GW_SAFE_SALT_NONCE =

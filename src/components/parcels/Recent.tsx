@@ -70,7 +70,7 @@ function Recent(props: RecentProps) {
       first: maxListSize,
       skip: 0 * maxListSize,
     },
-    notifyOnNetworkStatusChange: true,
+    fetchPolicy: 'no-cache'
   });
   const { getBasicProfile } = useBasicProfile(registryContract);
 

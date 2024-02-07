@@ -31,7 +31,7 @@ function ClaimInfo(props: ClaimInfoProps) {
   return (
     <Card
       className={`${
-        isMobile || isTablet ? "bg-dark" : "bg-purple"
+        isMobile || isTablet ? "bg-dark" : "bg-secondary"
       } border-0 bg-opacity-25 text-light mt-lg-2`}
     >
       <Card.Body className="p-0 p-lg-3 pt-lg-2">

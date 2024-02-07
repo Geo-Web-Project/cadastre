@@ -16,7 +16,8 @@ import {
   NETWORK_ID,
   SSX_HOST,
   WORLD,
-  PAYMENT_TOKEN_ADDRESS,
+  PAYMENT_TOKEN,
+  SUPERFLUID_RESOLVER_ADDRESS,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { ethers, BigNumber } from "ethers";
@@ -293,15 +294,13 @@ function IndexPage({
 
       const framework = await Framework.create({
         chainId: NETWORK_ID,
-        customSubgraphQueriesEndpoint:
-          "https://optimism-sepolia.subgraph.x.superfluid.dev",
-        resolverAddress: "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
+        resolverAddress: SUPERFLUID_RESOLVER_ADDRESS,
         provider: lib,
       });
       setSfFramework(framework);
 
       const superToken = await framework.loadNativeAssetSuperToken(
-        PAYMENT_TOKEN_ADDRESS
+        PAYMENT_TOKEN
       );
       setPaymentToken(superToken);
 
@@ -365,7 +364,7 @@ function IndexPage({
             bg="dark"
             variant="dark"
             fixed="top"
-            className="border-bottom border-purple border-opacity-25"
+            className="border-bottom border-secondary border-opacity-25"
           >
             <Col xl="3" className="d-none d-xl-block ps-5">
               <div

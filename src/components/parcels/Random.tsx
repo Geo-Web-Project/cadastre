@@ -65,8 +65,7 @@ function Random(props: RandomProps) {
       orderBy: "createdAtBlock",
       orderDirection: "desc",
     },
-    fetchPolicy: "network-only",
-    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "no-cache",
   });
   const { getBasicProfile } = useBasicProfile(registryContract);
 

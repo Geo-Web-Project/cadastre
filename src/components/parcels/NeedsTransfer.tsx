@@ -71,7 +71,7 @@ function NeedsTransfer(props: NeedsTransferProps) {
       variables: {
         skip: 0 * maxListSize,
       },
-      notifyOnNetworkStatusChange: true,
+      fetchPolicy: "no-cache",
     }
   );
   const { getBasicProfile } = useBasicProfile(registryContract);
