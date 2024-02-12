@@ -1,18 +1,18 @@
+import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import Spinner from "react-bootstrap/Spinner";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FlowingBalance } from "./profile/FlowingBalance";
 import { sfSubgraph } from "../redux/store";
+import { useEthersProvider } from "../hooks/ethersAdapters";
 import { NETWORK_ID } from "../lib/constants";
 import { truncateEth } from "../lib/truncate";
 
-interface FundsRaisedCounterProps {
-  beneficiaryAddress: string;
-}
+function FundsRaisedCounter() {
+  const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
 
-function FundsRaisedCounter(props: FundsRaisedCounterProps) {
-  const { beneficiaryAddress } = props;
-
+  const ethersProvider = useEthersProvider();
   const { isLoading, data } = sfSubgraph.useAccountTokenSnapshotsQuery(
     {
       chainId: NETWORK_ID,
@@ -26,6 +26,21 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
     }
   );
 
+  useEffect(() => {
+    (async () => {
+      if (ethersProvider) {
+        const { registryDiamondContract } = getContractsForChainOrThrow(
+          NETWORK_ID,
+          ethersProvider
+        );
+        const _beneficiaryAddress =
+          await registryDiamondContract.getBeneficiary();
+
+        setBeneficiaryAddress(_beneficiaryAddress);
+      }
+    })();
+  }, [ethersProvider]);
+
   return (
     <OverlayTrigger
       trigger={["hover", "focus"]}
@@ -37,7 +52,7 @@ function FundsRaisedCounter(props: FundsRaisedCounterProps) {
         </Tooltip>
       }
     >
-      {isLoading || !data ? (
+      {!beneficiaryAddress || isLoading || !data ? (
         <div className="d-flex justify-content-center p-3">
           <Spinner animation="border" role="status" variant="light"></Spinner>
         </div>

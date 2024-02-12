@@ -1,33 +1,29 @@
 import Home from "../components/Home";
 import WelcomeChecklist from "../components/WelcomeChecklist";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";
-import Profile from "../components/profile/Profile";
-import FundsRaisedCounter from "../components/FundsRaisedCounter";
-
+import {
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  ApolloProvider,
+} from "@apollo/client";
 import React from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Image from "react-bootstrap/Image";
-import Navbar from "react-bootstrap/Navbar";
 import {
   RPC_URLS_HTTP,
   RPC_URLS_WS,
   NETWORK_ID,
   SSX_HOST,
   WORLD,
-  PAYMENT_TOKEN,
-  SUPERFLUID_RESOLVER_ADDRESS,
+  SUBGRAPH_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { ethers, BigNumber } from "ethers";
 import { useFirebase } from "../lib/Firebase";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { useAccount, useNetwork } from "wagmi";
-import NavMenu from "../components/nav/NavMenu";
-import ConnectWallet from "../components/ConnectWallet";
 import { useSearchParams } from "react-router-dom";
 
 import { Client as W3Client } from "@web3-storage/w3up-client";
@@ -47,11 +43,11 @@ import { SiweMessage } from "@didtools/cacao";
 import axios from "axios";
 import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
-import { useMediaQuery } from "../lib/mediaQuery";
 import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
 import { optimism, optimismSepolia } from "viem/chains";
 import { MUDProvider } from "../lib/MUDContext";
 import { useEthersSigner } from "../hooks/ethersAdapters";
+import useSuperfluid from "../hooks/superfluid";
 import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
 
 async function createW3UpClient(didSession: DIDSession) {
@@ -73,14 +69,38 @@ async function createW3UpClient(didSession: DIDSession) {
   }
 }
 
-function IndexPage({
-  authStatus,
-  setAuthStatus,
-}: {
+type IndexPageProps = {
   authStatus: AuthenticationStatus;
   setAuthStatus: (_: AuthenticationStatus) => void;
-}) {
+  isFullScreen: boolean;
+  setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
+  portfolioNeedActionCount: number;
+  setPortfolioNeedActionCount: React.Dispatch<React.SetStateAction<number>>;
+  interactionState: STATE;
+  setInteractionState: React.Dispatch<React.SetStateAction<STATE>>;
+  selectedParcelId: string;
+  setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
+  shouldRefetchParcelsData: boolean;
+  setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function IndexPage(props: IndexPageProps) {
+  const {
+    authStatus,
+    setAuthStatus,
+    isFullScreen,
+    setIsFullScreen,
+    setPortfolioNeedActionCount,
+    interactionState,
+    setInteractionState,
+    selectedParcelId,
+    setSelectedParcelId,
+    shouldRefetchParcelsData,
+    setShouldRefetchParcelsData,
+  } = props;
+
   const [params] = useSearchParams();
+  const { sfFramework, nativeSuperToken } = useSuperfluid();
 
   const [registryContract, setRegistryContract] = React.useState<
     Contracts["registryDiamondContract"] | null
@@ -88,21 +108,6 @@ function IndexPage({
   const [library, setLibrary] =
     React.useState<ethers.providers.JsonRpcProvider>();
   const { firebasePerf } = useFirebase();
-  const [paymentToken, setPaymentToken] = React.useState<
-    NativeAssetSuperToken | undefined
-  >(undefined);
-  const [sfFramework, setSfFramework] = React.useState<Framework | undefined>(
-    undefined
-  );
-  const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
-    React.useState(0);
-  const [selectedParcelId, setSelectedParcelId] = React.useState("");
-  const [interactionState, setInteractionState] = React.useState<STATE>(
-    STATE.VIEWING
-  );
-  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
-    React.useState(false);
-  const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
   );
@@ -118,7 +123,6 @@ function IndexPage({
   const [geoWebCoordinate, setGeoWebCoordinate] =
     React.useState<GeoWebCoordinate>();
   const [w3Client, setW3Client] = React.useState<W3Client | null>(null);
-  const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
 
   const [worldConfig, setWorldConfig] =
     React.useState<typeof SyncWorldResult>();
@@ -129,7 +133,30 @@ function IndexPage({
   const { chain } = useNetwork();
   const { address } = useAccount();
   const ethersSigner = useEthersSigner();
-  const { isMobile, isTablet } = useMediaQuery();
+
+  const client = React.useMemo(
+    () =>
+      new ApolloClient({
+        link: new HttpLink({
+          uri: SUBGRAPH_URL,
+        }),
+        cache: new InMemoryCache({
+          typePolicies: {
+            Query: {
+              fields: {
+                geoWebParcels: {
+                  keyArgs: ["skip", "orderBy"],
+                  merge(existing = [], incoming) {
+                    return [...existing, ...incoming];
+                  },
+                },
+              },
+            },
+          },
+        }),
+      }),
+    []
+  );
 
   async function resetSession() {
     const store = new StoreIndexedDB("w3up-client");
@@ -272,11 +299,6 @@ function IndexPage({
       );
       setRegistryContract(registryDiamondContract);
 
-      const _beneficiaryAddress =
-        await registryDiamondContract.getBeneficiary();
-
-      setBeneficiaryAddress(_beneficiaryAddress);
-
       const [_auctionStart, _auctionEnd, _startingBid, _endingBid] =
         await Promise.all([
           registryDiamondContract.getAuctionStart(),
@@ -291,18 +313,6 @@ function IndexPage({
         setStartingBid(_startingBid);
         setEndingBid(_endingBid);
       }
-
-      const framework = await Framework.create({
-        chainId: NETWORK_ID,
-        resolverAddress: SUPERFLUID_RESOLVER_ADDRESS,
-        provider: lib,
-      });
-      setSfFramework(framework);
-
-      const superToken = await framework.loadNativeAssetSuperToken(
-        PAYMENT_TOKEN
-      );
-      setPaymentToken(superToken);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSignerForSdkRedux(NETWORK_ID, async () => lib as any);
@@ -358,123 +368,51 @@ function IndexPage({
 
   return (
     <>
-      {(!isMobile && !isTablet) || !isFullScreen ? (
+      <ApolloProvider client={client}>
         <Container fluid>
-          <Navbar
-            bg="dark"
-            variant="dark"
-            fixed="top"
-            className="border-bottom border-secondary border-opacity-25"
-          >
-            <Col xl="3" className="d-none d-xl-block ps-5">
-              <div
-                className="d-flex align-items-center text-light"
-                style={{
-                  fontSize: "2.5em",
-                  fontFamily: "Abel",
-                }}
-              >
-                <Image
-                  style={{ height: "1.1em", marginRight: "10px" }}
-                  src="logo.png"
-                />
-                <span className="fs-1">Cadastre</span>
-                <span className="fs-6 align-self-start">BETA</span>
-              </div>
-            </Col>
-            <Col xl="5" className="d-none d-xl-block ms-5">
-              <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
-            </Col>
-            <Col
-              xs="3"
-              sm="4"
-              xl="3"
-              className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-3"
-            >
-              {address &&
-              ethersSigner &&
-              sfFramework &&
-              registryContract &&
-              paymentToken &&
-              chain?.id === NETWORK_ID &&
-              library ? (
-                <Profile
-                  account={address.toLowerCase()}
-                  authStatus={authStatus}
-                  signer={ethersSigner}
-                  sfFramework={sfFramework}
+          {registryContract &&
+          nativeSuperToken &&
+          library &&
+          geoWebCoordinate &&
+          firebasePerf &&
+          sfFramework &&
+          worldConfig &&
+          worldContract ? (
+            <Row>
+              <MUDProvider value={worldConfig}>
+                <Map
                   registryContract={registryContract}
-                  paymentToken={paymentToken}
-                  portfolioNeedActionCount={portfolioNeedActionCount}
+                  authStatus={authStatus}
+                  signer={ethersSigner ?? null}
+                  account={address?.toLowerCase() ?? ""}
+                  w3Client={w3Client}
+                  geoWebCoordinate={geoWebCoordinate}
+                  firebasePerf={firebasePerf}
+                  paymentToken={nativeSuperToken}
+                  sfFramework={sfFramework}
                   setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                  selectedParcelId={selectedParcelId}
                   setSelectedParcelId={setSelectedParcelId}
                   interactionState={interactionState}
                   setInteractionState={setInteractionState}
                   shouldRefetchParcelsData={shouldRefetchParcelsData}
                   setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-                />
-              ) : (
-                <ConnectWallet variant="header" />
-              )}
-            </Col>
-            <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4">
-              <FundsRaisedCounter beneficiaryAddress={beneficiaryAddress} />
-            </Col>
-            <Col
-              xs="2"
-              sm="3"
-              lg="4"
-              xl="1"
-              className="d-flex justify-content-end justify-content-xl-start"
-            >
-              <NavMenu account={address} />
-            </Col>
-          </Navbar>
+                  auctionStart={auctionStart}
+                  auctionEnd={auctionEnd}
+                  startingBid={startingBid}
+                  endingBid={endingBid}
+                  isFullScreen={isFullScreen}
+                  setIsFullScreen={setIsFullScreen}
+                  worldContract={worldContract}
+                ></Map>
+              </MUDProvider>
+            </Row>
+          ) : (
+            <Home />
+          )}
+          <WelcomeChecklist />
         </Container>
-      ) : null}
-      <Container fluid>
-        {registryContract &&
-        paymentToken &&
-        library &&
-        geoWebCoordinate &&
-        firebasePerf &&
-        sfFramework &&
-        worldConfig &&
-        worldContract ? (
-          <Row>
-            <MUDProvider value={worldConfig}>
-              <Map
-                registryContract={registryContract}
-                authStatus={authStatus}
-                signer={ethersSigner ?? null}
-                account={address?.toLowerCase() ?? ""}
-                w3Client={w3Client}
-                geoWebCoordinate={geoWebCoordinate}
-                firebasePerf={firebasePerf}
-                paymentToken={paymentToken}
-                sfFramework={sfFramework}
-                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                selectedParcelId={selectedParcelId}
-                setSelectedParcelId={setSelectedParcelId}
-                interactionState={interactionState}
-                setInteractionState={setInteractionState}
-                shouldRefetchParcelsData={shouldRefetchParcelsData}
-                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-                auctionStart={auctionStart}
-                auctionEnd={auctionEnd}
-                startingBid={startingBid}
-                endingBid={endingBid}
-                isFullScreen={isFullScreen}
-                setIsFullScreen={setIsFullScreen}
-                worldContract={worldContract}
-              ></Map>
-            </MUDProvider>
-          </Row>
-        ) : (
-          <Home />
-        )}
-        <WelcomeChecklist />
-      </Container>
+      </ApolloProvider>
     </>
   );
 }

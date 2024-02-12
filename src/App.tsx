@@ -1,16 +1,16 @@
 import React from "react";
 import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  ApolloProvider,
-} from "@apollo/client";
-import {
-  SUBGRAPH_URL,
   NETWORK_ID,
   RPC_URLS_HTTP,
   WALLET_CONNECT_PROJECT_ID,
 } from "./lib/constants";
+import {
+  Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+} from "react-router-dom";
+import SuperfluidContextProvider from "./context/Superfluid";
 import "./styles.scss";
 import { MapProvider } from "react-map-gl";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
@@ -44,6 +44,8 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
+import { STATE } from "./components/Map";
+import Header from "./components/Header";
 
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
@@ -83,6 +85,15 @@ const wagmiConfig = createConfig({
 export default function App() {
   const [authStatus, setAuthStatus] =
     React.useState<AuthenticationStatus>("loading");
+  const [isFullScreen, setIsFullScreen] = React.useState<boolean>(false);
+  const [portfolioNeedActionCount, setPortfolioNeedActionCount] =
+    React.useState(0);
+  const [selectedParcelId, setSelectedParcelId] = React.useState("");
+  const [interactionState, setInteractionState] = React.useState<STATE>(
+    STATE.VIEWING
+  );
+  const [shouldRefetchParcelsData, setShouldRefetchParcelsData] =
+    React.useState(false);
 
   const authenticationAdapter = React.useMemo(
     () =>
@@ -164,30 +175,6 @@ export default function App() {
     [setAuthStatus]
   );
 
-  const client = React.useMemo(
-    () =>
-      new ApolloClient({
-        link: new HttpLink({
-          uri: SUBGRAPH_URL,
-        }),
-        cache: new InMemoryCache({
-          typePolicies: {
-            Query: {
-              fields: {
-                geoWebParcels: {
-                  keyArgs: ["skip", "orderBy"],
-                  merge(existing = [], incoming) {
-                    return [...existing, ...incoming];
-                  },
-                },
-              },
-            },
-          },
-        }),
-      }),
-    []
-  );
-
   React.useEffect(() => {
     (async () => {
       const sessionStr = localStorage.getItem("didsession");
@@ -220,6 +207,47 @@ export default function App() {
     },
   });
 
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route
+        path="/"
+        element={
+          <Header
+            isFullScreen={isFullScreen}
+            authStatus={authStatus}
+            portfolioNeedActionCount={portfolioNeedActionCount}
+            setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+            interactionState={interactionState}
+            setInteractionState={setInteractionState}
+            setSelectedParcelId={setSelectedParcelId}
+            shouldRefetchParcelsData={shouldRefetchParcelsData}
+            setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+          />
+        }
+      >
+        <Route
+          index
+          element={
+            <IndexPage
+              authStatus={authStatus}
+              setAuthStatus={setAuthStatus}
+              isFullScreen={isFullScreen}
+              setIsFullScreen={setIsFullScreen}
+              portfolioNeedActionCount={portfolioNeedActionCount}
+              setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+              interactionState={interactionState}
+              setInteractionState={setInteractionState}
+              selectedParcelId={selectedParcelId}
+              setSelectedParcelId={setSelectedParcelId}
+              shouldRefetchParcelsData={shouldRefetchParcelsData}
+              setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+            />
+          }
+        />
+      </Route>
+    )
+  );
+
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitAuthenticationProvider
@@ -227,14 +255,11 @@ export default function App() {
         status={authStatus}
       >
         <RainbowKitProvider chains={chains} modalSize="compact" theme={myTheme}>
-          <ApolloProvider client={client}>
+          <SuperfluidContextProvider>
             <MapProvider>
-              <IndexPage
-                authStatus={authStatus}
-                setAuthStatus={setAuthStatus}
-              />
+              <RouterProvider router={router} />
             </MapProvider>
-          </ApolloProvider>
+          </SuperfluidContextProvider>
         </RainbowKitProvider>
       </RainbowKitAuthenticationProvider>
     </WagmiConfig>
