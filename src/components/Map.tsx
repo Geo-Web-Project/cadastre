@@ -1223,7 +1223,7 @@ function Map(props: MapProps) {
           bottom:
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
               ? `${DRAWER_CLAIM_HEIGHT}px`
-              : "4svh",
+              : "30px",
           right: "2%",
           width: "123px",
           borderRadius: 12,

@@ -100,7 +100,7 @@ export default function StreamingQuadraticFunding() {
           </Col>
         )}
         <Col xs={transactionPanelState.show ? "9" : 0} className="px-4">
-          <Stack direction="vertical" className="justify-content-stretch pt-2">
+          <Stack direction="vertical" className="justify-content-stretch pt-3">
             <p className="d-flex fs-3 text-aqua mb-0">
               Streaming Quadratic Funding
             </p>

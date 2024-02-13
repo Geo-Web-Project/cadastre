@@ -33,8 +33,7 @@ type ProfileProps = {
 };
 
 function Profile(props: ProfileProps) {
-  const { account, paymentToken, portfolioNeedActionCount, } =
-    props;
+  const { account, paymentToken, portfolioNeedActionCount } = props;
 
   const [showProfile, setShowProfile] = React.useState(false);
 

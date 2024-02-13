@@ -53,7 +53,7 @@ export default function Grantees(props: GranteesProps) {
           className="justify-content-even border bg-blue border-0 rounded-0 rounded-end px-2 py-1"
           style={{
             position: "absolute",
-            top: endYScale(i) - 45,
+            top: endYScale(i) - 95,
             width: VIZ_CARD_WIDTH_GRANTEE,
             height: dimensions.pathHeight + 1,
             zIndex: 1,

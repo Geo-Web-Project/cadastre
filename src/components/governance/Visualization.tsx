@@ -26,7 +26,11 @@ import {
   MatchingData,
 } from "./StreamingQuadraticFunding";
 import { RecipientDetails } from "../../context/Allo";
-import { weightedPick, getRandomNumberInRange, sqrtBigInt } from "../../lib/utils";
+import {
+  weightedPick,
+  getRandomNumberInRange,
+  sqrtBigInt,
+} from "../../lib/utils";
 import {
   MS_PER_SECOND,
   VIZ_ANIMATION_DURATION,
@@ -168,7 +172,7 @@ export default function Visualization(props: VisualizationProps) {
     const svgElement = select(svgRef.current);
     const bounds = svgElement
       .append("g")
-      //.style("transform", `translateY(-60px)`);
+      .style("transform", `translateY(-50px)`);
     const linkLineGenerator = line()
       .x((_d, i) => i * (dimensions.width / 5))
       .y((d, i) => (i <= 2 ? startYScale(d[0]) : endYScale(d[1])))

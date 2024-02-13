@@ -62,7 +62,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "prettier": "prettier -w src/**"
+    "prettier": "prettier -w src/**/*.{ts,tsx}"
   },
   "engines": {
     "node": ">=18.0.0"

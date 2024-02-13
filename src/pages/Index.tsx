@@ -1,4 +1,4 @@
-import { useMemo, useLayoutEffect} from "react";
+import { useMemo, useLayoutEffect } from "react";
 import Home from "../components/Home";
 import WelcomeChecklist from "../components/WelcomeChecklist";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";

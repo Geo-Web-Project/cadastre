@@ -1054,7 +1054,13 @@ export default function EditStream(props: EditStreamProps) {
             {Number(wrapAmount) > 0 && (
               <Stack direction="vertical" gap={1}>
                 <Card.Text className="border-bottom border-secondary mb-2 pb-1 text-secondary">
-                  A. Wrap Tokens
+                  A. Wrap Tokens (
+                  {!isFundingMatchingPool &&
+                  parseEther(wrapAmount ?? "") >
+                    BigInt(underlyingTokenAllowance)
+                    ? "x2 - Approve & Upgrade"
+                    : "x1 - Upgrade"}
+                  )
                 </Card.Text>
                 <Stack
                   direction="horizontal"
@@ -1118,7 +1124,8 @@ export default function EditStream(props: EditStreamProps) {
             )}
             <Stack direction="vertical" gap={1}>
               <Card.Text className="border-bottom border-secondary m-0 pb-1 text-secondary">
-                {Number(wrapAmount) > 0 ? "B." : "A."} Edit stream
+                {Number(wrapAmount) > 0 ? "B." : "A."} Edit stream (x2 -
+                Permissions & Update)
               </Card.Text>
             </Stack>
             <Stack

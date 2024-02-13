@@ -102,7 +102,7 @@ export default function FundingSources(props: FundingSourcesProps) {
       <Card
         className="position-absolute w-100 bg-aqua border-0 rounded-0 rounded-start px-2 py-1 text-white"
         style={{
-          top: startYScale(0) - 45,
+          top: startYScale(0) - 95,
           height: dimensions.pathHeight,
         }}
       >
@@ -141,7 +141,7 @@ export default function FundingSources(props: FundingSourcesProps) {
       <Card
         className="position-absolute w-100 bg-secondary border-0 rounded-0 rounded-start px-2 py-1 text-white"
         style={{
-          top: startYScale(1) - 45,
+          top: startYScale(1) - 95,
           width: VIZ_CARD_WIDTH_SOURCE,
           height: dimensions.pathHeight,
         }}
@@ -195,7 +195,7 @@ export default function FundingSources(props: FundingSourcesProps) {
       <Card
         className="position-absolute w-100 bg-slate border-0 rounded-0 rounded-start p-0 pe-1 text-white"
         style={{
-          top: startYScale(2) - 45,
+          top: startYScale(2) - 95,
           width: VIZ_CARD_WIDTH_SOURCE,
           height: dimensions.pathHeight,
         }}
@@ -219,7 +219,10 @@ export default function FundingSources(props: FundingSourcesProps) {
               direction="horizontal"
               className="justify-content-between align-items-center"
             >
-              <Card.Header className="p-0 border-0 fs-4 w-100" style={{lineHeight: "18px"}}>
+              <Card.Header
+                className="p-0 border-0 fs-4 w-100"
+                style={{ lineHeight: "18px" }}
+              >
                 Quadratic Matching
               </Card.Header>
               <Stack
@@ -281,10 +284,10 @@ export default function FundingSources(props: FundingSourcesProps) {
           width: 340,
           bottom:
             window.screen.height < 1080
-              ? 55
+              ? 85
               : window.screen.height === 1080
-              ? 45
-              : 80,
+              ? 75
+              : 110,
         }}
       >
         <Card.Header className="text-secondary border-purple px-0 py-1">
