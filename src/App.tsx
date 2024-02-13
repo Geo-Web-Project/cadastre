@@ -39,12 +39,14 @@ import { Ed25519Provider, encodeDID } from "key-did-provider-ed25519";
 import { generateKeyPairFromSeed } from "@stablelib/ed25519";
 import KeyDidResolver from "key-did-resolver";
 import { DID } from "dids";
-import IndexPage from "./pages/IndexPage";
+import IndexPage from "./pages/Index";
+import ErrorPage from "./pages/Error";
 import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
 import { STATE } from "./components/Map";
+import Governance from "./pages/Governance";
 import Header from "./components/Header";
 
 const networkIdToChain: Record<number, Chain> = {
@@ -224,6 +226,7 @@ export default function App() {
             setShouldRefetchParcelsData={setShouldRefetchParcelsData}
           />
         }
+        errorElement={<ErrorPage />}
       >
         <Route
           index
@@ -243,7 +246,9 @@ export default function App() {
               setShouldRefetchParcelsData={setShouldRefetchParcelsData}
             />
           }
+          errorElement={<ErrorPage />}
         />
+        <Route path="/governance" element={<Governance />} />
       </Route>
     )
   );

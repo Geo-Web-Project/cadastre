@@ -48,7 +48,7 @@ function WelcomeChecklist() {
           <Image width={30} src="close.svg" />
         </Button>
       </Modal.Header>
-      <Modal.Body className="bg-dark text-light px-4 fs-6">
+      <Modal.Body className="bg-dark text-light px-4 fs-4">
         <p>
           Here are the most important things to know to get started with the Geo
           Web:

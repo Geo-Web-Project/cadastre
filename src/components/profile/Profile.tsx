@@ -118,7 +118,7 @@ function Profile(props: ProfileProps) {
               <Tooltip>You have parcels that require attention.</Tooltip>
             }
           >
-            <Badge className="fs-6" bg="danger" pill={true} text="light">
+            <Badge className="fs-4" bg="danger" pill={true} text="light">
               {portfolioNeedActionCount}
             </Badge>
           </OverlayTrigger>

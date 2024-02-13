@@ -299,6 +299,7 @@ function RejectBidAction(props: RejectBidActionProps) {
   return (
     <>
       <Card
+        text="white"
         border={isMobile || isTablet ? "dark" : "secondary"}
         className="bg-dark"
       >

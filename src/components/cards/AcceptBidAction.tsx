@@ -95,6 +95,7 @@ function AcceptBidAction(props: AcceptBidActionProps) {
       <Card
         border={isMobile || isTablet ? "dark" : "secondary"}
         className="bg-dark"
+        text="white"
       >
         <Card.Header className="d-none d-lg-block">
           <h3>Accept Bid</h3>

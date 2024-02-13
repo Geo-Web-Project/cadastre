@@ -209,6 +209,7 @@ function PlaceBidAction(props: PlaceBidActionProps) {
   return (
     <>
       <Card
+        text="white"
         border={isMobile || isTablet ? "dark" : "secondary"}
         className="bg-dark"
       >

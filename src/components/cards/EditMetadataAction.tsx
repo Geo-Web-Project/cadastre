@@ -145,6 +145,7 @@ export function EditMetadataAction(props: EditMetadataActionProps) {
     <>
       <Card
         border={isMobile || isTablet ? "dark" : "secondary"}
+        text="white"
         className="bg-dark"
       >
         <Card.Header className="d-none d-lg-block fs-3">

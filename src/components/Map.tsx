@@ -261,20 +261,13 @@ function Map(props: MapProps) {
     );
   };
 
-  const mapPadding = {
-    top: isFullScreen ? 0 : 120,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  };
-
   const [viewport, setViewport] = useState<ViewState>({
     latitude: 40.780503,
     longitude: -73.96663,
     zoom: 1,
     bearing: 0,
     pitch: 0,
-    padding: mapPadding,
+    padding: { top: 0, right: 0, bottom: 0, left: 0 },
   });
   const [shouldUpdateOnNextZoom, setShouldUpdateOnNextZoom] = useState(true);
   const [oldCoord, setOldCoord] = useState<LngLat | null>(null);
@@ -1173,10 +1166,10 @@ function Map(props: MapProps) {
               bottom:
                 (isMobile || isTablet) &&
                 interactionState === STATE.CLAIM_SELECTING
-                  ? `calc(90px + ${DRAWER_CLAIM_HEIGHT}px)`
+                  ? `calc(193px + ${DRAWER_CLAIM_HEIGHT}px)`
                   : isMobile || isTablet
-                  ? "123px"
-                  : "119px",
+                  ? "198px"
+                  : "208px",
               visibility:
                 (isMobile || isTablet) &&
                 interactionState !== STATE.VIEWING &&
@@ -1194,9 +1187,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom:
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
-              ? `calc(56px + ${DRAWER_CLAIM_HEIGHT}px)`
-              : isMobile || isTablet
-              ? "88px"
+              ? `calc(84px + ${DRAWER_CLAIM_HEIGHT}px)`
               : "90px",
           right: "2vw",
           zIndex: 1,

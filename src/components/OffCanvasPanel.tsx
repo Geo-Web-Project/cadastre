@@ -209,10 +209,10 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
         isMobile || isTablet ? "bottom-0" : "top-0"
       } ${isMobile || isTablet ? "w-100" : "w-25"} ${
         isMobile || isTablet ? "" : "vh-100"
-      } bg-dark text-light px-3 pb-3`}
+      } bg-dark text-light px-3 pb-3 border-0 border-top border-secondary border-opacity-25`}
       style={{
         zIndex: 10,
-        paddingTop: isMobile || isTablet ? "0px" : "100px",
+        marginTop: isMobile || isTablet ? "0px" : "89px",
         maxHeight:
           isMobile && isFullScreen
             ? "calc(100svh - 82px)"
@@ -305,9 +305,7 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
       ) : null}
       {interactionState === STATE.CLAIM_SELECTED && !account ? (
         <div className="mt-3">
-          <ConnectWallet
-            variant="claim"
-          />
+          <ConnectWallet variant="claim" />
         </div>
       ) : interactionState === STATE.CLAIM_SELECTED &&
         account &&

@@ -214,6 +214,7 @@ export function ActionForm(props: ActionFormProps) {
     <>
       <Card
         border={isMobile || isTablet ? "dark" : "secondary"}
+        text="white"
         className="bg-dark"
       >
         {interactionState === STATE.CLAIM_SELECTED ? (
@@ -225,7 +226,7 @@ export function ActionForm(props: ActionFormProps) {
             </small>
           </Card.Header>
         ) : (
-          <Card.Header className="d-none d-lg-block fs-3">
+          <Card.Header className="d-none d-lg-block fs-3 text-white">
             {interactionState === STATE.PARCEL_EDITING_BID
               ? "Edit Price"
               : interactionState === STATE.PARCEL_RECLAIMING &&

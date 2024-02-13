@@ -1,3 +1,4 @@
+import { useMemo, useLayoutEffect} from "react";
 import Home from "../components/Home";
 import WelcomeChecklist from "../components/WelcomeChecklist";
 import Map, { STATE, GeoWebCoordinate } from "../components/Map";
@@ -134,7 +135,7 @@ function IndexPage(props: IndexPageProps) {
   const { address } = useAccount();
   const ethersSigner = useEthersSigner();
 
-  const client = React.useMemo(
+  const client = useMemo(
     () =>
       new ApolloClient({
         link: new HttpLink({
@@ -157,6 +158,14 @@ function IndexPage(props: IndexPageProps) {
       }),
     []
   );
+
+  useLayoutEffect(() => {
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  });
 
   async function resetSession() {
     const store = new StoreIndexedDB("w3up-client");
@@ -367,53 +376,51 @@ function IndexPage(props: IndexPageProps) {
   }, [selectedParcelId, library]);
 
   return (
-    <>
-      <ApolloProvider client={client}>
-        <Container fluid>
-          {registryContract &&
-          nativeSuperToken &&
-          library &&
-          geoWebCoordinate &&
-          firebasePerf &&
-          sfFramework &&
-          worldConfig &&
-          worldContract ? (
-            <Row>
-              <MUDProvider value={worldConfig}>
-                <Map
-                  registryContract={registryContract}
-                  authStatus={authStatus}
-                  signer={ethersSigner ?? null}
-                  account={address?.toLowerCase() ?? ""}
-                  w3Client={w3Client}
-                  geoWebCoordinate={geoWebCoordinate}
-                  firebasePerf={firebasePerf}
-                  paymentToken={nativeSuperToken}
-                  sfFramework={sfFramework}
-                  setPortfolioNeedActionCount={setPortfolioNeedActionCount}
-                  selectedParcelId={selectedParcelId}
-                  setSelectedParcelId={setSelectedParcelId}
-                  interactionState={interactionState}
-                  setInteractionState={setInteractionState}
-                  shouldRefetchParcelsData={shouldRefetchParcelsData}
-                  setShouldRefetchParcelsData={setShouldRefetchParcelsData}
-                  auctionStart={auctionStart}
-                  auctionEnd={auctionEnd}
-                  startingBid={startingBid}
-                  endingBid={endingBid}
-                  isFullScreen={isFullScreen}
-                  setIsFullScreen={setIsFullScreen}
-                  worldContract={worldContract}
-                ></Map>
-              </MUDProvider>
-            </Row>
-          ) : (
-            <Home />
-          )}
-          <WelcomeChecklist />
-        </Container>
-      </ApolloProvider>
-    </>
+    <ApolloProvider client={client}>
+      <Container fluid>
+        {registryContract &&
+        nativeSuperToken &&
+        library &&
+        geoWebCoordinate &&
+        firebasePerf &&
+        sfFramework &&
+        worldConfig &&
+        worldContract ? (
+          <Row>
+            <MUDProvider value={worldConfig}>
+              <Map
+                registryContract={registryContract}
+                authStatus={authStatus}
+                signer={ethersSigner ?? null}
+                account={address?.toLowerCase() ?? ""}
+                w3Client={w3Client}
+                geoWebCoordinate={geoWebCoordinate}
+                firebasePerf={firebasePerf}
+                paymentToken={nativeSuperToken}
+                sfFramework={sfFramework}
+                setPortfolioNeedActionCount={setPortfolioNeedActionCount}
+                selectedParcelId={selectedParcelId}
+                setSelectedParcelId={setSelectedParcelId}
+                interactionState={interactionState}
+                setInteractionState={setInteractionState}
+                shouldRefetchParcelsData={shouldRefetchParcelsData}
+                setShouldRefetchParcelsData={setShouldRefetchParcelsData}
+                auctionStart={auctionStart}
+                auctionEnd={auctionEnd}
+                startingBid={startingBid}
+                endingBid={endingBid}
+                isFullScreen={isFullScreen}
+                setIsFullScreen={setIsFullScreen}
+                worldContract={worldContract}
+              ></Map>
+            </MUDProvider>
+          </Row>
+        ) : (
+          <Home />
+        )}
+        <WelcomeChecklist />
+      </Container>
+    </ApolloProvider>
   );
 }
 

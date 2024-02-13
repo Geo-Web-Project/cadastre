@@ -57,7 +57,7 @@ function FundsRaisedCounter() {
           <Spinner animation="border" role="status" variant="light"></Spinner>
         </div>
       ) : (
-        <div className="fs-1 text-primary text-center">
+        <div className="fs-1 text-primary text-center lh-1">
           <FlowingBalance
             format={(x) =>
               truncateEth(ethers.utils.formatUnits(x), 4) + " ETHx"
@@ -73,8 +73,8 @@ function FundsRaisedCounter() {
                 : ethers.BigNumber.from("0")
             }
           />
-          <div className="fs-6 text-light text-center">
-            <span className="d-none d-sm-block">
+          <div className="text-light text-center">
+            <span className="d-none d-sm-block my-2 fs-4">
               Public Goods Funding Raised
             </span>
             <span className="d-sm-none" style={{ fontSize: "0.8rem" }}>

@@ -377,7 +377,7 @@ function ParcelInfo(props: ParcelInfoProps) {
         } p-sm-0`}
       >
         <Col sm="10" className="w-75">
-          <span className="fs-4 fw-bold">{headerText}</span>
+          <span className="fs-4 fw-bold text-white">{headerText}</span>
         </Col>
       </Row>
     );
@@ -722,8 +722,8 @@ function ParcelInfo(props: ParcelInfoProps) {
       )}
       {interactionState === STATE.PARCEL_SELECTED &&
         accountAddress.toLowerCase() === licenseOwner?.toLowerCase() && (
-          <Card className="bg-dark border-secondary rounded-3">
-            <Card.Header className="fs-6 fw-bold border-0">
+          <Card text="white" className="bg-dark border-secondary rounded-3">
+            <Card.Header className="fs-4 fw-bold border-0">
               A new era of the Geo Web is almost here!
             </Card.Header>
             <Card.Body className="small">

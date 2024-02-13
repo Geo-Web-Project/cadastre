@@ -28,6 +28,7 @@ function ParcelTable(props: ParcelTableProps) {
           </span>
         ) : parcels.length > 0 ? (
           <Table
+            variant="dark"
             bordered
             className="m-3 mt-0 text-light border border-secondary flex-shrink-1"
           >

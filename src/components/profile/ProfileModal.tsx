@@ -827,7 +827,7 @@ function ProfileModal(props: ProfileModalProps) {
           >
             <div onClick={() => setTabSelection(TabSelection.WALLET)}>
               <span
-                className={`${
+                className={`fs-3 ${
                   tabSelection === TabSelection.WALLET
                     ? "text-light fw-bold"
                     : ""
@@ -838,7 +838,7 @@ function ProfileModal(props: ProfileModalProps) {
             </div>
             <div onClick={() => setTabSelection(TabSelection.PORTFOLIO)}>
               <span
-                className={`${
+                className={`fs-3 ${
                   tabSelection === TabSelection.PORTFOLIO
                     ? "text-light fw-bold"
                     : ""
@@ -898,7 +898,7 @@ function ProfileModal(props: ProfileModalProps) {
                 lg="4"
                 xl="3"
               >
-                <span className="ms-sm-3">{`ETH: ${truncateEth(
+                <span className="ms-sm-3 fs-4">{`ETH: ${truncateEth(
                   ETHBalance,
                   isMobile ? 4 : 8
                 )}`}</span>
@@ -927,7 +927,7 @@ function ProfileModal(props: ProfileModalProps) {
                     type="submit"
                     disabled={isWrapping || isOutOfBalanceWrap}
                     size="sm"
-                    className="w-100 rounded-2"
+                    className="w-100 mb-2 rounded-2"
                   >
                     {isWrapping
                       ? "Wrapping..."
@@ -940,7 +940,7 @@ function ProfileModal(props: ProfileModalProps) {
                       <Button
                         variant="gray"
                         size="sm"
-                        className="d-flex justify-content-center gap-1 w-100 mt-2 fs-6 rounded-2"
+                        className="d-flex justify-content-center gap-1 w-100 fs-4 rounded-2"
                         style={{ marginBottom: 7 }}
                       >
                         <Image
@@ -971,7 +971,7 @@ function ProfileModal(props: ProfileModalProps) {
                 lg="4"
                 xl="3"
               >
-                <div className="d-flex align-items-center gap-1 gap-sm-2 ms-0 ms-sm-3">
+                <div className="d-flex align-items-center gap-1 gap-sm-2 ms-0 ms-sm-3 fs-4">
                   <div>
                     {`${PAYMENT_TOKEN}: `}
                     <FlowingBalance
@@ -1038,6 +1038,7 @@ function ProfileModal(props: ProfileModalProps) {
                 </span>
               ) : portfolio.length > 0 ? (
                 <Table
+                  variant="dark"
                   bordered
                   className="m-3 mt-0 text-light border border-secondary flex-shrink-1"
                 >

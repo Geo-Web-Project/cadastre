@@ -30,6 +30,7 @@ function ClaimInfo(props: ClaimInfoProps) {
 
   return (
     <Card
+      text="white"
       className={`${
         isMobile || isTablet ? "bg-dark" : "bg-secondary"
       } border-0 bg-opacity-25 text-light mt-lg-2`}

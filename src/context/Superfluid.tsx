@@ -1,15 +1,21 @@
 import { useEffect, useState, createContext, useContext } from "react";
-import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { Address } from "viem";
-import { usePublicClient } from "wagmi";
-import { optimism, optimismSepolia } from "wagmi/chains";
+import {
+  Framework,
+  NativeAssetSuperToken,
+  WrapperSuperToken,
+} from "@superfluid-finance/sdk-core";
 import { useEthersProvider } from "../hooks/ethersAdapters";
-import { NETWORK_ID, SUPERFLUID_RESOLVER_ADDRESS } from "../lib/constants";
+import {
+  NETWORK_ID,
+  SUPERFLUID_RESOLVER_ADDRESS,
+  DAIX_ADDRESS,
+} from "../lib/constants";
 
 export const SuperfluidContext = createContext<{
   sfFramework: Framework | null;
   nativeSuperToken: NativeAssetSuperToken | null;
-}>({ sfFramework: null, nativeSuperToken: null });
+  wrapperSuperToken: WrapperSuperToken | null;
+}>({ sfFramework: null, nativeSuperToken: null, wrapperSuperToken: null });
 
 export function useSuperfluidContext() {
   const context = useContext(SuperfluidContext);
@@ -29,6 +35,8 @@ export default function SuperfluidContextProvider({
   const [sfFramework, setSfFramework] = useState<Framework | null>(null);
   const [nativeSuperToken, setNativeSuperToken] =
     useState<NativeAssetSuperToken | null>(null);
+  const [wrapperSuperToken, setWrapperSuperToken] =
+    useState<WrapperSuperToken | null>(null);
 
   const ethersProvider = useEthersProvider();
 
@@ -43,9 +51,13 @@ export default function SuperfluidContextProvider({
         const nativeSuperToken = await sfFramework.loadNativeAssetSuperToken(
           "ETHx"
         );
+        const wrapperSuperToken = await sfFramework.loadWrapperSuperToken(
+          DAIX_ADDRESS
+        );
 
-        setNativeSuperToken(nativeSuperToken);
         setSfFramework(sfFramework);
+        setNativeSuperToken(nativeSuperToken);
+        setWrapperSuperToken(wrapperSuperToken);
       }
     })();
   }, [ethersProvider]);
@@ -55,6 +67,7 @@ export default function SuperfluidContextProvider({
       value={{
         sfFramework,
         nativeSuperToken,
+        wrapperSuperToken,
       }}
     >
       {children}
