@@ -86,7 +86,7 @@ export default function Header(props: HeaderProps) {
             <Row className="align-items-center w-100">
               <Col xl="5" className="d-none d-xl-block p-0">
                 <div
-                  className="d-flex align-items-center text-light ps-5"
+                  className="d-flex align-items-center text-light ps-4"
                   style={{
                     fontSize: "2.5em",
                     fontFamily: "Abel",
@@ -98,7 +98,7 @@ export default function Header(props: HeaderProps) {
                   />
                   <Link
                     to="/"
-                    className={`position-relative ms-3 fs-1 text-decoration-none ${
+                    className={`position-relative ms-2 fs-1 text-decoration-none ${
                       location.pathname === "/"
                         ? "text-white"
                         : "text-info header-link"
@@ -108,7 +108,7 @@ export default function Header(props: HeaderProps) {
                   </Link>
                   <Link
                     to="/governance"
-                    className={`position-relative d-flex ms-3 fs-1 text-decoration-none ${
+                    className={`position-relative d-flex ms-4 fs-1 text-decoration-none ${
                       location.pathname === "/governance"
                         ? "text-white"
                         : "text-info header-link beta-link"
@@ -119,12 +119,12 @@ export default function Header(props: HeaderProps) {
                   </Link>
                 </div>
               </Col>
-              <Col xl="2" className="d-none d-xl-block p-0">
+              <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
                 <FundsRaisedCounter />
               </Col>
               <Col
-                xs="3"
-                sm="4"
+                xs="4"
+                xxl="5"
                 className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-1"
               >
                 {location.pathname === "/" &&
@@ -147,16 +147,18 @@ export default function Header(props: HeaderProps) {
                   chain?.id === NETWORK_ID ? null : (
                   <ConnectWallet variant="header" />
                 )}
+                <div className="d-none d-xl-block ps-4">
+                  <NavMenu account={address} />
+                </div>
               </Col>
-              <Col xs="7" sm="5" lg="4" className="d-xl-none pe-4 ps-3">
+              <Col xs="6" sm="5" lg="4" className="d-xl-none p-0">
                 <FundsRaisedCounter />
               </Col>
               <Col
                 xs="2"
                 sm="3"
                 lg="4"
-                xl="1"
-                className="d-flex justify-content-end justify-content-xl-start"
+                className="d-flex d-xl-none justify-content-end p-0"
               >
                 <NavMenu account={address} />
               </Col>

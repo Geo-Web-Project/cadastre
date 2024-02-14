@@ -154,19 +154,19 @@ export default function RecipientDetails(props: RecipientDetailsProps) {
         </Button>
       </Stack>
       <Stack direction="horizontal" gap={1} className="fs-6 p-2">
-        <Stack direction="vertical" gap={1} className="w-33">
+        <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">You</Card.Text>
           <Badge className="bg-aqua rounded-1 p-1 text-start fs-5 fw-normal">
             {formatEther(streamedUserAllocation).slice(0, 8)}
           </Badge>
         </Stack>
-        <Stack direction="vertical" gap={1} className="w-33">
+        <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">Direct</Card.Text>
           <Badge className="bg-secondary rounded-1 p-1 text-start fs-5 fw-normal">
             {formatEther(streamedDirectAllocation).slice(0, 8)}
           </Badge>
         </Stack>
-        <Stack direction="vertical" gap={1} className="w-33">
+        <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">Matching</Card.Text>
           <Badge className="bg-slate rounded-1 p-1 text-start fs-5 fw-normal">
             {formatEther(streamedMatching).slice(0, 8)}

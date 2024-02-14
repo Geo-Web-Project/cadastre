@@ -108,7 +108,7 @@ export default function StreamingQuadraticFunding() {
               A quadratic funding round every second
             </p>
             <p className="text-info fs-5 mb-0">
-              Beta Run - February 15 - April 15, 2024
+              Beta Run - February 20 - April 20, 2024
             </p>
           </Stack>
           <Visualization

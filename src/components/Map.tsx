@@ -1188,6 +1188,8 @@ function Map(props: MapProps) {
           bottom:
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
               ? `calc(84px + ${DRAWER_CLAIM_HEIGHT}px)`
+              : isTablet
+              ? "80px"
               : "90px",
           right: "2vw",
           zIndex: 1,
