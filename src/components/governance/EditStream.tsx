@@ -51,6 +51,7 @@ import {
   roundWeiAmount,
   convertStreamValueToInterval,
   sqrtBigInt,
+  formatNumberWithCommas,
 } from "../../lib/utils";
 import {
   DAI_ADDRESS,
@@ -186,7 +187,7 @@ export default function EditStream(props: EditStreamProps) {
   const liquidationEstimate = useMemo(() => {
     if (address) {
       const newFlowRate =
-        parseEther(amountPerTimeInterval) /
+        parseEther(amountPerTimeInterval.replace(/,/g, "")) /
         BigInt(fromTimeUnitsToSeconds(1, unitOfTime[timeInterval]));
 
       if (
@@ -203,7 +204,7 @@ export default function EditStream(props: EditStreamProps) {
             dayjs.duration({
               seconds: Number(
                 (BigInt(userTokenSnapshot?.balanceUntilUpdatedAt ?? "0") +
-                  parseEther(wrapAmount ?? "0")) /
+                  parseEther(wrapAmount?.replace(/,/g, "") ?? "0")) /
                   (BigInt(-accountFlowRate) -
                     BigInt(flowRateToReceiver) +
                     newFlowRate)
@@ -259,14 +260,14 @@ export default function EditStream(props: EditStreamProps) {
       return [];
     }
 
-    const wrapAmountWei = parseEther(wrapAmount ?? "0");
+    const wrapAmountWei = parseEther(wrapAmount?.replace(/,/g, "") ?? "0");
     const approvalTransactionsCount =
       !isFundingMatchingPool && wrapAmountWei > BigInt(underlyingTokenAllowance)
         ? 1
         : 0;
     const transactions: (() => Promise<void>)[] = [];
 
-    if (wrapAmount && Number(wrapAmount) > 0) {
+    if (wrapAmount && Number(wrapAmount?.replace(/,/g, "")) > 0) {
       if (!isFundingMatchingPool && approvalTransactionsCount > 0) {
         transactions.push(async () => {
           await underlyingTokenApprove(
@@ -323,21 +324,29 @@ export default function EditStream(props: EditStreamProps) {
         4
       );
 
-      setAmountPerTimeInterval(currentStreamValue);
+      setAmountPerTimeInterval(
+        formatNumberWithCommas(parseFloat(currentStreamValue))
+      );
     })();
   }, [address, receiver, flowRateToReceiver]);
 
   useEffect(() => {
     if (!areTransactionsLoading && amountPerTimeInterval) {
       if (
-        Number(amountPerTimeInterval) > 0 &&
+        Number(amountPerTimeInterval.replace(/,/g, "")) > 0 &&
         liquidationEstimate &&
         dayjs
           .unix(liquidationEstimate)
           .isBefore(dayjs().add(dayjs.duration({ months: 3 })))
       ) {
         setWrapAmount(
-          formatEther(parseEther(amountPerTimeInterval) * BigInt(3))
+          formatNumberWithCommas(
+            parseFloat(
+              formatEther(
+                parseEther(amountPerTimeInterval.replace(/,/g, "")) * BigInt(3)
+              )
+            )
+          )
         );
       } else {
         setWrapAmount("");
@@ -345,7 +354,7 @@ export default function EditStream(props: EditStreamProps) {
 
       setNewFlowRate(
         (
-          parseEther(amountPerTimeInterval) /
+          parseEther(amountPerTimeInterval.replace(/,/g, "")) /
           BigInt(fromTimeUnitsToSeconds(1, unitOfTime[timeInterval]))
         ).toString()
       );
@@ -358,8 +367,14 @@ export default function EditStream(props: EditStreamProps) {
   ) => {
     const { value } = e.target;
 
-    if (isNumber(value) || value === "") {
-      setAmount(value);
+    if (isNumber(value.replace(/,/g, ""))) {
+      setAmount(
+        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}${
+          value.endsWith(".") ? "." : ""
+        }`
+      );
+    } else if (value === "") {
+      setAmount("");
     } else if (value === ".") {
       setAmount("0.");
     }
@@ -462,7 +477,7 @@ export default function EditStream(props: EditStreamProps) {
                       onClick={() => {
                         setAmountPerTimeInterval(
                           convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval),
+                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
                             timeInterval,
                             TimeInterval.DAY
                           )
@@ -477,7 +492,7 @@ export default function EditStream(props: EditStreamProps) {
                       onClick={() => {
                         setAmountPerTimeInterval(
                           convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval),
+                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
                             timeInterval,
                             TimeInterval.WEEK
                           )
@@ -492,7 +507,7 @@ export default function EditStream(props: EditStreamProps) {
                       onClick={() => {
                         setAmountPerTimeInterval(
                           convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval),
+                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
                             timeInterval,
                             TimeInterval.MONTH
                           )
@@ -507,7 +522,7 @@ export default function EditStream(props: EditStreamProps) {
                       onClick={() => {
                         setAmountPerTimeInterval(
                           convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval),
+                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
                             timeInterval,
                             TimeInterval.YEAR
                           )
@@ -525,9 +540,9 @@ export default function EditStream(props: EditStreamProps) {
                   variant={isDeletingStream ? "danger" : "success"}
                   disabled={
                     !amountPerTimeInterval ||
-                    Number(amountPerTimeInterval) < 0 ||
+                    Number(amountPerTimeInterval.replace(/,/g, "")) < 0 ||
                     (BigInt(flowRateToReceiver) === BigInt(0) &&
-                      Number(amountPerTimeInterval) === 0) ||
+                      Number(amountPerTimeInterval.replace(/,/g, "")) === 0) ||
                     newFlowRate === flowRateToReceiver
                   }
                   className="py-1 rounded-3 text-white"
@@ -609,9 +624,12 @@ export default function EditStream(props: EditStreamProps) {
                     }`}
                   >
                     {ethBalance
-                      ? formatEther(ethBalance.value + superTokenBalance).slice(
-                          0,
-                          8
+                      ? formatNumberWithCommas(
+                          parseFloat(
+                            formatEther(
+                              ethBalance.value + superTokenBalance
+                            ).slice(0, 8)
+                          )
                         )
                       : "0"}
                     {hasSuggestedTokenBalance && (
@@ -620,7 +638,9 @@ export default function EditStream(props: EditStreamProps) {
                   </Card.Text>
                   <Card.Text className="m-0 fs-6">
                     Suggested at least{" "}
-                    {roundWeiAmount(suggestedTokenBalance, 6)}
+                    {formatNumberWithCommas(
+                      parseFloat(roundWeiAmount(suggestedTokenBalance, 6))
+                    )}
                   </Card.Text>
                   <OnRampWidget
                     target={
@@ -645,7 +665,11 @@ export default function EditStream(props: EditStreamProps) {
                         hasSufficientEthBalance ? "text-white" : "text-danger"
                       }`}
                     >
-                      {ethBalance ? ethBalance.formatted.slice(0, 8) : "0"}
+                      {ethBalance
+                        ? formatNumberWithCommas(
+                            parseFloat(ethBalance.formatted.slice(0, 8))
+                          )
+                        : "0"}
                       {hasSufficientEthBalance && (
                         <Image src={SuccessIcon} alt="success" />
                       )}
@@ -671,7 +695,7 @@ export default function EditStream(props: EditStreamProps) {
                       DAI + DAIx Balance:
                     </Card.Text>
                     <Card.Text
-                      className={`d-flex align-items-center gap-1 m-0 fs-3 ${
+                      className={`d-flex align-items-center gap-1 m-0 fs-3 text-break ${
                         hasSuggestedTokenBalance
                           ? "text-white"
                           : !underlyingTokenBalance ||
@@ -682,9 +706,13 @@ export default function EditStream(props: EditStreamProps) {
                       }`}
                     >
                       {underlyingTokenBalance
-                        ? formatEther(
-                            underlyingTokenBalance.value + superTokenBalance
-                          ).slice(0, 8)
+                        ? formatNumberWithCommas(
+                            parseFloat(
+                              formatEther(
+                                underlyingTokenBalance.value + superTokenBalance
+                              ).slice(0, 8)
+                            )
+                          )
                         : "0"}
                       {hasSuggestedTokenBalance && (
                         <Image src={SuccessIcon} alt="success" />
@@ -692,7 +720,9 @@ export default function EditStream(props: EditStreamProps) {
                     </Card.Text>
                     <Card.Text className="m-0 fs-6">
                       Suggested at least{" "}
-                      {roundWeiAmount(suggestedTokenBalance, 6)}
+                      {formatNumberWithCommas(
+                        parseFloat(roundWeiAmount(suggestedTokenBalance, 6))
+                      )}
                     </Card.Text>
                     <Button
                       variant="link"
@@ -858,7 +888,7 @@ export default function EditStream(props: EditStreamProps) {
                     underlyingTokenBalance.value,
                     underlyingTokenBalance.decimals
                   )
-                ) < Number(wrapAmount) && (
+                ) < Number(wrapAmount.replace(/,/g, "")) && (
                   <Alert variant="danger" className="m-0">
                     Insufficient Balance
                   </Alert>
@@ -895,13 +925,13 @@ export default function EditStream(props: EditStreamProps) {
                   disabled={
                     !underlyingTokenBalance ||
                     !wrapAmount ||
-                    Number(wrapAmount) === 0 ||
+                    Number(wrapAmount.replace(/,/g, "")) === 0 ||
                     Number(
                       formatUnits(
                         underlyingTokenBalance.value,
                         underlyingTokenBalance.decimals
                       )
-                    ) < Number(wrapAmount)
+                    ) < Number(wrapAmount.replace(/,/g, ""))
                   }
                   className="w-50 py-1 rounded-3 text-white"
                   onClick={() =>
@@ -1007,7 +1037,7 @@ export default function EditStream(props: EditStreamProps) {
                 <Button
                   variant="secondary"
                   className="w-100 rounded-3"
-                  onClick={()=> setShowMintingInstructions(true)}
+                  onClick={() => setShowMintingInstructions(true)}
                 >
                   Update stamps and mint
                 </Button>
@@ -1058,12 +1088,12 @@ export default function EditStream(props: EditStreamProps) {
           </Button>
           <Accordion.Collapse eventKey={Step.REVIEW} className="p-3 pt-0">
             <Stack direction="vertical" gap={2}>
-              {Number(wrapAmount) > 0 && (
+              {Number(wrapAmount?.replace(/,/g, "")) > 0 && (
                 <Stack direction="vertical" gap={1}>
                   <Card.Text className="border-bottom border-secondary mb-2 pb-1 text-secondary">
                     A. Wrap Tokens (
                     {!isFundingMatchingPool &&
-                    parseEther(wrapAmount ?? "") >
+                    parseEther(wrapAmount?.replace(/,/g, "") ?? "") >
                       BigInt(underlyingTokenAllowance)
                       ? "x2 - Approve & Upgrade"
                       : "x1 - Upgrade"}
@@ -1091,7 +1121,7 @@ export default function EditStream(props: EditStreamProps) {
                         New Balance:{" "}
                         {(
                           Number(underlyingTokenBalance?.formatted) -
-                          Number(wrapAmount)
+                          Number(wrapAmount?.replace(/,/g, ""))
                         )
                           .toString()
                           .slice(0, 8)}
@@ -1119,7 +1149,8 @@ export default function EditStream(props: EditStreamProps) {
                       <Card.Text className="border-0 text-center text-white fs-6">
                         New Balance:{" "}
                         {formatEther(
-                          superTokenBalance + parseEther(wrapAmount ?? "0")
+                          superTokenBalance +
+                            parseEther(wrapAmount?.replace(/,/g, "") ?? "0")
                         ).slice(0, 8)}
                       </Card.Text>
                     </Stack>
@@ -1131,7 +1162,8 @@ export default function EditStream(props: EditStreamProps) {
               )}
               <Stack direction="vertical" gap={1}>
                 <Card.Text className="border-bottom border-secondary m-0 pb-1 text-secondary">
-                  {Number(wrapAmount) > 0 ? "B." : "A."} Edit stream (
+                  {Number(wrapAmount?.replace(/,/g, "")) > 0 ? "B." : "A."} Edit
+                  stream (
                   {isFundingMatchingPool ||
                   isDeletingStream ||
                   BigInt(newFlowRate) < BigInt(flowRateToReceiver)
@@ -1197,11 +1229,15 @@ export default function EditStream(props: EditStreamProps) {
                       alt={isFundingMatchingPool ? "eth" : "dai"}
                       width={isFundingMatchingPool ? 16 : 22}
                     />
-                    <Badge className="bg-aqua w-100 ps-2 pe-2 py-2 fs-4 text-start">
-                      {convertStreamValueToInterval(
-                        parseEther(amountPerTimeInterval),
-                        timeInterval,
-                        TimeInterval.MONTH
+                    <Badge className="bg-aqua w-100 ps-2 pe-2 py-2 fs-4 text-start overflow-hidden text-truncate">
+                      {formatNumberWithCommas(
+                        parseFloat(
+                          convertStreamValueToInterval(
+                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
+                            timeInterval,
+                            TimeInterval.MONTH
+                          )
+                        )
                       )}
                     </Badge>
                   </Stack>

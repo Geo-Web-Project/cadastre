@@ -10,7 +10,7 @@ import ContributionsIcon from "../../assets/contributions.svg";
 import hand from "../../assets/hand.svg";
 import { VisualizationProps, Dimensions } from "./Visualization";
 import useFlowingAmount from "../../hooks/flowingAmount";
-import { perSecondToPerMonth } from "../../lib/utils";
+import { perSecondToPerMonth, formatNumberWithCommas } from "../../lib/utils";
 import { VIZ_CARD_WIDTH_SOURCE } from "../../lib/constants";
 
 type FundingSourcesProps = VisualizationProps & {
@@ -116,10 +116,12 @@ export default function FundingSources(props: FundingSourcesProps) {
                 background: "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
               }}
             >
-              {parseFloat(
-                perSecondToPerMonth(
-                  Number(formatEther(totalFlowRateUser))
-                ).toFixed(6)
+              {formatNumberWithCommas(
+                parseFloat(
+                  perSecondToPerMonth(
+                    Number(formatEther(totalFlowRateUser))
+                  ).toFixed(6)
+                )
               )}
             </Badge>
             <Card.Text className="w-25 m-0">/month</Card.Text>
@@ -132,7 +134,9 @@ export default function FundingSources(props: FundingSourcesProps) {
                 background: "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
               }}
             >
-              {formatEther(totalStreamedUserAllocation).slice(0, 8)}
+              {formatNumberWithCommas(
+                parseFloat(formatEther(totalStreamedUserAllocation).slice(0, 8))
+              )}
             </Badge>
             <Card.Text className="w-25 m-0"> total</Card.Text>
           </Stack>
@@ -170,10 +174,12 @@ export default function FundingSources(props: FundingSourcesProps) {
                 background: "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
               }}
             >
-              {parseFloat(
-                perSecondToPerMonth(
-                  Number(formatEther(totalFlowRateDirect))
-                ).toFixed(6)
+              {formatNumberWithCommas(
+                parseFloat(
+                  perSecondToPerMonth(
+                    Number(formatEther(totalFlowRateDirect))
+                  ).toFixed(6)
+                )
               )}
             </Badge>
             <Card.Text className="w-25 m-0">/month</Card.Text>
@@ -186,7 +192,11 @@ export default function FundingSources(props: FundingSourcesProps) {
                 background: "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
               }}
             >
-              {formatEther(totalStreamedDirectAllocation).slice(0, 8)}{" "}
+              {formatNumberWithCommas(
+                parseFloat(
+                  formatEther(totalStreamedDirectAllocation).slice(0, 8)
+                )
+              )}{" "}
             </Badge>
             <Card.Text className="w-25 m-0"> total</Card.Text>
           </Stack>
@@ -251,8 +261,10 @@ export default function FundingSources(props: FundingSourcesProps) {
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
                   }}
                 >
-                  {parseFloat(
-                    perSecondToPerMonth(totalFlowRateMatching).toFixed(6)
+                  {formatNumberWithCommas(
+                    parseFloat(
+                      perSecondToPerMonth(totalFlowRateMatching).toFixed(6)
+                    )
                   )}
                 </Badge>
                 <Card.Text className="w-25 m-0">/month</Card.Text>
@@ -270,7 +282,9 @@ export default function FundingSources(props: FundingSourcesProps) {
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
                   }}
                 >
-                  {formatEther(totalStreamedMatching).slice(0, 8)}
+                  {formatNumberWithCommas(
+                    parseFloat(formatEther(totalStreamedMatching).slice(0, 8))
+                  )}
                 </Badge>
                 <Card.Text className="w-25 m-0">total</Card.Text>
               </Stack>

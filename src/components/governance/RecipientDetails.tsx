@@ -20,6 +20,7 @@ import {
   fromTimeUnitsToSeconds,
   roundWeiAmount,
   clampText,
+  formatNumberWithCommas,
 } from "../../lib/utils";
 import { superfluidPoolAbi } from "../../lib/abi/superfluidPool";
 
@@ -111,15 +112,19 @@ export default function RecipientDetails(props: RecipientDetailsProps) {
             ) : (
               <>
                 <Card.Text as="span" className="fs-1">
-                  {roundWeiAmount(
-                    BigInt(flowRateToReceiver) *
-                      BigInt(
-                        fromTimeUnitsToSeconds(
-                          1,
-                          unitOfTime[TimeInterval.MONTH]
-                        )
-                      ),
-                    4
+                  {formatNumberWithCommas(
+                    parseFloat(
+                      roundWeiAmount(
+                        BigInt(flowRateToReceiver) *
+                          BigInt(
+                            fromTimeUnitsToSeconds(
+                              1,
+                              unitOfTime[TimeInterval.MONTH]
+                            )
+                          ),
+                        4
+                      )
+                    )
                   )}
                 </Card.Text>
                 <Card.Text as="span" className="fs-6">
@@ -157,19 +162,25 @@ export default function RecipientDetails(props: RecipientDetailsProps) {
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">You</Card.Text>
           <Badge className="bg-aqua rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(streamedUserAllocation).slice(0, 8)}
+            {formatNumberWithCommas(
+              Number(formatEther(streamedUserAllocation).slice(0, 8))
+            )}
           </Badge>
         </Stack>
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">Direct</Card.Text>
           <Badge className="bg-secondary rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(streamedDirectAllocation).slice(0, 8)}
+            {formatNumberWithCommas(
+              parseFloat(formatEther(streamedDirectAllocation).slice(0, 8))
+            )}
           </Badge>
         </Stack>
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">Matching</Card.Text>
           <Badge className="bg-slate rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(streamedMatching).slice(0, 8)}
+            {formatNumberWithCommas(
+              parseFloat(formatEther(streamedMatching).slice(0, 8))
+            )}
           </Badge>
         </Stack>
         <Card.Text className="w-20 mt-3">total funding</Card.Text>

@@ -17,6 +17,7 @@ import {
   unitOfTime,
   fromTimeUnitsToSeconds,
   roundWeiAmount,
+  formatNumberWithCommas,
 } from "../../lib/utils";
 
 interface MatchingPoolDetailsProps {
@@ -85,15 +86,19 @@ export default function MatchingPoolDetails(props: MatchingPoolDetailsProps) {
             ) : (
               <>
                 <Card.Text as="span" className="fs-1">
-                  {roundWeiAmount(
-                    BigInt(flowRateToReceiver) *
-                      BigInt(
-                        fromTimeUnitsToSeconds(
-                          1,
-                          unitOfTime[TimeInterval.MONTH]
-                        )
-                      ),
-                    4
+                  {formatNumberWithCommas(
+                    parseFloat(
+                      roundWeiAmount(
+                        BigInt(flowRateToReceiver) *
+                          BigInt(
+                            fromTimeUnitsToSeconds(
+                              1,
+                              unitOfTime[TimeInterval.MONTH]
+                            )
+                          ),
+                        4
+                      )
+                    )
                   )}
                 </Card.Text>
                 <Card.Text as="span" className="fs-6">
@@ -131,21 +136,29 @@ export default function MatchingPoolDetails(props: MatchingPoolDetailsProps) {
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">You</Card.Text>
           <Badge className="bg-aqua rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(totalDistributedUser).slice(0, 8)}
+            {formatNumberWithCommas(
+              parseFloat(formatEther(totalDistributedUser).slice(0, 8))
+            )}
           </Badge>
         </Stack>
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">All</Card.Text>
           <Badge className="bg-secondary rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(totalDistributedAll).slice(0, 8)}
+            {formatNumberWithCommas(
+              parseFloat(formatEther(totalDistributedAll).slice(0, 8))
+            )}
           </Badge>
         </Stack>
         <Stack direction="vertical" gap={1} className="w-25">
           <Card.Text className="m-0 pe-0">Others</Card.Text>
           <Badge className="bg-slate rounded-1 p-1 text-start fs-5 fw-normal">
-            {formatEther(totalDistributedAll - totalDistributedUser).slice(
-              0,
-              8
+            {formatNumberWithCommas(
+              parseFloat(
+                formatEther(totalDistributedAll - totalDistributedUser).slice(
+                  0,
+                  8
+                )
+              )
             )}
           </Badge>
         </Stack>

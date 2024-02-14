@@ -12,7 +12,11 @@ import {
   AllocationData,
   MatchingData,
 } from "./StreamingQuadraticFunding";
-import { clampText, perSecondToPerMonth } from "../../lib/utils";
+import {
+  clampText,
+  perSecondToPerMonth,
+  formatNumberWithCommas,
+} from "../../lib/utils";
 import { VIZ_CARD_WIDTH_GRANTEE } from "../../lib/constants";
 
 interface GranteesProps {
@@ -101,37 +105,45 @@ export default function Grantees(props: GranteesProps) {
             >
               <Badge className="bg-aqua w-25 rounded-1 fs-6 text-start fw-normal">
                 {BigInt(userAllocationData[i].flowRate) > 0
-                  ? parseFloat(
-                      perSecondToPerMonth(
-                        Number(
-                          formatEther(BigInt(userAllocationData[i].flowRate))
-                        )
-                      ).toFixed(6)
+                  ? formatNumberWithCommas(
+                      parseFloat(
+                        perSecondToPerMonth(
+                          Number(
+                            formatEther(BigInt(userAllocationData[i].flowRate))
+                          )
+                        ).toFixed(6)
+                      )
                     )
                   : 0}{" "}
               </Badge>
               <Badge className="bg-secondary w-25 rounded-1 px-1 fs-6 text-start fw-normal">
                 {BigInt(directAllocationData[i].flowRate) > 0
-                  ? parseFloat(
-                      perSecondToPerMonth(
-                        Number(
-                          formatEther(
-                            BigInt(directAllocationData[i].flowRate) -
-                              BigInt(userAllocationData[i].flowRate)
+                  ? formatNumberWithCommas(
+                      parseFloat(
+                        perSecondToPerMonth(
+                          Number(
+                            formatEther(
+                              BigInt(directAllocationData[i].flowRate) -
+                                BigInt(userAllocationData[i].flowRate)
+                            )
                           )
-                        )
-                      ).toFixed(6)
+                        ).toFixed(6)
+                      )
                     )
                   : 0}{" "}
               </Badge>
               <Badge className="bg-slate w-25 rounded-1 px-1 fs-6 text-start fw-normal">
                 {BigInt(matchingData.members[i].flowRate) > 0
-                  ? parseFloat(
-                      perSecondToPerMonth(
-                        Number(
-                          formatEther(BigInt(matchingData.members[i].flowRate))
-                        )
-                      ).toFixed(6)
+                  ? formatNumberWithCommas(
+                      parseFloat(
+                        perSecondToPerMonth(
+                          Number(
+                            formatEther(
+                              BigInt(matchingData.members[i].flowRate)
+                            )
+                          )
+                        ).toFixed(6)
+                      )
                     )
                   : 0}{" "}
               </Badge>
