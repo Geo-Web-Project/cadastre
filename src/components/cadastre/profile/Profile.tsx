@@ -60,7 +60,7 @@ function Profile(props: ProfileProps) {
         className="d-none d-xl-block text-light rounded-start"
       >
         {isLoading || data == null ? (
-          <Spinner size='sm' animation="border" role="status"></Spinner>
+          <Spinner size="sm" animation="border" role="status"></Spinner>
         ) : (
           <>
             <FlowingBalance

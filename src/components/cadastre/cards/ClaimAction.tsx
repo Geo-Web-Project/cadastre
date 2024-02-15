@@ -4,7 +4,11 @@ import { BigNumber, ethers } from "ethers";
 import BN from "bn.js";
 import { OffCanvasPanelProps, ParcelFieldsToUpdate } from "../OffCanvasPanel";
 import StreamingInfo from "./StreamingInfo";
-import { SECONDS_IN_YEAR, SSX_HOST, REFERRAL_HOST } from "../../../lib/constants";
+import {
+  SECONDS_IN_YEAR,
+  SSX_HOST,
+  REFERRAL_HOST,
+} from "../../../lib/constants";
 import { fromValueToRate, calculateBufferNeeded } from "../../../lib/utils";
 import TransactionSummaryView from "./TransactionSummaryView";
 import axios from "axios";

@@ -84,19 +84,17 @@ function Profile(props: ProfileProps) {
     },
     { pollingInterval: 10000 }
   );
-  const {
-    isLoading: isLoadingAccountInfoWrapper,
-    data: accountInfoWrapper,
-  } = sfSubgraph.useAccountTokenSnapshotsQuery(
-    {
-      chainId: NETWORK_ID,
-      filter: {
-        account: address,
-        token: DAIX_ADDRESS,
+  const { isLoading: isLoadingAccountInfoWrapper, data: accountInfoWrapper } =
+    sfSubgraph.useAccountTokenSnapshotsQuery(
+      {
+        chainId: NETWORK_ID,
+        filter: {
+          account: address,
+          token: DAIX_ADDRESS,
+        },
       },
-    },
-    { pollingInterval: 10000 }
-  );
+      { pollingInterval: 10000 }
+    );
   const superTokenBalanceWrapper = useFlowingAmount(
     BigInt(accountInfoWrapper?.data[0]?.balanceUntilUpdatedAt ?? 0),
     accountInfoWrapper?.data[0]?.updatedAtTimestamp ?? 0,

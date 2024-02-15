@@ -15,7 +15,13 @@ export default function PassportMintingInstructions(
   const { show, hide } = props;
 
   return (
-    <Modal show={show} contentClassName="bg-dark p-2 rounded-4" size="xl" centered scrollable>
+    <Modal
+      show={show}
+      contentClassName="bg-dark p-2 rounded-4"
+      size="xl"
+      centered
+      scrollable
+    >
       <Modal.Header className="text-primary border-0 pb-0">
         <Modal.Title as="h2">Mint a Gitcoin Passport on Optimism</Modal.Title>
         <Button

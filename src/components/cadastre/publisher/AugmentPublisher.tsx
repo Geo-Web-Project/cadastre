@@ -5,7 +5,10 @@ import Dropdown from "react-bootstrap/Dropdown";
 import Table from "react-bootstrap/Table";
 import PublishingForm from "./PublishingForm";
 import Row from "react-bootstrap/Row";
-import { MediaObjectType, useWorld } from "../../../hooks/geo-web-content/world";
+import {
+  MediaObjectType,
+  useWorld,
+} from "../../../hooks/geo-web-content/world";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
 import { STATE } from "../Map";
 
