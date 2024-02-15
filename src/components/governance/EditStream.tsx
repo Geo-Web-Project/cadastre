@@ -35,6 +35,8 @@ import ArrowForwardIcon from "../../assets/arrow-forward.svg";
 import CopyIcon from "../../assets/copy-light.svg";
 import SuccessIcon from "../../assets/success.svg";
 import ReloadIcon from "../../assets/reload.svg";
+import AddIcon from "../../assets/add.svg";
+import RemoveIcon from "../../assets/remove.svg";
 import { MatchingData } from "./StreamingQuadraticFunding";
 import useFlowingAmount from "../../hooks/flowingAmount";
 import useSuperfluid from "../../hooks/superfluid";
@@ -361,6 +363,22 @@ export default function EditStream(props: EditStreamProps) {
     }
   }, [amountPerTimeInterval, timeInterval]);
 
+  const handleAmountStepping = (stepping: { increment: boolean }) => {
+    const { increment } = stepping;
+
+    if (amountPerTimeInterval === "") {
+      setAmountPerTimeInterval(increment ? "1" : "0");
+    } else if (isNumber(amountPerTimeInterval.replace(/,/g, ""))) {
+      const amount = parseFloat(amountPerTimeInterval.replace(/,/g, ""));
+
+      setAmountPerTimeInterval(
+        `${formatNumberWithCommas(
+          increment ? amount + 1 : amount === 0 ? 0 : amount - 1
+        )}`
+      );
+    }
+  };
+
   const handleAmountSelection = (
     e: React.ChangeEvent<HTMLInputElement>,
     setAmount: (value: string) => void
@@ -369,14 +387,12 @@ export default function EditStream(props: EditStreamProps) {
 
     if (isNumber(value.replace(/,/g, ""))) {
       setAmount(
-        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}${
-          value.endsWith(".") ? "." : ""
-        }`
+        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}`
       );
     } else if (value === "") {
       setAmount("");
     } else if (value === ".") {
-      setAmount("0.");
+      setAmount("0");
     }
   };
 
@@ -454,16 +470,32 @@ export default function EditStream(props: EditStreamProps) {
                 </Badge>
               </Stack>
               <Stack direction="horizontal">
-                <Form.Control
-                  type="text"
-                  placeholder="0"
-                  disabled={!address || !flowRateToReceiver}
-                  value={amountPerTimeInterval}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleAmountSelection(e, setAmountPerTimeInterval)
-                  }
-                  className="bg-purple w-50 border-0 rounded-end-0 text-white shadow-none"
-                />
+                <Stack direction="horizontal" className="w-50">
+                  <Form.Control
+                    type="text"
+                    placeholder="0"
+                    disabled={!address || !flowRateToReceiver}
+                    value={amountPerTimeInterval}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleAmountSelection(e, setAmountPerTimeInterval)
+                    }
+                    className="bg-purple border-0 rounded-end-0 text-white shadow-none"
+                  />
+                  <Button
+                    variant="purple"
+                    className="d-flex align-items-center border-0 rounded-0 fs-4 text-white fw-bold px-1 py-2"
+                    onClick={() => handleAmountStepping({ increment: true })}
+                  >
+                    <Image src={AddIcon} alt="add" width={20} />
+                  </Button>
+                  <Button
+                    variant="purple"
+                    className="d-flex align-items-center border-0 rounded-0 fs-4 text-white fw-bold px-1 py-2"
+                    onClick={() => handleAmountStepping({ increment: false })}
+                  >
+                    <Image src={RemoveIcon} alt="remove" width={20} />
+                  </Button>
+                </Stack>
                 <Dropdown className="w-50">
                   <Dropdown.Toggle
                     variant="blue"
@@ -516,21 +548,6 @@ export default function EditStream(props: EditStreamProps) {
                       }}
                     >
                       {TimeInterval.MONTH}
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      className="text-white"
-                      onClick={() => {
-                        setAmountPerTimeInterval(
-                          convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
-                            timeInterval,
-                            TimeInterval.YEAR
-                          )
-                        );
-                        setTimeInterval(TimeInterval.YEAR);
-                      }}
-                    >
-                      {TimeInterval.YEAR}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>

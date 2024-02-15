@@ -83,7 +83,7 @@ export default function Header(props: HeaderProps) {
           className="w-100 border-bottom border-secondary border-opacity-25"
         >
           <Container fluid>
-            <Row className="align-items-center w-100">
+            <Row className="align-items-center justify-content-between w-100">
               <Col xl="5" className="d-none d-xl-block p-0">
                 <div
                   className="d-flex align-items-center text-light ps-4"
@@ -119,9 +119,11 @@ export default function Header(props: HeaderProps) {
                   </Link>
                 </div>
               </Col>
-              <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
-                <FundsRaisedCounter />
-              </Col>
+              {location.pathname === "/" && (
+                <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
+                  <FundsRaisedCounter />
+                </Col>
+              )}
               <Col
                 xs="4"
                 xxl="5"
@@ -151,9 +153,11 @@ export default function Header(props: HeaderProps) {
                   <NavMenu account={address} />
                 </div>
               </Col>
-              <Col xs="6" sm="5" lg="4" className="d-xl-none p-0">
-                <FundsRaisedCounter />
-              </Col>
+              {location.pathname === "/" && (
+                <Col xs="6" sm="5" lg="4" className="d-xl-none p-0">
+                  <FundsRaisedCounter />
+                </Col>
+              )}
               <Col
                 xs="2"
                 sm="3"
