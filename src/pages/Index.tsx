@@ -1,7 +1,7 @@
 import { useMemo, useLayoutEffect } from "react";
-import Home from "../components/Home";
-import WelcomeChecklist from "../components/WelcomeChecklist";
-import Map, { STATE, GeoWebCoordinate } from "../components/Map";
+import Home from "../components/cadastre/Home";
+import WelcomeChecklist from "../components/cadastre/WelcomeChecklist";
+import Map, { STATE, GeoWebCoordinate } from "../components/cadastre/Map";
 import {
   ApolloClient,
   HttpLink,
@@ -21,7 +21,6 @@ import {
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import { ethers, BigNumber } from "ethers";
-import { useFirebase } from "../lib/Firebase";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { useAccount, useNetwork } from "wagmi";
@@ -46,7 +45,7 @@ import type { AuthenticationStatus } from "@rainbow-me/rainbowkit";
 import * as u8a from "uint8arrays";
 import { syncWorld, SyncWorldResult } from "@geo-web/mud-world-base-setup";
 import { optimism, optimismSepolia } from "viem/chains";
-import { MUDProvider } from "../lib/MUDContext";
+import { MUDProvider } from "../context/MUD";
 import { useEthersSigner } from "../hooks/ethersAdapters";
 import useSuperfluid from "../hooks/superfluid";
 import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
@@ -108,7 +107,6 @@ function IndexPage(props: IndexPageProps) {
   >(null);
   const [library, setLibrary] =
     React.useState<ethers.providers.JsonRpcProvider>();
-  const { firebasePerf } = useFirebase();
   const [auctionStart, setAuctionStart] = React.useState<BigNumber>(
     BigNumber.from(0)
   );
@@ -382,7 +380,6 @@ function IndexPage(props: IndexPageProps) {
         nativeSuperToken &&
         library &&
         geoWebCoordinate &&
-        firebasePerf &&
         sfFramework &&
         worldConfig &&
         worldContract ? (
@@ -395,7 +392,6 @@ function IndexPage(props: IndexPageProps) {
                 account={address?.toLowerCase() ?? ""}
                 w3Client={w3Client}
                 geoWebCoordinate={geoWebCoordinate}
-                firebasePerf={firebasePerf}
                 paymentToken={nativeSuperToken}
                 sfFramework={sfFramework}
                 setPortfolioNeedActionCount={setPortfolioNeedActionCount}

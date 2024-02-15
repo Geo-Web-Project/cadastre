@@ -34,6 +34,9 @@ export const ETHX_ADDRESS = import.meta.env.VITE_ETHX_ADDRESS;
 export const DAI_ADDRESS = import.meta.env.VITE_DAI_ADDRESS;
 export const DAIX_ADDRESS = import.meta.env.VITE_DAIX_ADDRESS;
 export const ALLO_CONTRACT_ADDRESS = import.meta.env.VITE_ALLO_CONTRACT_ADDRESS;
+export const PASSPORT_DECODER_ADDRESS = import.meta.env
+  .VITE_PASSPORT_DECODER_ADDRESS;
+
 export const SUPERFLUID_HOST_ADDRESS = import.meta.env
   .VITE_SUPERFLUID_HOST_ADDRESS;
 export const SUPERFLUID_RESOLVER_ADDRESS = import.meta.env

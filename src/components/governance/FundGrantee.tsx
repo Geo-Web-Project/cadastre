@@ -98,7 +98,7 @@ export default function FundGrantee(props: FundGranteeProps) {
       placement="end"
       backdrop={false}
       className="w-25 bg-dark px-3 overflow-auto border-0"
-      style={{ top: 89 }}
+      style={{ top: 77 }}
     >
       <Stack
         direction="horizontal"

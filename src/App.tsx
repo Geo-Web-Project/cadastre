@@ -45,9 +45,9 @@ import { randomBytes, randomString } from "@stablelib/random";
 import { Cacao, SiweMessage as CacaoSiweMessage } from "@didtools/cacao";
 import { getEIP191Verifier } from "@didtools/pkh-ethereum";
 import merge from "lodash.merge";
-import { STATE } from "./components/Map";
+import { STATE } from "./components/cadastre/Map";
 import Governance from "./pages/Governance";
-import Header from "./components/Header";
+import Header from "./components/shared/Header";
 
 const networkIdToChain: Record<number, Chain> = {
   10: optimism,
