@@ -125,21 +125,25 @@ export default function Visualization(props: VisualizationProps) {
   });
   const [symbolsPerSecondDai, setSymbolsPerSecondDai] = useState(0);
   const [symbolsPerSecondEth, setSymbolsPerSecondEth] = useState(0);
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   const granteeIndexes = range(recipientsDetails.length);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const symbolsGroup = useRef<any>();
 
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.screen.height;
+  const windowWidth = windowDimensions.width;
+  const windowHeight = windowDimensions.height;
   const dimensions: Dimensions = {
     width:
-      transactionPanelState.show && screenWidth > 1980
-        ? screenWidth / 2
+      transactionPanelState.show && windowWidth > 1980
+        ? windowWidth / 2
         : transactionPanelState.show
-        ? screenWidth / 2.5
-        : screenWidth - (VIZ_CARD_WIDTH_SOURCE + VIZ_CARD_WIDTH_GRANTEE),
-    height: screenHeight > 1080 ? 1000 : 750,
+        ? windowWidth / 2.5
+        : windowWidth - (VIZ_CARD_WIDTH_SOURCE + VIZ_CARD_WIDTH_GRANTEE),
+    height: windowHeight > 1080 ? 1000 : 750,
     pathHeight: 90,
   };
 
@@ -166,7 +170,7 @@ export default function Visualization(props: VisualizationProps) {
         endYScale,
         yTransitionProgressScale,
       };
-    }, [transactionPanelState.show]);
+    }, [transactionPanelState.show, windowDimensions]);
 
   useLayoutEffect(() => {
     const svgElement = select(svgRef.current);
@@ -198,7 +202,7 @@ export default function Visualization(props: VisualizationProps) {
     return () => {
       bounds.remove();
     };
-  }, [transactionPanelState.show]);
+  }, [transactionPanelState.show, windowDimensions]);
 
   useEffect(() => {
     let _timerSymbolsDai: Timer | null = null;
@@ -388,7 +392,29 @@ export default function Visualization(props: VisualizationProps) {
     userAllocationData,
     matchingData,
     transactionPanelState.show,
+    windowDimensions,
   ]);
+
+  useEffect(() => {
+    let timerId: NodeJS.Timer;
+
+    const handleResize = () => {
+      clearTimeout(timerId);
+
+      timerId = setTimeout(
+        () =>
+          setWindowDimensions({
+            width: window.innerWidth,
+            height: window.innerHeight,
+          }),
+        250
+      );
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const generateSymbol = (
     elapsed: number,
