@@ -373,7 +373,7 @@ export default function EditStream(props: EditStreamProps) {
 
       setAmountPerTimeInterval(
         `${formatNumberWithCommas(
-          increment ? amount + 1 : amount === 0 ? 0 : amount - 1
+          increment ? amount + 1 : amount - 1 <= 0 ? 0 : amount - 1
         )}`
       );
     }
@@ -387,12 +387,14 @@ export default function EditStream(props: EditStreamProps) {
 
     if (isNumber(value.replace(/,/g, ""))) {
       setAmount(
-        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}`
+        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}${
+          isFundingMatchingPool && value.endsWith(".") ? "." : ""
+        }`
       );
     } else if (value === "") {
       setAmount("");
     } else if (value === ".") {
-      setAmount("0");
+      setAmount(isFundingMatchingPool ? "0." : "0");
     }
   };
 
@@ -469,7 +471,7 @@ export default function EditStream(props: EditStreamProps) {
                   {superTokenSymbol}
                 </Badge>
               </Stack>
-              <Stack direction="horizontal">
+              <Stack direction="horizontal" gap={2}>
                 <Stack direction="horizontal" className="w-50">
                   <Form.Control
                     type="text"
@@ -479,15 +481,8 @@ export default function EditStream(props: EditStreamProps) {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleAmountSelection(e, setAmountPerTimeInterval)
                     }
-                    className="bg-purple border-0 rounded-end-0 text-white shadow-none"
+                    className="bg-purple border-0 rounded-3 rounded-end-0 text-white shadow-none"
                   />
-                  <Button
-                    variant="purple"
-                    className="d-flex align-items-center border-0 rounded-0 fs-4 text-white fw-bold px-1 py-2"
-                    onClick={() => handleAmountStepping({ increment: true })}
-                  >
-                    <Image src={AddIcon} alt="add" width={20} />
-                  </Button>
                   <Button
                     variant="purple"
                     className="d-flex align-items-center border-0 rounded-0 fs-4 text-white fw-bold px-1 py-2"
@@ -495,11 +490,18 @@ export default function EditStream(props: EditStreamProps) {
                   >
                     <Image src={RemoveIcon} alt="remove" width={20} />
                   </Button>
+                  <Button
+                    variant="purple"
+                    className="d-flex align-items-center border-0 rounded-0 rounded-end-3 fs-4 text-white fw-bold px-1 py-2"
+                    onClick={() => handleAmountStepping({ increment: true })}
+                  >
+                    <Image src={AddIcon} alt="add" width={20} />
+                  </Button>
                 </Stack>
                 <Dropdown className="w-50">
                   <Dropdown.Toggle
                     variant="blue"
-                    className="d-flex justify-content-between align-items-center w-100 bg-purple border-0 rounded-start-0 fs-4"
+                    className="d-flex justify-content-between align-items-center w-100 bg-purple border-0 rounded-3 fs-4"
                   >
                     {timeInterval}
                   </Dropdown.Toggle>
@@ -1378,37 +1380,38 @@ export default function EditStream(props: EditStreamProps) {
               Help spread the word about Streaming Quadratic Funding by sharing
               your contribution with your network:
             </Card.Text>
-            <Stack
-              direction="horizontal"
-              gap={3}
-              className="justify-content-around align-items-end"
-            >
+            <Stack direction="horizontal" className="justify-content-around">
               <Card.Link
-                className="d-flex flex-column align-items-center twitter-share-button text-decoration-none text-white fs-5 m-0 w-33"
+                className="d-flex flex-column align-items-center twitter-share-button text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${granteeName}%20in%20the%20%23streamingquadratic%20funding%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
+                href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${granteeName}%20in%20the%20%23streamingqf%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
                 data-size="large"
               >
-                <Image src={XIcon} alt="x social" width={28} />
+                <Image src={XIcon} alt="x social" width={28} height={22} />
                 <span style={{ fontSize: "10px" }}>Post to X</span>
               </Card.Link>
               <Card.Link
                 className="d-flex flex-column align-items-center text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${granteeName}+in+the+%23streamingquadraticfunding+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+Superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
+                href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${granteeName}+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
               >
-                <Image src={FarcasterIcon} alt="farcaster" width={28} />
+                <Image
+                  src={FarcasterIcon}
+                  alt="farcaster"
+                  width={28}
+                  height={22}
+                />
                 <span style={{ fontSize: "10px" }}>Cast to Farcaster</span>
               </Card.Link>
               <Card.Link
-                className="d-flex flex-column align-items-center text-decoration-none text-white fs-5 m-0 w-33"
+                className="d-flex flex-column align-items-center text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://hey.xyz/?text=I+just+opened+a+contribution+stream+to+GRANTEE+in+the+%23streamingquadraticfunding+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
+                href={`https://hey.xyz/?text=I+just+opened+a+contribution+stream+to+${granteeName}+in+the+%23streamingqf+pilot+round+presented+by+Geo+Web%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
               >
-                <Image src={LensIcon} alt="lens" width={28} />
+                <Image src={LensIcon} alt="lens" width={28} height={22} />
                 <span style={{ fontSize: "10px" }}>Post on Lens</span>
               </Card.Link>
             </Stack>

@@ -15,7 +15,7 @@ import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
 import { useMediaQuery } from "../../hooks/mediaQuery";
 import { useEthersSigner, useEthersProvider } from "../../hooks/ethersAdapters";
-import FundsRaisedCounter from "../cadastre/FundsRaisedCounter";
+import FundsRaisedCounter from "./FundsRaisedCounter";
 import ConnectWallet from "./ConnectWallet";
 import CadastreProfile from "../cadastre/profile/Profile";
 import GovernanceProfile from "../governance/Profile";
@@ -99,7 +99,7 @@ export default function Header(props: HeaderProps) {
                   />
                   <Link
                     to="/"
-                    className={`position-relative ms-2 fs-1 text-decoration-none ${
+                    className={`position-relative ms-2 fs-3 text-decoration-none ${
                       location.pathname === "/"
                         ? "text-white"
                         : "text-info header-link"
@@ -109,22 +109,20 @@ export default function Header(props: HeaderProps) {
                   </Link>
                   <Link
                     to="/governance"
-                    className={`position-relative d-flex ms-4 fs-1 text-decoration-none ${
+                    className={`position-relative d-flex ms-4 fs-3 text-decoration-none ${
                       location.pathname === "/governance"
                         ? "text-white"
                         : "text-info header-link beta-link"
                     }`}
                   >
                     Governance
-                    <span className="fs-4 align-self-start">BETA</span>
+                    <span className="fs-5 align-self-start">BETA</span>
                   </Link>
                 </div>
               </Col>
-              {location.pathname === "/" && (
                 <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
                   <FundsRaisedCounter />
                 </Col>
-              )}
               <Col
                 xs="4"
                 xxl="5"
@@ -156,11 +154,9 @@ export default function Header(props: HeaderProps) {
                   <NavMenu account={address} />
                 </div>
               </Col>
-              {location.pathname === "/" && (
                 <Col xs="6" sm="5" lg="4" className="d-xl-none p-0">
                   <FundsRaisedCounter />
                 </Col>
-              )}
               <Col
                 xs="2"
                 sm="3"

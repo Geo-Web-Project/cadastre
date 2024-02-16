@@ -67,9 +67,15 @@ export default function MatchingPoolDetails(props: MatchingPoolDetailsProps) {
 
   return (
     <Stack direction="vertical" className="bg-blue rounded-4 p-2 pt-0">
-      <Stack direction="horizontal" gap={2} className="align-items-end">
-        <Image src={SQFIcon} alt="SQF" width={128} />
-        <Card className="bg-transparent text-white border-0">
+      <Stack direction="horizontal" gap={2} className="align-items-end mt-3">
+        <Image
+          src={SQFIcon}
+          alt="SQF"
+          width={96}
+          height={96}
+          className="ms-2 rounded-4"
+        />
+        <Card className="bg-transparent text-white border-0 ms-3">
           <Card.Title className="text-secondary fs-4">
             Matching Stream
           </Card.Title>
@@ -165,17 +171,19 @@ export default function MatchingPoolDetails(props: MatchingPoolDetailsProps) {
         <Card.Text className="w-20 mt-3">total funding</Card.Text>
       </Stack>
       <Card.Text className="m-0 p-2 fs-5" style={{ maxWidth: 500 }}>
-        100% of Geo Web PCO land market revenue is allocated through streaming
-        quadratic funding. You can help fund more public goods by opening a
-        direct stream to the matching pool OR by claiming a parcel at{" "}
+        Streaming Quadratic Funding is a collaboration between Superfluid,
+        Gitcoin Allo, & the Geo Web. This pilot matching pool is funded by the
+        Geo Web's PCO land market and generous support from{" "}
         <Card.Link
-          href="https://geoweb.land"
+          href="https://publicnouns.wtf"
           target="_blank"
           rel="noreferrer"
           className="text-decoration-none"
         >
-          https://geoweb.land
+          Public Nouns
         </Card.Link>
+        . You can help fund more public goods by claiming land on the Cadastre
+        or opening a direct stream below.
       </Card.Text>
     </Stack>
   );

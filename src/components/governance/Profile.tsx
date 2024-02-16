@@ -122,7 +122,7 @@ function Profile(props: ProfileProps) {
             <Spinner size="sm" animation="border" role="status"></Spinner>
           ) : (
             <Card.Text className="m-0">
-              {formatEther(superTokenBalanceWrapper).slice(0, 10)} DAIx
+              {formatEther(superTokenBalanceWrapper).slice(0, 8)} DAIx
             </Card.Text>
           )}
         </Button>
@@ -309,7 +309,7 @@ function Profile(props: ProfileProps) {
             <Image
               src={token === Token.ETHx ? ETHLogo : DAILogo}
               alt="token logo"
-              width={22}
+              width={token === Token.ETHx ? 15 : 22}
             />
             <Card.Text className="m-0 text-white w-33 overflow-hidden text-truncate">
               {token === Token.ETHx
@@ -339,7 +339,7 @@ function Profile(props: ProfileProps) {
             <Image
               src={token === Token.ETHx ? ETHLogo : DAILogo}
               alt="close"
-              width={22}
+              width={token === Token.ETHx ? 15 : 22}
             />
             <Card.Text className="m-0 text-white w33 overflow-hidden text-truncate">
               {formatNumberWithCommas(

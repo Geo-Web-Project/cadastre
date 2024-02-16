@@ -90,7 +90,7 @@ export default function RecipientDetails(props: RecipientDetailsProps) {
       <Stack direction="horizontal" gap={2} className="align-items-end">
         <Image
           src={image}
-          alt="SQF"
+          alt="logo"
           width={96}
           height={96}
           className="ms-2 rounded-4"

@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import Spinner from "react-bootstrap/Spinner";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { FlowingBalance } from "./profile/FlowingBalance";
+import { FlowingBalance } from "../cadastre/profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
 import { useEthersProvider } from "../../hooks/ethersAdapters";
 import { NETWORK_ID } from "../../lib/constants";
@@ -47,8 +47,8 @@ function FundsRaisedCounter() {
       placement="bottom"
       overlay={
         <Tooltip>
-          100% of the Network Fees collected from the Geo Web's land market are
-          used to fund public goods. This is the total collected so far.
+          The Geo Web land market generates streaming funding for public goods.
+          You can help allocate it in real-time on the Governance tab.
         </Tooltip>
       }
     >
