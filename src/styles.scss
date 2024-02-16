@@ -234,7 +234,7 @@ input[type="number"] {
     right: 406px;
   }
   @media (max-width: 576px) {
-    top: 96px;
+    top: 83px;
     right: 255px;
     width: 42px !important;
     height: 42px !important;
@@ -366,4 +366,8 @@ td {
 
 .beta-link:hover::before {
   background-size: 80% 2px !important;
+}
+
+.dropdown-custom-arrow.dropdown-toggle::after {
+  display: none !important;
 }

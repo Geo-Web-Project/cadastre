@@ -142,6 +142,14 @@ function Profile(props: ProfileProps) {
           onClick={handleShowProfile}
           className="ms-3 d-xl-none"
         ></Button>
+        <Button
+          variant="link"
+          disabled={showProfile}
+          onClick={handleShowProfile}
+          className="ms-3 d-xl-none"
+        >
+          <Image width={46} src="account-circle.svg" />
+        </Button>
       </ButtonGroup>
       <Offcanvas
         show={showProfile}

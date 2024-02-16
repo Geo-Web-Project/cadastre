@@ -10,6 +10,7 @@ import Offcanvas from "react-bootstrap/Offcanvas";
 import RecipientDetails from "./RecipientDetails";
 import EditStream from "./EditStream";
 import CloseIcon from "../../assets/close.svg";
+import { useMediaQuery } from "../../hooks/mediaQuery";
 import useAllo from "../../hooks/allo";
 import useSuperfluid from "../../hooks/superfluid";
 import {
@@ -52,6 +53,7 @@ export default function FundGrantee(props: FundGranteeProps) {
   const { data: walletClient } = useWalletClient();
   const { alloStrategy, recipients } = useAllo();
   const { wrapperSuperToken, deleteFlow } = useSuperfluid(address);
+  const { isMobile, isTablet } = useMediaQuery();
 
   const allocate = async () => {
     if (!walletClient) {
@@ -80,25 +82,17 @@ export default function FundGrantee(props: FundGranteeProps) {
       granteeIndex: null,
     });
 
-  if (!wrapperSuperToken) {
-    return (
-      <Spinner
-        animation="border"
-        role="status"
-        className="position-relative top-50 start-50 text-white"
-      ></Spinner>
-    );
-  }
-
   return (
     <Offcanvas
       show
       scroll
       onHide={closeOffcanvas}
-      placement="end"
+      placement={isMobile ? "bottom" : "end"}
       backdrop={false}
-      className="w-25 bg-dark px-3 overflow-auto border-0"
-      style={{ top: 77 }}
+      className={`${
+        isMobile ? "w-100 h-100" : isTablet ? "w-50" : "w-25"
+      } bg-dark px-3 overflow-auto border-0`}
+      style={{ top: isMobile ? "auto" : 89 }}
     >
       <Stack
         direction="horizontal"
@@ -113,34 +107,44 @@ export default function FundGrantee(props: FundGranteeProps) {
           <Image src={CloseIcon} alt="close" width={28} />
         </Button>
       </Stack>
-      <Stack
-        direction="vertical"
-        gap={4}
-        className="flex-grow-0 rounded-4 text-white pb-3"
-      >
-        <RecipientDetails
-          flowRateToReceiver={userAllocationData[granteeIndex].flowRate}
-          {...props}
-        />
-        <EditStream
-          receiver={granteeAddress}
-          granteeName={name}
-          flowRateToReceiver={userAllocationData[granteeIndex].flowRate}
-          newFlowRate={newFlowRate}
-          setNewFlowRate={setNewFlowRate}
-          isFundingMatchingPool={false}
-          transactionsToQueue={[
-            BigInt(newFlowRate) > 0
-              ? allocate
-              : () =>
-                  deleteFlow(
-                    wrapperSuperToken,
-                    recipients ? recipients[granteeIndex].superApp : "0x"
-                  ),
-          ]}
-          {...props}
-        />
-      </Stack>
+      {!wrapperSuperToken ? (
+        <Spinner
+          animation="border"
+          role="status"
+          className="position-relative top-50 start-50 text-white"
+        ></Spinner>
+      ) : (
+        <>
+          <Stack
+            direction="vertical"
+            gap={4}
+            className="flex-grow-0 rounded-4 text-white pb-3"
+          >
+            <RecipientDetails
+              flowRateToReceiver={userAllocationData[granteeIndex].flowRate}
+              {...props}
+            />
+            <EditStream
+              receiver={granteeAddress}
+              granteeName={name}
+              flowRateToReceiver={userAllocationData[granteeIndex].flowRate}
+              newFlowRate={newFlowRate}
+              setNewFlowRate={setNewFlowRate}
+              isFundingMatchingPool={false}
+              transactionsToQueue={[
+                BigInt(newFlowRate) > 0
+                  ? allocate
+                  : () =>
+                      deleteFlow(
+                        wrapperSuperToken,
+                        recipients ? recipients[granteeIndex].superApp : "0x"
+                      ),
+              ]}
+              {...props}
+            />
+          </Stack>
+        </>
+      )}
     </Offcanvas>
   );
 }

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from "wagmi";
 import {
   ApolloClient,
@@ -11,8 +11,11 @@ import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Stack from "react-bootstrap/Stack";
+import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
+import ExpandMoreIcon from "../../assets/expand-more.svg";
 import { useMediaQuery } from "../../hooks/mediaQuery";
 import { useEthersSigner, useEthersProvider } from "../../hooks/ethersAdapters";
 import FundsRaisedCounter from "./FundsRaisedCounter";
@@ -39,6 +42,7 @@ type HeaderProps = {
 export default function Header(props: HeaderProps) {
   const { isFullScreen } = props;
   const location = useLocation();
+  const navigate = useNavigate();
 
   const ethersSigner = useEthersSigner();
   const ethersProvider = useEthersProvider();
@@ -80,11 +84,50 @@ export default function Header(props: HeaderProps) {
       {(!isMobile && !isTablet) || !isFullScreen ? (
         <Navbar
           bg="dark"
-          style={{ position: "sticky", top: 0, zIndex: 10 }}
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            height: !isMobile ? 89 : "auto",
+          }}
           className="w-100 border-bottom border-secondary border-opacity-25"
         >
           <Container fluid>
             <Row className="align-items-center justify-content-between w-100">
+              <Col
+                xs="6"
+                className="d-flex align-items-center gap-2 d-xl-none p-0"
+              >
+                <Image
+                  src="logo.png"
+                  className="ps-4"
+                  style={{ fontSize: "2.5rem", height: "1.1em" }}
+                />
+                <NavDropdown
+                  bsPrefix="dropdown-custom-arrow"
+                  title={
+                    <Stack
+                      direction="horizontal"
+                      className="align-self-center align-items-center text-white fs-3"
+                      style={{
+                        fontFamily: "Abel",
+                      }}
+                    >
+                      {location.pathname === "/" ? "Cadastre" : "Governance"}
+                      <Image src={ExpandMoreIcon} alt="pages" width={22} />
+                    </Stack>
+                  }
+                  menuVariant="dark"
+                  align="end"
+                >
+                  <NavDropdown.Item onClick={() => navigate("/")}>
+                    Cadastre
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate("/governance")}>
+                    Governance
+                  </NavDropdown.Item>
+                </NavDropdown>
+              </Col>
               <Col xl="5" className="d-none d-xl-block p-0">
                 <div
                   className="d-flex align-items-center text-light ps-4"
@@ -120,13 +163,15 @@ export default function Header(props: HeaderProps) {
                   </Link>
                 </div>
               </Col>
-                <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
-                  <FundsRaisedCounter />
-                </Col>
+              <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
+                <FundsRaisedCounter />
+              </Col>
               <Col
                 xs="4"
+                sm="5"
+                xl="4"
                 xxl="5"
-                className="d-flex justify-content-sm-start justify-content-xl-end pe-xl-1"
+                className="d-flex justify-content-end pe-0 pe-xl-1"
               >
                 {location.pathname === "/" &&
                 address &&
@@ -150,17 +195,14 @@ export default function Header(props: HeaderProps) {
                 ) : (
                   <ConnectWallet variant="header" />
                 )}
-                <div className="d-none d-xl-block ps-4">
+                <div className="d-none d-xl-block">
                   <NavMenu account={address} />
                 </div>
               </Col>
-                <Col xs="6" sm="5" lg="4" className="d-xl-none p-0">
-                  <FundsRaisedCounter />
-                </Col>
               <Col
                 xs="2"
-                sm="3"
-                lg="4"
+                sm="1"
+                xl="4"
                 className="d-flex d-xl-none justify-content-end p-0"
               >
                 <NavMenu account={address} />

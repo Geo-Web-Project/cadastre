@@ -26,6 +26,7 @@ import {
   MatchingData,
 } from "./StreamingQuadraticFunding";
 import { RecipientDetails } from "../../context/Allo";
+import { useMediaQuery } from "../../hooks/mediaQuery";
 import {
   weightedPick,
   getRandomNumberInRange,
@@ -130,6 +131,8 @@ export default function Visualization(props: VisualizationProps) {
     height: window.innerHeight,
   });
 
+  const { isMobile } = useMediaQuery();
+
   const granteeIndexes = range(recipientsDetails.length);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const symbolsGroup = useRef<any>();
@@ -140,6 +143,10 @@ export default function Visualization(props: VisualizationProps) {
     width:
       transactionPanelState.show && windowWidth > 1980
         ? windowWidth / 2
+        : transactionPanelState.isMatchingPool && windowWidth < 800
+        ? windowWidth - VIZ_CARD_WIDTH_GRANTEE
+        : transactionPanelState.granteeIndex !== null && windowWidth < 800
+        ? windowWidth - VIZ_CARD_WIDTH_SOURCE
         : transactionPanelState.show
         ? windowWidth / 2.5
         : windowWidth - (VIZ_CARD_WIDTH_SOURCE + VIZ_CARD_WIDTH_GRANTEE),
@@ -396,6 +403,10 @@ export default function Visualization(props: VisualizationProps) {
   ]);
 
   useEffect(() => {
+    if (!window.visualViewport) {
+      return;
+    }
+
     let timerId: NodeJS.Timer;
 
     const handleResize = () => {
@@ -411,10 +422,14 @@ export default function Visualization(props: VisualizationProps) {
       );
     };
 
-    window.addEventListener("resize", handleResize);
+    window.visualViewport.addEventListener("resize", handleResize);
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+      }
+    };
+  }, [window.visualViewport]);
 
   const generateSymbol = (
     elapsed: number,
@@ -582,7 +597,7 @@ export default function Visualization(props: VisualizationProps) {
 
   return (
     <>
-      <Stack direction="horizontal">
+      <Stack direction={isMobile ? "vertical" : "horizontal"}>
         <FundingSources
           dimensions={dimensions}
           startYScale={startYScale}
@@ -590,7 +605,13 @@ export default function Visualization(props: VisualizationProps) {
           symbolsPerSecondMatching={symbolsPerSecondEth}
           {...props}
         />
-        <svg width={dimensions.width} height={dimensions.height} ref={svgRef} />
+        {!isMobile && (
+          <svg
+            width={dimensions.width}
+            height={dimensions.height}
+            ref={svgRef}
+          />
+        )}
         {datasetDai && datasetEth && (
           <Grantees
             grantees={recipientsDetails.map((details) => details.name)}

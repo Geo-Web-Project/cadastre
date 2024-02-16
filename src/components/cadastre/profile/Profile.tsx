@@ -122,7 +122,7 @@ function Profile(props: ProfileProps) {
             </Badge>
           </OverlayTrigger>
         ) : (
-          <Image width={48} src="./account-circle.svg" />
+          <Image width={46} src="./account-circle.svg" />
         )}
       </Button>
     </ButtonGroup>

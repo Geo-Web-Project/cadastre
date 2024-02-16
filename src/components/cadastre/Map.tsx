@@ -1162,11 +1162,14 @@ function Map(props: MapProps) {
             showCompass={false}
             style={{
               bottom:
-                (isMobile || isTablet) &&
-                interactionState === STATE.CLAIM_SELECTING
-                  ? `calc(193px + ${DRAWER_CLAIM_HEIGHT}px)`
-                  : isMobile || isTablet
-                  ? "198px"
+                isTablet && interactionState === STATE.CLAIM_SELECTING
+                  ? `calc(180px + ${DRAWER_CLAIM_HEIGHT}px)`
+                  : isTablet
+                  ? "204px"
+                  : isMobile && interactionState === STATE.CLAIM_SELECTING
+                  ? `calc(152px + ${DRAWER_CLAIM_HEIGHT}px)`
+                  : isMobile
+                  ? "186px"
                   : "208px",
               visibility:
                 (isMobile || isTablet) &&
@@ -1185,7 +1188,7 @@ function Map(props: MapProps) {
           position: "absolute",
           bottom:
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
-              ? `calc(84px + ${DRAWER_CLAIM_HEIGHT}px)`
+              ? `calc(56px + ${DRAWER_CLAIM_HEIGHT}px)`
               : isTablet
               ? "80px"
               : "90px",

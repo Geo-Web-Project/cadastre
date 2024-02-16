@@ -3,13 +3,17 @@ import { Address } from "viem";
 import { useAccount } from "wagmi";
 import Container from "react-bootstrap/Container";
 import Stack from "react-bootstrap/Stack";
+import Card from "react-bootstrap/Card";
+import Image from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
+import RotatePhoneIcon from "../../assets/rotate-phone.svg";
 import FundMatchingPool from "./FundMatchingPool";
 import Visualization from "./Visualization";
 import FundGrantee from "./FundGrantee";
 import useAllo from "../../hooks/allo";
+import { useMediaQuery } from "../../hooks/mediaQuery";
 import useRoundQuery from "../../hooks/roundQuery";
 import { recipientIds } from "../../lib/governance/recipientIds";
 
@@ -68,6 +72,7 @@ export default function StreamingQuadraticFunding() {
       isMatchingPool: false,
     });
 
+  const { isMobile, isTablet } = useMediaQuery();
   const { address } = useAccount();
   const { recipients, recipientsDetails } = useAllo();
   const { userAllocationData, directAllocationData, matchingData } =
@@ -93,24 +98,37 @@ export default function StreamingQuadraticFunding() {
     <Container fluid className="bg-purple">
       <Row>
         {transactionPanelState.show && transactionPanelState.isMatchingPool && (
-          <Col xs="3" className="p-0">
+          <Col sm="3" className="p-0">
             <FundMatchingPool
               setTransactionPanelState={setTransactionPanelState}
             />
           </Col>
         )}
-        <Col xs={transactionPanelState.show ? "9" : 0} className="px-4">
+        <Col
+          xs={!isMobile && !isTablet && transactionPanelState.show ? "9" : 0}
+          className="px-4"
+        >
           <Stack direction="vertical" className="justify-content-stretch pt-3">
-            <p className="d-flex fs-3 text-aqua mb-0">
+            <Card.Text className="d-flex fs-3 text-aqua mb-0">
               Streaming Quadratic Funding
-            </p>
-            <p className="text-white fs-4 mb-1">
+            </Card.Text>
+            <Card.Text className="text-white fs-4 mb-1">
               A quadratic funding round every second
-            </p>
-            <p className="text-info fs-5 mb-0">
+            </Card.Text>
+            <Card.Text className="text-info fs-5 mb-0">
               Beta Run - February 20 - April 20, 2024
-            </p>
+            </Card.Text>
           </Stack>
+          {isMobile && (
+            <Stack
+              direction="horizontal"
+              gap={2}
+              className="align-items-center bg-dark text-white rounded-3 mt-3 p-2"
+            >
+              <Image src={RotatePhoneIcon} alt="rotate" />
+              <Card.Text>See SQF allocated in real-time in landscape</Card.Text>
+            </Stack>
+          )}
           <Visualization
             transactionPanelState={transactionPanelState}
             setTransactionPanelState={setTransactionPanelState}
@@ -122,7 +140,7 @@ export default function StreamingQuadraticFunding() {
         </Col>
         {transactionPanelState.show &&
           transactionPanelState.granteeIndex !== null && (
-            <Col xs="3" className="p-0">
+            <Col sm="3" className="p-0">
               <FundGrantee
                 key={transactionPanelState.granteeIndex}
                 userAllocationData={userAllocationData}
