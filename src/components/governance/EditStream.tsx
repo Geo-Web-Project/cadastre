@@ -481,22 +481,32 @@ export default function EditStream(props: EditStreamProps) {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleAmountSelection(e, setAmountPerTimeInterval)
                     }
-                    className="bg-purple border-0 rounded-3 rounded-end-0 text-white shadow-none"
+                    className={`bg-purple border-0 rounded-3 ${
+                      isFundingMatchingPool ? "" : "rounded-end-0"
+                    } text-white shadow-none`}
                   />
-                  <Button
-                    variant="purple"
-                    className="d-flex align-items-center border-0 rounded-0 fs-4 text-white fw-bold px-1 py-2"
-                    onClick={() => handleAmountStepping({ increment: false })}
-                  >
-                    <Image src={RemoveIcon} alt="remove" width={20} />
-                  </Button>
-                  <Button
-                    variant="purple"
-                    className="d-flex align-items-center border-0 rounded-0 rounded-end-3 fs-4 text-white fw-bold px-1 py-2"
-                    onClick={() => handleAmountStepping({ increment: true })}
-                  >
-                    <Image src={AddIcon} alt="add" width={20} />
-                  </Button>
+                  {!isFundingMatchingPool && (
+                    <>
+                      <Button
+                        variant="purple"
+                        className="d-flex align-items-center border-0 rounded-0 fs-4 px-1 py-2"
+                        onClick={() =>
+                          handleAmountStepping({ increment: false })
+                        }
+                      >
+                        <Image src={RemoveIcon} alt="remove" width={20} />
+                      </Button>
+                      <Button
+                        variant="purple"
+                        className="d-flex align-items-center border-0 rounded-0 rounded-end-3 fs-4 px-1 py-2"
+                        onClick={() =>
+                          handleAmountStepping({ increment: true })
+                        }
+                      >
+                        <Image src={AddIcon} alt="add" width={20} />
+                      </Button>
+                    </>
+                  )}
                 </Stack>
                 <Dropdown className="w-50">
                   <Dropdown.Toggle
@@ -1385,7 +1395,9 @@ export default function EditStream(props: EditStreamProps) {
                 className="d-flex flex-column align-items-center twitter-share-button text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${granteeName}%20in%20the%20%23streamingqf%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
+                href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${
+                  isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
+                }%20in%20the%20%23streamingqf%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
                 data-size="large"
               >
                 <Image src={XIcon} alt="x social" width={28} height={22} />
@@ -1395,7 +1407,9 @@ export default function EditStream(props: EditStreamProps) {
                 className="d-flex flex-column align-items-center text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${granteeName}+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
+                href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${
+                  isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
+                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
               >
                 <Image
                   src={FarcasterIcon}
@@ -1409,7 +1423,9 @@ export default function EditStream(props: EditStreamProps) {
                 className="d-flex flex-column align-items-center text-decoration-none text-white fs-5 m-0 w-50"
                 rel="noreferrer"
                 target="_blank"
-                href={`https://hey.xyz/?text=I+just+opened+a+contribution+stream+to+${granteeName}+in+the+%23streamingqf+pilot+round+presented+by+Geo+Web%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
+                href={`https://hey.xyz/?text=I+just+opened+a+contribution+stream+to+${
+                  isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
+                }+in+the+%23streamingqf+pilot+round+presented+by+Geo+Web%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
               >
                 <Image src={LensIcon} alt="lens" width={28} height={22} />
                 <span style={{ fontSize: "10px" }}>Post on Lens</span>
