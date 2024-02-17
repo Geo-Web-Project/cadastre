@@ -121,19 +121,29 @@ export default function FundingSources(props: FundingSourcesProps) {
             style={{
               position: isMobile ? "static" : "absolute",
               top: startYScale(0) - 95,
-              height: dimensions.pathHeight,
+              height: isMobile ? 100 : dimensions.pathHeight,
             }}
           >
-            <Card.Header className="p-0 border-0 fs-4">You</Card.Header>
-            <Card.Body className="d-flex flex-column justify-content-center gap-1 p-0 pb-1 fs-6">
+            <Card.Header
+              className={`p-0 border-0 ${isMobile ? "fs-3" : "fs-4"}`}
+            >
+              You
+            </Card.Header>
+            <Card.Body
+              className={`d-flex flex-column justify-content-center gap-1 p-0 pb-1 ${
+                isMobile ? "fs-5" : "fs-6"
+              }`}
+            >
               <Stack
                 direction="horizontal"
                 gap={1}
                 className="align-items-center"
               >
-                <Image src={DAIWhite} alt="dai" width={14} />
+                <Image src={DAIWhite} alt="dai" width={isMobile ? 16 : 14} />
                 <Badge
-                  className="w-75 m-0 rounded-1 px-1 bg-aqua fs-6 text-white fw-normal text-start"
+                  className={`w-75 m-0 rounded-1 px-1 bg-aqua text-white fw-normal text-start ${
+                    isMobile ? "fs-5" : "fs-6"
+                  }`}
                   style={{
                     background:
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
@@ -154,9 +164,11 @@ export default function FundingSources(props: FundingSourcesProps) {
                 gap={1}
                 className="align-items-center"
               >
-                <Image src={DAIWhite} alt="dai" width={14} />
+                <Image src={DAIWhite} alt="dai" width={isMobile ? 16 : 14} />
                 <Badge
-                  className="w-75 m-0 rounded-1 px-1 bg-aqua fs-6 text-white text-start fw-normal"
+                  className={`w-75 m-0 rounded-1 px-1 bg-aqua text-white fw-normal text-start ${
+                    isMobile ? "fs-5" : "fs-6"
+                  }`}
                   style={{
                     background:
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
@@ -180,33 +192,49 @@ export default function FundingSources(props: FundingSourcesProps) {
               position: isMobile ? "static" : "absolute",
               top: startYScale(1) - 95,
               width: VIZ_CARD_WIDTH_SOURCE,
-              height: dimensions.pathHeight,
+              height: isMobile ? 100 : dimensions.pathHeight,
             }}
           >
             <Stack
               direction="horizontal"
               className="justify-content-between align-items-center"
             >
-              <Card.Header className="d-flex p-0 border-0 fs-4 w-100">
+              <Card.Header
+                className={`d-flex p-0 border-0 w-100 ${
+                  isMobile ? "fs-3" : "fs-4"
+                }`}
+              >
                 Direct Funders
               </Card.Header>
               <Stack
                 direction="vertical"
-                className="align-items-center fs-6 opacity-50"
+                className={`align-items-center opacity-50 ${
+                  isMobile ? "fs-5" : "fs-6"
+                }`}
               >
                 {contributionsCountDirect}
-                <Image src={ContributionsIcon} alt="contributions" width={16} />
+                <Image
+                  src={ContributionsIcon}
+                  alt="contributions"
+                  width={isMobile ? 18 : 16}
+                />
               </Stack>
             </Stack>
-            <Card.Body className="d-flex flex-column justify-content-center gap-1 p-0 fs-6">
+            <Card.Body
+              className={`d-flex flex-column justify-content-center gap-1 p-0 ${
+                isMobile ? "fs-5" : "fs-6"
+              }`}
+            >
               <Stack
                 direction="horizontal"
                 gap={1}
                 className="align-items-center"
               >
-                <Image src={DAIWhite} alt="dai" width={14} />
+                <Image src={DAIWhite} alt="dai" width={isMobile ? 16 : 14} />
                 <Badge
-                  className="w-75 m-0 rounded-1 px-1 bg-secondary fs-6 text-white fw-normal text-start"
+                  className={`w-75 m-0 rounded-1 px-1 bg-secondary text-white fw-normal text-start ${
+                    isMobile ? "fs-5" : "fs-6"
+                  }`}
                   style={{
                     background:
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
@@ -227,9 +255,11 @@ export default function FundingSources(props: FundingSourcesProps) {
                 gap={1}
                 className="align-items-center"
               >
-                <Image src={DAIWhite} alt="dai" width={14} />
+                <Image src={DAIWhite} alt="dai" width={isMobile ? 16 : 14} />
                 <Badge
-                  className="w-75 m-0 rounded-1 px-1 bg-secondary fs-6 text-start fw-normal text-white"
+                  className={`w-75 m-0 rounded-1 px-1 bg-secondary text-white fw-normal text-start ${
+                    isMobile ? "fs-5" : "fs-6"
+                  }`}
                   style={{
                     background:
                       "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
@@ -253,7 +283,7 @@ export default function FundingSources(props: FundingSourcesProps) {
               position: isMobile ? "static" : "absolute",
               top: startYScale(2) - 95,
               width: VIZ_CARD_WIDTH_SOURCE,
-              height: dimensions.pathHeight,
+              height: isMobile ? 100 : dimensions.pathHeight,
             }}
           >
             <Stack direction="horizontal" gap={2} className="h-100 p-1">
@@ -276,14 +306,18 @@ export default function FundingSources(props: FundingSourcesProps) {
                   className="justify-content-between align-items-center"
                 >
                   <Card.Header
-                    className="p-0 border-0 fs-4 w-100"
+                    className={`p-0 border-0 w-100 ${
+                      isMobile ? "fs-3" : "fs-4"
+                    }`}
                     style={{ lineHeight: "18px" }}
                   >
                     Quadratic Matching
                   </Card.Header>
                   <Stack
                     direction="vertical"
-                    className="align-items-center fs-6 opacity-50"
+                    className={`align-items-center opacity-50 ${
+                      isMobile ? "fs-5" : "fs-6"
+                    }`}
                   >
                     {
                       matchingData.poolDistributors.filter(
@@ -293,19 +327,25 @@ export default function FundingSources(props: FundingSourcesProps) {
                     <Image
                       src={ContributionsIcon}
                       alt="contributions"
-                      width={16}
+                      width={isMobile ? 18 : 16}
                     />
                   </Stack>
                 </Stack>
-                <Card.Body className="d-flex flex-column justify-content-center gap-1 p-0 fs-6">
+                <Card.Body
+                  className={`d-flex flex-column justify-content-center gap-1 p-0 ${
+                    isMobile ? "fs-5" : "fs-6"
+                  }`}
+                >
                   <Stack
                     direction="horizontal"
                     gap={1}
                     className="align-items-center"
                   >
-                    <Image src={ETHWhite} alt="eth" width={8} />
+                    <Image src={ETHWhite} alt="eth" width={isMobile ? 9 : 8} />
                     <Badge
-                      className="w-75 m-0 rounded-1 px-1 bg-slate fs-6 text-start fw-normal text-white"
+                      className={`w-75 m-0 rounded-1 px-1 bg-slate text-start fw-normal text-white ${
+                        isMobile ? "fs-5" : "fs-6"
+                      }`}
                       style={{
                         background:
                           "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",
@@ -327,11 +367,13 @@ export default function FundingSources(props: FundingSourcesProps) {
                     <Image
                       src={ETHWhite}
                       alt="eth"
-                      width={8}
+                      width={isMobile ? 9 : 8}
                       className="py-1"
                     />
                     <Badge
-                      className="w-75 m-0 rounded-1 px-1 bg-slate fs-6 text-start fw-normal text-white"
+                      className={`w-75 m-0 rounded-1 px-1 bg-slate text-start fw-normal text-white ${
+                        isMobile ? "fs-5" : "fs-6"
+                      }`}
                       style={{
                         background:
                           "linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25))",

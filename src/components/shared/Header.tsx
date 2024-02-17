@@ -92,10 +92,13 @@ export default function Header(props: HeaderProps) {
           }}
           className="w-100 border-bottom border-secondary border-opacity-25"
         >
-          <Container fluid>
-            <Row className="align-items-center justify-content-between w-100">
+          <Container fluid className="pe-0">
+            <Row
+              className="align-items-center justify-content-between"
+              style={{ width: "100vw" }}
+            >
               <Col
-                xs="6"
+                xs="7"
                 className="d-flex align-items-center gap-2 d-xl-none p-0"
               >
                 <Image
@@ -167,11 +170,11 @@ export default function Header(props: HeaderProps) {
                 <FundsRaisedCounter />
               </Col>
               <Col
-                xs="4"
-                sm="5"
+                xs="3"
+                sm="4"
                 xl="4"
                 xxl="5"
-                className="d-flex justify-content-end pe-0 pe-xl-1 gap-2"
+                className="d-flex justify-content-end px-0 pe-0 pe-xl-1"
               >
                 {location.pathname === "/" &&
                 address &&

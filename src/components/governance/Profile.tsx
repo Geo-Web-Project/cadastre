@@ -23,6 +23,7 @@ import ETHLogo from "../../assets/eth-white.svg";
 import DAILogo from "../../assets/dai-white.svg";
 import { sfSubgraph } from "../../redux/store";
 import useFlowingAmount from "../../hooks/flowingAmount";
+import { useMediaQuery } from "../../hooks/mediaQuery";
 import { truncateStr } from "../../lib/truncate";
 import { passportDecoderAbi } from "../../lib/abi/passportDecoder";
 import { sqfStrategyAbi } from "../../lib/abi/sqfStrategy";
@@ -59,6 +60,7 @@ function Profile(props: ProfileProps) {
 
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
+  const { isMobile, isTablet } = useMediaQuery();
   const { data: passportScore, refetch: refetchPassportScore } =
     useContractRead({
       abi: passportDecoderAbi,
@@ -146,7 +148,7 @@ function Profile(props: ProfileProps) {
           variant="link"
           disabled={showProfile}
           onClick={handleShowProfile}
-          className="ms-3 d-xl-none"
+          className="d-xl-none"
         >
           <Image width={46} src="account-circle.svg" />
         </Button>
@@ -158,6 +160,7 @@ function Profile(props: ProfileProps) {
         placement="end"
         backdrop={true}
         className="bg-dark overflow-auto border-0"
+        style={{ width: isMobile ? "100vw" : isTablet ? "50vw" : "" }}
       >
         <Stack
           direction="horizontal"

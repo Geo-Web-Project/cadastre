@@ -92,7 +92,7 @@ export default function FundGrantee(props: FundGranteeProps) {
       className={`${
         isMobile ? "w-100 h-100" : isTablet ? "w-50" : "w-25"
       } bg-dark px-3 overflow-auto border-0`}
-      style={{ top: isMobile ? "auto" : 89, zIndex: 9 }}
+      style={{ top: isMobile ? "auto" : 89, zIndex: isMobile ? "" : 1 }}
     >
       <Stack
         direction="horizontal"

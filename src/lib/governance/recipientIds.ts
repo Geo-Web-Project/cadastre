@@ -6,10 +6,10 @@ import { Address } from "viem";
  * else the recipient address.
  */
 export const recipientIds: Address[] = [
-  "0x08e350796d1ffc87837072d3a92975fdf7a7b11c",
-  "0x433237e7c33834e250d63d3a6a066dce1f5c0a4b",
-  "0x9f56fa49af3b3e6fdebe64763bd34ae4aa1c4106",
-  "0x4999f09bdd1efa44291fe03601c29b9d3406cbf7",
-  "0x4132fd10d7c57adaa18e39f19c93506ddc0c69c3",
-  "0xeb2982ad514468f1e04f4caedc4f27cf2327e9d8",
+  "0x4721449b7FCAC39F18F074e121b255b05128108B",
+  "0x4268d2D61a2E0a771d64326F9aB09d64b9d6B892",
+  "0xb3B03166F93aA1a12aAE68ce723A56BeC8464E3f",
+  "0x0ff9d0f718AD0a67f1c89EC389677fcE816A6d2B",
+  "0x453F5dEfd8757E60224D9b4735C6949Ea62Ffe28",
+  "0xe3f0A2612020fBC8731eEc4Ff60c107e4cB9dc3e",
 ];

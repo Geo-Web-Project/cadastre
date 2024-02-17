@@ -119,7 +119,10 @@ function NavMenuTestnet({ account }: { account?: string }) {
 
 function SocialItems() {
   return (
-    <Stack direction="horizontal" className="justify-content-around align-items-center mt-1">
+    <Stack
+      direction="horizontal"
+      className="justify-content-around align-items-center mt-1"
+    >
       <NavDropdown.Item
         href="https://discord.com/invite/reXgPru7ck"
         target="_blank"
