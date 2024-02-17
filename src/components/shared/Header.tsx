@@ -171,7 +171,7 @@ export default function Header(props: HeaderProps) {
                 sm="5"
                 xl="4"
                 xxl="5"
-                className="d-flex justify-content-end pe-0 pe-xl-1"
+                className="d-flex justify-content-end pe-0 pe-xl-1 gap-2"
               >
                 {location.pathname === "/" &&
                 address &&

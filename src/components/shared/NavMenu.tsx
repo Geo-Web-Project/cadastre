@@ -1,8 +1,9 @@
 import React from "react";
-import Image from "react-bootstrap/Image";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import FAQ from "./FAQ";
+import Stack from "react-bootstrap/Stack";
+import Image from "react-bootstrap/Image";
 import OnRampWidget from "./OnRampWidget";
+import FarcasterIcon from "../../assets/farcaster.svg";
 
 export default function NavMenu({ account }: { account?: string }) {
   if (import.meta.env.MODE === "mainnet") {
@@ -20,9 +21,6 @@ function NavMenuMainnet({ account }: { account?: string }) {
       menuVariant="dark"
       align="end"
     >
-      <NavDropdown.Item>
-        <FAQ />
-      </NavDropdown.Item>
       <NavDropdown.Item className="d-flex gap-2">
         <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
       </NavDropdown.Item>
@@ -72,18 +70,15 @@ function NavMenuTestnet({ account }: { account?: string }) {
       align="end"
     >
       <NavDropdown.Item>
-        <FAQ />
-      </NavDropdown.Item>
-      <NavDropdown.Item>
         <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
       </NavDropdown.Item>
       <NavDropdown.Item
-        href="https://optimismfaucet.xyz/"
+        href="https://docs.optimism.io/builders/tools/build/faucets"
         target="_blank"
         rel="noopener"
         className="d-flex gap-2"
       >
-        Request Testnet ETH
+        Get Testnet ETH
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -124,34 +119,39 @@ function NavMenuTestnet({ account }: { account?: string }) {
 
 function SocialItems() {
   return (
-    <div className="d-flex align-items-center">
+    <Stack direction="horizontal" className="justify-content-around align-items-center mt-1">
       <NavDropdown.Item
         href="https://discord.com/invite/reXgPru7ck"
         target="_blank"
         rel="noopener"
         bsPrefix="none"
-        style={{ width: "48px", margin: "4px 0 0 16px" }}
       >
-        <Image src="discord.svg" alt="discord" />
+        <Image src="discord.svg" alt="discord" width={22} />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://twitter.com/thegeoweb"
         target="_blank"
         rel="noopener"
         bsPrefix="none"
-        style={{ width: "48px", margin: "4px 0 0 0" }}
       >
-        <Image src="twitter.svg" alt="twitter" />
+        <Image src="twitter.svg" alt="twitter" width={22} />
+      </NavDropdown.Item>
+      <NavDropdown.Item
+        href="https://warpcast.com/geoweb"
+        target="_blank"
+        rel="noopener"
+        bsPrefix="none"
+      >
+        <Image src={FarcasterIcon} alt="farcaster" width={18} />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://github.com/Geo-Web-Project"
         target="_blank"
         rel="noopener"
         bsPrefix="none"
-        style={{ width: "48px", margin: "4px 0 0 0" }}
       >
-        <Image src="github.svg" alt="github" />
+        <Image src="github.svg" alt="github" width={22} />
       </NavDropdown.Item>
-    </div>
+    </Stack>
   );
 }
