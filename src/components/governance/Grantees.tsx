@@ -143,7 +143,7 @@ export default function Grantees(props: GranteesProps) {
                     isMobile ? "fs-5" : "fs-6"
                   }`}
                 >
-                  <Badge className="bg-aqua w-25 rounded-1 text-start fw-normal">
+                  <Badge className="bg-aqua w-25 rounded-1 text-start fw-normal fs-6">
                     {BigInt(userAllocationData[i].flowRate) > 0
                       ? formatNumberWithCommas(
                           parseFloat(
@@ -158,7 +158,7 @@ export default function Grantees(props: GranteesProps) {
                         )
                       : 0}{" "}
                   </Badge>
-                  <Badge className="bg-secondary w-25 rounded-1 px-1 text-start fw-normal">
+                  <Badge className="bg-secondary w-25 rounded-1 px-1 text-start fw-normal fs-6">
                     {BigInt(directAllocationData[i].flowRate) > 0
                       ? formatNumberWithCommas(
                           parseFloat(
@@ -174,7 +174,7 @@ export default function Grantees(props: GranteesProps) {
                         )
                       : 0}{" "}
                   </Badge>
-                  <Badge className="bg-slate w-25 rounded-1 px-1 text-start fw-normal">
+                  <Badge className="bg-slate w-25 rounded-1 px-1 text-start fw-normal fs-6">
                     {BigInt(matchingData.members[i].flowRate) > 0
                       ? formatNumberWithCommas(
                           parseFloat(
