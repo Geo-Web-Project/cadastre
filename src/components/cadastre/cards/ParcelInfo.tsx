@@ -449,7 +449,11 @@ function ParcelInfo(props: ParcelInfoProps) {
                     >
                       <Button
                         variant="link"
-                        className="p-0 pe-1 me-4"
+                        className={`p-0 pe-1 ${
+                          (isMobile || isTablet) && !isFullScreen
+                            ? "me-4"
+                            : "ms-1"
+                        }`}
                         onClick={() => {
                           setInteractionState(STATE.EDITING_METADATA);
                           setIsFullScreen(true);
@@ -464,7 +468,14 @@ function ParcelInfo(props: ParcelInfoProps) {
                   as={NavItem}
                   drop={isMobile || isTablet ? "up" : "down"}
                   align="end"
-                  style={{ position: "fixed", zIndex: 10000 }}
+                  style={{
+                    position:
+                      (isMobile || isTablet) && !isFullScreen
+                        ? "fixed"
+                        : "static",
+                    zIndex:
+                      (isMobile || isTablet) && !isFullScreen ? 10000 : 1000,
+                  }}
                 >
                   <Dropdown.Toggle as={NavLink} bsPrefix="nav-link">
                     <Image src="more-menu.svg" alt="more-menu" width={24} />

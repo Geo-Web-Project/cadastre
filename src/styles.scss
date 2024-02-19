@@ -234,12 +234,13 @@ input[type="number"] {
     right: 406px;
   }
   @media (max-width: 576px) {
-    top: 83px;
+    top: 98px;
     right: 255px;
     width: 42px !important;
     height: 42px !important;
   }
   @media (max-width: 1200px) {
+    top: 110px;
     height: 42px !important;
   }
 }
@@ -250,7 +251,7 @@ input[type="number"] {
 
 .search-map-btn {
   position: absolute;
-  top: 22px;
+  top: 20px;
   right: 2vw;
   width: 42px !important;
   height: 42px !important;

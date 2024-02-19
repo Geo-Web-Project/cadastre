@@ -129,8 +129,11 @@ function AuctionInfo(props: AuctionInfoProps) {
 
   return (
     <>
-      <Card className="bg-secondary bg-opacity-25 my-2 my-sm-3 my-lg-4">
-        <Card.Header className="text-white">
+      <Card
+        text="white"
+        className="bg-secondary bg-opacity-25 my-2 my-sm-3 my-lg-4"
+      >
+        <Card.Header>
           <h4>
             {interactionState === STATE.PARCEL_RECLAIMING
               ? "Dutch Auction Details"

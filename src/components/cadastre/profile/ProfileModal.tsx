@@ -733,7 +733,7 @@ function ProfileModal(props: ProfileModalProps) {
               xs="5"
               lg="3"
               xl="2"
-              className="p-0 text-end d-flex justify-content-start align-items-center gap-1 gap-lg-2 ms-md-4 ms-lg-0 ms-xl-4"
+              className="p-0 text-end d-flex justify-content-start align-items-center gap-1 gap-lg-2 ms-2 ms-md-4 ms-lg-0 ms-xl-4"
             >
               <CopyTooltip
                 contentClick="Address Copied"

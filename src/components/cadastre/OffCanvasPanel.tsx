@@ -211,8 +211,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
         isMobile || isTablet ? "" : "vh-100"
       } bg-dark text-light px-3 pb-3 border-0 border-top border-secondary border-opacity-25`}
       style={{
-        zIndex: 10,
-        marginTop: isMobile || isTablet ? "0px" : "89px",
+        zIndex: isMobile || isTablet ? 10 : 1,
+        paddingTop: isMobile || isTablet ? "0px" : "88px",
         maxHeight:
           isMobile && isFullScreen
             ? "calc(100svh - 82px)"
