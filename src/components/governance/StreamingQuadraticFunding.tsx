@@ -15,7 +15,6 @@ import FundGrantee from "./FundGrantee";
 import useAllo from "../../hooks/allo";
 import { useMediaQuery } from "../../hooks/mediaQuery";
 import useRoundQuery from "../../hooks/roundQuery";
-import { recipientIds } from "../../lib/governance/recipientIds";
 
 export type AllocationData = {
   flowRate: `${number}`;
@@ -160,7 +159,7 @@ export default function StreamingQuadraticFunding() {
                 social={
                   recipientsDetails[transactionPanelState.granteeIndex].social
                 }
-                recipientId={recipientIds[transactionPanelState.granteeIndex]}
+                recipientId={recipients[transactionPanelState.granteeIndex].id}
                 granteeAddress={
                   recipients[transactionPanelState.granteeIndex].superApp
                 }

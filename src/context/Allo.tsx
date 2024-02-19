@@ -15,9 +15,8 @@ import {
 export type Recipient = {
   useRegistryAnchor: boolean;
   recipientAddress: Address;
-  requestedAmount: string;
   superApp: Address;
-  id: string;
+  id: Address;
   recipientStatus: Status;
   metadata: Metadata;
 };
@@ -109,7 +108,12 @@ export function AlloContextProvider({
         throw Error("Recipients not found");
       }
 
-      const recipients = res.map((elem) => elem.result);
+      const recipients = res.map((elem, i) => {
+        return { ...elem.result, id: recipientIds[i] };
+      });
+
+      shuffle(recipients as Recipient[]);
+
       const recipientsDetails = [];
       const emptyRecipientDetails = {
         name: "",
@@ -153,6 +157,13 @@ export function AlloContextProvider({
       setGdaPool(await alloStrategy.getGdaPool());
     })();
   }, []);
+
+  const shuffle = (recipients: Recipient[]) => {
+    for (let i = recipients.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [recipients[i], recipients[j]] = [recipients[j], recipients[i]];
+    }
+  };
 
   return (
     <AlloContext.Provider
