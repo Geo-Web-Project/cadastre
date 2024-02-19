@@ -155,6 +155,10 @@ input[type="number"] {
   max-width: 46px !important;
 }
 
+.intercom-lightweight-app-launcher.intercom-launcher {
+  right: 2%;
+}
+
 .grid-switch.btn:hover,
 .grid-switch.btn:focus,
 .grid-switch.btn:active {
@@ -233,14 +237,14 @@ input[type="number"] {
   @media (min-width: 2000px) {
     right: 406px;
   }
-  @media (max-width: 576px) {
-    top: 98px;
-    right: 255px;
-    width: 42px !important;
-    height: 42px !important;
-  }
   @media (max-width: 1200px) {
     top: 110px;
+    height: 42px !important;
+  }
+  @media (max-width: 576px) {
+    top: 82px;
+    right: 255px;
+    width: 42px !important;
     height: 42px !important;
   }
 }

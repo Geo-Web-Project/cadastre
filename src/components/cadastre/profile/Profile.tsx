@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { ethers } from "ethers";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import ProfileModal from "./ProfileModal";
@@ -35,7 +35,7 @@ type ProfileProps = {
 function Profile(props: ProfileProps) {
   const { account, paymentToken, portfolioNeedActionCount } = props;
 
-  const [showProfile, setShowProfile] = React.useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleCloseProfile = () => setShowProfile(false);
   const handleShowProfile = () => setShowProfile(true);

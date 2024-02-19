@@ -1165,12 +1165,12 @@ function Map(props: MapProps) {
                 isTablet && interactionState === STATE.CLAIM_SELECTING
                   ? `calc(180px + ${DRAWER_CLAIM_HEIGHT}px)`
                   : isTablet
-                  ? "204px"
+                  ? "266px"
                   : isMobile && interactionState === STATE.CLAIM_SELECTING
                   ? `calc(152px + ${DRAWER_CLAIM_HEIGHT}px)`
                   : isMobile
-                  ? "186px"
-                  : "208px",
+                  ? "236px"
+                  : "258px",
               visibility:
                 (isMobile || isTablet) &&
                 interactionState !== STATE.VIEWING &&
@@ -1190,8 +1190,8 @@ function Map(props: MapProps) {
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
               ? `calc(56px + ${DRAWER_CLAIM_HEIGHT}px)`
               : isTablet
-              ? "80px"
-              : "90px",
+              ? "142px"
+              : "140px",
           right: "2vw",
           zIndex: 1,
           width: isMobile || isTablet ? "38px" : "31px",
@@ -1226,7 +1226,7 @@ function Map(props: MapProps) {
           bottom:
             (isMobile || isTablet) && interactionState === STATE.CLAIM_SELECTING
               ? `${DRAWER_CLAIM_HEIGHT}px`
-              : "30px",
+              : "86px",
           right: "2%",
           width: "123px",
           borderRadius: 12,

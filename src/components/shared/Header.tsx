@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from "wagmi";
 import {
@@ -79,6 +79,22 @@ export default function Header(props: HeaderProps) {
     []
   );
 
+  useEffect(() => {
+    if (address) {
+      (window as any).Intercom("boot", {
+        api_base: "https://api-iam.intercom.io",
+        app_id: "qonbdvt5",
+        name: address,
+        email: `${address}@ethmail.cc`,
+        created_at: `${(Date.now() / 1000) | 0}`,
+      });
+    }
+  }, [address]);
+
+  useEffect(() => {
+    (window as any).Intercom("update");
+  }, [location.pathname]);
+
   return (
     <ApolloProvider client={apolloClient}>
       {(!isMobile && !isTablet) || !isFullScreen ? (
@@ -88,7 +104,7 @@ export default function Header(props: HeaderProps) {
             position: "sticky",
             top: 0,
             zIndex: 10,
-            height: !isMobile ? 89 : "auto",
+            height: !isMobile ? 89 : 62,
           }}
           className="w-100 border-bottom border-secondary border-opacity-25"
         >
