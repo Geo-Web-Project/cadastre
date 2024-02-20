@@ -763,7 +763,7 @@ export default function EditStream(props: EditStreamProps) {
                       className="d-flex justify-content-center gap-1 bg-primary text-decoration-none rounded-3 text-white fs-4"
                     >
                       <Image src={SwapIcon} alt="swap" width={18} />
-                      Swap ETH
+                      Get DAI
                     </Button>
                   </Stack>
                 </Stack>

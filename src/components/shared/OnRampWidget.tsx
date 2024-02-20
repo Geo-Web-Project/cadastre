@@ -9,7 +9,7 @@ export default function OnRampWidget(props: {
 
   return (
     <div
-      className="w-100"
+      className="d-flex justify-content-center w-100"
       onClick={() => {
         const transak = new transakSDK({
           apiKey: TRANSAK_API_KEY,

@@ -123,11 +123,11 @@ export default function PassportMintingInstructions(
         </ListGroup>
         <Modal.Footer className="border-0 p-0">
           <Button
-            variant="secondary"
+            variant="danger"
             onClick={hide}
-            className={"float-end bg-primary px-5 mt-3"}
+            className="float-end px-5 mt-3"
           >
-            Continue
+            Close
           </Button>
         </Modal.Footer>
       </Modal.Body>
