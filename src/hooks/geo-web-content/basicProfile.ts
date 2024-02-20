@@ -72,7 +72,7 @@ function useBasicProfile(
         ethers.BigNumber.from(parcelId)
       );
 
-      if (!tokenURI) {
+      if (!tokenURI || !tokenURI.startsWith("ipfs://")) {
         return basicProfile;
       }
 

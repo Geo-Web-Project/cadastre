@@ -13,7 +13,7 @@ export const RPC_URLS_HTTP: Record<number, string> = {
     .VITE_ALCHEMY_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
-  10: `wss://optimism.g.alchemy.com/v2/${import.meta.env
+  10: `wss://opt-mainnet.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_API_KEY!}`,
   11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
     .VITE_ALCHEMY_API_KEY!}`,
