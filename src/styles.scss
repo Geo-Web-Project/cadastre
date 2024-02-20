@@ -5,9 +5,11 @@ $primary: #2fc1c1;
 $secondary: #4b5588;
 $dark: #202333;
 $blue: #111320;
-$purple: rgba(75, 85, 136, 0.25);
+$purple: #1a1c28;
 $info: #707179;
 $gray: #b8b8be;
+$aqua: #008281;
+$slate: #4c5f73;
 $danger: #dc3545;
 $light: #f8f9fa;
 $success: #28a745;
@@ -21,6 +23,8 @@ $theme-colors: (
   "purple": $purple,
   "info": $info,
   "gray": $gray,
+  "aqua": $aqua,
+  "slate": $slate,
   "danger": $danger,
   "light": $light,
   "success": $success,
@@ -29,7 +33,15 @@ $theme-colors: (
 
 $font-family-base: "Open Sans";
 $font-size-base: 1rem;
-$h5-font-size: $font-size-base * 1.2;
+$font-size-sm: $font-size-base;
+$font-size-lg: $font-size-base;
+$h1-font-size: $font-size-base * 2.5;
+$h2-font-size: $font-size-base * 2;
+$h3-font-size: 22px;
+$h4-font-size: $font-size-base;
+$h5-font-size: 12px;
+$h6-font-size: 9px;
+
 $link-decoration: none;
 $link-hover-decoration: underline;
 $tooltip-arrow-height: 0.2rem;
@@ -38,7 +50,7 @@ $dropdown-border-radius: 6px;
 $dropdown-dark-color: $gray;
 $dropdown-dark-bg: $dark;
 $dropdown-dark-link-hover-color: $light;
-$dropdown-dark-link-hover-bg: $purple;
+$dropdown-dark-link-hover-bg: $secondary;
 $accordion-bg: $blue;
 $accordion-icon-color: $light;
 $accordion-icon-active-color: $light;
@@ -52,8 +64,8 @@ $accordion-icon-active-color: $light;
 
 html,
 body {
-  overflow: hidden;
   overscroll-behavior: none;
+  background: $purple;
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -79,7 +91,7 @@ input[type="number"] {
 
 .mapboxgl-ctrl-geocoder.mapboxgl-ctrl {
   position: absolute;
-  top: 120px;
+  top: 20px;
   right: 2vw;
   width: 240px !important;
   @media (min-width: 1800px) {
@@ -141,6 +153,10 @@ input[type="number"] {
 .map-style-btn {
   padding: 6px !important;
   max-width: 46px !important;
+}
+
+.intercom-lightweight-app-launcher.intercom-launcher {
+  right: 2%;
 }
 
 .grid-switch.btn:hover,
@@ -212,18 +228,23 @@ input[type="number"] {
 }
 .parcel-list-btn {
   position: absolute;
-  top: 120px;
+  top: 108px;
   right: calc(245px + 2vw);
   width: 50px !important;
   @media (min-width: 1800px) {
     right: 394px;
   }
-  @media (max-width: 576px) {
-    right: 255px;
-    width: 42px !important;
-    height: 42px !important;
+  @media (min-width: 2000px) {
+    right: 406px;
   }
   @media (max-width: 1200px) {
+    top: 110px;
+    height: 42px !important;
+  }
+  @media (max-width: 576px) {
+    top: 82px;
+    right: 255px;
+    width: 42px !important;
     height: 42px !important;
   }
 }
@@ -234,7 +255,7 @@ input[type="number"] {
 
 .search-map-btn {
   position: absolute;
-  top: 120px;
+  top: 20px;
   right: 2vw;
   width: 42px !important;
   height: 42px !important;
@@ -318,11 +339,40 @@ input[type="number"] {
   }
 }
 
-.table-dark {
-  --bs-table-bg: #12141d66;
-  --bs-table-striped-bg: #000000;
-}
-
 td {
   vertical-align: middle;
+}
+
+.grantee-path {
+  fill: none;
+  stroke: white;
+}
+
+.header-link::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  background-image: linear-gradient(90deg, $secondary, $secondary) !important;
+  background-size: 0 2px !important;
+  background-repeat: no-repeat !important;
+  background-position: left bottom !important;
+  transition: background-size 0.25s ease-in !important;
+}
+
+.header-link:hover {
+  color: $secondary !important;
+}
+
+.header-link:hover::before {
+  background-size: 100% 2px !important;
+}
+
+.beta-link:hover::before {
+  background-size: 80% 2px !important;
+}
+
+.dropdown-custom-arrow.dropdown-toggle::after {
+  display: none !important;
 }
