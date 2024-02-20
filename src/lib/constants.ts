@@ -7,16 +7,12 @@ export const WORLD = {
   blockNumber: import.meta.env.VITE_WORLD_BLOCK_NUMBER,
 };
 export const RPC_URLS_HTTP: Record<number, string> = {
-  10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
-  11155420: `https://opt-sepolia.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
+  10: import.meta.env.VITE_RPC_URL_HTTP,
+  11155420: import.meta.env.VITE_RPC_URL_HTTP,
 };
 export const RPC_URLS_WS: Record<number, string> = {
-  10: `wss://optimism.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
-  11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
+  10: import.meta.env.VITE_RPC_URL_WS,
+  11155420: import.meta.env.VITE_RPC_URL_WS,
 };
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
 export const SSX_HOST = import.meta.env.VITE_SSX_HOST!;

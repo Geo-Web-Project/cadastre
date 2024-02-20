@@ -18,14 +18,20 @@ Update the `.env.local` file in the Cadastre folder with this line of code and y
 VITE_MAPBOX_TOKEN=your_mapbox_token
 ```
 
-#### Alchemy
+#### RPC HTTP
 
-If you don't already have an account, create one at [Alchemy](https://www.alchemy.com/).
-Once you have an account, create a project for GeoWeb and copy the API key.
-Update the `.env.local` file in the Cadastre folder with this line of code:
+Update the `.env.local` file with the URL of your HTTP RPC node provider
 
 ```
-VITE_ALCHEMY_API_KEY=your_alchemy_api_key
+VITE_RPC_URL_HTTP=your_rpc_url
+```
+
+#### RPC Websocket
+
+Update the `.env.local` file with the URL of your Websocket RPC node provider
+
+```
+VITE_RPC_URL_WS=your_rpc_url
 ```
 
 #### Install Dependencies
