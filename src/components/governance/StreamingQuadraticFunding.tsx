@@ -115,7 +115,7 @@ export default function StreamingQuadraticFunding() {
               A quadratic funding round every second
             </Card.Text>
             <Card.Text className="text-info fs-5 mb-0">
-              Beta Run - February 20 - April 20, 2024
+              Beta Run - February 21 - April 21, 2024
             </Card.Text>
           </Stack>
           {isMobile && (

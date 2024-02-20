@@ -488,6 +488,7 @@ export default function EditStream(props: EditStreamProps) {
                   {!isFundingMatchingPool && (
                     <>
                       <Button
+                        disabled={!address || !flowRateToReceiver}
                         variant="purple"
                         className="d-flex align-items-center border-0 rounded-0 fs-4 px-1 py-2"
                         onClick={() =>
@@ -497,6 +498,7 @@ export default function EditStream(props: EditStreamProps) {
                         <Image src={RemoveIcon} alt="remove" width={20} />
                       </Button>
                       <Button
+                        disabled={!address || !flowRateToReceiver}
                         variant="purple"
                         className="d-flex align-items-center border-0 rounded-0 rounded-end-3 fs-4 px-1 py-2"
                         onClick={() =>

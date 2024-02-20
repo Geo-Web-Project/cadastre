@@ -7,12 +7,16 @@ export const WORLD = {
   blockNumber: import.meta.env.VITE_WORLD_BLOCK_NUMBER,
 };
 export const RPC_URLS_HTTP: Record<number, string> = {
-  10: import.meta.env.VITE_RPC_URL_HTTP,
-  11155420: import.meta.env.VITE_RPC_URL_HTTP,
+  10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_API_KEY!}`,
+  11155420: `https://opt-sepolia.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_API_KEY!}`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
-  10: import.meta.env.VITE_RPC_URL_WS,
-  11155420: import.meta.env.VITE_RPC_URL_WS,
+  10: `wss://optimism.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_API_KEY!}`,
+  11155420: `wss://opt-sepolia.g.alchemy.com/v2/${import.meta.env
+    .VITE_ALCHEMY_API_KEY!}`,
 };
 export const SPATIAL_DOMAIN = import.meta.env.VITE_SPATIAL_DOMAIN!;
 export const SSX_HOST = import.meta.env.VITE_SSX_HOST!;
@@ -41,10 +45,7 @@ export const GDA_CONTRACT_ADDRESS = import.meta.env.VITE_GDA_CONTRACT_ADDRESS;
 export const SQF_STRATEGY_ADDRESS = import.meta.env.VITE_SQF_STRATEGY_ADDRESS;
 export const ALLO_POOL_ID = import.meta.env.VITE_ALLO_POOL_ID;
 export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
-export const GW_SAFE_SALT_NONCE =
-  "0x57c20148525f007e74c11aef90f86510f65727a5d018cb83c0cda328136f14b2";
 export const BETA_AGREEMENT_KEY = "storedBetaAgreement";
-export const PINATA_API_ENDPOINT = "https://api.pinata.cloud/psa";
 export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
 export const IPFS_GATEWAY = import.meta.env.VITE_IPFS_GATEWAY;
