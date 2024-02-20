@@ -80,16 +80,11 @@ export default function Header(props: HeaderProps) {
   );
 
   useEffect(() => {
-    if (address) {
-      (window as any).Intercom("boot", {
-        api_base: "https://api-iam.intercom.io",
-        app_id: "qonbdvt5",
-        name: address,
-        email: `${address}@ethmail.cc`,
-        created_at: `${(Date.now() / 1000) | 0}`,
-      });
-    }
-  }, [address]);
+    (window as any).Intercom("boot", {
+      api_base: "https://api-iam.intercom.io",
+      app_id: "qonbdvt5",
+    });
+  }, []);
 
   useEffect(() => {
     (window as any).Intercom("update");
