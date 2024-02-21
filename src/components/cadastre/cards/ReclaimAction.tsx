@@ -142,9 +142,7 @@ function ReclaimAction(props: ReclaimActionProps) {
     } else {
       txn = await licenseDiamondContract
         .connect(signer)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .reclaim(
+        ["reclaim(uint256,int96,uint256)"](
           ethers.utils.parseEther(displayNewForSalePrice),
           newNetworkFee,
           ethers.utils.parseEther(displayNewForSalePrice)

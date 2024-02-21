@@ -101,7 +101,7 @@ function AuctionInfo(props: AuctionInfoProps) {
         clearInterval(interval);
       }
     };
-  }, [forSalePrice, auctionStartTimestamp, auctionLength]);
+  }, [forSalePrice._hex, auctionStartTimestamp, auctionLength]);
 
   const isLoading =
     forSalePrice === null ||
