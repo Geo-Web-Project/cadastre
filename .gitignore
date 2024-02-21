@@ -26,5 +26,7 @@ yarn-error.log*
 .envrc
 .direnv
 
-.next
 tsconfig.tsbuildinfo
+.vercel
+vercel.json
+dist

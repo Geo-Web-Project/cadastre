@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Geo Web: Building Augmented, Shared Reality</title>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Using radical markets and governance for the public good in the spatial computing era"
+    />
+    <meta property="og:url" content="https://geoweb.land" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Geo Web: Building Augmented, Shared Reality"
+    />
+    <meta
+      property="og:description"
+      content="Using radical markets and governance for the public good in the spatial computing era"
+    />
+    <meta
+      property="og:image"
+      content="https://opengraph.b-cdn.net/production/documents/95bf2f0d-ac52-4100-ab15-76fb07c8ad20.png?token=J2AJyyxBeGJ9ye0igp82DDvUVFPGfs5_1uBK5aDGzD0&height=615&width=1200&expires=33244229630"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="geoweb.land" />
+    <meta property="twitter:url" content="https://geoweb.land" />
+    <meta
+      name="twitter:title"
+      content="Geo Web: Building Augmented, Shared Reality"
+    />
+    <meta
+      name="twitter:description"
+      content="Using radical markets and governance for the public good in the spatial computing era"
+    />
+    <meta
+      name="twitter:image"
+      content="https://opengraph.b-cdn.net/production/documents/95bf2f0d-ac52-4100-ab15-76fb07c8ad20.png?token=J2AJyyxBeGJ9ye0igp82DDvUVFPGfs5_1uBK5aDGzD0&height=615&width=1200&expires=33244229630"
+    />
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="react-root"></div>
+    <script>
+      window.global = window;
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        var w = window;
+        var ic = w.Intercom;
+        if (typeof ic === "function") {
+          ic("reattach_activator");
+          ic("update", w.intercomSettings);
+        } else {
+          var d = document;
+          var i = function () {
+            i.c(arguments);
+          };
+          i.q = [];
+          i.c = function (args) {
+            i.q.push(args);
+          };
+          w.Intercom = i;
+          var l = function () {
+            var s = d.createElement("script");
+            s.type = "text/javascript";
+            s.async = true;
+            s.src = "https://widget.intercom.io/widget/qonbdvt5";
+            var x = d.getElementsByTagName("script")[0];
+            x.parentNode.insertBefore(s, x);
+          };
+          if (document.readyState === "complete") {
+            l();
+          } else if (w.attachEvent) {
+            w.attachEvent("onload", l);
+          } else {
+            w.addEventListener("load", l, false);
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
