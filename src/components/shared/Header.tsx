@@ -15,6 +15,7 @@ import Stack from "react-bootstrap/Stack";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 import Navbar from "react-bootstrap/Navbar";
+import Logo from "../../assets/logo.png";
 import ExpandMoreIcon from "../../assets/expand-more.svg";
 import { useMediaQuery } from "../../hooks/mediaQuery";
 import { useEthersSigner, useEthersProvider } from "../../hooks/ethersAdapters";
@@ -113,7 +114,7 @@ export default function Header(props: HeaderProps) {
                 className="d-flex align-items-center gap-2 d-xl-none p-0"
               >
                 <Image
-                  src="logo.png"
+                  src={Logo}
                   className="ps-4"
                   style={{ fontSize: "2.5rem", height: "1.1em" }}
                 />
@@ -152,7 +153,7 @@ export default function Header(props: HeaderProps) {
                 >
                   <Image
                     style={{ height: "1.1em", marginRight: "10px" }}
-                    src="logo.png"
+                    src={Logo}
                   />
                   <Link
                     to="/"
@@ -167,7 +168,7 @@ export default function Header(props: HeaderProps) {
                   <Link
                     to="/governance"
                     className={`position-relative d-flex ms-4 fs-3 text-decoration-none ${
-                      location.pathname === "/governance"
+                      location.pathname.startsWith("/governance")
                         ? "text-white"
                         : "text-info header-link beta-link"
                     }`}
@@ -202,7 +203,7 @@ export default function Header(props: HeaderProps) {
                     paymentToken={nativeSuperToken}
                     {...props}
                   />
-                ) : location.pathname === "/governance" &&
+                ) : location.pathname.startsWith("/governance") &&
                   address &&
                   chain?.id === NETWORK_ID ? (
                   <GovernanceProfile />

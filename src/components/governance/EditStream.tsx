@@ -54,6 +54,7 @@ import {
   convertStreamValueToInterval,
   sqrtBigInt,
   formatNumberWithCommas,
+  extractTwitterHandle,
 } from "../../lib/utils";
 import {
   DAI_ADDRESS,
@@ -111,7 +112,7 @@ export default function EditStream(props: EditStreamProps) {
 
   const { address } = useAccount();
   const { chain } = useNetwork();
-  const { passportDecoder } = useAllo();
+  const { passportDecoder, recipientsDetails } = useAllo();
   const { userTokenSnapshots } = useRoundQuery(address);
   const {
     nativeSuperToken,
@@ -161,11 +162,11 @@ export default function EditStream(props: EditStreamProps) {
       watch: false,
     });
 
-  const minEthBalance = 0.002;
+  const minEthBalance = 0.001;
   const suggestedTokenBalance = newFlowRate
     ? BigInt(newFlowRate) *
       BigInt(fromTimeUnitsToSeconds(1, unitOfTime[TimeInterval.MONTH])) *
-      BigInt(3)
+      BigInt(2)
     : BigInt(0);
   const hasSufficientEthBalance =
     ethBalance && ethBalance.value > parseEther(minEthBalance.toString());
@@ -193,7 +194,9 @@ export default function EditStream(props: EditStreamProps) {
         BigInt(fromTimeUnitsToSeconds(1, unitOfTime[timeInterval]));
 
       if (
-        BigInt(-accountFlowRate) - BigInt(flowRateToReceiver) + newFlowRate >
+        BigInt(-accountFlowRate) -
+          BigInt(flowRateToReceiver) +
+          BigInt(newFlowRate) >
         BigInt(0)
       ) {
         const updatedAtTimestamp = userTokenSnapshot
@@ -209,7 +212,7 @@ export default function EditStream(props: EditStreamProps) {
                   parseEther(wrapAmount?.replace(/,/g, "") ?? "0")) /
                   (BigInt(-accountFlowRate) -
                     BigInt(flowRateToReceiver) +
-                    newFlowRate)
+                    BigInt(newFlowRate))
               ),
             })
           )
@@ -339,13 +342,13 @@ export default function EditStream(props: EditStreamProps) {
         liquidationEstimate &&
         dayjs
           .unix(liquidationEstimate)
-          .isBefore(dayjs().add(dayjs.duration({ months: 3 })))
+          .isBefore(dayjs().add(dayjs.duration({ months: 2 })))
       ) {
         setWrapAmount(
           formatNumberWithCommas(
             parseFloat(
               formatEther(
-                parseEther(amountPerTimeInterval.replace(/,/g, "")) * BigInt(3)
+                parseEther(amountPerTimeInterval.replace(/,/g, "")) * BigInt(2)
               )
             )
           )
@@ -384,11 +387,14 @@ export default function EditStream(props: EditStreamProps) {
     setAmount: (value: string) => void
   ) => {
     const { value } = e.target;
+    const valueWithoutCommas = value.replace(/,/g, "");
 
-    if (isNumber(value.replace(/,/g, ""))) {
+    if (isNumber(valueWithoutCommas)) {
       setAmount(
-        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}${
-          isFundingMatchingPool && value.endsWith(".") ? "." : ""
+        `${
+          isFundingMatchingPool && parseFloat(valueWithoutCommas) < 1000
+            ? value
+            : formatNumberWithCommas(parseFloat(valueWithoutCommas))
         }`
       );
     } else if (value === "") {
@@ -581,7 +587,12 @@ export default function EditStream(props: EditStreamProps) {
                     setStep(
                       !hasSufficientEthBalance || !hasSuggestedTokenBalance
                         ? Step.TOP_UP
-                        : wrapAmount
+                        : wrapAmount ||
+                          superTokenBalance <
+                            BigInt(newFlowRate) *
+                              BigInt(
+                                fromTimeUnitsToSeconds(1, TimeInterval.DAY)
+                              )
                         ? Step.WRAP
                         : isFundingMatchingPool ||
                           (passportScore && passportScore >= minPassportScore)
@@ -706,7 +717,7 @@ export default function EditStream(props: EditStreamProps) {
                       )}
                     </Card.Text>
                     <Card.Text className="m-0 fs-6">
-                      At least {minEthBalance} needed for gas
+                      Suggested at least {minEthBalance}
                     </Card.Text>
                     <OnRampWidget
                       target={
@@ -757,13 +768,13 @@ export default function EditStream(props: EditStreamProps) {
                     </Card.Text>
                     <Button
                       variant="link"
-                      href="https://swap.defillama.com/?chain=optimism&from=0x0000000000000000000000000000000000000000&to=0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+                      href="https://jumper.exchange/?fromChain=10&fromToken=0x0000000000000000000000000000000000000000&toChain=10&toToken=0x7d342726B69C28D942ad8BfE6Ac81b972349d524"
                       target="_blank"
                       rel="noreferrer"
                       className="d-flex justify-content-center gap-1 bg-primary text-decoration-none rounded-3 text-white fs-4"
                     >
                       <Image src={SwapIcon} alt="swap" width={18} />
-                      Get DAI
+                      Get DAIx
                     </Button>
                   </Stack>
                 </Stack>
@@ -787,7 +798,10 @@ export default function EditStream(props: EditStreamProps) {
                 }
                 onClick={() =>
                   setStep(
-                    wrapAmount
+                    wrapAmount ||
+                      superTokenBalance <
+                        BigInt(newFlowRate) *
+                          BigInt(fromTimeUnitsToSeconds(1, TimeInterval.DAY))
                       ? Step.WRAP
                       : isFundingMatchingPool ||
                         (passportScore && passportScore >= minPassportScore)
@@ -1398,8 +1412,14 @@ export default function EditStream(props: EditStreamProps) {
                 rel="noreferrer"
                 target="_blank"
                 href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${
-                  isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }%20in%20the%20%23streamingqf%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
+                  isFundingMatchingPool
+                    ? "the SQF Matching Pool"
+                    : recipientsDetails && granteeIndex !== null
+                    ? extractTwitterHandle(
+                        recipientsDetails[granteeIndex].social
+                      )
+                    : ""
+                }%20in%20the%20%23streamingqf%20pilot%20presented%20by%20%40thegeoweb%2C%20%40Superfluid_HQ%2C%20%26%20%40gitcoin%3A%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%0A%0AJoin%20me%20in%20making%20public%20goods%20funding%20history%20by%20donating%20in%20the%20world%27s%20first%20SQF%20round%21`}
                 data-size="large"
               >
                 <Image src={XIcon} alt="x social" width={28} height={22} />
@@ -1411,7 +1431,7 @@ export default function EditStream(props: EditStreamProps) {
                 target="_blank"
                 href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${
                   isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
+                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
               >
                 <Image
                   src={FarcasterIcon}
@@ -1427,7 +1447,7 @@ export default function EditStream(props: EditStreamProps) {
                 target="_blank"
                 href={`https://hey.xyz/?text=I+just+opened+a+contribution+stream+to+${
                   isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }+in+the+%23streamingqf+pilot+round+presented+by+Geo+Web%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance%2F+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
+                }+in+the+%23streamingqf+pilot+round+presented+by+Geo+Web%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world%27s+first+SQF+round%21`}
               >
                 <Image src={LensIcon} alt="lens" width={28} height={22} />
                 <span style={{ fontSize: "10px" }}>Post on Lens</span>
