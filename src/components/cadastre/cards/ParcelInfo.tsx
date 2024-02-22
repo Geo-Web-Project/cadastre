@@ -36,6 +36,7 @@ import ConnectWallet from "../../shared/ConnectWallet";
 import NotificationModal from "../NotificationModal";
 import { useBasicProfile } from "../../../hooks/geo-web-content/basicProfile";
 import BN from "bn.js";
+import MenuIcon from "../../../assets/menu.svg";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
 import type { IPCOLicenseDiamond } from "@geo-web/contracts/dist/typechain-types/IPCOLicenseDiamond";
 import { useMediaQuery } from "../../../hooks/mediaQuery";
@@ -478,7 +479,7 @@ function ParcelInfo(props: ParcelInfoProps) {
                   }}
                 >
                   <Dropdown.Toggle as={NavLink} bsPrefix="nav-link">
-                    <Image src="more-menu.svg" alt="more-menu" width={24} />
+                    <Image src={MenuIcon} alt="more-menu" width={24} />
                   </Dropdown.Toggle>
                   <Dropdown.Menu variant="dark">
                     <Dropdown.Item>

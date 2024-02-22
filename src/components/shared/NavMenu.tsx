@@ -2,6 +2,7 @@ import React from "react";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Stack from "react-bootstrap/Stack";
 import Image from "react-bootstrap/Image";
+import MenuIcon from "../../assets/menu.svg";
 import OnRampWidget from "./OnRampWidget";
 import FarcasterIcon from "../../assets/farcaster.svg";
 
@@ -16,7 +17,7 @@ export default function NavMenu({ account }: { account?: string }) {
 function NavMenuMainnet({ account }: { account?: string }) {
   return (
     <NavDropdown
-      title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
+      title={<Image src={MenuIcon} alt="more-menu" width={36} />}
       id="collasible-nav-dropdown"
       menuVariant="dark"
       align="end"
@@ -64,7 +65,7 @@ function NavMenuMainnet({ account }: { account?: string }) {
 function NavMenuTestnet({ account }: { account?: string }) {
   return (
     <NavDropdown
-      title={<Image src="more-menu.svg" alt="more-menu" width={36} />}
+      title={<Image src={MenuIcon} alt="more-menu" width={36} />}
       id="collasible-nav-dropdown"
       menuVariant="dark"
       align="end"
