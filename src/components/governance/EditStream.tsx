@@ -161,11 +161,11 @@ export default function EditStream(props: EditStreamProps) {
       watch: false,
     });
 
-  const minEthBalance = 0.002;
+  const minEthBalance = 0.001;
   const suggestedTokenBalance = newFlowRate
     ? BigInt(newFlowRate) *
       BigInt(fromTimeUnitsToSeconds(1, unitOfTime[TimeInterval.MONTH])) *
-      BigInt(3)
+      BigInt(2)
     : BigInt(0);
   const hasSufficientEthBalance =
     ethBalance && ethBalance.value > parseEther(minEthBalance.toString());
@@ -193,7 +193,9 @@ export default function EditStream(props: EditStreamProps) {
         BigInt(fromTimeUnitsToSeconds(1, unitOfTime[timeInterval]));
 
       if (
-        BigInt(-accountFlowRate) - BigInt(flowRateToReceiver) + newFlowRate >
+        BigInt(-accountFlowRate) -
+          BigInt(flowRateToReceiver) +
+          BigInt(newFlowRate) >
         BigInt(0)
       ) {
         const updatedAtTimestamp = userTokenSnapshot
@@ -209,7 +211,7 @@ export default function EditStream(props: EditStreamProps) {
                   parseEther(wrapAmount?.replace(/,/g, "") ?? "0")) /
                   (BigInt(-accountFlowRate) -
                     BigInt(flowRateToReceiver) +
-                    newFlowRate)
+                    BigInt(newFlowRate))
               ),
             })
           )
@@ -339,13 +341,13 @@ export default function EditStream(props: EditStreamProps) {
         liquidationEstimate &&
         dayjs
           .unix(liquidationEstimate)
-          .isBefore(dayjs().add(dayjs.duration({ months: 3 })))
+          .isBefore(dayjs().add(dayjs.duration({ months: 2 })))
       ) {
         setWrapAmount(
           formatNumberWithCommas(
             parseFloat(
               formatEther(
-                parseEther(amountPerTimeInterval.replace(/,/g, "")) * BigInt(3)
+                parseEther(amountPerTimeInterval.replace(/,/g, "")) * BigInt(2)
               )
             )
           )
@@ -584,7 +586,12 @@ export default function EditStream(props: EditStreamProps) {
                     setStep(
                       !hasSufficientEthBalance || !hasSuggestedTokenBalance
                         ? Step.TOP_UP
-                        : wrapAmount
+                        : wrapAmount ||
+                          superTokenBalance <
+                            BigInt(newFlowRate) *
+                              BigInt(
+                                fromTimeUnitsToSeconds(1, TimeInterval.DAY)
+                              )
                         ? Step.WRAP
                         : isFundingMatchingPool ||
                           (passportScore && passportScore >= minPassportScore)
@@ -709,7 +716,7 @@ export default function EditStream(props: EditStreamProps) {
                       )}
                     </Card.Text>
                     <Card.Text className="m-0 fs-6">
-                      At least {minEthBalance} needed for gas
+                      Suggested at least {minEthBalance}
                     </Card.Text>
                     <OnRampWidget
                       target={
@@ -790,7 +797,10 @@ export default function EditStream(props: EditStreamProps) {
                 }
                 onClick={() =>
                   setStep(
-                    wrapAmount
+                    wrapAmount ||
+                      superTokenBalance <
+                        BigInt(newFlowRate) *
+                          BigInt(fromTimeUnitsToSeconds(1, TimeInterval.DAY))
                       ? Step.WRAP
                       : isFundingMatchingPool ||
                         (passportScore && passportScore >= minPassportScore)
