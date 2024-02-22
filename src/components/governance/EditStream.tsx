@@ -361,7 +361,7 @@ export default function EditStream(props: EditStreamProps) {
         ).toString()
       );
     }
-  }, [amountPerTimeInterval, timeInterval, liquidationEstimate]);
+  }, [amountPerTimeInterval, timeInterval]);
 
   const handleAmountStepping = (stepping: { increment: boolean }) => {
     const { increment } = stepping;
