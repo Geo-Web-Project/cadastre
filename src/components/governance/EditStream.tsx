@@ -767,13 +767,13 @@ export default function EditStream(props: EditStreamProps) {
                     </Card.Text>
                     <Button
                       variant="link"
-                      href="https://swap.defillama.com/?chain=optimism&from=0x0000000000000000000000000000000000000000&to=0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+                      href="https://jumper.exchange/?fromChain=10&fromToken=0x0000000000000000000000000000000000000000&toChain=10&toToken=0x7d342726B69C28D942ad8BfE6Ac81b972349d524"
                       target="_blank"
                       rel="noreferrer"
                       className="d-flex justify-content-center gap-1 bg-primary text-decoration-none rounded-3 text-white fs-4"
                     >
                       <Image src={SwapIcon} alt="swap" width={18} />
-                      Get DAI
+                      Get DAIx
                     </Button>
                   </Stack>
                 </Stack>
