@@ -384,11 +384,14 @@ export default function EditStream(props: EditStreamProps) {
     setAmount: (value: string) => void
   ) => {
     const { value } = e.target;
+    const valueWithoutCommas = value.replace(/,/g, "");
 
-    if (isNumber(value.replace(/,/g, ""))) {
+    if (isNumber(valueWithoutCommas)) {
       setAmount(
-        `${formatNumberWithCommas(parseFloat(value.replace(/,/g, "")))}${
-          isFundingMatchingPool && value.endsWith(".") ? "." : ""
+        `${
+          isFundingMatchingPool && parseFloat(valueWithoutCommas) < 1000
+            ? value
+            : formatNumberWithCommas(parseFloat(valueWithoutCommas))
         }`
       );
     } else if (value === "") {
