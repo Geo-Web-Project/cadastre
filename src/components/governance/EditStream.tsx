@@ -1399,8 +1399,6 @@ export default function EditStream(props: EditStreamProps) {
                 rel="noreferrer"
                 target="_blank"
                 href={`https://twitter.com/intent/tweet?text=I%20just%20opened%20a%20contribution%20stream%20to%20${
-                  isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }%20${
                   recipientsDetails && granteeIndex !== null
                     ? extractTwitterHandle(
                         recipientsDetails[granteeIndex].social
