@@ -7,10 +7,8 @@ export const WORLD = {
   blockNumber: import.meta.env.VITE_WORLD_BLOCK_NUMBER,
 };
 export const RPC_URLS_HTTP: Record<number, string> = {
-  10: `https://opt-mainnet.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
-  11155420: `https://opt-sepolia.g.alchemy.com/v2/${import.meta.env
-    .VITE_ALCHEMY_API_KEY!}`,
+  10: `https://optimism-rpc.publicnode.com`,
+  11155420: `https://optimism-sepolia-rpc.publicnode.com`,
 };
 export const RPC_URLS_WS: Record<number, string> = {
   10: `wss://opt-mainnet.g.alchemy.com/v2/${import.meta.env
