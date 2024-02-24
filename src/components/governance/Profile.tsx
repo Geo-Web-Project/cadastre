@@ -211,7 +211,7 @@ function Profile(props: ProfileProps) {
               <>
                 <Stack
                   direction="horizontal"
-                  gap={3}
+                  gap={2}
                   className={`${
                     passportScore && passportScore > minPassportScore
                       ? "text-success"
@@ -226,13 +226,13 @@ function Profile(props: ProfileProps) {
                       ? parseFloat((Number(passportScore) / 10000).toFixed(3))
                       : "N/A"}
                   </Card.Text>
-                  <Card.Text className="w-50 m-0 fs-5" style={{ width: 80 }}>
+                  <Card.Text className="m-0 ms-2 fs-5" style={{ width: 100 }}>
                     min. {Number(minPassportScore) / 10000} required for
                     matching
                   </Card.Text>
                   <Button
                     variant="transparent"
-                    className="p-0"
+                    className="p-0 ms-1"
                     onClick={() =>
                       refetchPassportScore({ throwOnError: false })
                     }
