@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { formatEther } from "viem";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
 import Spinner from "react-bootstrap/Spinner";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { FlowingBalance } from "../cadastre/profile/FlowingBalance";
 import { sfSubgraph } from "../../redux/store";
 import { useEthersProvider } from "../../hooks/ethersAdapters";
+import useFlowingAmount from "../../hooks/flowingAmount";
 import { NETWORK_ID } from "../../lib/constants";
 import { truncateEth } from "../../lib/truncate";
 
@@ -24,6 +24,13 @@ function FundsRaisedCounter() {
       pollingInterval: 5000,
       skip: !beneficiaryAddress,
     }
+  );
+  const accountTokenSnapshot = data?.items[0];
+  const amount = useFlowingAmount(
+    BigInt(accountTokenSnapshot?.totalAmountStreamedInUntilUpdatedAt ?? 0) +
+      BigInt(accountTokenSnapshot?.totalAmountTransferredUntilUpdatedAt ?? 0),
+    accountTokenSnapshot?.updatedAtTimestamp ?? 0,
+    BigInt(accountTokenSnapshot?.totalInflowRate ?? 0)
   );
 
   useEffect(() => {
@@ -58,21 +65,7 @@ function FundsRaisedCounter() {
         </div>
       ) : (
         <div className="fs-1 text-primary text-center lh-1">
-          <FlowingBalance
-            format={(x) =>
-              truncateEth(ethers.utils.formatUnits(x), 4) + " ETHx"
-            }
-            accountTokenSnapshot={data.items[0]}
-            balance={(accountTokenSnapshot) =>
-              accountTokenSnapshot
-                ? ethers.BigNumber.from(
-                    accountTokenSnapshot.balanceUntilUpdatedAt
-                  ).add(
-                    accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt
-                  )
-                : ethers.BigNumber.from("0")
-            }
-          />
+          {truncateEth(formatEther(amount), 4)} ETHx
           <div className="text-light text-center">
             <span className="d-none d-sm-block my-2 fs-4">
               Public Goods Funding Raised

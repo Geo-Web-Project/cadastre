@@ -23,7 +23,10 @@ function NavMenuMainnet({ account }: { account?: string }) {
       align="end"
     >
       <NavDropdown.Item className="d-flex gap-2">
-        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
+        <OnRampWidget
+          target={<span className="w-100 text-start">Buy ETH</span>}
+          accountAddress={account}
+        />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.geoweb.network/"
@@ -71,7 +74,10 @@ function NavMenuTestnet({ account }: { account?: string }) {
       align="end"
     >
       <NavDropdown.Item>
-        <OnRampWidget target={<span>Buy ETH</span>} accountAddress={account} />
+        <OnRampWidget
+          target={<span className="w-100 text-start">Buy ETH</span>}
+          accountAddress={account}
+        />
       </NavDropdown.Item>
       <NavDropdown.Item
         href="https://docs.optimism.io/builders/tools/build/faucets"
