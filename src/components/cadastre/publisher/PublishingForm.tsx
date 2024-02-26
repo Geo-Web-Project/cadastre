@@ -33,12 +33,19 @@ type AugmentArgs = {
 };
 
 export default function PublishingForm(props: PublishingFormProps) {
-  const { augmentType, setShowForm, signer, worldContract, selectedParcelId } =
-    props;
+  const {
+    augmentType,
+    setShowForm,
+    signer,
+    worldContract,
+    selectedParcelId,
+    w3Client,
+  } = props;
   const { default: map } = useMap();
 
   const { tables } = useMUD();
 
+  const [isUploading, setIsUploading] = useState(false);
   const [isAllowed, setIsAllowed] = useState(false);
   const [isActing, setIsActing] = useState(false);
   const [didFail, setDidFail] = useState(false);
@@ -207,6 +214,28 @@ export default function PublishingForm(props: PublishingFormProps) {
     setShowForm(false);
   }, [augmentArgs, tables, worldContract, signer]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function captureFile(event: React.ChangeEvent<any>) {
+    event.persist();
+    event.stopPropagation();
+    event.preventDefault();
+
+    const file = event.target.files[0];
+
+    if (!file || !w3Client) {
+      return;
+    }
+
+    setIsUploading(true);
+
+    // Upload to Web3 storage
+    const added = await w3Client.uploadFile(file);
+
+    setAugmentArgs({ ...augmentArgs, contentURI: added.toString() });
+
+    setIsUploading(false);
+  }
+
   useEffect(() => {
     map?.on(`click`, (ev) => {
       setAugmentArgs({
@@ -218,6 +247,16 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
     });
   }, [map]);
+
+  const spinner = (
+    <span
+      className="spinner-border"
+      role="status"
+      style={{ height: "1.5em", width: "1.5em" }}
+    >
+      <span className="visually-hidden"></span>
+    </span>
+  );
 
   return (
     <>
@@ -243,17 +282,20 @@ export default function PublishingForm(props: PublishingFormProps) {
               variant="secondary"
               className="d-flex align-items-center p-0 m-0 px-1"
               htmlFor="upload-augment-uri"
+              disabled={isUploading}
             >
-              <Image src="upload.svg" alt="upload" width={24} />
+              {!isUploading ? (
+                <Image src="upload.svg" alt="upload" width={24} />
+              ) : (
+                spinner
+              )}
             </Button>
             <Form.Control
               hidden
               type="file"
               id="upload-augment-uri"
-              onChange={(e) => {
-                e.persist();
-                console.log(e);
-              }}
+              disabled={isUploading}
+              onChange={captureFile}
             />
             <Form.Control
               type="text"
