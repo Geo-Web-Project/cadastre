@@ -143,7 +143,7 @@ export default function Header(props: HeaderProps) {
                   </NavDropdown.Item>
                 </NavDropdown>
               </Col>
-              <Col xl="5" className="d-none d-xl-block p-0">
+              <Col xl="5" xxl="4" className="d-none d-xl-block p-0">
                 <div
                   className="d-flex align-items-center text-light ps-4"
                   style={{
@@ -178,14 +178,13 @@ export default function Header(props: HeaderProps) {
                   </Link>
                 </div>
               </Col>
-              <Col xl="3" xxl="2" className="d-none d-xl-block p-0">
+              <Col xl="3" xx="4" className="d-none d-xl-block p-0">
                 <FundsRaisedCounter />
               </Col>
               <Col
                 xs="3"
                 sm="4"
                 xl="4"
-                xxl="5"
                 className="d-flex justify-content-end px-0 pe-0 pe-xl-1"
               >
                 {location.pathname === "/" &&

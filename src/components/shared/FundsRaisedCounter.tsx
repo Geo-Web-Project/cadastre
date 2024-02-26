@@ -27,7 +27,8 @@ function FundsRaisedCounter() {
   );
   const accountTokenSnapshot = data?.items[0];
   const amount = useFlowingAmount(
-    BigInt(accountTokenSnapshot?.totalAmountStreamedInUntilUpdatedAt ?? 0) +
+    BigInt(accountTokenSnapshot?.balanceUntilUpdatedAt ?? 0) +
+      BigInt(accountTokenSnapshot?.totalAmountStreamedOutUntilUpdatedAt ?? 0) +
       BigInt(accountTokenSnapshot?.totalAmountTransferredUntilUpdatedAt ?? 0),
     accountTokenSnapshot?.updatedAtTimestamp ?? 0,
     BigInt(accountTokenSnapshot?.totalInflowRate ?? 0)
