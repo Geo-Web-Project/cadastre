@@ -363,6 +363,8 @@ function IndexPage(props: IndexPageProps) {
         world: WORLD,
         namespaces: [Number(selectedParcelId).toString()],
         indexerUrl: "https://mud-testnet.geoweb.network/trpc",
+        startSync:
+          selectedParcelId !== "" && import.meta.env.MODE !== "mainnet",
       });
 
       setWorldConfig(worldConfig);
