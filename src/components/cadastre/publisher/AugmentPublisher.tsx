@@ -22,7 +22,7 @@ export enum AugmentType {
 export function getAugmentAddress(augmentType: AugmentType) {
   switch (augmentType) {
     default:
-      return "0x0c2819e12c930089D0F563467Fa6af4f87563019";
+      return "0x73f7c7ee16c83a28952c97919a50d3048f7a7514";
   }
 }
 
@@ -121,7 +121,7 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
                       break;
                   }
                   return (
-                    <tr>
+                    <tr key={i}>
                       <td>{i + 1}</td>
                       <td>{mediaObject.name}</td>
                       <td>{mediaType}</td>
