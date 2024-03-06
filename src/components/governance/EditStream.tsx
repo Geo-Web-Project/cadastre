@@ -1431,7 +1431,7 @@ export default function EditStream(props: EditStreamProps) {
                 target="_blank"
                 href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${
                   isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
+                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
               >
                 <Image
                   src={FarcasterIcon}
