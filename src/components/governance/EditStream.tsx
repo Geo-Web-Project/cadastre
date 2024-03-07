@@ -43,6 +43,7 @@ import useSuperfluid from "../../hooks/superfluid";
 import useTransactionsQueue from "../../hooks/transactionsQueue";
 import useAllo from "../../hooks/allo";
 import useRoundQuery from "../../hooks/roundQuery";
+import { useDonationAnalyticsEvent } from "../../hooks/analyticsEvent";
 import { passportDecoderAbi } from "../../lib/abi/passportDecoder";
 import {
   TimeInterval,
@@ -75,7 +76,7 @@ interface EditStreamProps {
   isFundingMatchingPool: boolean;
 }
 
-enum Step {
+export enum Step {
   SELECT_AMOUNT = "Edit stream",
   WRAP = "Wrap to Super Token",
   TOP_UP = "Top up required tokens",
@@ -161,6 +162,7 @@ export default function EditStream(props: EditStreamProps) {
       enabled: address ? true : false,
       watch: false,
     });
+  useDonationAnalyticsEvent(step, isFundingMatchingPool);
 
   const minEthBalance = 0.001;
   const suggestedTokenBalance = newFlowRate

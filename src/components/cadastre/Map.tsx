@@ -946,6 +946,10 @@ function Map(props: MapProps) {
           "claim-layer",
           "claim-point-layer",
         ]);
+        window.plausible("Start a Claim");
+        break;
+      case STATE.CLAIM_SELECTED:
+        window.plausible("Confirm Shape");
         break;
       case STATE.PUBLISHING_NEW_MARKER:
         setLastClickPoint(null);
