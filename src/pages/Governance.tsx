@@ -5,8 +5,8 @@ import StreamingQuadraticFunding from "../components/governance/StreamingQuadrat
 const apolloClient = new ApolloClient({
   uri:
     import.meta.env.MODE === "mainnet"
-      ? "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
-      : "https://optimism-sepolia.subgraph.x.superfluid.dev",
+      ? "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1"
+      : "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1",
   cache: new InMemoryCache(),
 });
 
