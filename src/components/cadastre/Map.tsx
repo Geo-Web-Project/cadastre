@@ -566,8 +566,6 @@ function Map(props: MapProps) {
       return;
     }
 
-    setLastClickPoint(event.lngLat);
-
     const parcelFeature = event.features?.find(
       (f) => f.layer.id === "parcels-layer"
     );
@@ -737,6 +735,22 @@ function Map(props: MapProps) {
       case STATE.PARCEL_SELECTED:
         if (_checkParcelClick()) {
           return;
+        }
+        break;
+      case STATE.PUBLISHING_NEW_MARKER:
+        const coords = event.lngLat;
+        const parcel = data?.geoWebParcels?.filter(
+          (parcel) => parcel.id === selectedParcelId
+        )[0];
+        if (
+          coords &&
+          parcel &&
+          coords.lng > Number(parcel.bboxW) &&
+          coords.lng < Number(parcel.bboxE) &&
+          coords.lat > Number(parcel.bboxS) &&
+          coords.lat < Number(parcel.bboxN)
+        ) {
+          setLastClickPoint(coords);
         }
         break;
       case STATE.PARCEL_EDITING_BID:
@@ -1069,7 +1083,7 @@ function Map(props: MapProps) {
           mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle={mapStyleUrlByName[mapStyleName]}
           interactiveLayerIds={interactiveLayerIds}
-          projection="globe"
+          projection={{ name: "globe" }}
           fog={{}}
           dragRotate={false}
           touchZoomRotate={true}

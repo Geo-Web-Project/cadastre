@@ -173,6 +173,10 @@ input[type="number"] {
   color: $light !important;
 }
 
+.form-control::placeholder {
+  color: $info !important;
+}
+
 .fixed-top {
   z-index: 500;
 }
