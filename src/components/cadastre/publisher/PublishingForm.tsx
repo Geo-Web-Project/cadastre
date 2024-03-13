@@ -3,11 +3,13 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import Spinner from "react-bootstrap/Spinner";
 import { AugmentType } from "./AugmentPublisher";
 import Stack from "react-bootstrap/Stack";
 import { useMap } from "react-map-gl";
 import ApproveAugmentButton from "./actions/ApproveAugmentButton";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import AugmentPin from "../AugmentPin";
 import TransactionError from "../cards/TransactionError";
 import { getAugmentAddress } from "./AugmentPublisher";
 import { encodeAbiParameters, stringToHex } from "viem";
@@ -249,13 +251,15 @@ export default function PublishingForm(props: PublishingFormProps) {
   }, [map]);
 
   const spinner = (
-    <span
-      className="spinner-border"
+    <Spinner
+      as="span"
+      size="sm"
+      animation="border"
       role="status"
-      style={{ height: "1.5em", width: "1.5em" }}
+      className="mx-2"
     >
-      <span className="visually-hidden"></span>
-    </span>
+      <span className="visually-hidden">Sending Transaction...</span>
+    </Spinner>
   );
 
   return (
@@ -266,13 +270,13 @@ export default function PublishingForm(props: PublishingFormProps) {
         positioning. For best results, place your anchor within direct view of a
         publicly accessible road (i.e. front yards).
       </small>
-      <Stack className="my-3 px-3 py-5 text-center bg-blue border-0 rounded">
-        <Image
-          src="markerAdd.svg"
-          width={30}
-          className="mb-3 mx-auto col-md-1"
-        />
-        <div>Position your augment by clicking on the map</div>
+      <Stack
+        direction="vertical"
+        gap={3}
+        className="align-items-center my-3 px-3 py-4 text-center bg-blue border-0 rounded-3"
+      >
+        <AugmentPin fill="#CF3232" />
+        Position your augment by clicking on the map
       </Stack>
       <Form className="mt-3" onSubmit={(e) => e.preventDefault()}>
         <Form.Group className="mb-3">
@@ -285,7 +289,12 @@ export default function PublishingForm(props: PublishingFormProps) {
               disabled={isUploading}
             >
               {!isUploading ? (
-                <Image src="upload.svg" alt="upload" width={24} />
+                <Image
+                  src="upload.svg"
+                  alt="upload"
+                  width={24}
+                  className="mx-1"
+                />
               ) : (
                 spinner
               )}
@@ -530,7 +539,7 @@ export default function PublishingForm(props: PublishingFormProps) {
             onClick={installAugment}
             disabled={!isAllowed || !isReady}
           >
-            Submit
+            {isActing ? spinner : "Submit"}
           </Button>
           {didFail && !isActing ? (
             <TransactionError

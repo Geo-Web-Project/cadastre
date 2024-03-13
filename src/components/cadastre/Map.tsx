@@ -27,6 +27,7 @@ import {
 } from "../../lib/constants";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 import OpRewardAlert from "./OpRewardAlert";
+import AugmentPin from "./AugmentPin";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
@@ -456,13 +457,10 @@ function Map(props: MapProps) {
   }
 
   function _onMove(nextViewport: ViewState) {
-    if (
-      interactionState === STATE.PUBLISHING ||
-      interactionState === STATE.PUBLISHING_NEW_MARKER ||
-      mapRef.current == null
-    ) {
+    if (mapRef.current == null) {
       return;
     }
+
     setViewport(nextViewport);
 
     const mapBounds = mapRef.current.getBounds();
@@ -742,8 +740,8 @@ function Map(props: MapProps) {
         const parcel = data?.geoWebParcels?.filter(
           (parcel) => parcel.id === selectedParcelId
         )[0];
+
         if (
-          coords &&
           parcel &&
           coords.lng > Number(parcel.bboxW) &&
           coords.lng < Number(parcel.bboxE) &&
@@ -1150,11 +1148,14 @@ function Map(props: MapProps) {
                 latitude={coords.lat}
                 anchor="bottom"
               >
-                {interactionState === STATE.PUBLISHING_NEW_MARKER ? (
-                  <Image src={"markerGray.svg"} />
-                ) : (
-                  <Image src={"markerRed.svg"} />
-                )}
+                <AugmentPin
+                  fill={
+                    interactionState === STATE.PUBLISHING_NEW_MARKER
+                      ? "#707179"
+                      : "#CF3232"
+                  }
+                  text={`${i + 1}`}
+                />
               </Marker>
             );
           })}
@@ -1167,7 +1168,7 @@ function Map(props: MapProps) {
                 latitude={lastClickPoint.lat}
                 anchor="bottom"
               >
-                <Image src={"markerAdd.svg"} />
+                <AugmentPin fill="#CF3232" />
               </Marker>
             )}
 
