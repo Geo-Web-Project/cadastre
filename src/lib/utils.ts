@@ -175,6 +175,10 @@ export function sqrtBigInt(s: bigint) {
   return x0;
 }
 
+export function absBigInt(n: bigint) {
+  return n < 0n ? -n : n;
+}
+
 export function clampText(str: string, newLength: number) {
   if (str.length <= newLength) {
     return str;
