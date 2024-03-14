@@ -39,6 +39,7 @@ import AddIcon from "../../assets/add.svg";
 import RemoveIcon from "../../assets/remove.svg";
 import { MatchingData } from "./StreamingQuadraticFunding";
 import useFlowingAmount from "../../hooks/flowingAmount";
+import useEthPrice from "../../hooks/ethPrice";
 import useSuperfluid from "../../hooks/superfluid";
 import useTransactionsQueue from "../../hooks/transactionsQueue";
 import useAllo from "../../hooks/allo";
@@ -54,6 +55,7 @@ import {
   roundWeiAmount,
   convertStreamValueToInterval,
   sqrtBigInt,
+  absBigInt,
   formatNumberWithCommas,
   extractTwitterHandle,
 } from "../../lib/utils";
@@ -162,6 +164,7 @@ export default function EditStream(props: EditStreamProps) {
       enabled: address ? true : false,
       watch: false,
     });
+  const ethPrice = useEthPrice();
   useDonationAnalyticsEvent(step, isFundingMatchingPool);
 
   const minEthBalance = 0.001;
@@ -1265,18 +1268,18 @@ export default function EditStream(props: EditStreamProps) {
                     !isFundingMatchingPool ? "rounded-top-4" : "rounded-4"
                   }`}
                 >
-                  <Card.Text className="w-33 m-0 fs-5">New Stream</Card.Text>
+                  <Card.Text className="m-0 fs-5">New Stream</Card.Text>
                   <Stack
                     direction="horizontal"
                     gap={1}
-                    className="w-50 ms-2 p-2"
+                    className="justify-content-end w-50 ms-2 p-2"
                   >
                     <Image
                       src={superTokenIcon}
                       alt={isFundingMatchingPool ? "eth" : "dai"}
                       width={isFundingMatchingPool ? 16 : 22}
                     />
-                    <Badge className="bg-aqua w-100 ps-2 pe-2 py-2 fs-4 text-start overflow-hidden text-truncate">
+                    <Badge className="bg-aqua w-75 ps-2 pe-2 py-2 fs-4 text-start overflow-hidden text-truncate">
                       {formatNumberWithCommas(
                         parseFloat(
                           convertStreamValueToInterval(
@@ -1291,39 +1294,75 @@ export default function EditStream(props: EditStreamProps) {
                   <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
                 </Stack>
                 {!isFundingMatchingPool && (
-                  <Stack
-                    direction="horizontal"
-                    className="bg-purple rounded-bottom-4 border-top border-dark p-2"
-                  >
-                    <Card.Text className="w-33 m-0 fs-5">
-                      Est. Matching
-                    </Card.Text>
+                  <>
                     <Stack
                       direction="horizontal"
-                      gap={1}
-                      className="w-50 ms-1 p-2"
+                      className="bg-purple border-top border-dark p-2"
                     >
-                      <Image
-                        src={ETHLogo}
-                        alt="eth"
-                        width={18}
-                        className="mx-1"
-                      />
-                      <Badge className="bg-slate w-100 ps-2 pe-2 py-2 fs-4 text-start">
-                        {passportScore && passportScore < minPassportScore
-                          ? "N/A"
-                          : netImpact
-                          ? `${netImpact > 0 ? "+" : ""}${parseFloat(
-                              (
-                                Number(formatEther(netImpact)) *
-                                fromTimeUnitsToSeconds(1, "months")
-                              ).toFixed(6)
-                            )}`
-                          : 0}
-                      </Badge>
+                      <Card.Text className="m-0 fs-5">Est. Matching</Card.Text>
+                      <Stack
+                        direction="horizontal"
+                        gap={1}
+                        className="justify-content-end w-50 ms-1 p-2"
+                      >
+                        <Image
+                          src={ETHLogo}
+                          alt="eth"
+                          width={14}
+                          className="mx-1"
+                        />
+                        <Badge className="bg-slate w-75 ps-2 pe-2 py-2 fs-4 text-start">
+                          {passportScore && passportScore < minPassportScore
+                            ? "N/A"
+                            : netImpact
+                            ? `${netImpact > 0 ? "+" : ""}${parseFloat(
+                                (
+                                  Number(formatEther(netImpact)) *
+                                  fromTimeUnitsToSeconds(1, "months")
+                                ).toFixed(6)
+                              )}`
+                            : 0}
+                        </Badge>
+                      </Stack>
+                      <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
                     </Stack>
-                    <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
-                  </Stack>
+                    <Stack
+                      direction="horizontal"
+                      className="bg-purple rounded-bottom-4 border-top border-dark p-2"
+                    >
+                      <Card.Text className="m-0 fs-5">QF Multiplier</Card.Text>
+                      <Stack
+                        direction="horizontal"
+                        gap={1}
+                        className="justify-content-end w-50 ms-2 p-2"
+                      >
+                        <Badge
+                          className={`w-75 ps-2 pe-2 py-2 fs-4 text-start ${
+                            BigInt(newFlowRate) < BigInt(flowRateToReceiver)
+                              ? "bg-danger"
+                              : "bg-slate"
+                          }`}
+                        >
+                          {netImpact &&
+                          Number(ethPrice) > 0 &&
+                          newFlowRate !== flowRateToReceiver
+                            ? `~${parseFloat(
+                                (
+                                  (Number(absBigInt(netImpact)) *
+                                    Number(ethPrice)) /
+                                  Number(
+                                    absBigInt(
+                                      BigInt(newFlowRate) -
+                                        BigInt(flowRateToReceiver)
+                                    )
+                                  )
+                                ).toFixed(2)
+                              )}x`
+                            : "N/A"}
+                        </Badge>
+                      </Stack>
+                    </Stack>
+                  </>
                 )}
               </Stack>
               {liquidationEstimate && (

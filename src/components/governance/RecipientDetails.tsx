@@ -183,7 +183,7 @@ export default function RecipientDetails(props: RecipientDetailsProps) {
             )}
           </Badge>
         </Stack>
-        <Card.Text className="w-20 mt-3">total funding</Card.Text>
+        <Card.Text className="mt-3">total funding</Card.Text>
       </Stack>
       <Card.Text className="m-0 p-2 fs-5" style={{ maxWidth: 500 }}>
         <>
