@@ -322,7 +322,7 @@ function Profile(props: ProfileProps) {
               alt="token logo"
               width={token === Token.ETHx ? 15 : 22}
             />
-            <Card.Text className="m-0 text-white w-33 overflow-hidden text-truncate">
+            <Card.Text className="m-0 text-white overflow-hidden text-truncate">
               {token === Token.ETHx
                 ? formatNumberWithCommas(
                     parseFloat(formatEther(superTokenBalanceNative).slice(0, 8))
@@ -382,7 +382,7 @@ function Profile(props: ProfileProps) {
           <Card.Text className="m-0 text-gray px-2 w-50">
             Liquidation Date
           </Card.Text>
-          <Card.Text className="m-0 text-gray w-33 overflow-hidden text-truncate fs-4">
+          <Card.Text className="m-0 text-gray overflow-hidden text-truncate fs-4">
             {token === Token.ETHx &&
             accountInfoNative?.data[0]?.maybeCriticalAtTimestamp
               ? dayjs
