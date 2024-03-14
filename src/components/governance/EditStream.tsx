@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useAccount, useNetwork, useBalance, useContractRead } from "wagmi";
+import { useAccount, useBalance, useContractRead } from "wagmi";
 import { formatEther, parseEther, formatUnits, Address } from "viem";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -112,7 +112,6 @@ export default function EditStream(props: EditStreamProps) {
   const [showMintingInstructions, setShowMintingInstructions] = useState(false);
 
   const { address } = useAccount();
-  const { chain } = useNetwork();
   const { passportDecoder, recipientsDetails } = useAllo();
   const { userTokenSnapshots } = useRoundQuery(address);
   const {
@@ -468,7 +467,9 @@ export default function EditStream(props: EditStreamProps) {
               <Stack direction="horizontal" gap={2}>
                 <Badge className="d-flex align-items-center gap-1 bg-purple w-50 rounded-3 px-3 py-2 fs-4 fw-normal">
                   <Image src={OpLogo} alt="optimism" width={18} />
-                  {chain?.id === 10 ? "OP Mainnet" : "OP Sepolia"}
+                  {import.meta.env.MODE === "mainnet"
+                    ? "OP Mainnet"
+                    : "OP Sepolia"}
                 </Badge>
                 <Badge className="d-flex align-items-center gap-1 bg-purple w-50 rounded-3 px-3 py-2 fs-4 fw-normal">
                   <Image
