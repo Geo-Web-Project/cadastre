@@ -72,7 +72,7 @@ export default function Grantees(props: GranteesProps) {
                   parseEther("1") / BigInt(fromTimeUnitsToSeconds(1, "months")),
               })
             ) *
-              Number(ethPrice)) /
+              ethPrice) /
             Number(
               parseEther("1") / BigInt(fromTimeUnitsToSeconds(1, "months"))
             )

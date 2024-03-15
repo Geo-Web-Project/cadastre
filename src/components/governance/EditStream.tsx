@@ -250,7 +250,7 @@ export default function EditStream(props: EditStreamProps) {
       previousFlowRate: BigInt(flowRateToReceiver ?? 0),
       newFlowRate: BigInt(newFlowRate ?? 0),
     });
-  }, [newFlowRate, flowRateToReceiver]);
+  }, [newFlowRate, flowRateToReceiver, matchingData]);
 
   const transactions = useMemo(() => {
     if (!address || !nativeSuperToken || !wrapperSuperToken) {
