@@ -39,13 +39,13 @@ import AddIcon from "../../assets/add.svg";
 import RemoveIcon from "../../assets/remove.svg";
 import { MatchingData } from "./StreamingQuadraticFunding";
 import useFlowingAmount from "../../hooks/flowingAmount";
-import useEthPrice from "../../hooks/ethPrice";
 import useSuperfluid from "../../hooks/superfluid";
 import useTransactionsQueue from "../../hooks/transactionsQueue";
 import useAllo from "../../hooks/allo";
 import useRoundQuery from "../../hooks/roundQuery";
 import { useDonationAnalyticsEvent } from "../../hooks/analyticsEvent";
 import { passportDecoderAbi } from "../../lib/abi/passportDecoder";
+import { calcMatchingImpactEstimate } from "../../lib/governance/matchingImpactEstimate";
 import {
   TimeInterval,
   unitOfTime,
@@ -54,7 +54,6 @@ import {
   truncateStr,
   roundWeiAmount,
   convertStreamValueToInterval,
-  sqrtBigInt,
   absBigInt,
   formatNumberWithCommas,
   extractTwitterHandle,
@@ -76,6 +75,7 @@ interface EditStreamProps {
   setNewFlowRate: React.Dispatch<React.SetStateAction<string>>;
   transactionsToQueue: (() => Promise<void>)[];
   isFundingMatchingPool: boolean;
+  ethPrice?: number;
 }
 
 export enum Step {
@@ -101,6 +101,7 @@ export default function EditStream(props: EditStreamProps) {
     transactionsToQueue,
     isFundingMatchingPool,
     receiver,
+    ethPrice,
   } = props;
 
   const [wrapAmount, setWrapAmount] = useState<string | null>(null);
@@ -163,7 +164,6 @@ export default function EditStream(props: EditStreamProps) {
       enabled: address ? true : false,
       watch: false,
     });
-  const ethPrice = useEthPrice();
   useDonationAnalyticsEvent(step, isFundingMatchingPool);
 
   const minEthBalance = 0.001;
@@ -236,33 +236,21 @@ export default function EditStream(props: EditStreamProps) {
   ]);
 
   const netImpact = useMemo(() => {
-    if (
-      granteeIndex === null ||
-      !matchingData ||
-      !flowRateToReceiver ||
-      !newFlowRate
-    ) {
-      return BigInt(0);
-    }
-
-    const scaledPreviousFlowRate = BigInt(flowRateToReceiver) / BigInt(1e6);
-    const scaledNewFlowRate = BigInt(newFlowRate) / BigInt(1e6);
-    const granteeUnits = BigInt(matchingData.members[granteeIndex].units);
-    const granteeFlowRate = BigInt(matchingData.members[granteeIndex].flowRate);
-    const newGranteeUnits =
-      (sqrtBigInt(granteeUnits * BigInt(1e5)) -
-        sqrtBigInt(BigInt(scaledPreviousFlowRate)) +
-        sqrtBigInt(BigInt(scaledNewFlowRate))) **
-        BigInt(2) /
-      BigInt(1e5);
-    const unitsDelta = newGranteeUnits - granteeUnits;
-    const newPoolUnits = unitsDelta + BigInt(matchingData.totalUnits);
-    const newGranteeFlowRate =
-      (newGranteeUnits * BigInt(matchingData.flowRate)) / newPoolUnits;
-    const netImpact = newGranteeFlowRate - granteeFlowRate;
-
-    return netImpact;
-  }, [newFlowRate, flowRateToReceiver, matchingData]);
+    return calcMatchingImpactEstimate({
+      totalFlowRate: BigInt(matchingData?.flowRate ?? 0),
+      totalUnits: BigInt(matchingData?.totalUnits ?? 0),
+      granteeUnits:
+        matchingData && granteeIndex
+          ? BigInt(matchingData.members[granteeIndex].units)
+          : BigInt(0),
+      granteeFlowRate:
+        matchingData && granteeIndex
+          ? BigInt(matchingData.members[granteeIndex].flowRate)
+          : BigInt(0),
+      previousFlowRate: BigInt(flowRateToReceiver ?? 0),
+      newFlowRate: BigInt(newFlowRate ?? 0),
+    });
+  }, [newFlowRate, flowRateToReceiver]);
 
   const transactions = useMemo(() => {
     if (!address || !nativeSuperToken || !wrapperSuperToken) {
@@ -1345,7 +1333,7 @@ export default function EditStream(props: EditStreamProps) {
                           }`}
                         >
                           {netImpact &&
-                          Number(ethPrice) > 0 &&
+                          ethPrice &&
                           newFlowRate !== flowRateToReceiver
                             ? `~${parseFloat(
                                 (

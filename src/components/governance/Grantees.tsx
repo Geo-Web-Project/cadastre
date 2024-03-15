@@ -1,4 +1,4 @@
-import { formatEther } from "viem";
+import { parseEther, formatEther } from "viem";
 import Stack from "react-bootstrap/Stack";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
@@ -16,8 +16,10 @@ import {
   clampText,
   perSecondToPerMonth,
   formatNumberWithCommas,
+  fromTimeUnitsToSeconds,
 } from "../../lib/utils";
 import { useMediaQuery } from "../../hooks/mediaQuery";
+import { calcMatchingImpactEstimate } from "../../lib/governance/matchingImpactEstimate";
 import { VIZ_CARD_WIDTH_GRANTEE } from "../../lib/constants";
 
 interface GranteesProps {
@@ -32,6 +34,7 @@ interface GranteesProps {
   setTransactionPanelState: React.Dispatch<
     React.SetStateAction<TransactionPanelState>
   >;
+  ethPrice?: number;
 }
 
 export default function Grantees(props: GranteesProps) {
@@ -45,9 +48,38 @@ export default function Grantees(props: GranteesProps) {
     descriptions,
     transactionPanelState,
     setTransactionPanelState,
+    ethPrice,
   } = props;
 
   const { isMobile } = useMediaQuery();
+
+  const calcSampleMultiplier = (granteeIndex: number) => {
+    return ethPrice
+      ? parseFloat(
+          (
+            (Number(
+              calcMatchingImpactEstimate({
+                totalFlowRate: BigInt(matchingData?.flowRate ?? 0),
+                totalUnits: BigInt(matchingData?.totalUnits ?? 0),
+                granteeUnits: matchingData
+                  ? BigInt(matchingData.members[granteeIndex].units)
+                  : BigInt(0),
+                granteeFlowRate: matchingData
+                  ? BigInt(matchingData.members[granteeIndex].flowRate)
+                  : BigInt(0),
+                previousFlowRate: BigInt(0),
+                newFlowRate:
+                  parseEther("1") / BigInt(fromTimeUnitsToSeconds(1, "months")),
+              })
+            ) *
+              Number(ethPrice)) /
+            Number(
+              parseEther("1") / BigInt(fromTimeUnitsToSeconds(1, "months"))
+            )
+          ).toFixed(0)
+        )
+      : 0;
+  };
 
   return (
     <>
@@ -68,7 +100,7 @@ export default function Grantees(props: GranteesProps) {
           {grantees.map((grantee, i) => (
             <Stack
               direction="horizontal"
-              gap={isMobile ? 2 : 1}
+              gap={2}
               className={`justify-content-even border bg-blue border-0 ${
                 isMobile ? "rounded-3" : "rounded-0 rounded-end-3"
               } px-2 py-1`}
@@ -83,7 +115,7 @@ export default function Grantees(props: GranteesProps) {
             >
               <Button
                 variant="success"
-                className="d-flex flex-column justify-content-center align-items-center h-100 p-0 fs-3 text-white fw-bold"
+                className="d-flex flex-column justify-content-center align-items-center gap-1 w-25 h-100 px-0 py-2 fs-5 text-white"
                 onClick={() =>
                   setTransactionPanelState({
                     show: true,
@@ -92,9 +124,22 @@ export default function Grantees(props: GranteesProps) {
                   })
                 }
               >
-                <Image src={HandIcon} alt="donate" width={26} />
+                <Stack direction="vertical">
+                  <Card.Text className="m-0 mt-2 mt-sm-0 fs-6">
+                    1 DAI Match
+                  </Card.Text>
+                  <Card.Text className="m-0 fs-5">
+                    {ethPrice ? `~${calcSampleMultiplier(i)}x` : "N/A"}
+                  </Card.Text>
+                </Stack>
+                <Image
+                  src={HandIcon}
+                  alt="donate"
+                  width={26}
+                  className="h-100"
+                />
               </Button>
-              <Card className="h-100 px-1 bg-transparent text-white border-0">
+              <Card className="w-100 w-sm-75 h-100 px-1 bg-transparent text-white border-0">
                 <Card.Title
                   className={`m-0 mb-1 p-0 ${isMobile ? "fs-3" : "fs-4"}`}
                 >
@@ -126,13 +171,11 @@ export default function Grantees(props: GranteesProps) {
                   >
                     {clampText(
                       descriptions[i],
-                      isMobile && document.documentElement.clientWidth < 380
-                        ? 46
-                        : isMobile && document.documentElement.clientWidth > 420
-                        ? 72
-                        : isMobile && document.documentElement.clientWidth > 400
-                        ? 60
-                        : 56
+                      isMobile && document.documentElement.clientWidth > 400
+                        ? 50
+                        : isMobile
+                        ? 42
+                        : 46
                     )}
                   </Card.Subtitle>
                 </Stack>
