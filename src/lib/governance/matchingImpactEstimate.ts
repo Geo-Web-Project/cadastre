@@ -15,10 +15,6 @@ export function calcMatchingImpactEstimate({
   previousFlowRate: bigint;
   newFlowRate: bigint;
 }) {
-  if (newFlowRate === BigInt(0)) {
-    return newFlowRate;
-  }
-
   const scaledPreviousFlowRate = previousFlowRate / BigInt(1e6);
   const scaledNewFlowRate = newFlowRate / BigInt(1e6);
   const newGranteeUnits =

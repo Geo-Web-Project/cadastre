@@ -240,17 +240,17 @@ export default function EditStream(props: EditStreamProps) {
       totalFlowRate: BigInt(matchingData?.flowRate ?? 0),
       totalUnits: BigInt(matchingData?.totalUnits ?? 0),
       granteeUnits:
-        matchingData && granteeIndex
+        matchingData && granteeIndex !== null
           ? BigInt(matchingData.members[granteeIndex].units)
           : BigInt(0),
       granteeFlowRate:
-        matchingData && granteeIndex
+        matchingData && granteeIndex !== null
           ? BigInt(matchingData.members[granteeIndex].flowRate)
           : BigInt(0),
       previousFlowRate: BigInt(flowRateToReceiver ?? 0),
       newFlowRate: BigInt(newFlowRate ?? 0),
     });
-  }, [newFlowRate, flowRateToReceiver, matchingData]);
+  }, [newFlowRate, flowRateToReceiver, matchingData, granteeIndex]);
 
   const transactions = useMemo(() => {
     if (!address || !nativeSuperToken || !wrapperSuperToken) {
