@@ -48,6 +48,7 @@ export interface VisualizationProps {
   userAllocationData: AllocationData[];
   directAllocationData: AllocationData[];
   matchingData: MatchingData;
+  ethPrice?: number;
 }
 
 export interface Dimensions {

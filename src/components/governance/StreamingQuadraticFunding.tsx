@@ -14,6 +14,7 @@ import Visualization from "./Visualization";
 import FundGrantee from "./FundGrantee";
 import useAllo from "../../hooks/allo";
 import { useMediaQuery } from "../../hooks/mediaQuery";
+import useEthPrice from "../../hooks/ethPrice";
 import useRoundQuery from "../../hooks/roundQuery";
 
 export type AllocationData = {
@@ -76,6 +77,7 @@ export default function StreamingQuadraticFunding() {
   const { recipients, recipientsDetails } = useAllo();
   const { userAllocationData, directAllocationData, matchingData } =
     useRoundQuery(address);
+  const ethPrice = useEthPrice();
 
   if (
     !recipients ||
@@ -135,6 +137,7 @@ export default function StreamingQuadraticFunding() {
             userAllocationData={userAllocationData}
             directAllocationData={directAllocationData}
             matchingData={matchingData}
+            ethPrice={ethPrice}
           />
         </Col>
         {transactionPanelState.show &&
@@ -142,6 +145,7 @@ export default function StreamingQuadraticFunding() {
             <Col sm="3" className="p-0">
               <FundGrantee
                 key={transactionPanelState.granteeIndex}
+                ethPrice={ethPrice}
                 userAllocationData={userAllocationData}
                 directAllocationData={directAllocationData}
                 matchingData={matchingData}

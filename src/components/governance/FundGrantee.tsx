@@ -34,6 +34,7 @@ export type FundGranteeProps = {
   granteeAddress: Address;
   description: string;
   recipientId: Address;
+  ethPrice?: number;
 };
 
 export default function FundGrantee(props: FundGranteeProps) {
