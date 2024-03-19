@@ -2754,33 +2754,33 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/mud-world-base-contracts@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.1.0.tgz#45271c77e4fea0690f0329ffb577c354d0e298d4"
-  integrity sha512-+PiaBxa4KvK/QenB4cRhmd+CiiPPqJkfD7z2xr+57y52gHQWcrD7bgwUy4lWQ79lIgvV3dI1/Vw8JiONiXH5og==
+"@geo-web/mud-world-base-contracts@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.2.0.tgz#4437dd2eb399962a9e2c70556031a4c370cb54be"
+  integrity sha512-j1fUPjOQOi/+t6jJ1OeA2z2Wr6yXpqTnHIvQ9TciRHcpj5eoEuVy3F+7N+zRCMuaNROEu+HNfwgy9xPsPr+o4Q==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
-    "@latticexyz/cli" "2.0.0-next.11"
-    "@latticexyz/config" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    "@latticexyz/store" "2.0.0-next.11"
-    "@latticexyz/world" "2.0.0-main-f6d214e3"
-    "@latticexyz/world-modules" "2.0.0-next.11"
+    "@latticexyz/cli" "2.0.0-next.17"
+    "@latticexyz/config" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
+    "@latticexyz/world" "2.0.0-next.17"
+    "@latticexyz/world-modules" "2.0.0-next.17"
     "@openzeppelin/contracts" "^4.9.3"
     ethers "^5.7.2"
 
-"@geo-web/mud-world-base-setup@0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-setup/-/mud-world-base-setup-0.2.2.tgz#d429df6ffbbe3f52c47d25e6fa8ca66e062b3093"
-  integrity sha512-1FIOMY0FW1kFj+43oJXm0wsF+Py39GyaQGrOsoS+DyOSaszoqVECs5geRAXIZLuDCv3IFsb8H7SgcSzSfzmkyg==
+"@geo-web/mud-world-base-setup@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-setup/-/mud-world-base-setup-0.3.1.tgz#9ad557277bbb7737d5ddf960494a2fdccb9d8a24"
+  integrity sha512-DuSwQwfjBn7f5FmXdowq5fA3Q9IugqUibMvkO+O+kay75S24u03JHB2IFHQBHpkRgAD8pEy1fO0D1pGLaFbImw==
   dependencies:
     "@ethersproject/providers" "^5.7.2"
-    "@geo-web/mud-world-base-contracts" "0.1.0"
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/store" "2.0.0-next.15"
-    "@latticexyz/store-sync" "2.0.0-next.15"
+    "@geo-web/mud-world-base-contracts" "0.2.0"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
+    "@latticexyz/store-sync" "2.0.0-next.17"
     ethers "^5.7.2"
     react "^18.2.0"
     react-dom "^18.2.0"
@@ -2994,49 +2994,51 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@latticexyz/abi-ts@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/abi-ts/-/abi-ts-2.0.0-next.11.tgz#9185a558eeeac20264b424e41565291d31b6d128"
-  integrity sha512-0mDvCt+/40c7KS7fFc5U0FLHI4jlle10uaxCYrwkZGLv0SNJvI9h6OdHB/4Z3xH/bz6FoDI60ZVawJYgmWLeVA==
+"@latticexyz/abi-ts@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/abi-ts/-/abi-ts-2.0.0-next.17.tgz#a8ac7c4bc910f6235e3007125ee9b01ac2b5deb1"
+  integrity sha512-fW22HWYGqaov0zT+5HgeTTvsayMmkEQJs4V3oeQP4Hq8r6+c+a9zj9nayq8fLdnUHsAumUQteGWre5NtvKiALg==
   dependencies:
     chalk "^5.3.0"
+    debug "^4.3.4"
     execa "^7.0.0"
     glob "^8.0.3"
     yargs "^17.7.1"
 
-"@latticexyz/block-logs-stream@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/block-logs-stream/-/block-logs-stream-2.0.0-next.15.tgz#54967a83c747f790f4660b5c86f632a7705dcbb5"
-  integrity sha512-OcvbBT3oOQVNJHfIX89a6KFUn6X3WFisKoG2Q0yYANdyFWPfoNYopep1h4RMzvKGebuN+XQ/ClHIsrupcAuxZA==
+"@latticexyz/block-logs-stream@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/block-logs-stream/-/block-logs-stream-2.0.0-next.17.tgz#1193f047a6a82cc94de9561309a89fd551782731"
+  integrity sha512-PD9dfziO+rFihzfH98KHb5eFKJjPlOMnrlbDCD3eykAQrNGtNVGNJ+lTT7ENHldUDPjh26Y2NpFgsXtGyJEX6Q==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.15"
+    "@latticexyz/common" "2.0.0-next.17"
     abitype "0.9.8"
     debug "^4.3.4"
     rxjs "7.5.5"
     viem "1.14.0"
 
-"@latticexyz/cli@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/cli/-/cli-2.0.0-next.11.tgz#c425c1037a46291107cdda7de48229c752479119"
-  integrity sha512-/Ja4uIo+fKzSAlF/fgjyuPRSSOxZRYK7Sj2Frzd33+VahuCy0qx9r1HxX+wXVg1XG2qFR5ljXISyd6P14ke9CA==
+"@latticexyz/cli@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/cli/-/cli-2.0.0-next.17.tgz#dc70f3a170eceea9e15390360f27198e10a5f577"
+  integrity sha512-UQNCP3/e5kce7M/sMzyrAI9ZinLl7h4MUs5wBuws5ZHGAW/fqkH3goX6IErZPJn1kbmbGgzfL37nsoi6R8mmcg==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     "@improbable-eng/grpc-web" "^0.15.0"
     "@improbable-eng/grpc-web-node-http-transport" "^0.15.0"
-    "@latticexyz/abi-ts" "2.0.0-next.11"
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/config" "2.0.0-next.11"
-    "@latticexyz/gas-report" "2.0.0-next.11"
-    "@latticexyz/protocol-parser" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    "@latticexyz/services" "2.0.0-next.11"
-    "@latticexyz/store" "2.0.0-next.11"
-    "@latticexyz/utils" "2.0.0-next.11"
-    "@latticexyz/world" "2.0.0-next.11"
-    "@latticexyz/world-modules" "2.0.0-next.11"
+    "@latticexyz/abi-ts" "2.0.0-next.17"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/config" "2.0.0-next.17"
+    "@latticexyz/gas-report" "2.0.0-next.17"
+    "@latticexyz/protocol-parser" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/services" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
+    "@latticexyz/utils" "2.0.0-next.17"
+    "@latticexyz/world" "2.0.0-next.17"
+    "@latticexyz/world-modules" "2.0.0-next.17"
     chalk "^5.0.1"
     chokidar "^3.5.3"
+    debug "^4.3.4"
     dotenv "^16.0.3"
     ejs "^3.1.8"
     ethers "^5.7.2"
@@ -3044,7 +3046,9 @@
     glob "^8.0.3"
     nice-grpc-web "^2.0.1"
     openurl "^1.1.1"
+    p-retry "^5.1.2"
     path "^0.12.7"
+    rxjs "7.5.5"
     throttle-debounce "^5.0.0"
     typescript "5.1.6"
     viem "1.14.0"
@@ -3052,42 +3056,12 @@
     zod "^3.21.4"
     zod-validation-error "^1.3.0"
 
-"@latticexyz/common@2.0.0-main-f6d214e3":
-  version "2.0.0-main-f6d214e3"
-  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.0-main-f6d214e3.tgz#44656dc820cac9b63ecfa3b310c59104265c6c35"
-  integrity sha512-G+fHmBrCI8OqfIysSR8dwZWeSzdPgEA9NeBoN9vz8UxvUgQDbuLPhChhFK300fSokdtb5E01F+MALznrc58igw==
+"@latticexyz/common@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.0-next.17.tgz#669e81b1f5bc41fecea4b3a17c80b8c2f10c49f3"
+  integrity sha512-KaafXXFgJc+95lFZVekvzz1whgDGoqjaV5z8N+U2GHbzTWz1VEq+xzkJuoDeVA4ne/4Sjp/eJffe0Fi0i5Pt6Q==
   dependencies:
-    "@latticexyz/schema-type" "2.0.0-main-f6d214e3"
-    "@solidity-parser/parser" "^0.16.0"
-    debug "^4.3.4"
-    execa "^7.0.0"
-    p-queue "^7.4.1"
-    p-retry "^5.1.2"
-    prettier "^2.8.4"
-    prettier-plugin-solidity "^1.1.2"
-    viem "1.14.0"
-
-"@latticexyz/common@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.0-next.11.tgz#415bb9dd82453fbad560da64b440b475ae36e416"
-  integrity sha512-zQ52aqjwZE3ZlS67RcTtR7qSJbM7vSKHabmF05ZXa79/+Koc1AE2X+d3odA64zwvg7Cn56PXiUcNI85NVk2Nyw==
-  dependencies:
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    "@solidity-parser/parser" "^0.16.0"
-    chalk "^5.2.0"
-    debug "^4.3.4"
-    execa "^7.0.0"
-    p-retry "^5.1.2"
-    prettier "^2.8.4"
-    prettier-plugin-solidity "^1.1.2"
-    viem "1.14.0"
-
-"@latticexyz/common@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.0-next.15.tgz#643ea950a680ad4eee27c9076bc5aa2aee83d562"
-  integrity sha512-BncRMgjVqd0jbWtNBFUDk/RMWV+/LRcQAZAY2yWWuoVg7SZfX2ZrSSMOuf/V04TNJK2gKd6GVdRFF6Hjdi5C0A==
-  dependencies:
-    "@latticexyz/schema-type" "2.0.0-next.15"
+    "@latticexyz/schema-type" "2.0.0-next.17"
     "@solidity-parser/parser" "^0.16.0"
     debug "^4.3.4"
     execa "^7.0.0"
@@ -3097,50 +3071,23 @@
     prettier-plugin-solidity "1.1.3"
     viem "1.14.0"
 
-"@latticexyz/config@2.0.0-main-f6d214e3":
-  version "2.0.0-main-f6d214e3"
-  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.0-main-f6d214e3.tgz#9715cca67e24ae79ce399cd3fb5e58b5410e70b7"
-  integrity sha512-aibb17psTk1b4bT/+mOQaDHiqzCZByDgDccJfNoOGBUD51iAAKtEM1puslwq49ejcxEaXAU372o3EkGaaoaWzg==
+"@latticexyz/config@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.0-next.17.tgz#33f2c8d25c3675d04b3bf34ca496c1400cdc6861"
+  integrity sha512-gJzkLa55iQb9Zzkv21Czl0lgdPzaJ+P38Zi7yU3FnAyQzkV56Ay0H52XJEAynupipTHZ5EpODzByBoebB/XXJw==
   dependencies:
-    "@latticexyz/common" "2.0.0-main-f6d214e3"
-    "@latticexyz/schema-type" "2.0.0-main-f6d214e3"
-    esbuild "^0.17.15"
-    ethers "^5.7.2"
-    find-up "^6.3.0"
-    zod "^3.21.4"
-    zod-validation-error "^1.3.0"
-
-"@latticexyz/config@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.0-next.11.tgz#1bbe298755a056903a69d60215328ed48b28a625"
-  integrity sha512-fsqfOSCsRcQFly4xKWOeS2Jti1UJF23e6XVvlv5ps2+yPg01XG9Wnns1ow3HbA0scfa4FfGN/CuYxCkVb020TA==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    chalk "^5.2.0"
-    esbuild "^0.17.15"
-    ethers "^5.7.2"
-    find-up "^6.3.0"
-    zod "^3.21.4"
-    zod-validation-error "^1.3.0"
-
-"@latticexyz/config@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.0-next.15.tgz#92d6c6647d83169998fda02de0aff473af207353"
-  integrity sha512-dHcOJydgIBo4F6eK0bpo8JspE1kZN7TpXU0DceANlKTDUBg+KtSsSeGNDJBT3Ch0nJGeW0RXdA7LuiN6UIEG/Q==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/schema-type" "2.0.0-next.15"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
     esbuild "^0.17.15"
     find-up "^6.3.0"
     viem "1.14.0"
     zod "^3.21.4"
     zod-validation-error "^1.3.0"
 
-"@latticexyz/gas-report@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/gas-report/-/gas-report-2.0.0-next.11.tgz#3da785626f1671a74b72084803024a3aff8b1232"
-  integrity sha512-mc8O9d9P87bk8z0QHZFbJAoS+w1w+JdmHAHxmaSVOQW7uRUiQED/+ERX2PierXQFswsuVnGY4Ag+CtMv1qh2+A==
+"@latticexyz/gas-report@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/gas-report/-/gas-report-2.0.0-next.17.tgz#cc424b84972978017f485cb1551e795c34c30433"
+  integrity sha512-a+KBrP5sVZ/JgAdU6ctRR0dR8simH5c9dklU6mzLp3+2iVAYgKKEFZUAT4RGKedmXSFmojx9NFrOmB3BGJ3j9Q==
   dependencies:
     chalk "^5.3.0"
     dotenv "^16.0.3"
@@ -3150,82 +3097,56 @@
     table "^6.8.1"
     yargs "^17.7.1"
 
-"@latticexyz/protocol-parser@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.0-next.11.tgz#3c3fa154d4e8c424e98ff55b6770273aecb1f9c3"
-  integrity sha512-xl/+oN6AjbN67D/9qB3yJ0rnS4ziLhncAIj9duOlXjluK0dcw4UZtSEdmKqIxPvZ+QhKnJP6nqrhQEQHD8aAfA==
+"@latticexyz/protocol-parser@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.0-next.17.tgz#4b7ebc67c39f28c07dc15459e78f75c572dc49e7"
+  integrity sha512-GJVb1JsaogYR8Dphhftv/ZwX5t81dYFEIJZGQjo2nxIcLGs3pKuW1J5OKBlklNCvdpYpLfjJ3IW5VQ0605iQhg==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
     abitype "0.9.8"
     viem "1.14.0"
 
-"@latticexyz/protocol-parser@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.0-next.15.tgz#39d794964f3e2db82f8bdd7868c4555c2209c858"
-  integrity sha512-J6hMEhW2XnBGs5o1dccTO7Qbpg+waN3EdYVyp7H2c2fmHZs0LByZuzbYY4Qqx6CCsqWqS8N4CPROIWqH5vrl+Q==
+"@latticexyz/recs@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/recs/-/recs-2.0.0-next.17.tgz#58084e34c27151f7ba5f02e41c583860bb3091ff"
+  integrity sha512-5aa4iULsOngiCkfD0sYrtH5HgT4OlVUenTF28ycOe7F7U7x8xJk4S+7v8HkDxtPBsmLfAfptjRkJKX9iFRlZcw==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/schema-type" "2.0.0-next.15"
-    abitype "0.9.8"
-    viem "1.14.0"
-
-"@latticexyz/recs@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/recs/-/recs-2.0.0-next.15.tgz#84bac156eceff390173d486b4bbcfc10cc017632"
-  integrity sha512-ECqWQ5t3ZkLCFgF/Nrh+S6JsbmJ8egVOmnW+WO+7LTShODU2ZCSW+cpRvFaWJQGd/BSprxBK7nExF3bD/vhKHQ==
-  dependencies:
-    "@latticexyz/schema-type" "2.0.0-next.15"
-    "@latticexyz/utils" "2.0.0-next.15"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/utils" "2.0.0-next.17"
     mobx "^6.7.0"
     rxjs "7.5.5"
 
-"@latticexyz/schema-type@2.0.0-main-f6d214e3":
-  version "2.0.0-main-f6d214e3"
-  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.0-main-f6d214e3.tgz#bed888ee809e5ead43e9c211057414a9fed85b3c"
-  integrity sha512-laD4p2VqrpDT75zCBN+hMMep6LGw35Nsq3KciP4SxODO+hQl1ZsBYSEEJ8Rp1U4ivaCSRp/aW5Oj9/lwArmZEw==
+"@latticexyz/schema-type@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.0-next.17.tgz#ebd291e788d89b421d90fc12363327af72fb82bb"
+  integrity sha512-L87Q9qCSQZ0H3NcIoqoEZ64m5K+IMD1J4y2x3PEeMuVLvlLjI6lKN18AS4tPhrytgFNsPOtwCafxmKMKSz7wjA==
   dependencies:
     abitype "0.9.8"
     viem "1.14.0"
 
-"@latticexyz/schema-type@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.0-next.11.tgz#33d490290f1952c4757936e4818fbbcf2e53c6a3"
-  integrity sha512-HRFysd537W7yAuGYPC6c+89uSaH3PeKSxCWZCKT1OGhi6tu/2QYR+QqOuNrP4E+0A5n8lwQiYs9xbc/4/wLZfA==
-  dependencies:
-    abitype "0.9.8"
-    viem "1.14.0"
-
-"@latticexyz/schema-type@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.0-next.15.tgz#e01f95655907dfc854bf7eb81816fb37a41d612c"
-  integrity sha512-Tx23kYFhF10cGmapfV8/Bc/rqfOh0FWvVyEJ6oVYks7cuaSHj9Zw0my0lZy4Zi9RleVYArNnsgcOyLLBsHtaKw==
-  dependencies:
-    abitype "0.9.8"
-    viem "1.14.0"
-
-"@latticexyz/services@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/services/-/services-2.0.0-next.11.tgz#93409866964d001d9a84a26cfdb8499f622d1dd3"
-  integrity sha512-5q0VuSio3UVQx/E32c6vQQvpOEB50+lfTl9LXJO8n7ftKrxDSd7NnXc5P7dCAQQzoeKWv9NucPMcO6jmoICNMA==
+"@latticexyz/services@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/services/-/services-2.0.0-next.17.tgz#d4c1b548c8bfe66a1ec0895f56543193a4fb988f"
+  integrity sha512-0zMMmP0Tuq65Jfkhs9w/Fb1ZxsXzXw3Ch7YnG0FPkYjijooZhiChDyKjvO9IScW4CVunltkVtvxc9DhV8uwNbQ==
   dependencies:
     long "^5.2.1"
     nice-grpc-common "^2.0.2"
     nice-grpc-web "^2.0.1"
     protobufjs "^7.2.3"
 
-"@latticexyz/store-sync@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store-sync/-/store-sync-2.0.0-next.15.tgz#a4d88a5137eafedb201fb03082e3f2b42b02df56"
-  integrity sha512-E8OpSPCLCQ41kG58PPs5SDRhYQPUZrE/fzm7FObPYfV5YGMdNRMfp9QvvSjFRoBXDoC+gQiLsX1mgLTzkHTDZQ==
+"@latticexyz/store-sync@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/store-sync/-/store-sync-2.0.0-next.17.tgz#de464323ab841d9ba95a3de7a90c063b909ef1d3"
+  integrity sha512-7utHgPuFaZrFMax9ZaEXauH2bRd0euH3oRgaxsJT9cP5oYa5cYhnuPuVaMd4YMJxvpP5m4MO1S59D8qyRZSllw==
   dependencies:
-    "@latticexyz/block-logs-stream" "2.0.0-next.15"
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/protocol-parser" "2.0.0-next.15"
-    "@latticexyz/recs" "2.0.0-next.15"
-    "@latticexyz/schema-type" "2.0.0-next.15"
-    "@latticexyz/store" "2.0.0-next.15"
-    "@latticexyz/world" "2.0.0-next.15"
+    "@latticexyz/block-logs-stream" "2.0.0-next.17"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/protocol-parser" "2.0.0-next.17"
+    "@latticexyz/recs" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
+    "@latticexyz/world" "2.0.0-next.17"
     "@trpc/client" "10.34.0"
     "@trpc/server" "10.34.0"
     change-case "^5.2.0"
@@ -3240,104 +3161,48 @@
     zod "^3.21.4"
     zustand "^4.3.7"
 
-"@latticexyz/store@2.0.0-main-f6d214e3":
-  version "2.0.0-main-f6d214e3"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.0-main-f6d214e3.tgz#0d5737b8fc46c5dd443ed35e7a48d728294dc0fb"
-  integrity sha512-ZpnGlNgDbcFWNhIEK4OuB47djSh4f2rzPIigohzpQKoXqFn1uTvMp3l85O/OTH6gs9+jSuZkabBMufGbfzfafA==
+"@latticexyz/store@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.0-next.17.tgz#6615de30af514ab90cc97aa5085b3439a1d7b793"
+  integrity sha512-P2I+kr7PASM3fQcIk0F/1UFkTtHoBvE6bw15X8jJv5Wfh90IkufYsxgRJez1LRQspH1cPE7eju9AQ/ulR3k+mA==
   dependencies:
-    "@latticexyz/common" "2.0.0-main-f6d214e3"
-    "@latticexyz/config" "2.0.0-main-f6d214e3"
-    "@latticexyz/schema-type" "2.0.0-main-f6d214e3"
-    abitype "0.9.8"
-    zod "^3.21.4"
-
-"@latticexyz/store@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.0-next.11.tgz#0d5521968a427b70576977ce69ae7c93f4b6277d"
-  integrity sha512-JYH4TA4tYNOaij8etTPt+wGapEokHDzcXxO+FTc+t2GMDrFJLXFXz9ao70c5jHYjjR2a+uKRVslewksCjjP6NQ==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/config" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    abitype "0.9.8"
-    zod "^3.21.4"
-
-"@latticexyz/store@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.0-next.15.tgz#44e4044330dade07d85b5f5dd86cfc61cf8a6e4f"
-  integrity sha512-ZU5O8hT9BqXPEFgEkpBJgcJeqVumYEAILhc7SxayKtbsLsjVuxdflH67Snvx4U+EHUXiO8BflCVrbBT5b57Vmw==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/config" "2.0.0-next.15"
-    "@latticexyz/schema-type" "2.0.0-next.15"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/config" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
     abitype "0.9.8"
     viem "1.14.0"
     zod "^3.21.4"
 
-"@latticexyz/utils@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/utils/-/utils-2.0.0-next.11.tgz#d02725a3d7faa36b8367649a5aff6ac5716ba54e"
-  integrity sha512-Yn3X+2e4xz9ZPKpn6icv2inuFcfmnf1zcuQRsIjEdANmxtkimu7RMWViheJ0xA6FYhklskiNaMt9l4wY6s0EMg==
-  dependencies:
-    ethers "^5.7.2"
-    mobx "^6.7.0"
-    proxy-deep "^3.1.1"
-    rxjs "7.5.5"
-
-"@latticexyz/utils@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/utils/-/utils-2.0.0-next.15.tgz#a4610c61a13f439c15a04171df5aa24942c54f5c"
-  integrity sha512-kal4N+VPnvxkkWdPrWKZeFwWDle7JAw9JQq54Ur6/VmH82tbvcrkeOgESIz3RFuzworFK2wyHuaxF9wq3aWxEw==
+"@latticexyz/utils@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/utils/-/utils-2.0.0-next.17.tgz#0304c96a8b99e8d7e8f10e0b36d5eb3813a7daf7"
+  integrity sha512-cxHLSwyYFCR4Dv6yBb3VKM+smsSSjOwYg8Wm/h3yskA5iRMyZiFAKfEbS50gjDiO3RMJaJ9Y7ggLsilr8/r+bw==
   dependencies:
     mobx "^6.7.0"
     proxy-deep "^3.1.1"
     rxjs "7.5.5"
 
-"@latticexyz/world-modules@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world-modules/-/world-modules-2.0.0-next.11.tgz#2c0625b96f1dc998536a1604dc2eff03e22c2dff"
-  integrity sha512-mnuB3fCorn85oaWavAVkk4GLWPirCK1N8UxoP0s5c7ImJJkVcqoVDZBpR9Q6jrJc29PLiprnZ8T7qu0HMFOyOg==
+"@latticexyz/world-modules@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/world-modules/-/world-modules-2.0.0-next.17.tgz#1534502194ea8cff383ced7cd79e346e869b9484"
+  integrity sha512-TpErXt/z4+Cx8VRNg1pxsrZTDk+1oil7mRzaLNdNtsK8acaJCeGON27g2VKyiii9Yw83DIlojcNqMvn1SF1eVQ==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/config" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    "@latticexyz/store" "2.0.0-next.11"
-    "@latticexyz/world" "2.0.0-next.11"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/config" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
+    "@latticexyz/world" "2.0.0-next.17"
     zod "^3.21.4"
 
-"@latticexyz/world@2.0.0-main-f6d214e3":
-  version "2.0.0-main-f6d214e3"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.0-main-f6d214e3.tgz#6620735eca9579cf363d73f6bc27b46a653ddae7"
-  integrity sha512-zoPN9l6FCxqiGvHHWAgonJGIASpDt7rkhf8o03tnVN0jxfCapBrWJY+xatDZ8QSL/EP+dXbqHEGqywc0ryN4Kw==
+"@latticexyz/world@2.0.0-next.17":
+  version "2.0.0-next.17"
+  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.0-next.17.tgz#1b09a20416393cd59b9b0fba081993bab15d0c62"
+  integrity sha512-Nyugc95zdSmW30n0ULPUBtmGowzhndYeFR18PXFw2a71JXQ+4h6b8t50fdenwCCE+6tIm8gQ8X8jr+EY7kQMSw==
   dependencies:
-    "@latticexyz/common" "2.0.0-main-f6d214e3"
-    "@latticexyz/config" "2.0.0-main-f6d214e3"
-    "@latticexyz/schema-type" "2.0.0-main-f6d214e3"
-    "@latticexyz/store" "2.0.0-main-f6d214e3"
-    abitype "0.9.8"
-    viem "1.14.0"
-    zod "^3.21.4"
-
-"@latticexyz/world@2.0.0-next.11":
-  version "2.0.0-next.11"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.0-next.11.tgz#4deb2e298840bcc75f12429e0990969c10425218"
-  integrity sha512-8SqW9nVM0UbrqZ1YGZz0ODHxXL5nd4Cz1m9JzIpo3iYzU1uc/sTdG62QkuXHai/6jr4UjRjWfPjb9rozqPuaMg==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.11"
-    "@latticexyz/config" "2.0.0-next.11"
-    "@latticexyz/schema-type" "2.0.0-next.11"
-    "@latticexyz/store" "2.0.0-next.11"
-    zod "^3.21.4"
-
-"@latticexyz/world@2.0.0-next.15":
-  version "2.0.0-next.15"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.0-next.15.tgz#cc69ae50dc666296eb9bfdce470e21f7f226a5d4"
-  integrity sha512-Ypydf7sCckEqWRzkKWQleNAIenj0e5Lz5GggTJ98B3t5rsdNmBAjTJedAZpFcs1VSvwXdVanZ3+Rk7KY11vEqA==
-  dependencies:
-    "@latticexyz/common" "2.0.0-next.15"
-    "@latticexyz/config" "2.0.0-next.15"
-    "@latticexyz/schema-type" "2.0.0-next.15"
-    "@latticexyz/store" "2.0.0-next.15"
+    "@latticexyz/common" "2.0.0-next.17"
+    "@latticexyz/config" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/store" "2.0.0-next.17"
     abitype "0.9.8"
     viem "1.14.0"
     zod "^3.21.4"
@@ -4195,7 +4060,7 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@solidity-parser/parser@^0.16.0", "@solidity-parser/parser@^0.16.2":
+"@solidity-parser/parser@^0.16.0":
   version "0.16.2"
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.16.2.tgz#42cb1e3d88b3e8029b0c9befff00b634cd92d2fa"
   integrity sha512-PI9NfoA3P8XK2VBkK5oIfRgKDsicwDZfkVq9ZTBCQYGOP1N2owgY2dyLGyU5/J/hQs8KRk55kdmvTLjy3Mu3vg==
@@ -8965,7 +8830,7 @@ chalk@^4.0.0, chalk@^4.0.2, chalk@^4.1.0, chalk@^4.1.1:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
-chalk@^5.0.1, chalk@^5.2.0, chalk@^5.3.0:
+chalk@^5.0.1, chalk@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.3.0.tgz#67c20a7ebef70e7f3970a01f90fa210cb6860385"
   integrity sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==
@@ -16358,15 +16223,6 @@ prettier-plugin-solidity@1.1.3:
   dependencies:
     "@solidity-parser/parser" "^0.16.0"
     semver "^7.3.8"
-    solidity-comments-extractor "^0.0.7"
-
-prettier-plugin-solidity@^1.1.2:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-solidity/-/prettier-plugin-solidity-1.2.0.tgz#dc620b4fc7708a60687a87cdc803e57a1856b6fd"
-  integrity sha512-fgxcUZpVAP+LlRfy5JI5oaAkXGkmsje2VJ5krv/YMm+rcTZbIUwFguSw5f+WFuttMjpDm6wB4UL7WVkArEfiVA==
-  dependencies:
-    "@solidity-parser/parser" "^0.16.2"
-    semver "^7.5.4"
     solidity-comments-extractor "^0.0.7"
 
 prettier@^2.8.4:

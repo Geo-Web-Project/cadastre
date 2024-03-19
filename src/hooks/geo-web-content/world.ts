@@ -38,9 +38,9 @@ function useWorld() {
   const modelComponents = useStore((state: any) =>
     Object.values(state.getRecords(tables.ModelCom))
   );
-  const imageComponents = useStore((state: any) =>
-    Object.values(state.getRecords(tables.ImageCom))
-  );
+  // const imageComponents = useStore((state: any) =>
+  //   Object.values(state.getRecords(tables.ImageCom))
+  // );
 
   useEffect(() => {
     const mediaObjects = [];
@@ -53,16 +53,16 @@ function useWorld() {
       mediaObjects.push(mediaObject);
     }
 
-    for (const imageComponent of imageComponents) {
-      const mediaObject = buildMediaObject(
-        MediaObjectType.Image,
-        imageComponent
-      );
-      mediaObjects.push(mediaObject);
-    }
+    // for (const imageComponent of imageComponents) {
+    //   const mediaObject = buildMediaObject(
+    //     MediaObjectType.Image,
+    //     imageComponent
+    //   );
+    //   mediaObjects.push(mediaObject);
+    // }
 
     setMediaObjects(mediaObjects);
-  }, [modelComponents.length, imageComponents.length]);
+  }, [modelComponents.length]);
 
   const getValue = (table: string, key: { key: string }) =>
     useStore.getState().getValue(tables[table], key);
