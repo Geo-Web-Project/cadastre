@@ -297,7 +297,7 @@ function Map(props: MapProps) {
   }>({ id: "", timerId: null });
   const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
-  const [lastClickPoint, setLastClickPoint] = useState<LngLat | null>(null);
+  const [newAugmentCoords, setNewAugmentCoords] = useState<LngLat | null>(null);
 
   const { isMobile, isTablet } = useMediaQuery();
   const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
@@ -748,7 +748,7 @@ function Map(props: MapProps) {
           coords.lat > Number(parcel.bboxS) &&
           coords.lat < Number(parcel.bboxN)
         ) {
-          setLastClickPoint(coords);
+          setNewAugmentCoords(coords);
         }
         break;
       case STATE.PARCEL_EDITING_BID:
@@ -964,7 +964,7 @@ function Map(props: MapProps) {
         window.plausible("Confirm Shape");
         break;
       case STATE.PUBLISHING_NEW_MARKER:
-        setLastClickPoint(null);
+        setNewAugmentCoords(null);
         break;
       default:
         if (isGridVisible) {
@@ -1067,6 +1067,8 @@ function Map(props: MapProps) {
           setNewParcel={setNewParcel}
           isValidClaim={isValidClaim}
           delay={interactionState === STATE.CLAIM_SELECTING}
+          newAugmentCoords={newAugmentCoords}
+          setNewAugmentCoords={setNewAugmentCoords}
         ></OffCanvasPanel>
       ) : null}
       <Col
@@ -1165,11 +1167,11 @@ function Map(props: MapProps) {
           })}
 
           {interactionState === STATE.PUBLISHING_NEW_MARKER &&
-            lastClickPoint && (
+            newAugmentCoords && (
               <Marker
                 key={`marker-add`}
-                longitude={lastClickPoint.lng}
-                latitude={lastClickPoint.lat}
+                longitude={newAugmentCoords.lng}
+                latitude={newAugmentCoords.lat}
                 anchor="bottom"
               >
                 <AugmentPin fill="#CF3232" />

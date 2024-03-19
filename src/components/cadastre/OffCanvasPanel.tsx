@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { BigNumber } from "ethers";
+import { LngLat } from "mapbox-gl";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
@@ -31,6 +32,8 @@ export type OffCanvasPanelProps = MapProps & {
   >;
   isValidClaim: boolean;
   delay: boolean;
+  newAugmentCoords: LngLat | null;
+  setNewAugmentCoords: React.Dispatch<React.SetStateAction<LngLat | null>>;
 };
 
 export interface ParcelFieldsToUpdate {

@@ -6,7 +6,6 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Spinner from "react-bootstrap/Spinner";
 import { AugmentType } from "./AugmentPublisher";
 import Stack from "react-bootstrap/Stack";
-import { useMap } from "react-map-gl";
 import ApproveAugmentButton from "./actions/ApproveAugmentButton";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
 import AugmentPin from "../AugmentPin";
@@ -42,8 +41,9 @@ export default function PublishingForm(props: PublishingFormProps) {
     worldContract,
     selectedParcelId,
     w3Client,
+    newAugmentCoords,
+    setNewAugmentCoords,
   } = props;
-  const { default: map } = useMap();
 
   const { tables } = useMUD();
 
@@ -62,8 +62,6 @@ export default function PublishingForm(props: PublishingFormProps) {
     displayWidth: undefined,
     audioVolume: undefined,
   });
-
-  const isLocationOn = false;
 
   const namespaceId = useMemo(() => {
     return stringToHex(Number(selectedParcelId).toString(), { size: 14 });
@@ -239,16 +237,16 @@ export default function PublishingForm(props: PublishingFormProps) {
   }
 
   useEffect(() => {
-    map?.on(`click`, (ev) => {
-      setAugmentArgs({
-        ...augmentArgs,
-        coords: {
-          lat: ev.lngLat.lat,
-          lon: ev.lngLat.lng,
-        },
-      });
+    setAugmentArgs({
+      ...augmentArgs,
+      coords: newAugmentCoords
+        ? {
+            lat: newAugmentCoords.lat,
+            lon: newAugmentCoords.lng,
+          }
+        : {},
     });
-  }, [map]);
+  }, [newAugmentCoords]);
 
   const spinner = (
     <Spinner
@@ -330,13 +328,21 @@ export default function PublishingForm(props: PublishingFormProps) {
         <Form.Group className="d-flex gap-3 mb-3">
           <InputGroup>
             <Button
-              variant={isLocationOn ? "secondary" : "info"}
+              variant={
+                augmentArgs.coords.lat && augmentArgs.coords.lon
+                  ? "secondary"
+                  : "info"
+              }
               className="d-flex align-items-center p-0 m-0 px-1"
-              disabled
-              // onClick={() => setIsLocationOn(!isLocationOn)}
+              disabled={!augmentArgs.coords.lat || !augmentArgs.coords.lon}
+              onClick={() => setNewAugmentCoords(null)}
             >
               <Image
-                src={isLocationOn ? "location-on.svg" : "location-off.svg"}
+                src={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon
+                    ? "location-on.svg"
+                    : "location-off.svg"
+                }
                 alt="upload"
                 width={24}
               />
