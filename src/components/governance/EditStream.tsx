@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useAccount, useNetwork, useBalance, useContractRead } from "wagmi";
+import { useAccount, useBalance, useContractRead } from "wagmi";
 import { formatEther, parseEther, formatUnits, Address } from "viem";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -43,7 +43,9 @@ import useSuperfluid from "../../hooks/superfluid";
 import useTransactionsQueue from "../../hooks/transactionsQueue";
 import useAllo from "../../hooks/allo";
 import useRoundQuery from "../../hooks/roundQuery";
+import { useDonationAnalyticsEvent } from "../../hooks/analyticsEvent";
 import { passportDecoderAbi } from "../../lib/abi/passportDecoder";
+import { calcMatchingImpactEstimate } from "../../lib/governance/matchingImpactEstimate";
 import {
   TimeInterval,
   unitOfTime,
@@ -52,7 +54,7 @@ import {
   truncateStr,
   roundWeiAmount,
   convertStreamValueToInterval,
-  sqrtBigInt,
+  absBigInt,
   formatNumberWithCommas,
   extractTwitterHandle,
 } from "../../lib/utils";
@@ -73,9 +75,22 @@ interface EditStreamProps {
   setNewFlowRate: React.Dispatch<React.SetStateAction<string>>;
   transactionsToQueue: (() => Promise<void>)[];
   isFundingMatchingPool: boolean;
+  ethPrice?: number;
 }
 
-enum Step {
+type TransactionDetailsSnapshot = {
+  wrapAmount?: string;
+  underlyingTokenBalance?: string;
+  superTokenBalance: bigint;
+  liquidationEstimate: number | null;
+  amountPerTimeInterval: string;
+  netImpact: bigint;
+  newFlowRate: string;
+  flowRateToReceiver: string;
+  ethPrice?: number;
+};
+
+export enum Step {
   SELECT_AMOUNT = "Edit stream",
   WRAP = "Wrap to Super Token",
   TOP_UP = "Top up required tokens",
@@ -98,6 +113,7 @@ export default function EditStream(props: EditStreamProps) {
     transactionsToQueue,
     isFundingMatchingPool,
     receiver,
+    ethPrice,
   } = props;
 
   const [wrapAmount, setWrapAmount] = useState<string | null>(null);
@@ -109,9 +125,10 @@ export default function EditStream(props: EditStreamProps) {
     TimeInterval.MONTH
   );
   const [showMintingInstructions, setShowMintingInstructions] = useState(false);
+  const [transactionDetailsSnapshot, setTransactionDetailsSnapshot] =
+    useState<TransactionDetailsSnapshot | null>(null);
 
   const { address } = useAccount();
-  const { chain } = useNetwork();
   const { passportDecoder, recipientsDetails } = useAllo();
   const { userTokenSnapshots } = useRoundQuery(address);
   const {
@@ -161,6 +178,7 @@ export default function EditStream(props: EditStreamProps) {
       enabled: address ? true : false,
       watch: false,
     });
+  useDonationAnalyticsEvent(step, isFundingMatchingPool);
 
   const minEthBalance = 0.001;
   const suggestedTokenBalance = newFlowRate
@@ -232,33 +250,19 @@ export default function EditStream(props: EditStreamProps) {
   ]);
 
   const netImpact = useMemo(() => {
-    if (
-      granteeIndex === null ||
-      !matchingData ||
-      !flowRateToReceiver ||
-      !newFlowRate
-    ) {
+    if (granteeIndex === null || !matchingData) {
       return BigInt(0);
     }
 
-    const scaledPreviousFlowRate = BigInt(flowRateToReceiver) / BigInt(1e6);
-    const scaledNewFlowRate = BigInt(newFlowRate) / BigInt(1e6);
-    const granteeUnits = BigInt(matchingData.members[granteeIndex].units);
-    const granteeFlowRate = BigInt(matchingData.members[granteeIndex].flowRate);
-    const newGranteeUnits =
-      (sqrtBigInt(granteeUnits * BigInt(1e5)) -
-        sqrtBigInt(BigInt(scaledPreviousFlowRate)) +
-        sqrtBigInt(BigInt(scaledNewFlowRate))) **
-        BigInt(2) /
-      BigInt(1e5);
-    const unitsDelta = newGranteeUnits - granteeUnits;
-    const newPoolUnits = unitsDelta + BigInt(matchingData.totalUnits);
-    const newGranteeFlowRate =
-      (newGranteeUnits * BigInt(matchingData.flowRate)) / newPoolUnits;
-    const netImpact = newGranteeFlowRate - granteeFlowRate;
-
-    return netImpact;
-  }, [newFlowRate, flowRateToReceiver, matchingData]);
+    return calcMatchingImpactEstimate({
+      totalFlowRate: BigInt(matchingData.flowRate),
+      totalUnits: BigInt(matchingData.totalUnits),
+      granteeUnits: BigInt(matchingData.members[granteeIndex].units),
+      granteeFlowRate: BigInt(matchingData.members[granteeIndex].flowRate),
+      previousFlowRate: BigInt(flowRateToReceiver ?? 0),
+      newFlowRate: BigInt(newFlowRate ?? 0),
+    });
+  }, [newFlowRate, flowRateToReceiver, matchingData, granteeIndex]);
 
   const transactions = useMemo(() => {
     if (!address || !nativeSuperToken || !wrapperSuperToken) {
@@ -405,10 +409,36 @@ export default function EditStream(props: EditStreamProps) {
   };
 
   const handleSubmit = async () => {
+    setTransactionDetailsSnapshot({
+      wrapAmount: wrapAmount?.replace(/,/g, ""),
+      underlyingTokenBalance: underlyingTokenBalance?.formatted,
+      superTokenBalance: superTokenBalance,
+      liquidationEstimate: liquidationEstimate,
+      amountPerTimeInterval: amountPerTimeInterval.replace(/,/g, ""),
+      netImpact: netImpact,
+      newFlowRate: newFlowRate,
+      flowRateToReceiver: flowRateToReceiver,
+      ethPrice: ethPrice,
+    });
+
     await executeTransactions(transactions);
 
     setStep(Step.SUCCESS);
+    setTransactionDetailsSnapshot(null);
   };
+
+  const calcMatchingMultiplier = (
+    netImpact: bigint,
+    ethPrice: number,
+    newFlowRate: string,
+    flowRateToReceiver: string
+  ) =>
+    parseFloat(
+      (
+        (Number(absBigInt(netImpact)) * ethPrice) /
+        Number(absBigInt(BigInt(newFlowRate) - BigInt(flowRateToReceiver)))
+      ).toFixed(2)
+    );
 
   if (!passportDecoder) {
     return (
@@ -466,7 +496,9 @@ export default function EditStream(props: EditStreamProps) {
               <Stack direction="horizontal" gap={2}>
                 <Badge className="d-flex align-items-center gap-1 bg-purple w-50 rounded-3 px-3 py-2 fs-4 fw-normal">
                   <Image src={OpLogo} alt="optimism" width={18} />
-                  {chain?.id === 10 ? "OP Mainnet" : "OP Sepolia"}
+                  {import.meta.env.MODE === "mainnet"
+                    ? "OP Mainnet"
+                    : "OP Sepolia"}
                 </Badge>
                 <Badge className="d-flex align-items-center gap-1 bg-purple w-50 rounded-3 px-3 py-2 fs-4 fw-normal">
                   <Image
@@ -1138,8 +1170,12 @@ export default function EditStream(props: EditStreamProps) {
                   <Card.Text className="border-bottom border-secondary mb-2 pb-1 text-secondary">
                     A. Wrap Tokens (
                     {!isFundingMatchingPool &&
-                    parseEther(wrapAmount?.replace(/,/g, "") ?? "") >
-                      BigInt(underlyingTokenAllowance)
+                    parseEther(
+                      areTransactionsLoading &&
+                        transactionDetailsSnapshot?.wrapAmount
+                        ? transactionDetailsSnapshot.wrapAmount
+                        : wrapAmount?.replace(/,/g, "") ?? ""
+                    ) > BigInt(underlyingTokenAllowance)
                       ? "x2 - Approve & Upgrade"
                       : "x1 - Upgrade"}
                     )
@@ -1160,13 +1196,24 @@ export default function EditStream(props: EditStreamProps) {
                         width={isFundingMatchingPool ? 16 : 28}
                       />
                       <Card.Text className="m-0 border-0 text-center text-white fs-5">
-                        {wrapAmount} <br /> {underlyingTokenName}
+                        {areTransactionsLoading && transactionDetailsSnapshot
+                          ? transactionDetailsSnapshot.wrapAmount
+                          : wrapAmount}{" "}
+                        <br /> {underlyingTokenName}
                       </Card.Text>
                       <Card.Text className="border-0 text-center text-white fs-6">
                         New Balance:{" "}
                         {(
-                          Number(underlyingTokenBalance?.formatted) -
-                          Number(wrapAmount?.replace(/,/g, ""))
+                          Number(
+                            areTransactionsLoading && transactionDetailsSnapshot
+                              ? transactionDetailsSnapshot.underlyingTokenBalance
+                              : underlyingTokenBalance?.formatted
+                          ) -
+                          Number(
+                            areTransactionsLoading && transactionDetailsSnapshot
+                              ? transactionDetailsSnapshot.wrapAmount
+                              : wrapAmount?.replace(/,/g, "")
+                          )
                         )
                           .toString()
                           .slice(0, 8)}
@@ -1189,14 +1236,25 @@ export default function EditStream(props: EditStreamProps) {
                         width={isFundingMatchingPool ? 16 : 28}
                       />
                       <Card.Text className="m-0 border-0 text-center text-white fs-5">
-                        {wrapAmount} <br /> {superTokenSymbol}
+                        {areTransactionsLoading && transactionDetailsSnapshot
+                          ? transactionDetailsSnapshot.wrapAmount
+                          : wrapAmount}{" "}
+                        <br /> {superTokenSymbol}
                       </Card.Text>
                       <Card.Text className="border-0 text-center text-white fs-6">
                         New Balance:{" "}
-                        {formatEther(
-                          superTokenBalance +
-                            parseEther(wrapAmount?.replace(/,/g, "") ?? "0")
-                        ).slice(0, 8)}
+                        {areTransactionsLoading &&
+                        transactionDetailsSnapshot?.wrapAmount
+                          ? formatEther(
+                              transactionDetailsSnapshot.superTokenBalance +
+                                parseEther(
+                                  transactionDetailsSnapshot.wrapAmount
+                                )
+                            ).slice(0, 8)
+                          : formatEther(
+                              superTokenBalance +
+                                parseEther(wrapAmount?.replace(/,/g, "") ?? "0")
+                            ).slice(0, 8)}
                       </Card.Text>
                     </Stack>
                   </Stack>
@@ -1207,11 +1265,26 @@ export default function EditStream(props: EditStreamProps) {
               )}
               <Stack direction="vertical" gap={1}>
                 <Card.Text className="border-bottom border-secondary m-0 pb-1 text-secondary">
-                  {Number(wrapAmount?.replace(/,/g, "")) > 0 ? "B." : "A."} Edit
-                  stream (
+                  {Number(
+                    areTransactionsLoading && transactionDetailsSnapshot
+                      ? transactionDetailsSnapshot.wrapAmount
+                      : wrapAmount?.replace(/,/g, "")
+                  ) > 0
+                    ? "B."
+                    : "A."}{" "}
+                  Edit stream (
                   {isFundingMatchingPool ||
                   isDeletingStream ||
-                  BigInt(newFlowRate) < BigInt(flowRateToReceiver)
+                  BigInt(
+                    areTransactionsLoading && transactionDetailsSnapshot
+                      ? transactionDetailsSnapshot.newFlowRate
+                      : newFlowRate
+                  ) <
+                    BigInt(
+                      areTransactionsLoading && transactionDetailsSnapshot
+                        ? transactionDetailsSnapshot.flowRateToReceiver
+                        : flowRateToReceiver
+                    )
                     ? "x1 - Update"
                     : "x2 - Permissions & Update"}
                   )
@@ -1263,22 +1336,27 @@ export default function EditStream(props: EditStreamProps) {
                     !isFundingMatchingPool ? "rounded-top-4" : "rounded-4"
                   }`}
                 >
-                  <Card.Text className="w-33 m-0 fs-5">New Stream</Card.Text>
+                  <Card.Text className="m-0 fs-5">New Stream</Card.Text>
                   <Stack
                     direction="horizontal"
                     gap={1}
-                    className="w-50 ms-2 p-2"
+                    className="justify-content-end w-50 ms-2 p-2"
                   >
                     <Image
                       src={superTokenIcon}
                       alt={isFundingMatchingPool ? "eth" : "dai"}
                       width={isFundingMatchingPool ? 16 : 22}
                     />
-                    <Badge className="bg-aqua w-100 ps-2 pe-2 py-2 fs-4 text-start overflow-hidden text-truncate">
+                    <Badge className="bg-aqua w-75 ps-2 pe-2 py-2 fs-4 text-start overflow-hidden text-truncate">
                       {formatNumberWithCommas(
                         parseFloat(
                           convertStreamValueToInterval(
-                            parseEther(amountPerTimeInterval.replace(/,/g, "")),
+                            parseEther(
+                              areTransactionsLoading &&
+                                transactionDetailsSnapshot
+                                ? transactionDetailsSnapshot.amountPerTimeInterval
+                                : amountPerTimeInterval.replace(/,/g, "")
+                            ),
                             timeInterval,
                             TimeInterval.MONTH
                           )
@@ -1289,39 +1367,104 @@ export default function EditStream(props: EditStreamProps) {
                   <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
                 </Stack>
                 {!isFundingMatchingPool && (
-                  <Stack
-                    direction="horizontal"
-                    className="bg-purple rounded-bottom-4 border-top border-dark p-2"
-                  >
-                    <Card.Text className="w-33 m-0 fs-5">
-                      Est. Matching
-                    </Card.Text>
+                  <>
                     <Stack
                       direction="horizontal"
-                      gap={1}
-                      className="w-50 ms-1 p-2"
+                      className="bg-purple border-top border-dark p-2"
                     >
-                      <Image
-                        src={ETHLogo}
-                        alt="eth"
-                        width={18}
-                        className="mx-1"
-                      />
-                      <Badge className="bg-slate w-100 ps-2 pe-2 py-2 fs-4 text-start">
-                        {passportScore && passportScore < minPassportScore
-                          ? "N/A"
-                          : netImpact
-                          ? `${netImpact > 0 ? "+" : ""}${parseFloat(
-                              (
-                                Number(formatEther(netImpact)) *
-                                fromTimeUnitsToSeconds(1, "months")
-                              ).toFixed(6)
-                            )}`
-                          : 0}
-                      </Badge>
+                      <Card.Text className="m-0 fs-5">Est. Matching</Card.Text>
+                      <Stack
+                        direction="horizontal"
+                        gap={1}
+                        className="justify-content-end w-50 ms-1 p-2"
+                      >
+                        <Image
+                          src={ETHLogo}
+                          alt="eth"
+                          width={14}
+                          className="mx-1"
+                        />
+                        <Badge className="bg-slate w-75 ps-2 pe-2 py-2 fs-4 text-start">
+                          {areTransactionsLoading &&
+                          transactionDetailsSnapshot?.netImpact
+                            ? `${
+                                transactionDetailsSnapshot.netImpact > 0
+                                  ? "+"
+                                  : ""
+                              }${parseFloat(
+                                (
+                                  Number(
+                                    formatEther(
+                                      transactionDetailsSnapshot.netImpact
+                                    )
+                                  ) * fromTimeUnitsToSeconds(1, "months")
+                                ).toFixed(6)
+                              )}`
+                            : netImpact
+                            ? `${netImpact > 0 ? "+" : ""}${parseFloat(
+                                (
+                                  Number(formatEther(netImpact)) *
+                                  fromTimeUnitsToSeconds(1, "months")
+                                ).toFixed(6)
+                              )}`
+                            : 0}
+                        </Badge>
+                      </Stack>
+                      <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
                     </Stack>
-                    <Card.Text className="m-0 ms-1 fs-5">/month</Card.Text>
-                  </Stack>
+                    <Stack
+                      direction="horizontal"
+                      className="bg-purple rounded-bottom-4 border-top border-dark p-2"
+                    >
+                      <Card.Text className="m-0 fs-5">QF Multiplier</Card.Text>
+                      <Stack
+                        direction="horizontal"
+                        gap={1}
+                        className="justify-content-end w-50 ms-2 p-2"
+                      >
+                        <Badge
+                          className={`w-75 ps-2 pe-2 py-2 fs-4 text-start ${
+                            BigInt(
+                              areTransactionsLoading &&
+                                transactionDetailsSnapshot
+                                ? transactionDetailsSnapshot.newFlowRate
+                                : newFlowRate
+                            ) <
+                            BigInt(
+                              areTransactionsLoading &&
+                                transactionDetailsSnapshot
+                                ? transactionDetailsSnapshot.flowRateToReceiver
+                                : flowRateToReceiver
+                            )
+                              ? "bg-danger"
+                              : "bg-slate"
+                          }`}
+                        >
+                          {areTransactionsLoading &&
+                          transactionDetailsSnapshot?.netImpact &&
+                          transactionDetailsSnapshot?.ethPrice &&
+                          transactionDetailsSnapshot.newFlowRate !==
+                            transactionDetailsSnapshot.flowRateToReceiver
+                            ? `~${calcMatchingMultiplier(
+                                transactionDetailsSnapshot.netImpact,
+                                transactionDetailsSnapshot.ethPrice,
+                                transactionDetailsSnapshot.newFlowRate,
+                                transactionDetailsSnapshot.flowRateToReceiver
+                              )}x`
+                            : netImpact &&
+                              ethPrice &&
+                              newFlowRate !== flowRateToReceiver
+                            ? `~${calcMatchingMultiplier(
+                                netImpact,
+                                ethPrice,
+                                newFlowRate,
+                                flowRateToReceiver
+                              )}x`
+                            : "N/A"}
+                        </Badge>
+                      </Stack>
+                    </Stack>
+                  </>
                 )}
               </Stack>
               {liquidationEstimate && (
@@ -1340,7 +1483,14 @@ export default function EditStream(props: EditStreamProps) {
                     <Image src={InfoIcon} alt="liquidation info" width={16} />
                   </OverlayTrigger>
                   <Card.Text className="m-0 ms-1 fs-5">
-                    {dayjs.unix(liquidationEstimate).format("MMMM D, YYYY")}
+                    {dayjs
+                      .unix(
+                        areTransactionsLoading &&
+                          transactionDetailsSnapshot?.liquidationEstimate
+                          ? transactionDetailsSnapshot.liquidationEstimate
+                          : liquidationEstimate
+                      )
+                      .format("MMMM D, YYYY")}
                   </Card.Text>
                 </Stack>
               )}
@@ -1431,7 +1581,7 @@ export default function EditStream(props: EditStreamProps) {
                 target="_blank"
                 href={`https://warpcast.com/~/compose?text=I+just+opened+a+contribution+stream+to+${
                   isFundingMatchingPool ? "the SQF Matching Pool" : granteeName
-                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid1%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
+                }+in+the+%23streamingqf+pilot+round+presented+by+%40geoweb%2C+%40gitcoin%2C+%26+%40superfluid%3A+%0A%0Ahttps%3A%2F%2Fgeoweb.land%2Fgovernance+%0A%0AJoin+me+in+making+public+goods+funding+history+by+donating+in+the+world's+first+SQF+round%21`}
               >
                 <Image
                   src={FarcasterIcon}

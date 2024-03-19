@@ -36,7 +36,7 @@ export const makeStore = () => {
       customSubgraphQueriesEndpoint:
         import.meta.env.MODE === "mainnet"
           ? "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
-          : "https://optimism-sepolia.subgraph.x.superfluid.dev",
+          : "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1",
       resolverAddress: SUPERFLUID_RESOLVER_ADDRESS,
     });
   });

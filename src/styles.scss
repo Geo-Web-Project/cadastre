@@ -63,6 +63,32 @@ $accordion-icon-active-color: $light;
 }
 
 @import "bootstrap/scss/bootstrap";
+@import "bootstrap/scss/utilities";
+
+$utilities: map-merge(
+  $utilities,
+  (
+    "width": (
+      property: width,
+      class: w,
+      responsive: true,
+      values: (
+        10: 10%,
+        20: 20%,
+        25: 25%,
+        33: 33%,
+        50: 50%,
+        66: 66%,
+        75: 75%,
+        90: 90%,
+        100: 100%,
+        auto: auto,
+      ),
+    ),
+  )
+);
+
+@import "bootstrap/scss/utilities/api";
 
 html,
 body {
