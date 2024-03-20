@@ -264,6 +264,8 @@ function OffCanvasPanel(props: OffCanvasPanelProps) {
             onClick={() => {
               if (interactionState === STATE.CLAIM_SELECTED) {
                 setInteractionState(STATE.CLAIM_SELECTING);
+              } else if (interactionState === STATE.PUBLISHING_NEW_MARKER) {
+                setInteractionState(STATE.PUBLISHING);
               } else {
                 setInteractionState(STATE.PARCEL_SELECTED);
               }
