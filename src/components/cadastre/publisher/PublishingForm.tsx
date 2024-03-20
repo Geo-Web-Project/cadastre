@@ -53,14 +53,14 @@ export default function PublishingForm(props: PublishingFormProps) {
   const [didFail, setDidFail] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
-    contentURI: undefined,
-    name: undefined,
+    contentURI: "",
+    name: "",
     coords: {},
-    altitude: undefined,
-    orientation: undefined,
-    displayScale: undefined,
-    displayWidth: undefined,
-    audioVolume: undefined,
+    altitude: "",
+    orientation: "",
+    displayScale: "",
+    displayWidth: "",
+    audioVolume: "",
   });
 
   const namespaceId = useMemo(() => {
@@ -68,12 +68,14 @@ export default function PublishingForm(props: PublishingFormProps) {
   }, [selectedParcelId]);
 
   const isReady =
-    augmentArgs.contentURI !== undefined &&
-    augmentArgs.name !== undefined &&
-    augmentArgs.coords.lat !== undefined &&
-    augmentArgs.coords.lon !== undefined &&
-    augmentArgs.orientation !== undefined &&
-    augmentArgs.displayScale !== undefined;
+    augmentArgs.contentURI &&
+    augmentArgs.name &&
+    augmentArgs.coords.lat &&
+    augmentArgs.coords.lon &&
+    augmentArgs.orientation &&
+    augmentArgs.displayScale
+      ? true
+      : false;
 
   const title = (
     <div className="d-flex align-items-center gap-2 mb-2 mt-1">
