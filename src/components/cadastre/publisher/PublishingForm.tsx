@@ -172,7 +172,7 @@ export default function PublishingForm(props: PublishingFormProps) {
         z: 10 * Number(augmentArgs.displayScale),
       });
 
-      const txn = await worldContract.connect(signer).installAugment(
+      await worldContract.connect(signer).installAugment(
         getAugmentAddress(augmentType),
         namespaceId,
         encodeAbiParameters(
@@ -190,7 +190,6 @@ export default function PublishingForm(props: PublishingFormProps) {
           [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
         )
       );
-      await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
