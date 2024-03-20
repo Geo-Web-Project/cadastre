@@ -332,7 +332,8 @@ export default function PublishingForm(props: PublishingFormProps) {
                   ? "secondary"
                   : "info"
               }
-              className="d-flex align-items-center p-0 m-0 px-1"
+              className="d-flex justify-content-center p-0 m-0 px-1"
+              style={{ width: 36 }}
               disabled={!augmentArgs.coords.lat || !augmentArgs.coords.lon}
               onClick={() => setNewAugmentCoords(null)}
             >
@@ -343,7 +344,9 @@ export default function PublishingForm(props: PublishingFormProps) {
                     : "location-off.svg"
                 }
                 alt="upload"
-                width={24}
+                width={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon ? 20 : 24
+                }
               />
             </Button>
             <Form.Control
