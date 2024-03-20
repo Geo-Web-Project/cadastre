@@ -232,7 +232,9 @@ export default function PublishingForm(props: PublishingFormProps) {
     // Upload to Web3 storage
     const added = await w3Client.uploadFile(file);
 
-    setAugmentArgs({ ...augmentArgs, contentURI: added.toString() });
+    setAugmentArgs((prev) => {
+      return { ...prev, contentURI: added.toString() };
+    });
 
     setIsUploading(false);
   }
