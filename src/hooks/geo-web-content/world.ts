@@ -32,6 +32,8 @@ export type MediaObject = {
 
 function useWorld() {
   const [mediaObjects, setMediaObjects] = useState<MediaObject[]>([]);
+  const [shouldMediaObjectsUpdate, setShouldMediaObjectsUpdate] =
+    useState<boolean>(true);
 
   const { tables, useStore } = useMUD();
 
@@ -62,6 +64,7 @@ function useWorld() {
     // }
 
     setMediaObjects(mediaObjects);
+    setShouldMediaObjectsUpdate(false);
   }, [modelComponents.length]);
 
   const getValue = (table: string, key: { key: string }) =>
@@ -82,7 +85,11 @@ function useWorld() {
     };
   };
 
-  return { mediaObjects };
+  return {
+    mediaObjects,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+  };
 }
 
 export { useWorld };

@@ -20,6 +20,8 @@ import Quaternion from "quaternion";
 type PublishingFormProps = {
   augmentType: AugmentType;
   setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldMediaObjectsUpdate: boolean;
+  setShouldMediaObjectsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 } & OffCanvasPanelProps;
 
 type AugmentArgs = {
@@ -43,6 +45,8 @@ export default function PublishingForm(props: PublishingFormProps) {
     w3Client,
     newAugmentCoords,
     setNewAugmentCoords,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
   } = props;
 
   const { tables } = useMUD();
@@ -211,9 +215,15 @@ export default function PublishingForm(props: PublishingFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    setIsActing(false);
-    setShowForm(false);
+    setShouldMediaObjectsUpdate(true);
   }, [augmentArgs, tables, worldContract, signer]);
+
+  useEffect(() => {
+    if (isActing && !shouldMediaObjectsUpdate) {
+      setIsActing(false);
+      setShowForm(false);
+    }
+  }, [shouldMediaObjectsUpdate]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function captureFile(event: React.ChangeEvent<any>) {

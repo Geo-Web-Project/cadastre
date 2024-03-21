@@ -32,7 +32,11 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
     AugmentType.MODEL
   );
 
-  const { mediaObjects } = useWorld();
+  const {
+    mediaObjects,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+  } = useWorld();
 
   return (
     <>
@@ -50,6 +54,8 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
               showForm ? STATE.PUBLISHING_NEW_MARKER : STATE.PUBLISHING
             );
           }}
+          shouldMediaObjectsUpdate={shouldMediaObjectsUpdate}
+          setShouldMediaObjectsUpdate={setShouldMediaObjectsUpdate}
           {...props}
         />
       ) : (
