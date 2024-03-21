@@ -161,10 +161,10 @@ export default function PublishingForm(props: PublishingFormProps) {
         Number(augmentArgs.orientation)
       );
       const orientationCom = encodeValueArgs(orientationComSchema, {
-        x: q.x,
-        y: q.y,
-        z: q.z,
-        w: q.w,
+        x: Math.trunc(q.x * 1000),
+        y: Math.trunc(q.y * 1000),
+        z: Math.trunc(q.z * 1000),
+        w: Math.trunc(q.w * 1000),
       });
 
       let scaleComSchema: any = {};
