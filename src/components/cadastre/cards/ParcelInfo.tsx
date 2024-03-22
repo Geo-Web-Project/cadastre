@@ -35,6 +35,7 @@ import AuctionInfo from "./AuctionInfo";
 import ConnectWallet from "../../shared/ConnectWallet";
 import NotificationModal from "../NotificationModal";
 import { useBasicProfile } from "../../../hooks/geo-web-content/basicProfile";
+import { useWorld } from "../../../hooks/geo-web-content/world";
 import BN from "bn.js";
 import MenuIcon from "../../../assets/menu.svg";
 import { PCOLicenseDiamondFactory } from "@geo-web/sdk/dist/contract/index";
@@ -122,6 +123,7 @@ function ParcelInfo(props: ParcelInfoProps) {
     setIsFullScreen,
   } = props;
   const { isMobile, isTablet } = useMediaQuery();
+  const { stopSync: stopWorldSync } = useWorld();
   const { loading, data, refetch } = useQuery<ParcelQuery>(parcelQuery, {
     variables: {
       id: selectedParcelId,
@@ -235,6 +237,10 @@ function ParcelInfo(props: ParcelInfoProps) {
       clearInterval(queryTimerId);
       setParcelFieldsToUpdate(null);
       setQueryTimerId(null);
+    }
+
+    if (licenseOwner && licenseOwner !== accountAddress) {
+      stopWorldSync();
     }
 
     if (!outstandingBidder) {

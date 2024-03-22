@@ -229,7 +229,7 @@ function Map(props: MapProps) {
       MapStyleName.satellite
   );
 
-  const { mediaObjects } = useWorld();
+  const { mediaObjects, stopSync: stopWorldSync } = useWorld();
 
   const handleMapstyle = (newStyle: MapStyleName) => {
     localStorage.setItem(MAP_STYLE_KEY, newStyle);
@@ -945,6 +945,7 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+        stopWorldSync();
         break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);

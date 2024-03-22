@@ -84,6 +84,18 @@ type IndexPageProps = {
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+const chain = import.meta.env.MODE === "mainnet" ? optimism : optimismSepolia;
+const mudChain = {
+  ...chain,
+  rpcUrls: {
+    ...chain.rpcUrls,
+    default: {
+      http: [RPC_URLS_HTTP[NETWORK_ID]],
+      webSocket: [RPC_URLS_WS[NETWORK_ID]],
+    },
+  },
+};
+
 function IndexPage(props: IndexPageProps) {
   const {
     authStatus,
@@ -345,18 +357,6 @@ function IndexPage(props: IndexPageProps) {
 
   React.useEffect(() => {
     (async () => {
-      const chain =
-        import.meta.env.MODE === "mainnet" ? optimism : optimismSepolia;
-      const mudChain = {
-        ...chain,
-        rpcUrls: {
-          ...chain.rpcUrls,
-          default: {
-            http: [RPC_URLS_HTTP[NETWORK_ID]],
-            webSocket: [RPC_URLS_WS[NETWORK_ID]],
-          },
-        },
-      };
       const worldConfig = await syncWorld({
         mudChain,
         chainId: NETWORK_ID,
@@ -364,7 +364,9 @@ function IndexPage(props: IndexPageProps) {
         namespaces: [Number(selectedParcelId).toString()],
         indexerUrl: "https://mud-testnet.geoweb.network/trpc",
         startSync:
-          selectedParcelId !== "" && import.meta.env.MODE !== "mainnet",
+          !!address &&
+          selectedParcelId !== "" &&
+          import.meta.env.MODE !== "mainnet",
       });
 
       setWorldConfig(worldConfig);
@@ -373,7 +375,7 @@ function IndexPage(props: IndexPageProps) {
         setWorldContract(IWorld__factory.connect(WORLD.worldAddress, library));
       }
     })();
-  }, [selectedParcelId, library]);
+  }, [address, selectedParcelId, library]);
 
   return (
     <ApolloProvider client={client}>

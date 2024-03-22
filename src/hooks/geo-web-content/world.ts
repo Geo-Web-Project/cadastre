@@ -35,7 +35,7 @@ function useWorld() {
   const [shouldMediaObjectsUpdate, setShouldMediaObjectsUpdate] =
     useState<boolean>(true);
 
-  const { tables, useStore } = useMUD();
+  const { tables, useStore, stopSync } = useMUD();
 
   const modelComponents = useStore((state: any) =>
     Object.values(state.getRecords(tables.ModelCom))
@@ -89,6 +89,7 @@ function useWorld() {
     mediaObjects,
     shouldMediaObjectsUpdate,
     setShouldMediaObjectsUpdate,
+    stopSync,
   };
 }
 
