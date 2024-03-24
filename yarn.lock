@@ -7,11 +7,6 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.0.tgz#d2a39395c587e092d77cbbc80acf956a54f38bf7"
   integrity sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==
 
-"@adraffy/ens-normalize@1.9.4":
-  version "1.9.4"
-  resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.9.4.tgz#aae21cb858bbb0411949d5b7b3051f4209043f62"
-  integrity sha512-UK0bHA7hh9cR39V+4gl2/NnBBjoXIxkuWAPCaY4X7fbH4L/azIi7ilWOCjMUYfpJgraLUAqkRi2BqrjME8Rynw==
-
 "@allo-team/allo-v2-sdk@^1.0.47":
   version "1.0.47"
   resolved "https://registry.yarnpkg.com/@allo-team/allo-v2-sdk/-/allo-v2-sdk-1.0.47.tgz#08e1b011b07a7e8fe08079c1c5d2dac8da46488d"
@@ -48,6 +43,11 @@
     ts-invariant "^0.10.3"
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
+
+"@arktype/util@0.0.27":
+  version "0.0.27"
+  resolved "https://registry.yarnpkg.com/@arktype/util/-/util-0.0.27.tgz#8b7e84b481e646662cf0a04062aac3226f71e670"
+  integrity sha512-ZkPuSU8Q56YVgPInFhojLTujejM+VPfaZx6Guop41CvnozWFOTlC0uAHuDqvY4nYq3zXsMkRwm8LmaRZ3mslMg==
 
 "@babel/code-frame@7.12.11":
   version "7.12.11"
@@ -2754,38 +2754,38 @@
     date-fns "^2.28.0"
     remixd "^0.2.4-alpha.0"
 
-"@geo-web/mud-world-base-contracts@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.2.0.tgz#4437dd2eb399962a9e2c70556031a4c370cb54be"
-  integrity sha512-j1fUPjOQOi/+t6jJ1OeA2z2Wr6yXpqTnHIvQ9TciRHcpj5eoEuVy3F+7N+zRCMuaNROEu+HNfwgy9xPsPr+o4Q==
+"@geo-web/mud-world-base-contracts@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.3.0.tgz#69c9f081f77ec280776f7f56f63670deaabf7a00"
+  integrity sha512-WPnFo4pLzP/eZXC8t//JxJdF0GRctX59LQFN9ypocNz/5wdTaseI4C5N6Vn21uEqJHcvFnpPZ45lXO5+YO29XA==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
-    "@latticexyz/cli" "2.0.0-next.17"
-    "@latticexyz/config" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    "@latticexyz/world" "2.0.0-next.17"
-    "@latticexyz/world-modules" "2.0.0-next.17"
+    "@latticexyz/cli" "^2.0.0"
+    "@latticexyz/config" "^2.0.0"
+    "@latticexyz/schema-type" "^2.0.0"
+    "@latticexyz/store" "^2.0.0"
+    "@latticexyz/world" "^2.0.0"
+    "@latticexyz/world-modules" "^2.0.0"
     "@openzeppelin/contracts" "^4.9.3"
     ethers "^5.7.2"
 
-"@geo-web/mud-world-base-setup@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-setup/-/mud-world-base-setup-0.3.1.tgz#9ad557277bbb7737d5ddf960494a2fdccb9d8a24"
-  integrity sha512-DuSwQwfjBn7f5FmXdowq5fA3Q9IugqUibMvkO+O+kay75S24u03JHB2IFHQBHpkRgAD8pEy1fO0D1pGLaFbImw==
+"@geo-web/mud-world-base-setup@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-setup/-/mud-world-base-setup-0.4.0.tgz#7f1e9669a7886ca1d1cc9e45a43a4998019e97b0"
+  integrity sha512-37GXpCPcW3paYcN7lrTQzBQmAPsqajaU5L85IDdAKg8lYY2iJBDdTGSdx1N/h+HWdNzEEcGDnwmdCiiiqpaeUA==
   dependencies:
     "@ethersproject/providers" "^5.7.2"
-    "@geo-web/mud-world-base-contracts" "0.2.0"
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    "@latticexyz/store-sync" "2.0.0-next.17"
+    "@geo-web/mud-world-base-contracts" "0.3.0"
+    "@latticexyz/common" "^2.0.0"
+    "@latticexyz/store" "^2.0.0"
+    "@latticexyz/store-sync" "^2.0.0"
     ethers "^5.7.2"
     react "^18.2.0"
     react-dom "^18.2.0"
     rxjs "7.5.5"
-    viem "1.14.0"
+    viem "2.7.12"
 
 "@geo-web/sdk@^4.4.0":
   version "4.4.0"
@@ -2994,10 +2994,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@latticexyz/abi-ts@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/abi-ts/-/abi-ts-2.0.0-next.17.tgz#a8ac7c4bc910f6235e3007125ee9b01ac2b5deb1"
-  integrity sha512-fW22HWYGqaov0zT+5HgeTTvsayMmkEQJs4V3oeQP4Hq8r6+c+a9zj9nayq8fLdnUHsAumUQteGWre5NtvKiALg==
+"@latticexyz/abi-ts@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/abi-ts/-/abi-ts-2.0.1.tgz#e09df5acc3180cb86933b79087e119673b08ab85"
+  integrity sha512-1aZYVF/pKFt7arHRWa7JtDMepeE02Ju6waxeNQj2CbISGntdDgPno/ntYLj0V8QmXuSZEKfg/p5zeyvoP3JRQA==
   dependencies:
     chalk "^5.3.0"
     debug "^4.3.4"
@@ -3005,37 +3005,37 @@
     glob "^8.0.3"
     yargs "^17.7.1"
 
-"@latticexyz/block-logs-stream@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/block-logs-stream/-/block-logs-stream-2.0.0-next.17.tgz#1193f047a6a82cc94de9561309a89fd551782731"
-  integrity sha512-PD9dfziO+rFihzfH98KHb5eFKJjPlOMnrlbDCD3eykAQrNGtNVGNJ+lTT7ENHldUDPjh26Y2NpFgsXtGyJEX6Q==
+"@latticexyz/block-logs-stream@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/block-logs-stream/-/block-logs-stream-2.0.1.tgz#21e8a2d82d1e040eafe6440dce171fa941a7cb8c"
+  integrity sha512-t6P6eEWosJMUear+hc6EeSInCHaom5lNONKwAPFRvhAlEaKysXpkIDctfm/97Wxxx1jIGuF8AjfRNYxurX7lew==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    abitype "0.9.8"
+    "@latticexyz/common" "2.0.1"
+    abitype "1.0.0"
     debug "^4.3.4"
     rxjs "7.5.5"
-    viem "1.14.0"
+    viem "2.7.12"
 
-"@latticexyz/cli@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/cli/-/cli-2.0.0-next.17.tgz#dc70f3a170eceea9e15390360f27198e10a5f577"
-  integrity sha512-UQNCP3/e5kce7M/sMzyrAI9ZinLl7h4MUs5wBuws5ZHGAW/fqkH3goX6IErZPJn1kbmbGgzfL37nsoi6R8mmcg==
+"@latticexyz/cli@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/cli/-/cli-2.0.1.tgz#19bd0fd38cb323d07baf2ff56b8367b1ded100d9"
+  integrity sha512-FSlqfhyU2RnSQcL+couYdapCgi0/QcYPKcSas8nLztu5/+RFuXYJ5lbul3wzgg8PpRkGJ5N6RJsbshCLD2PTfA==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     "@improbable-eng/grpc-web" "^0.15.0"
     "@improbable-eng/grpc-web-node-http-transport" "^0.15.0"
-    "@latticexyz/abi-ts" "2.0.0-next.17"
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/config" "2.0.0-next.17"
-    "@latticexyz/gas-report" "2.0.0-next.17"
-    "@latticexyz/protocol-parser" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/services" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    "@latticexyz/utils" "2.0.0-next.17"
-    "@latticexyz/world" "2.0.0-next.17"
-    "@latticexyz/world-modules" "2.0.0-next.17"
+    "@latticexyz/abi-ts" "2.0.1"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/gas-report" "2.0.1"
+    "@latticexyz/protocol-parser" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/services" "2.0.1"
+    "@latticexyz/store" "2.0.1"
+    "@latticexyz/utils" "2.0.1"
+    "@latticexyz/world" "2.0.1"
+    "@latticexyz/world-modules" "2.0.1"
     chalk "^5.0.1"
     chokidar "^3.5.3"
     debug "^4.3.4"
@@ -3050,44 +3050,45 @@
     path "^0.12.7"
     rxjs "7.5.5"
     throttle-debounce "^5.0.0"
-    typescript "5.1.6"
-    viem "1.14.0"
+    toposort "^2.0.2"
+    typescript "5.4.2"
+    viem "2.7.12"
     yargs "^17.7.1"
     zod "^3.21.4"
     zod-validation-error "^1.3.0"
 
-"@latticexyz/common@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.0-next.17.tgz#669e81b1f5bc41fecea4b3a17c80b8c2f10c49f3"
-  integrity sha512-KaafXXFgJc+95lFZVekvzz1whgDGoqjaV5z8N+U2GHbzTWz1VEq+xzkJuoDeVA4ne/4Sjp/eJffe0Fi0i5Pt6Q==
+"@latticexyz/common@2.0.1", "@latticexyz/common@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.1.tgz#980f2b61ccebc2533f7d38f8efd7d4efc1d82887"
+  integrity sha512-QaHfRb/QzGBUgqcZvI+5FwLEiFu4jOH0qk43sIk3BzrnRORR7/ix9cSIVesmguq7A/QMTGF+qrVqyUjhA5ni9A==
   dependencies:
-    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/schema-type" "2.0.1"
     "@solidity-parser/parser" "^0.16.0"
     debug "^4.3.4"
     execa "^7.0.0"
     p-queue "^7.4.1"
     p-retry "^5.1.2"
-    prettier "^2.8.4"
-    prettier-plugin-solidity "1.1.3"
-    viem "1.14.0"
+    prettier "3.2.5"
+    prettier-plugin-solidity "1.3.1"
+    viem "2.7.12"
 
-"@latticexyz/config@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.0-next.17.tgz#33f2c8d25c3675d04b3bf34ca496c1400cdc6861"
-  integrity sha512-gJzkLa55iQb9Zzkv21Czl0lgdPzaJ+P38Zi7yU3FnAyQzkV56Ay0H52XJEAynupipTHZ5EpODzByBoebB/XXJw==
+"@latticexyz/config@2.0.1", "@latticexyz/config@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.1.tgz#da846a1d77fae10ee7b08260ff1400a9f16afbc8"
+  integrity sha512-Fnnc/PZakHIAc56jVXky3qkQ/tPtNNIkG79D3kaiYITrZNf2WhOCaPqwCksaG8G83fQVaD/9gGl/EDd4OrtiUw==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
     esbuild "^0.17.15"
     find-up "^6.3.0"
-    viem "1.14.0"
+    viem "2.7.12"
     zod "^3.21.4"
     zod-validation-error "^1.3.0"
 
-"@latticexyz/gas-report@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/gas-report/-/gas-report-2.0.0-next.17.tgz#cc424b84972978017f485cb1551e795c34c30433"
-  integrity sha512-a+KBrP5sVZ/JgAdU6ctRR0dR8simH5c9dklU6mzLp3+2iVAYgKKEFZUAT4RGKedmXSFmojx9NFrOmB3BGJ3j9Q==
+"@latticexyz/gas-report@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/gas-report/-/gas-report-2.0.1.tgz#16ae8cddda27fc584ed12c788d729155387f4b05"
+  integrity sha512-yw2+vo/QG9vc1N5FnHINv4I428zaXUj96EQkRV0mcRxO+xSrHyF/3fn6dcpClfswEkEIf4voG9v1iCF7TGcKDg==
   dependencies:
     chalk "^5.3.0"
     dotenv "^16.0.3"
@@ -3097,114 +3098,134 @@
     table "^6.8.1"
     yargs "^17.7.1"
 
-"@latticexyz/protocol-parser@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.0-next.17.tgz#4b7ebc67c39f28c07dc15459e78f75c572dc49e7"
-  integrity sha512-GJVb1JsaogYR8Dphhftv/ZwX5t81dYFEIJZGQjo2nxIcLGs3pKuW1J5OKBlklNCvdpYpLfjJ3IW5VQ0605iQhg==
+"@latticexyz/protocol-parser@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.1.tgz#3f8782dffc80ea86d5eda6d55f1e7220ab2108b4"
+  integrity sha512-3wrBldp1ia0Gqjr3qUp0dN3nS5kEhWT8BzEdJytpxQ0iwl1aeo0k5zNJ7EeA/7/WJuORNI3+U+carBEaxzvuoQ==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    abitype "0.9.8"
-    viem "1.14.0"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    abitype "1.0.0"
+    viem "2.7.12"
 
-"@latticexyz/recs@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/recs/-/recs-2.0.0-next.17.tgz#58084e34c27151f7ba5f02e41c583860bb3091ff"
-  integrity sha512-5aa4iULsOngiCkfD0sYrtH5HgT4OlVUenTF28ycOe7F7U7x8xJk4S+7v8HkDxtPBsmLfAfptjRkJKX9iFRlZcw==
+"@latticexyz/query@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/query/-/query-2.0.1.tgz#c43bf5a5e827f48e94d551c7a4f40218a22c50c5"
+  integrity sha512-qLWeP38FNso/RdNI1kmp7FLDstcIkBMTMm7K61uaPeYuH6KDywZhIOxu/0TE6W0doXXSGJaleSCC/H+OUOu3hQ==
   dependencies:
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/utils" "2.0.0-next.17"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/store" "2.0.1"
+    viem "2.7.12"
+
+"@latticexyz/recs@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/recs/-/recs-2.0.1.tgz#acfa88ad0c1089c61812e1000b9d716bb58b5c33"
+  integrity sha512-UZZr0OiUy5h13GD88PQAWu5h5mdGqMQONMpwnUDbh4Djj6esJ+1gK8HEDD9qDIfrJiinDzjfMYfrrI2Bp/IxkQ==
+  dependencies:
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/utils" "2.0.1"
     mobx "^6.7.0"
     rxjs "7.5.5"
 
-"@latticexyz/schema-type@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.0-next.17.tgz#ebd291e788d89b421d90fc12363327af72fb82bb"
-  integrity sha512-L87Q9qCSQZ0H3NcIoqoEZ64m5K+IMD1J4y2x3PEeMuVLvlLjI6lKN18AS4tPhrytgFNsPOtwCafxmKMKSz7wjA==
+"@latticexyz/schema-type@2.0.1", "@latticexyz/schema-type@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.1.tgz#5a004b6141dc180211c5be243e3b07911478b7fd"
+  integrity sha512-mMFWaKQC1eLxsYQQ1PoxtzrT2BsDP0bJE9AwUS2vPNxMfa3zUWo4pWYVSoHG5/rAkIIanPMacW8ceYCHnZDQHQ==
   dependencies:
-    abitype "0.9.8"
-    viem "1.14.0"
+    abitype "1.0.0"
+    viem "2.7.12"
 
-"@latticexyz/services@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/services/-/services-2.0.0-next.17.tgz#d4c1b548c8bfe66a1ec0895f56543193a4fb988f"
-  integrity sha512-0zMMmP0Tuq65Jfkhs9w/Fb1ZxsXzXw3Ch7YnG0FPkYjijooZhiChDyKjvO9IScW4CVunltkVtvxc9DhV8uwNbQ==
+"@latticexyz/services@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/services/-/services-2.0.1.tgz#2be1cabeef321ff08a97abe0b96439819a6b2f0b"
+  integrity sha512-KIeX8J98ljyaC43G6b0RVxlTjRI6/FGmrM2CbiIoapFH1b2a8DC/h6Fvv/G3I84cUqIuiiZ4UWGvvakBF79/oQ==
   dependencies:
     long "^5.2.1"
     nice-grpc-common "^2.0.2"
     nice-grpc-web "^2.0.1"
     protobufjs "^7.2.3"
 
-"@latticexyz/store-sync@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store-sync/-/store-sync-2.0.0-next.17.tgz#de464323ab841d9ba95a3de7a90c063b909ef1d3"
-  integrity sha512-7utHgPuFaZrFMax9ZaEXauH2bRd0euH3oRgaxsJT9cP5oYa5cYhnuPuVaMd4YMJxvpP5m4MO1S59D8qyRZSllw==
+"@latticexyz/store-sync@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/store-sync/-/store-sync-2.0.1.tgz#c4841d6f411ddd1e8617010db7b2b9cd2c11b5e1"
+  integrity sha512-53wefANHAko22tmuwgWY72l1RmKTcpoRtrAqPeaGUYqy7cz7DwnqKIdrAD0eXx/HhDmXJMxv3Fn5yFtAbqCcVQ==
   dependencies:
-    "@latticexyz/block-logs-stream" "2.0.0-next.17"
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/protocol-parser" "2.0.0-next.17"
-    "@latticexyz/recs" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    "@latticexyz/world" "2.0.0-next.17"
+    "@latticexyz/block-logs-stream" "2.0.1"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/protocol-parser" "2.0.1"
+    "@latticexyz/query" "2.0.1"
+    "@latticexyz/recs" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/store" "2.0.1"
+    "@latticexyz/world" "2.0.1"
     "@trpc/client" "10.34.0"
     "@trpc/server" "10.34.0"
     change-case "^5.2.0"
     debug "^4.3.4"
     drizzle-orm "^0.28.5"
+    fast-deep-equal "^3.1.3"
     kysely "^0.26.3"
     postgres "^3.3.5"
     rxjs "7.5.5"
     sql.js "^1.8.0"
     superjson "^1.12.4"
-    viem "1.14.0"
+    viem "2.7.12"
     zod "^3.21.4"
     zustand "^4.3.7"
 
-"@latticexyz/store@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.0-next.17.tgz#6615de30af514ab90cc97aa5085b3439a1d7b793"
-  integrity sha512-P2I+kr7PASM3fQcIk0F/1UFkTtHoBvE6bw15X8jJv5Wfh90IkufYsxgRJez1LRQspH1cPE7eju9AQ/ulR3k+mA==
+"@latticexyz/store@2.0.1", "@latticexyz/store@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.1.tgz#a5fc91a95556746cb612664a9c1ba7ab14bbba06"
+  integrity sha512-DCsmphxH1qe/T+GoZ8MxMR6m0AUbIwC4wiX24U26BXaaUgFl0TgfrlSwbyTaucc9WOvu13ubbFkC2RXFbbNE4w==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/config" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    abitype "0.9.8"
-    viem "1.14.0"
+    "@arktype/util" "0.0.27"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/protocol-parser" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    abitype "1.0.0"
+    arktype "1.0.29-alpha"
+    viem "2.7.12"
     zod "^3.21.4"
 
-"@latticexyz/utils@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/utils/-/utils-2.0.0-next.17.tgz#0304c96a8b99e8d7e8f10e0b36d5eb3813a7daf7"
-  integrity sha512-cxHLSwyYFCR4Dv6yBb3VKM+smsSSjOwYg8Wm/h3yskA5iRMyZiFAKfEbS50gjDiO3RMJaJ9Y7ggLsilr8/r+bw==
+"@latticexyz/utils@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/utils/-/utils-2.0.1.tgz#0a21f81809c2cc8d60b4ed0f4cbca79ddb2f684d"
+  integrity sha512-0pTFpTYcI59LlLgQOcgRKa7MTJvv099wktpocmEdEt+axIl3sENXPo9oB22kU6lWQ4GvCT74eEBmUKYO7ES0MA==
   dependencies:
     mobx "^6.7.0"
     proxy-deep "^3.1.1"
     rxjs "7.5.5"
 
-"@latticexyz/world-modules@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world-modules/-/world-modules-2.0.0-next.17.tgz#1534502194ea8cff383ced7cd79e346e869b9484"
-  integrity sha512-TpErXt/z4+Cx8VRNg1pxsrZTDk+1oil7mRzaLNdNtsK8acaJCeGON27g2VKyiii9Yw83DIlojcNqMvn1SF1eVQ==
+"@latticexyz/world-modules@2.0.1", "@latticexyz/world-modules@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/world-modules/-/world-modules-2.0.1.tgz#26124a261bf5a6596e1cc503184aec82c968016a"
+  integrity sha512-z6sjZ71gAD0VfkSR0GyFPpXRpX8PscDM7i4MYqKSG5vc+qayTaAsCbZtUnOgvuCfC+4NSNv9UCyr2wROZwBHnA==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/config" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    "@latticexyz/world" "2.0.0-next.17"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/store" "2.0.1"
+    "@latticexyz/world" "2.0.1"
     zod "^3.21.4"
 
-"@latticexyz/world@2.0.0-next.17":
-  version "2.0.0-next.17"
-  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.0-next.17.tgz#1b09a20416393cd59b9b0fba081993bab15d0c62"
-  integrity sha512-Nyugc95zdSmW30n0ULPUBtmGowzhndYeFR18PXFw2a71JXQ+4h6b8t50fdenwCCE+6tIm8gQ8X8jr+EY7kQMSw==
+"@latticexyz/world@2.0.1", "@latticexyz/world@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@latticexyz/world/-/world-2.0.1.tgz#fa55ad881497931d15aeeb460565461655d2942a"
+  integrity sha512-HnEoyAuM+IxNl97uuH+QOZYg/R5KFS9QUw+KRTtGpgUehGB0aHhhAPCV8G7UXNt9ws+eEkY7UtAIOI5+sTdgdg==
   dependencies:
-    "@latticexyz/common" "2.0.0-next.17"
-    "@latticexyz/config" "2.0.0-next.17"
-    "@latticexyz/schema-type" "2.0.0-next.17"
-    "@latticexyz/store" "2.0.0-next.17"
-    abitype "0.9.8"
-    viem "1.14.0"
+    "@arktype/util" "0.0.27"
+    "@latticexyz/common" "2.0.1"
+    "@latticexyz/config" "2.0.1"
+    "@latticexyz/schema-type" "2.0.1"
+    "@latticexyz/store" "2.0.1"
+    abitype "1.0.0"
+    arktype "1.0.29-alpha"
+    viem "2.7.12"
     zod "^3.21.4"
 
 "@lit-labs/ssr-dom-shim@^1.0.0", "@lit-labs/ssr-dom-shim@^1.1.0":
@@ -4066,6 +4087,11 @@
   integrity sha512-PI9NfoA3P8XK2VBkK5oIfRgKDsicwDZfkVq9ZTBCQYGOP1N2owgY2dyLGyU5/J/hQs8KRk55kdmvTLjy3Mu3vg==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
+
+"@solidity-parser/parser@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.17.0.tgz#52a2fcc97ff609f72011014e4c5b485ec52243ef"
+  integrity sha512-Nko8R0/kUo391jsEHHxrGM07QFdnPGvlmox4rmH0kNiNAashItAilhy4Mv4pK5gQmW5f4sXAF58fwJbmlkGcVw==
 
 "@spruceid/siwe-parser@^1.1.3":
   version "1.1.3"
@@ -6435,13 +6461,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/ws@^8.5.5":
-  version "8.5.10"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.10.tgz#4acfb517970853fa6574a3a6886791d04a396787"
-  integrity sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==
-  dependencies:
-    "@types/node" "*"
-
 "@typescript-eslint/eslint-plugin@^5.22.0":
   version "5.33.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.33.0.tgz#059798888720ec52ffa96c5f868e31a8f70fa3ec"
@@ -7297,6 +7316,11 @@ abitype@0.9.8:
   resolved "https://registry.yarnpkg.com/abitype/-/abitype-0.9.8.tgz#1f120b6b717459deafd213dfbf3a3dd1bf10ae8c"
   integrity sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==
 
+abitype@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/abitype/-/abitype-1.0.0.tgz#237176dace81d90d018bebf3a45cb42f2a2d9e97"
+  integrity sha512-NMeMah//6bJ56H5XRj8QCV4AwuW6hB6zqz2LnhhLdcWVQOsXki6/Pn3APeqxCma62nXIcmZWdu1DlHWS74umVQ==
+
 abort-controller-x@^0.4.0:
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/abort-controller-x/-/abort-controller-x-0.4.3.tgz#ff269788386fabd58a7b6eeaafcb6cf55c2958e0"
@@ -7619,6 +7643,11 @@ aria-query@^5.3.0:
   integrity sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A==
   dependencies:
     dequal "^2.0.3"
+
+arktype@1.0.29-alpha:
+  version "1.0.29-alpha"
+  resolved "https://registry.yarnpkg.com/arktype/-/arktype-1.0.29-alpha.tgz#9180d36aba64bd84c1834ac1d97aa75e28d65c28"
+  integrity sha512-glMLgVhIQRSkR3tymiS+POAcWVJH09sfrgic0jHnyFL8BlhHAJZX2BzdImU9zYr1y9NBqy+U93ZNrRTHXsKRDw==
 
 arr-diff@^4.0.0:
   version "4.0.0"
@@ -13567,11 +13596,6 @@ isomorphic-unfetch@3.1.0:
     node-fetch "^2.6.1"
     unfetch "^4.2.0"
 
-isomorphic-ws@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/isomorphic-ws/-/isomorphic-ws-5.0.0.tgz#e5529148912ecb9b451b46ed44d53dae1ce04bbf"
-  integrity sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==
-
 isomorphic-ws@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/isomorphic-ws/-/isomorphic-ws-4.0.1.tgz#55fd4cd6c5e6491e76dc125938dd863f5cd4f2dc"
@@ -16216,14 +16240,19 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha512-ravE6m9Atw9Z/jjttRUZ+clIXogdghyZAuWJ3qEzjT+jI/dL1ifAqhZeC5VHzQp1MSt1+jxKkFNemj/iO7tVUA==
 
-prettier-plugin-solidity@1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-solidity/-/prettier-plugin-solidity-1.1.3.tgz#9a35124f578404caf617634a8cab80862d726cba"
-  integrity sha512-fQ9yucPi2sBbA2U2Xjh6m4isUTJ7S7QLc/XDDsktqqxYfTwdYKJ0EnnywXHwCGAaYbQNK+HIYPL1OemxuMsgeg==
+prettier-plugin-solidity@1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-solidity/-/prettier-plugin-solidity-1.3.1.tgz#59944d3155b249f7f234dee29f433524b9a4abcf"
+  integrity sha512-MN4OP5I2gHAzHZG1wcuJl0FsLS3c4Cc5494bbg+6oQWBPuEamjwDvmGfFMZ6NFzsh3Efd9UUxeT7ImgjNH4ozA==
   dependencies:
-    "@solidity-parser/parser" "^0.16.0"
-    semver "^7.3.8"
-    solidity-comments-extractor "^0.0.7"
+    "@solidity-parser/parser" "^0.17.0"
+    semver "^7.5.4"
+    solidity-comments-extractor "^0.0.8"
+
+prettier@3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.2.5.tgz#e52bc3090586e824964a8813b09aba6233b28368"
+  integrity sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==
 
 prettier@^2.8.4:
   version "2.8.4"
@@ -17736,10 +17765,10 @@ solc@^0.4.20:
     semver "^5.3.0"
     yargs "^4.7.1"
 
-solidity-comments-extractor@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/solidity-comments-extractor/-/solidity-comments-extractor-0.0.7.tgz#99d8f1361438f84019795d928b931f4e5c39ca19"
-  integrity sha512-wciNMLg/Irp8OKGrh3S2tfvZiZ0NEyILfcRCXCD4mp7SgK/i9gzLfhY2hY7VMCQJ3kH9UB9BzNdibIVMchzyYw==
+solidity-comments-extractor@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/solidity-comments-extractor/-/solidity-comments-extractor-0.0.8.tgz#f6e148ab0c49f30c1abcbecb8b8df01ed8e879f8"
+  integrity sha512-htM7Vn6LhHreR+EglVMd2s+sZhcXAirB1Zlyrv5zBuTxieCvjfnRpd7iZk75m/u6NOlEyQ94C6TWbBn2cY7w8g==
 
 sonic-boom@^2.2.1:
   version "2.8.0"
@@ -18538,6 +18567,11 @@ topojson-server@3.x:
   dependencies:
     commander "2"
 
+toposort@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/toposort/-/toposort-2.0.2.tgz#ae21768175d1559d48bef35420b2f4962f09c330"
+  integrity sha512-0a5EOkAUp8D4moMi2W8ZF8jcga7BgZd91O/yabJCFY8az+XSzeGyTKs0Aoo897iV1Nj6guFq8orWDS96z91oGg==
+
 tough-cookie@~2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.5.0.tgz#cd9fb2a0aa1d5a12b473bd9fb96fa3dcff65ade2"
@@ -18810,10 +18844,10 @@ typescript-memoize@^1.1.0:
   resolved "https://registry.yarnpkg.com/typescript-memoize/-/typescript-memoize-1.1.0.tgz#4a8f512d06fc995167c703a3592219901db8bc79"
   integrity sha512-LQPKVXK8QrBBkL/zclE6YgSWn0I8ew5m0Lf+XL00IwMhlotqRLlzHV+BRrljVQIc+NohUAuQP7mg4HQwrx5Xbg==
 
-typescript@5.1.6:
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.6.tgz#02f8ac202b6dad2c0dd5e0913745b47a37998274"
-  integrity sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==
+typescript@5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.4.2.tgz#0ae9cebcfae970718474fe0da2c090cad6577372"
+  integrity sha512-+2/g0Fds1ERlP6JsakQQDXjZdZMM+rqpamFZJEKh4kwTIn3iDkgKtby0CeNd5ATNZ4Ry1ax15TMx0W2V+miizQ==
 
 typescript@^4.6.3:
   version "4.7.4"
@@ -19287,19 +19321,18 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-viem@1.14.0:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-1.14.0.tgz#e4b305c4cce500e04a66b951c01856d7b04ab403"
-  integrity sha512-4d+4/H3lnbkSAbrpQ15i1nBA7hne06joLFy3L3m0ZpMc+g+Zr3D4nuSTyeiqbHAYs9m2P9Kjap0HlyGkehasgg==
+viem@2.7.12:
+  version "2.7.12"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.12.tgz#c79f68d77f5e46c3b78443df54afb067cbc827c3"
+  integrity sha512-NbV+Bycw0I4X8y6A04mgJ6+Imt7xXwflgnqisR3JXoJRNc77YSaQCscFN/dmwGLESTkgegJvi+j4nZY32GTpwQ==
   dependencies:
-    "@adraffy/ens-normalize" "1.9.4"
+    "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"
     "@noble/hashes" "1.3.2"
     "@scure/bip32" "1.3.2"
     "@scure/bip39" "1.2.1"
-    "@types/ws" "^8.5.5"
-    abitype "0.9.8"
-    isomorphic-ws "5.0.0"
+    abitype "1.0.0"
+    isows "1.0.3"
     ws "8.13.0"
 
 viem@^1.0.0, viem@^1.19.9, viem@^1.20.2, viem@^1.6.0:

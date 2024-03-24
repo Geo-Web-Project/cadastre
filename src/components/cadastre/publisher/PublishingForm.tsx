@@ -13,7 +13,7 @@ import TransactionError from "../cards/TransactionError";
 import { getAugmentAddress } from "./AugmentPublisher";
 import { encodeAbiParameters, stringToHex } from "viem";
 import { useMUD } from "../../../context/MUD";
-import { encodeValueArgs } from "@latticexyz/protocol-parser";
+import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
 import Quaternion from "quaternion";
 
@@ -122,8 +122,11 @@ export default function PublishingForm(props: PublishingFormProps) {
 
     try {
       let modelComSchema: any = {};
-      Object.keys(tables.ModelCom.valueSchema).forEach((key) => {
-        modelComSchema[key] = tables.ModelCom.valueSchema[key].type;
+      Object.keys(tables.ModelCom.schema).forEach((key) => {
+        if (tables.ModelCom.key.includes(key)) {
+          return;
+        }
+        modelComSchema[key] = tables.ModelCom.schema[key].type;
       });
 
       // TODO: Support GLB
@@ -133,8 +136,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let nameComSchema: any = {};
-      Object.keys(tables.NameCom.valueSchema).forEach((key) => {
-        nameComSchema[key] = tables.NameCom.valueSchema[key].type;
+      Object.keys(tables.NameCom.schema).forEach((key) => {
+        if (tables.NameCom.key.includes(key)) {
+          return;
+        }
+        nameComSchema[key] = tables.NameCom.schema[key].type;
       });
 
       const nameCom = encodeValueArgs(nameComSchema, {
@@ -142,8 +148,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let positionComSchema: any = {};
-      Object.keys(tables.PositionCom.valueSchema).forEach((key) => {
-        positionComSchema[key] = tables.PositionCom.valueSchema[key].type;
+      Object.keys(tables.PositionCom.schema).forEach((key) => {
+        if (tables.PositionCom.key.includes(key)) {
+          return;
+        }
+        positionComSchema[key] = tables.PositionCom.schema[key].type;
       });
 
       const positionCom = encodeValueArgs(positionComSchema, {
@@ -152,8 +161,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let orientationComSchema: any = {};
-      Object.keys(tables.OrientationCom.valueSchema).forEach((key) => {
-        orientationComSchema[key] = tables.OrientationCom.valueSchema[key].type;
+      Object.keys(tables.OrientationCom.schema).forEach((key) => {
+        if (tables.OrientationCom.key.includes(key)) {
+          return;
+        }
+        orientationComSchema[key] = tables.OrientationCom.schema[key].type;
       });
 
       const q = Quaternion.fromAxisAngle(
@@ -168,8 +180,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let scaleComSchema: any = {};
-      Object.keys(tables.ScaleCom.valueSchema).forEach((key) => {
-        scaleComSchema[key] = tables.ScaleCom.valueSchema[key].type;
+      Object.keys(tables.ScaleCom.schema).forEach((key) => {
+        if (tables.ScaleCom.key.includes(key)) {
+          return;
+        }
+        scaleComSchema[key] = tables.ScaleCom.schema[key].type;
       });
 
       const scaleCom = encodeValueArgs(scaleComSchema, {
