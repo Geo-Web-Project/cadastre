@@ -3,21 +3,25 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import Spinner from "react-bootstrap/Spinner";
 import { AugmentType } from "./AugmentPublisher";
 import Stack from "react-bootstrap/Stack";
-import { useMap } from "react-map-gl";
 import ApproveAugmentButton from "./actions/ApproveAugmentButton";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import AugmentPin from "../AugmentPin";
 import TransactionError from "../cards/TransactionError";
 import { getAugmentAddress } from "./AugmentPublisher";
 import { encodeAbiParameters, stringToHex } from "viem";
 import { useMUD } from "../../../context/MUD";
-import { encodeValueArgs } from "@latticexyz/protocol-parser";
+import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
+import Quaternion from "quaternion";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
   setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldMediaObjectsUpdate: boolean;
+  setShouldMediaObjectsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 } & OffCanvasPanelProps;
 
 type AugmentArgs = {
@@ -32,40 +36,50 @@ type AugmentArgs = {
 };
 
 export default function PublishingForm(props: PublishingFormProps) {
-  const { augmentType, setShowForm, signer, worldContract, selectedParcelId } =
-    props;
-  const { default: map } = useMap();
+  const {
+    augmentType,
+    setShowForm,
+    signer,
+    worldContract,
+    selectedParcelId,
+    w3Client,
+    newAugmentCoords,
+    setNewAugmentCoords,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+  } = props;
 
   const { tables } = useMUD();
 
+  const [isUploading, setIsUploading] = useState(false);
   const [isAllowed, setIsAllowed] = useState(false);
   const [isActing, setIsActing] = useState(false);
   const [didFail, setDidFail] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
-    contentURI: undefined,
-    name: undefined,
+    contentURI: "",
+    name: "",
     coords: {},
-    altitude: undefined,
-    orientation: undefined,
-    displayScale: undefined,
-    displayWidth: undefined,
-    audioVolume: undefined,
+    altitude: "",
+    orientation: "",
+    displayScale: "",
+    displayWidth: "",
+    audioVolume: "",
   });
-
-  const isLocationOn = false;
 
   const namespaceId = useMemo(() => {
     return stringToHex(Number(selectedParcelId).toString(), { size: 14 });
   }, [selectedParcelId]);
 
   const isReady =
-    augmentArgs.contentURI !== undefined &&
-    augmentArgs.name !== undefined &&
-    augmentArgs.coords.lat !== undefined &&
-    augmentArgs.coords.lon !== undefined &&
-    augmentArgs.orientation !== undefined &&
-    augmentArgs.displayScale !== undefined;
+    augmentArgs.contentURI &&
+    augmentArgs.name &&
+    augmentArgs.coords.lat &&
+    augmentArgs.coords.lon &&
+    augmentArgs.orientation &&
+    augmentArgs.displayScale
+      ? true
+      : false;
 
   const title = (
     <div className="d-flex align-items-center gap-2 mb-2 mt-1">
@@ -108,8 +122,11 @@ export default function PublishingForm(props: PublishingFormProps) {
 
     try {
       let modelComSchema: any = {};
-      Object.keys(tables.ModelCom.valueSchema).forEach((key) => {
-        modelComSchema[key] = tables.ModelCom.valueSchema[key].type;
+      Object.keys(tables.ModelCom.schema).forEach((key) => {
+        if (tables.ModelCom.key.includes(key)) {
+          return;
+        }
+        modelComSchema[key] = tables.ModelCom.schema[key].type;
       });
 
       // TODO: Support GLB
@@ -119,8 +136,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let nameComSchema: any = {};
-      Object.keys(tables.NameCom.valueSchema).forEach((key) => {
-        nameComSchema[key] = tables.NameCom.valueSchema[key].type;
+      Object.keys(tables.NameCom.schema).forEach((key) => {
+        if (tables.NameCom.key.includes(key)) {
+          return;
+        }
+        nameComSchema[key] = tables.NameCom.schema[key].type;
       });
 
       const nameCom = encodeValueArgs(nameComSchema, {
@@ -128,8 +148,11 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let positionComSchema: any = {};
-      Object.keys(tables.PositionCom.valueSchema).forEach((key) => {
-        positionComSchema[key] = tables.PositionCom.valueSchema[key].type;
+      Object.keys(tables.PositionCom.schema).forEach((key) => {
+        if (tables.PositionCom.key.includes(key)) {
+          return;
+        }
+        positionComSchema[key] = tables.PositionCom.schema[key].type;
       });
 
       const positionCom = encodeValueArgs(positionComSchema, {
@@ -138,21 +161,30 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let orientationComSchema: any = {};
-      Object.keys(tables.OrientationCom.valueSchema).forEach((key) => {
-        orientationComSchema[key] = tables.OrientationCom.valueSchema[key].type;
+      Object.keys(tables.OrientationCom.schema).forEach((key) => {
+        if (tables.OrientationCom.key.includes(key)) {
+          return;
+        }
+        orientationComSchema[key] = tables.OrientationCom.schema[key].type;
       });
 
-      // TODO: Calculate quaternion
+      const q = Quaternion.fromAxisAngle(
+        [0, 1, 0],
+        Number(augmentArgs.orientation)
+      );
       const orientationCom = encodeValueArgs(orientationComSchema, {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 0,
+        x: Math.trunc(q.x * 1000),
+        y: Math.trunc(q.y * 1000),
+        z: Math.trunc(q.z * 1000),
+        w: Math.trunc(q.w * 1000),
       });
 
       let scaleComSchema: any = {};
-      Object.keys(tables.ScaleCom.valueSchema).forEach((key) => {
-        scaleComSchema[key] = tables.ScaleCom.valueSchema[key].type;
+      Object.keys(tables.ScaleCom.schema).forEach((key) => {
+        if (tables.ScaleCom.key.includes(key)) {
+          return;
+        }
+        scaleComSchema[key] = tables.ScaleCom.schema[key].type;
       });
 
       const scaleCom = encodeValueArgs(scaleComSchema, {
@@ -161,7 +193,7 @@ export default function PublishingForm(props: PublishingFormProps) {
         z: 10 * Number(augmentArgs.displayScale),
       });
 
-      const txn = await worldContract.connect(signer).installAugment(
+      await worldContract.connect(signer).installAugment(
         getAugmentAddress(augmentType),
         namespaceId,
         encodeAbiParameters(
@@ -179,7 +211,6 @@ export default function PublishingForm(props: PublishingFormProps) {
           [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
         )
       );
-      await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -199,21 +230,63 @@ export default function PublishingForm(props: PublishingFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    setIsActing(false);
-    setShowForm(false);
+    setShouldMediaObjectsUpdate(true);
   }, [augmentArgs, tables, worldContract, signer]);
 
   useEffect(() => {
-    map?.on(`click`, (ev) => {
-      setAugmentArgs({
-        ...augmentArgs,
-        coords: {
-          lat: ev.lngLat.lat,
-          lon: ev.lngLat.lng,
-        },
-      });
+    if (isActing && !shouldMediaObjectsUpdate) {
+      setIsActing(false);
+      setShowForm(false);
+    }
+  }, [shouldMediaObjectsUpdate]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function captureFile(event: React.ChangeEvent<any>) {
+    event.persist();
+    event.stopPropagation();
+    event.preventDefault();
+
+    const file = event.target.files[0];
+
+    if (!file || !w3Client) {
+      return;
+    }
+
+    setIsUploading(true);
+
+    // Upload to Web3 storage
+    const added = await w3Client.uploadFile(file);
+
+    setAugmentArgs((prev) => {
+      return { ...prev, contentURI: added.toString() };
     });
-  }, [map]);
+
+    setIsUploading(false);
+  }
+
+  useEffect(() => {
+    setAugmentArgs({
+      ...augmentArgs,
+      coords: newAugmentCoords
+        ? {
+            lat: newAugmentCoords.lat,
+            lon: newAugmentCoords.lng,
+          }
+        : {},
+    });
+  }, [newAugmentCoords]);
+
+  const spinner = (
+    <Spinner
+      as="span"
+      size="sm"
+      animation="border"
+      role="status"
+      className="mx-2"
+    >
+      <span className="visually-hidden">Sending Transaction...</span>
+    </Spinner>
+  );
 
   return (
     <>
@@ -223,13 +296,13 @@ export default function PublishingForm(props: PublishingFormProps) {
         positioning. For best results, place your anchor within direct view of a
         publicly accessible road (i.e. front yards).
       </small>
-      <Stack className="my-3 px-3 py-5 text-center bg-blue border-0 rounded">
-        <Image
-          src="markerAdd.svg"
-          width={30}
-          className="mb-3 mx-auto col-md-1"
-        />
-        <div>Position your augment by clicking on the map</div>
+      <Stack
+        direction="vertical"
+        gap={3}
+        className="align-items-center my-3 px-3 py-4 text-center bg-blue border-0 rounded-3"
+      >
+        <AugmentPin fill="#CF3232" />
+        Position your augment by clicking on the map
       </Stack>
       <Form className="mt-3" onSubmit={(e) => e.preventDefault()}>
         <Form.Group className="mb-3">
@@ -239,17 +312,25 @@ export default function PublishingForm(props: PublishingFormProps) {
               variant="secondary"
               className="d-flex align-items-center p-0 m-0 px-1"
               htmlFor="upload-augment-uri"
+              disabled={isUploading}
             >
-              <Image src="upload.svg" alt="upload" width={24} />
+              {!isUploading ? (
+                <Image
+                  src="upload.svg"
+                  alt="upload"
+                  width={24}
+                  className="mx-1"
+                />
+              ) : (
+                spinner
+              )}
             </Button>
             <Form.Control
               hidden
               type="file"
               id="upload-augment-uri"
-              onChange={(e) => {
-                e.persist();
-                console.log(e);
-              }}
+              disabled={isUploading}
+              onChange={captureFile}
             />
             <Form.Control
               type="text"
@@ -275,15 +356,26 @@ export default function PublishingForm(props: PublishingFormProps) {
         <Form.Group className="d-flex gap-3 mb-3">
           <InputGroup>
             <Button
-              variant={isLocationOn ? "secondary" : "info"}
-              className="d-flex align-items-center p-0 m-0 px-1"
-              disabled
-              // onClick={() => setIsLocationOn(!isLocationOn)}
+              variant={
+                augmentArgs.coords.lat && augmentArgs.coords.lon
+                  ? "secondary"
+                  : "info"
+              }
+              className="d-flex justify-content-center p-0 m-0 px-1"
+              style={{ width: 36 }}
+              disabled={!augmentArgs.coords.lat || !augmentArgs.coords.lon}
+              onClick={() => setNewAugmentCoords(null)}
             >
               <Image
-                src={isLocationOn ? "location-on.svg" : "location-off.svg"}
+                src={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon
+                    ? "location-on.svg"
+                    : "location-off.svg"
+                }
                 alt="upload"
-                width={24}
+                width={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon ? 20 : 24
+                }
               />
             </Button>
             <Form.Control
@@ -484,7 +576,7 @@ export default function PublishingForm(props: PublishingFormProps) {
             onClick={installAugment}
             disabled={!isAllowed || !isReady}
           >
-            Submit
+            {isActing ? spinner : "Submit"}
           </Button>
           {didFail && !isActing ? (
             <TransactionError

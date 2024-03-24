@@ -60,3 +60,8 @@ export const MS_PER_SECOND = 1000;
 export const VIZ_ANIMATION_DURATION = MS_PER_SECOND * 3;
 export const VIZ_CARD_WIDTH_SOURCE = 230;
 export const VIZ_CARD_WIDTH_GRANTEE = 290;
+
+export const MODEL_AUGMENT_ADDRESS = import.meta.env
+  .VITE_MODEL_AUGMENT_ADDRESS!;
+export const GALLERY_MODEL_AUGMENT_ADDRESS = import.meta.env
+  .VITE_GALLERY_MODEL_AUGMENT_ADDRESS!;

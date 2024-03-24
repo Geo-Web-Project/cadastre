@@ -62,6 +62,12 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
     ]);
   }, [selectedParcelId]);
 
+  const namespaceExists = useStore((state: any) =>
+    state.getRecord(tables.ResourceIds, {
+      resourceId: namespaceId,
+    })
+  );
+
   const namespaceOwner = useStore((state: any) =>
     state.getRecord(tables.NamespaceOwner, { namespaceId })
   );
@@ -79,16 +85,23 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
     </Spinner>
   );
 
-  const claimNamespace = React.useCallback(async () => {
+  const registerOrClaimNamespace = React.useCallback(async () => {
     if (!signer) {
       return false;
     }
 
     try {
-      const txn = await worldContract
-        .connect(signer)
-        .claimParcelNamespace(Number(selectedParcelId));
-      await txn.wait();
+      if (namespaceExists === undefined) {
+        const txn = await worldContract
+          .connect(signer)
+          .registerParcelNamespace(Number(selectedParcelId));
+        await txn.wait();
+      } else {
+        const txn = await worldContract
+          .connect(signer)
+          .claimParcelNamespace(Number(selectedParcelId));
+        await txn.wait();
+      }
     } catch (err) {
       console.error(err);
       setErrorMessage(
@@ -142,7 +155,7 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
       if (
         namespaceOwner?.value?.owner.toLowerCase() !== account.toLowerCase()
       ) {
-        _approvals.push(claimNamespace);
+        _approvals.push(registerOrClaimNamespace);
         _approvalStr = "Claim Permission";
       }
 
