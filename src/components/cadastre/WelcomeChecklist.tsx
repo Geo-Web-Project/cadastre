@@ -178,7 +178,7 @@ function WelcomeChecklist() {
             className="d-inline-flex gap-1 bg-dark border-0 text-light px-0 py-1"
           >
             <div>
-              Each claim requires a flat 0.005 ETHx registration payment. For
+              Each claim requires a flat 0.001 ETHx registration payment. For
               additional guidance,{" "}
               <a
                 href="https://docs.geoweb.network/getting-started/claim"
