@@ -7,7 +7,7 @@
     "@didtools/cacao": "^1.1.0",
     "@didtools/pkh-ethereum": "^0.0.3",
     "@geo-web/mud-world-base-contracts": "0.3.0",
-    "@geo-web/mud-world-base-setup": "0.4.0",
+    "@geo-web/mud-world-base-setup": "0.4.3",
     "@geo-web/sdk": "^4.4.0",
     "@mapbox/mapbox-gl-geocoder": "^5.0.2",
     "@popperjs/core": "^2.11.5",
