@@ -16,6 +16,7 @@ import { useMUD } from "../../../context/MUD";
 import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
 import Quaternion from "quaternion";
+import { isNumber } from "../../../lib/utils";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
@@ -25,14 +26,14 @@ type PublishingFormProps = {
 } & OffCanvasPanelProps;
 
 type AugmentArgs = {
-  contentURI?: string;
-  name?: string;
+  contentURI: string;
+  name: string;
   coords: { lat?: number; lon?: number };
-  altitude?: string;
-  orientation?: string;
-  displayScale?: string;
-  displayWidth?: string;
-  audioVolume?: string;
+  altitude: string;
+  orientation: string;
+  displayScale: string;
+  displayWidth: string;
+  audioVolume: string;
 };
 
 export default function PublishingForm(props: PublishingFormProps) {
@@ -71,13 +72,24 @@ export default function PublishingForm(props: PublishingFormProps) {
     return stringToHex(Number(selectedParcelId).toString(), { size: 14 });
   }, [selectedParcelId]);
 
+  const isValidAltitude =
+    !augmentArgs.altitude || isNumber(augmentArgs.altitude);
+  const isValidOrientation =
+    !augmentArgs.orientation ||
+    (isNumber(augmentArgs.orientation) &&
+      Number(augmentArgs.orientation) >= 0 &&
+      Number(augmentArgs.orientation) <= 360);
+  const isValidDisplayScale =
+    !augmentArgs.displayScale ||
+    (isNumber(augmentArgs.displayScale) &&
+      Number(augmentArgs.displayScale) > 0);
   const isReady =
     augmentArgs.contentURI &&
-    augmentArgs.name &&
     augmentArgs.coords.lat &&
     augmentArgs.coords.lon &&
-    augmentArgs.orientation &&
-    augmentArgs.displayScale
+    isValidAltitude &&
+    isValidOrientation &&
+    isValidDisplayScale
       ? true
       : false;
 
@@ -156,7 +168,7 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       const positionCom = encodeValueArgs(positionComSchema, {
-        h: Number(augmentArgs.altitude),
+        h: Number(augmentArgs.altitude ?? 0),
         geohash: Geohash.encode(augmentArgs.coords.lat, augmentArgs.coords.lon),
       });
 
@@ -170,7 +182,7 @@ export default function PublishingForm(props: PublishingFormProps) {
 
       const q = Quaternion.fromAxisAngle(
         [0, 1, 0],
-        Number(augmentArgs.orientation)
+        Number(augmentArgs.orientation ?? 0)
       );
       const orientationCom = encodeValueArgs(orientationComSchema, {
         x: Math.trunc(q.x * 1000),
@@ -188,9 +200,9 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       const scaleCom = encodeValueArgs(scaleComSchema, {
-        x: 10 * Number(augmentArgs.displayScale),
-        y: 10 * Number(augmentArgs.displayScale),
-        z: 10 * Number(augmentArgs.displayScale),
+        x: 10 * Number(augmentArgs.displayScale ?? 100),
+        y: 10 * Number(augmentArgs.displayScale ?? 100),
+        z: 10 * Number(augmentArgs.displayScale ?? 100),
       });
 
       await worldContract.connect(signer).installAugment(
@@ -304,7 +316,7 @@ export default function PublishingForm(props: PublishingFormProps) {
         <AugmentPin fill="#CF3232" />
         Position your augment by clicking on the map
       </Stack>
-      <Form className="mt-3" onSubmit={(e) => e.preventDefault()}>
+      <Form className="mt-3" noValidate onSubmit={(e) => e.preventDefault()}>
         <Form.Group className="mb-3">
           <InputGroup className="mb-3">
             <Button
@@ -336,7 +348,7 @@ export default function PublishingForm(props: PublishingFormProps) {
               type="text"
               required
               placeholder={`${augmentType} URI*`}
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               value={augmentArgs.contentURI}
               onChange={(e) =>
                 setAugmentArgs({ ...augmentArgs, contentURI: e.target.value })
@@ -346,7 +358,7 @@ export default function PublishingForm(props: PublishingFormProps) {
           <Form.Control
             type="text"
             placeholder="Name"
-            className="bg-blue border-0 text-light"
+            className="bg-blue border-0 text-light shadow-none"
             value={augmentArgs.name}
             onChange={(e) =>
               setAugmentArgs({ ...augmentArgs, name: e.target.value })
@@ -382,7 +394,7 @@ export default function PublishingForm(props: PublishingFormProps) {
               type="number"
               inputMode="numeric"
               placeholder="Lat (±°)"
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               pattern="-?[0-9]*"
               min={-90}
               max={90}
@@ -403,7 +415,7 @@ export default function PublishingForm(props: PublishingFormProps) {
             type="number"
             inputMode="numeric"
             placeholder="Lon (±°)"
-            className="bg-blue border-0 text-light"
+            className="bg-blue border-0 text-light shadow-none"
             pattern="-?[0-9]*"
             min={-180}
             max={180}
@@ -420,15 +432,15 @@ export default function PublishingForm(props: PublishingFormProps) {
             }
           />
         </Form.Group>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3" hasValidation>
           <Form.Control
-            type="number"
             inputMode="numeric"
             placeholder="Altitude (m from the ground)"
-            className="bg-blue border-0 text-light"
-            pattern="[0-9]*"
-            min={0}
+            className={`bg-blue text-light shadow-none ${
+              isValidAltitude ? "border-0" : "border-danger"
+            }`}
             value={augmentArgs.altitude}
+            isInvalid={!isValidAltitude}
             onChange={(e) =>
               setAugmentArgs({
                 ...augmentArgs,
@@ -436,21 +448,22 @@ export default function PublishingForm(props: PublishingFormProps) {
               })
             }
           />
-          {augmentArgs.altitude && (
+          {augmentArgs.altitude && isValidAltitude && (
             <InputGroup.Text className="bg-blue text-info border-0">
               m
             </InputGroup.Text>
           )}
+          <Form.Control.Feedback type="invalid">
+            Must be a number
+          </Form.Control.Feedback>
         </InputGroup>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3" hasValidation>
           <Form.Control
-            type="number"
             inputMode="numeric"
             placeholder="Orientation (N=0°, ↻)"
-            className="bg-blue border-0 text-light"
-            pattern="[0-9]*"
-            min={0}
-            max={360}
+            className={`bg-blue text-light shadow-none ${
+              isValidOrientation ? "border-0" : "border-danger"
+            }`}
             value={augmentArgs.orientation}
             onChange={(e) =>
               setAugmentArgs({
@@ -458,22 +471,26 @@ export default function PublishingForm(props: PublishingFormProps) {
                 orientation: e.target.value,
               })
             }
+            isInvalid={!isValidOrientation}
           />
-          {augmentArgs.orientation && (
+          {augmentArgs.orientation && isValidOrientation && (
             <InputGroup.Text className="bg-blue text-info border-0">
               °
             </InputGroup.Text>
           )}
+          <Form.Control.Feedback type="invalid">
+            Must be between 0 and 360
+          </Form.Control.Feedback>
         </InputGroup>
         {augmentType === AugmentType.MODEL ? (
-          <InputGroup className="mb-1">
+          <InputGroup className="mb-1" hasValidation>
             <Form.Control
-              type="number"
               inputMode="numeric"
               placeholder="Display Scale (%)"
-              className="bg-blue border-0 text-light"
-              pattern="[0-9]*"
-              min={0}
+              className={`bg-blue text-light shadow-none ${
+                isValidDisplayScale ? "border-0" : "border-danger"
+              }`}
+              isInvalid={!isValidDisplayScale}
               value={augmentArgs.displayScale}
               onChange={(e) =>
                 setAugmentArgs({
@@ -482,11 +499,14 @@ export default function PublishingForm(props: PublishingFormProps) {
                 })
               }
             />
-            {augmentArgs.displayScale && (
+            {augmentArgs.displayScale && isValidDisplayScale && (
               <InputGroup.Text className="bg-blue text-info border-0">
                 %
               </InputGroup.Text>
             )}
+            <Form.Control.Feedback type="invalid">
+              Must be greater than 0
+            </Form.Control.Feedback>
           </InputGroup>
         ) : augmentType === AugmentType.IMAGE ||
           augmentType === AugmentType.VIDEO ? (
@@ -495,7 +515,7 @@ export default function PublishingForm(props: PublishingFormProps) {
               type="number"
               inputMode="numeric"
               placeholder="Display Width (m, height is scaled)"
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               pattern="[0-9]*"
               min={0}
               value={augmentArgs.displayWidth}
@@ -530,7 +550,7 @@ export default function PublishingForm(props: PublishingFormProps) {
                 type="number"
                 inputMode="numeric"
                 placeholder="Volume Adjustment (%)"
-                className="bg-blue border-0 text-light"
+                className="bg-blue border-0 text-light shadow-none"
                 pattern="[0-9]*"
                 min={0}
                 value={augmentArgs.audioVolume}
