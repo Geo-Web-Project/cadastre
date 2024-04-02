@@ -258,7 +258,7 @@ export default function PublishingForm(props: PublishingFormProps) {
     const added = await w3Client.uploadFile(file);
 
     setAugmentArgs((prev) => {
-      return { ...prev, contentURI: added.toString() };
+      return { ...prev, contentURI: `ipfs://${added.toString()}` };
     });
 
     setIsUploading(false);
