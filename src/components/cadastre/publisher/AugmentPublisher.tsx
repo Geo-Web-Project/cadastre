@@ -11,7 +11,10 @@ import {
 } from "../../../hooks/geo-web-content/world";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
 import { STATE } from "../Map";
-import { MODEL_AUGMENT_ADDRESS } from "../../../lib/constants";
+import {
+  MODEL_AUGMENT_ADDRESS,
+  GALLERY_MODEL_AUGMENT_ADDRESS,
+} from "../../../lib/constants";
 
 export enum AugmentType {
   MODEL = "3D Model",
@@ -20,10 +23,25 @@ export enum AugmentType {
   VIDEO = "Video",
 }
 
-export function getAugmentAddress(augmentType: AugmentType) {
+const mediaTypeToAugmentType: { [key: string]: AugmentType } = {
+  [MediaObjectType.Model]: AugmentType.MODEL,
+  [MediaObjectType.Image]: AugmentType.IMAGE,
+  [MediaObjectType.Audio]: AugmentType.AUDIO,
+  [MediaObjectType.Video]: AugmentType.VIDEO,
+};
+
+export function getAugmentAddress(
+  augmentType: AugmentType,
+  isMediaGallery?: boolean
+) {
   switch (augmentType) {
-    default:
+    case AugmentType.MODEL:
+      if (isMediaGallery) {
+        return GALLERY_MODEL_AUGMENT_ADDRESS;
+      }
       return MODEL_AUGMENT_ADDRESS;
+    default:
+      break;
   }
 }
 
@@ -105,32 +123,15 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
             </Button>
           </div>
           <Stack direction="vertical" className="mt-4">
-            {mediaObjects.map((mediaObject, i) => {
-              let mediaType;
-              switch (mediaObject.mediaType) {
-                case MediaObjectType.Model:
-                  mediaType = "3D Model";
-                  break;
-                case MediaObjectType.Audio:
-                  mediaType = "Audio";
-                  break;
-                case MediaObjectType.Image:
-                  mediaType = "Image";
-                  break;
-                case MediaObjectType.Video:
-                  mediaType = "Video";
-                  break;
-                default:
-                  break;
-              }
-
+            {mediaObjects.anchored.map((mediaObject, i) => {
               return (
                 <Stack
                   direction="horizontal"
                   className={`${
                     i === 0
                       ? "rounded-top-3"
-                      : i === mediaObjects.length - 1
+                      : mediaObjects.unanchored.length === 0 &&
+                        i === mediaObjects.anchored.length - 1
                       ? "rounded-bottom-3"
                       : ""
                   } ${i % 2 === 0 ? "bg-blue" : "bg-purple"}`}
@@ -142,7 +143,36 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
                   <Card.Text className="w-50 m-0 p-2 overflow-hidden text-truncate">
                     {mediaObject.name}
                   </Card.Text>
-                  <Card.Text className="m-50 p-2">{mediaType}</Card.Text>
+                  <Card.Text className="m-50 p-2">
+                    {mediaTypeToAugmentType[mediaObject.mediaType]}
+                  </Card.Text>
+                </Stack>
+              );
+            })}
+            {mediaObjects.unanchored.map((mediaObject, i) => {
+              return (
+                <Stack
+                  direction="horizontal"
+                  className={`${
+                    i + mediaObjects.anchored.length === 0
+                      ? "rounded-top-3"
+                      : i === mediaObjects.unanchored.length - 1
+                      ? "rounded-bottom-3"
+                      : ""
+                  } ${
+                    (i + mediaObjects.anchored.length) % 2 === 0
+                      ? "bg-blue"
+                      : "bg-purple"
+                  }`}
+                  key={i}
+                >
+                  <Card.Text className="text-center w-10 m-0 p-2">*</Card.Text>
+                  <Card.Text className="w-50 m-0 p-2 overflow-hidden text-truncate">
+                    {mediaObject.name}
+                  </Card.Text>
+                  <Card.Text className="m-50 p-2">
+                    {mediaTypeToAugmentType[mediaObject.mediaType]}
+                  </Card.Text>
                 </Stack>
               );
             })}

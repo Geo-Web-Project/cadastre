@@ -1146,8 +1146,9 @@ function Map(props: MapProps) {
             </Button>
           ) : null}
 
-          {mediaObjects.map((mediaObject, i) => {
+          {mediaObjects.anchored.map((mediaObject, i) => {
             const coords = Geohash.decode(mediaObject.position.geohash);
+
             return (
               <Marker
                 key={`marker-${i}`}

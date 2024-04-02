@@ -30,8 +30,13 @@ export type MediaObject = {
   contentSize: { x: number; y: number; z: number };
 };
 
+export type Augments = { anchored: MediaObject[]; unanchored: MediaObject[] };
+
 function useWorld() {
-  const [mediaObjects, setMediaObjects] = useState<MediaObject[]>([]);
+  const [mediaObjects, setMediaObjects] = useState<Augments>({
+    anchored: [],
+    unanchored: [],
+  });
   const [shouldMediaObjectsUpdate, setShouldMediaObjectsUpdate] =
     useState<boolean>(true);
 
@@ -45,14 +50,19 @@ function useWorld() {
   // );
 
   useEffect(() => {
-    const mediaObjects = [];
+    const mediaObjects: Augments = { anchored: [], unanchored: [] };
 
     for (const modelComponent of modelComponents) {
       const mediaObject = buildMediaObject(
         MediaObjectType.Model,
         modelComponent
       );
-      mediaObjects.push(mediaObject);
+
+      if (mediaObject.position) {
+        mediaObjects.anchored.push(mediaObject);
+      } else {
+        mediaObjects.unanchored.push(mediaObject);
+      }
     }
 
     // for (const imageComponent of imageComponents) {
