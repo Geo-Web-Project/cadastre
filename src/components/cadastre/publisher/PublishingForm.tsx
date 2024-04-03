@@ -13,10 +13,7 @@ import TransactionError from "../cards/TransactionError";
 import { getAugmentAddress } from "./AugmentPublisher";
 import { encodeAbiParameters, stringToHex } from "viem";
 import { useMUD } from "../../../context/MUD";
-import {
-  encodeValueArgs,
-  ValueArgs,
-} from "@latticexyz/protocol-parser/internal";
+import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
 import Quaternion from "quaternion";
 import { isNumber } from "../../../lib/utils";
@@ -88,6 +85,8 @@ export default function PublishingForm(props: PublishingFormProps) {
       Number(augmentArgs.displayScale) > 0);
   const isReady =
     augmentArgs.contentURI &&
+    augmentArgs.coords.lat &&
+    augmentArgs.coords.lon &&
     isValidAltitude &&
     isValidOrientation &&
     isValidDisplayScale
@@ -133,13 +132,8 @@ export default function PublishingForm(props: PublishingFormProps) {
       throw new Error("Could not find signer");
     }
 
-    const isMediaGallery =
-      !augmentArgs.coords.lat || !augmentArgs.coords.lon ? true : false;
-
     try {
-      const components: ValueArgs[] = [];
       let modelComSchema: any = {};
-
       Object.keys(tables.ModelCom.schema).forEach((key) => {
         if (tables.ModelCom.key.includes(key)) {
           return;
@@ -152,7 +146,6 @@ export default function PublishingForm(props: PublishingFormProps) {
         encodingFormat: 1,
         contentURI: augmentArgs.contentURI ?? "",
       });
-      components.push(modelCom);
 
       let nameComSchema: any = {};
       Object.keys(tables.NameCom.schema).forEach((key) => {
@@ -165,61 +158,52 @@ export default function PublishingForm(props: PublishingFormProps) {
       const nameCom = encodeValueArgs(nameComSchema, {
         value: augmentArgs.name ?? "",
       });
-      components.push(nameCom);
 
-      if (!isMediaGallery) {
-        let positionComSchema: any = {};
-        Object.keys(tables.PositionCom.schema).forEach((key) => {
-          if (tables.PositionCom.key.includes(key)) {
-            return;
-          }
-          positionComSchema[key] = tables.PositionCom.schema[key].type;
-        });
+      let positionComSchema: any = {};
+      Object.keys(tables.PositionCom.schema).forEach((key) => {
+        if (tables.PositionCom.key.includes(key)) {
+          return;
+        }
+        positionComSchema[key] = tables.PositionCom.schema[key].type;
+      });
 
-        const positionCom = encodeValueArgs(positionComSchema, {
-          h: Number(augmentArgs.altitude ?? 0),
-          geohash: Geohash.encode(
-            augmentArgs.coords.lat,
-            augmentArgs.coords.lon
-          ),
-        });
-        components.push(positionCom);
+      const positionCom = encodeValueArgs(positionComSchema, {
+        h: Number(augmentArgs.altitude ?? 0),
+        geohash: Geohash.encode(augmentArgs.coords.lat, augmentArgs.coords.lon),
+      });
 
-        let orientationComSchema: any = {};
-        Object.keys(tables.OrientationCom.schema).forEach((key) => {
-          if (tables.OrientationCom.key.includes(key)) {
-            return;
-          }
-          orientationComSchema[key] = tables.OrientationCom.schema[key].type;
-        });
+      let orientationComSchema: any = {};
+      Object.keys(tables.OrientationCom.schema).forEach((key) => {
+        if (tables.OrientationCom.key.includes(key)) {
+          return;
+        }
+        orientationComSchema[key] = tables.OrientationCom.schema[key].type;
+      });
 
-        const q = Quaternion.fromAxisAngle(
-          [0, 1, 0],
-          Number(augmentArgs.orientation ?? 0)
-        );
-        const orientationCom = encodeValueArgs(orientationComSchema, {
-          x: Math.trunc(q.x * 1000),
-          y: Math.trunc(q.y * 1000),
-          z: Math.trunc(q.z * 1000),
-          w: Math.trunc(q.w * 1000),
-        });
-        components.push(orientationCom);
+      const q = Quaternion.fromAxisAngle(
+        [0, 1, 0],
+        Number(augmentArgs.orientation ?? 0)
+      );
+      const orientationCom = encodeValueArgs(orientationComSchema, {
+        x: Math.trunc(q.x * 1000),
+        y: Math.trunc(q.y * 1000),
+        z: Math.trunc(q.z * 1000),
+        w: Math.trunc(q.w * 1000),
+      });
 
-        let scaleComSchema: any = {};
-        Object.keys(tables.ScaleCom.schema).forEach((key) => {
-          if (tables.ScaleCom.key.includes(key)) {
-            return;
-          }
-          scaleComSchema[key] = tables.ScaleCom.schema[key].type;
-        });
+      let scaleComSchema: any = {};
+      Object.keys(tables.ScaleCom.schema).forEach((key) => {
+        if (tables.ScaleCom.key.includes(key)) {
+          return;
+        }
+        scaleComSchema[key] = tables.ScaleCom.schema[key].type;
+      });
 
-        const scaleCom = encodeValueArgs(scaleComSchema, {
-          x: 10 * Number(augmentArgs.displayScale ?? 100),
-          y: 10 * Number(augmentArgs.displayScale ?? 100),
-          z: 10 * Number(augmentArgs.displayScale ?? 100),
-        });
-        components.push(scaleCom);
-      }
+      const scaleCom = encodeValueArgs(scaleComSchema, {
+        x: 10 * Number(augmentArgs.displayScale ?? 100),
+        y: 10 * Number(augmentArgs.displayScale ?? 100),
+        z: 10 * Number(augmentArgs.displayScale ?? 100),
+      });
 
       await worldContract.connect(signer).installAugment(
         getAugmentAddress(augmentType),
@@ -236,7 +220,7 @@ export default function PublishingForm(props: PublishingFormProps) {
               ],
             },
           ],
-          [[components]]
+          [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
         )
       );
     } catch (err) {
