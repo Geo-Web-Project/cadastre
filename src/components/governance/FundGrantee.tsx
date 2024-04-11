@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { useAccount } from "wagmi";
 import { Address } from "viem";
 import Stack from "react-bootstrap/Stack";
 import Card from "react-bootstrap/Card";
@@ -39,7 +39,6 @@ export type FundGranteeProps = {
 
 export default function FundGrantee(props: FundGranteeProps) {
   const {
-    recipientId,
     granteeAddress,
     name,
     setTransactionPanelState,
@@ -49,32 +48,10 @@ export default function FundGrantee(props: FundGranteeProps) {
 
   const [newFlowRate, setNewFlowRate] = useState("");
 
-  const publicClient = usePublicClient();
   const { address } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const { alloStrategy, recipients } = useAllo();
-  const { wrapperSuperToken, deleteFlow } = useSuperfluid(address);
+  const { recipients } = useAllo();
+  const { wrapperSuperToken, editFlow } = useSuperfluid(address);
   const { isMobile, isTablet } = useMediaQuery();
-
-  const allocate = async () => {
-    if (!walletClient) {
-      return;
-    }
-    const allocationData = alloStrategy.getAllocationData(
-      recipientId,
-      BigInt(newFlowRate)
-    );
-    const hash = await walletClient.sendTransaction({
-      account: walletClient.account,
-      data: allocationData.data,
-      to: allocationData.to as Address,
-      value: BigInt(allocationData.value),
-    });
-
-    await publicClient.waitForTransactionReceipt({
-      hash,
-    });
-  };
 
   const closeOffcanvas = () =>
     setTransactionPanelState({
@@ -132,15 +109,14 @@ export default function FundGrantee(props: FundGranteeProps) {
               newFlowRate={newFlowRate}
               setNewFlowRate={setNewFlowRate}
               isFundingMatchingPool={false}
-              transactionsToQueue={[
-                BigInt(newFlowRate) > 0
-                  ? allocate
-                  : () =>
-                      deleteFlow(
-                        wrapperSuperToken,
-                        recipients ? recipients[granteeIndex].superApp : "0x"
-                      ),
-              ]}
+              getOperation={() =>
+                editFlow(
+                  wrapperSuperToken,
+                  recipients ? recipients[granteeIndex].superApp : "0x",
+                  userAllocationData[granteeIndex].flowRate,
+                  newFlowRate
+                )
+              }
               {...props}
             />
           </Stack>

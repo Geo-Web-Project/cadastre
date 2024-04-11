@@ -104,14 +104,13 @@ export default function FundMatchingPool(props: FundMatchingPoolProps) {
               newFlowRate={newFlowRate}
               setNewFlowRate={setNewFlowRate}
               isFundingMatchingPool={true}
-              transactionsToQueue={[
-                async () =>
-                  await gdaDistributeFlow(
-                    nativeSuperToken,
-                    newFlowRate,
-                    gdaPool ?? "0x"
-                  ),
-              ]}
+              getOperation={() =>
+                gdaDistributeFlow(
+                  nativeSuperToken,
+                  newFlowRate,
+                  gdaPool ?? "0x"
+                )
+              }
             />
           </Stack>
         </>
