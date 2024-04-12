@@ -67,13 +67,13 @@ export default function useSuperfluid(accountAddress?: string) {
     return allowance;
   };
 
-  const wrap = async (
+  const wrap = (
     superToken: NativeAssetSuperToken | WrapperSuperToken,
     amount: bigint
   ) => {
     const op = superToken.upgrade({ amount: amount.toString() });
 
-    await execTransaction(op);
+    return op;
   };
 
   const underlyingTokenApprove = async (
@@ -91,10 +91,10 @@ export default function useSuperfluid(accountAddress?: string) {
       amount,
     });
 
-    await execTransaction(op);
+    await execOperation(op);
   };
 
-  const updatePermissions = async (
+  const updatePermissions = (
     superToken: NativeAssetSuperToken | WrapperSuperToken,
     flowOperator: string,
     flowRateAllowance: string
@@ -105,23 +105,41 @@ export default function useSuperfluid(accountAddress?: string) {
       flowRateAllowance,
     });
 
-    await execTransaction(op);
+    return op;
   };
 
-  const deleteFlow = async (
+  const editFlow = (
     superToken: NativeAssetSuperToken | WrapperSuperToken,
-    receiver: Address
+    receiver: Address,
+    oldFlowRate: string,
+    newFlowRate: string
   ) => {
     if (!accountAddress) {
       throw Error("Could not find the account address");
     }
 
-    const op = superToken.deleteFlow({
-      sender: accountAddress,
-      receiver,
-    });
+    let op: Operation;
 
-    await execTransaction(op);
+    if (BigInt(newFlowRate) === BigInt(0)) {
+      op = superToken.deleteFlow({
+        sender: accountAddress,
+        receiver,
+      });
+    } else if (BigInt(oldFlowRate) !== BigInt(0)) {
+      op = superToken.updateFlow({
+        sender: accountAddress,
+        receiver,
+        flowRate: newFlowRate,
+      });
+    } else {
+      op = superToken.createFlow({
+        sender: accountAddress,
+        receiver,
+        flowRate: newFlowRate,
+      });
+    }
+
+    return op;
   };
 
   const gdaGetFlowRate = async (
@@ -143,7 +161,7 @@ export default function useSuperfluid(accountAddress?: string) {
     return flowRate;
   };
 
-  const gdaDistributeFlow = async (
+  const gdaDistributeFlow = (
     superToken: NativeAssetSuperToken | WrapperSuperToken,
     flowRate: string,
     gdaPool: Address
@@ -174,10 +192,25 @@ export default function useSuperfluid(accountAddress?: string) {
       {}
     );
 
-    await execTransaction(op);
+    return op;
   };
 
-  const execTransaction = async (op: Operation) => {
+  const batchCall = async (operations: Operation[]) => {
+    if (!signer) {
+      throw Error("No signer was found");
+    }
+
+    if (!sfFramework) {
+      throw Error("SF Framework was not found");
+    }
+
+    const batch = sfFramework.batchCall(operations);
+    const tx = await batch.exec(signer);
+
+    await tx.wait();
+  };
+
+  const execOperation = async (op: Operation) => {
     if (!signer) {
       throw Error("No signer was found");
     }
@@ -197,7 +230,9 @@ export default function useSuperfluid(accountAddress?: string) {
     wrap,
     underlyingTokenApprove,
     updatePermissions,
-    deleteFlow,
+    editFlow,
+    batchCall,
+    execOperation,
     gdaGetFlowRate,
     gdaDistributeFlow,
   };
