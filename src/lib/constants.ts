@@ -47,7 +47,6 @@ export const STORAGE_WORKER_ENDPOINT =
 export const IPFS_GATEWAY = import.meta.env.VITE_IPFS_GATEWAY;
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-export const MIN_CLAIM_BALANCE = 0.008;
 export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
 export const SECONDS_IN_YEAR = 60 * 60 * 24 * 365;
 export const AUCTION_LENGTH = 1209600;

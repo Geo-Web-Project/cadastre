@@ -46,7 +46,7 @@ const USER_INFO_QUERY = gql`
 `;
 
 const DIRECT_ALLOCATION_QUERY = gql`
-  query DirectAllocationQueryy($superApps: [String]) {
+  query DirectAllocationQuery($superApps: [String]) {
     accounts(where: { id_in: $superApps }) {
       id
       accountTokenSnapshots {

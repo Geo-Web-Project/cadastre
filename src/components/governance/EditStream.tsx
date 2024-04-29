@@ -3,6 +3,7 @@ import { useAccount, useBalance, useContractRead } from "wagmi";
 import { formatEther, parseEther, formatUnits, Address } from "viem";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
+import { Operation } from "@superfluid-finance/sdk-core";
 import Accordion from "react-bootstrap/Accordion";
 import Stack from "react-bootstrap/Stack";
 import Card from "react-bootstrap/Card";
@@ -73,7 +74,7 @@ interface EditStreamProps {
   flowRateToReceiver: string;
   newFlowRate: string;
   setNewFlowRate: React.Dispatch<React.SetStateAction<string>>;
-  transactionsToQueue: (() => Promise<void>)[];
+  getOperation: () => Operation;
   isFundingMatchingPool: boolean;
   ethPrice?: number;
 }
@@ -94,7 +95,7 @@ export enum Step {
   SELECT_AMOUNT = "Edit stream",
   WRAP = "Wrap to Super Token",
   TOP_UP = "Top up required tokens",
-  REVIEW = "Review the transaction(s)",
+  REVIEW = "Review",
   MINT_PASSPORT = "Mint Gitcoin Passport",
   SUCCESS = "Success!",
 }
@@ -110,7 +111,7 @@ export default function EditStream(props: EditStreamProps) {
     flowRateToReceiver,
     newFlowRate,
     setNewFlowRate,
-    transactionsToQueue,
+    getOperation,
     isFundingMatchingPool,
     receiver,
     ethPrice,
@@ -137,6 +138,8 @@ export default function EditStream(props: EditStreamProps) {
     getUnderlyingTokenAllowance,
     updatePermissions,
     wrap,
+    batchCall,
+    execOperation,
     underlyingTokenApprove,
   } = useSuperfluid(address);
   const userTokenSnapshot = userTokenSnapshots?.filter((snapshot) =>
@@ -275,6 +278,7 @@ export default function EditStream(props: EditStreamProps) {
         ? 1
         : 0;
     const transactions: (() => Promise<void>)[] = [];
+    const operations: Operation[] = [];
 
     if (wrapAmount && Number(wrapAmount?.replace(/,/g, "")) > 0) {
       if (!isFundingMatchingPool && approvalTransactionsCount > 0) {
@@ -286,29 +290,34 @@ export default function EditStream(props: EditStreamProps) {
         });
       }
 
-      transactions.push(
-        async () =>
-          await wrap(
-            isFundingMatchingPool ? nativeSuperToken : wrapperSuperToken,
-            wrapAmountWei
-          )
-      );
+      if (isFundingMatchingPool) {
+        transactions.push(
+          async () => await execOperation(wrap(nativeSuperToken, wrapAmountWei))
+        );
+      } else {
+        operations.push(wrap(wrapperSuperToken, wrapAmountWei));
+      }
     }
 
     if (
       !isFundingMatchingPool &&
       BigInt(newFlowRate) > BigInt(flowRateToReceiver)
     ) {
-      transactions.push(async () => {
-        await updatePermissions(
+      operations.push(
+        updatePermissions(
           wrapperSuperToken,
           SQF_STRATEGY_ADDRESS,
           BigInt(newFlowRate).toString()
-        );
-      });
+        )
+      );
     }
 
-    transactions.push(...transactionsToQueue);
+    if (isFundingMatchingPool) {
+      transactions.push(async () => await execOperation(getOperation()));
+    } else {
+      operations.push(getOperation());
+      transactions.push(async () => await batchCall(operations));
+    }
 
     return transactions;
   }, [address, nativeSuperToken, wrapperSuperToken, wrapAmount, newFlowRate]);
@@ -1168,17 +1177,7 @@ export default function EditStream(props: EditStreamProps) {
               {Number(wrapAmount?.replace(/,/g, "")) > 0 && (
                 <Stack direction="vertical" gap={1}>
                   <Card.Text className="border-bottom border-secondary mb-2 pb-1 text-secondary">
-                    A. Wrap Tokens (
-                    {!isFundingMatchingPool &&
-                    parseEther(
-                      areTransactionsLoading &&
-                        transactionDetailsSnapshot?.wrapAmount
-                        ? transactionDetailsSnapshot.wrapAmount
-                        : wrapAmount?.replace(/,/g, "") ?? ""
-                    ) > BigInt(underlyingTokenAllowance)
-                      ? "x2 - Approve & Upgrade"
-                      : "x1 - Upgrade"}
-                    )
+                    A. Wrap Tokens
                   </Card.Text>
                   <Stack
                     direction="horizontal"
@@ -1272,22 +1271,7 @@ export default function EditStream(props: EditStreamProps) {
                   ) > 0
                     ? "B."
                     : "A."}{" "}
-                  Edit stream (
-                  {isFundingMatchingPool ||
-                  isDeletingStream ||
-                  BigInt(
-                    areTransactionsLoading && transactionDetailsSnapshot
-                      ? transactionDetailsSnapshot.newFlowRate
-                      : newFlowRate
-                  ) <
-                    BigInt(
-                      areTransactionsLoading && transactionDetailsSnapshot
-                        ? transactionDetailsSnapshot.flowRateToReceiver
-                        : flowRateToReceiver
-                    )
-                    ? "x1 - Update"
-                    : "x2 - Permissions & Update"}
-                  )
+                  Edit stream
                 </Card.Text>
               </Stack>
               <Stack
