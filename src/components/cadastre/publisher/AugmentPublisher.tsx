@@ -11,7 +11,7 @@ import {
 } from "../../../hooks/geo-web-content/world";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
 import { STATE } from "../Map";
-import { MODEL_AUGMENT_ADDRESS } from "../../../lib/constants";
+import { GEO_ANCHOR_MODEL_AUGMENT_ADDRESS } from "../../../lib/constants";
 
 export enum AugmentType {
   MODEL = "3D Model",
@@ -23,7 +23,7 @@ export enum AugmentType {
 export function getAugmentAddress(augmentType: AugmentType) {
   switch (augmentType) {
     default:
-      return MODEL_AUGMENT_ADDRESS;
+      return GEO_ANCHOR_MODEL_AUGMENT_ADDRESS;
   }
 }
 
