@@ -3,13 +3,14 @@ import { Address } from "viem";
 import { usePublicClient } from "wagmi";
 import { optimism, optimismSepolia } from "wagmi/chains";
 import { SQFSuperFluidStrategy } from "@allo-team/allo-v2-sdk/";
+import { createVerifiedFetch } from "@helia/verified-fetch";
 import { recipientIds } from "../lib/governance/recipientIds";
 import { sqfStrategyAbi } from "../lib/abi/sqfStrategy";
-import { getGatewayUrl } from "../lib/utils";
 import {
   RPC_URLS_HTTP,
   SQF_STRATEGY_ADDRESS,
   ALLO_POOL_ID,
+  IPFS_GATEWAYS,
 } from "../lib/constants";
 
 export type Recipient = {
@@ -128,14 +129,21 @@ export function AlloContextProvider({
 
         if (pointer) {
           try {
-            const detailsRes = await fetch(getGatewayUrl(pointer));
+            const verifiedFetch = await createVerifiedFetch({
+              gateways: IPFS_GATEWAYS,
+            });
+            const detailsRes = await verifiedFetch(pointer);
+
             const { name, description, image, website, social } =
               await detailsRes.json();
+
+            const imageRes = await verifiedFetch(image);
+            const imageBlob = await imageRes.blob();
 
             recipientsDetails.push({
               name,
               description,
-              image: getGatewayUrl(image),
+              image: URL.createObjectURL(imageBlob),
               website,
               social,
             });
