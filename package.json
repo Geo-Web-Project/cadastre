@@ -6,7 +6,7 @@
     "@apollo/client": "^3.8.9",
     "@didtools/cacao": "^1.1.0",
     "@didtools/pkh-ethereum": "^0.0.3",
-    "@geo-web/mud-world-base-contracts": "0.4.1",
+    "@geo-web/mud-world-base-contracts": "0.4.2",
     "@geo-web/mud-world-base-setup": "0.4.3",
     "@geo-web/sdk": "^4.4.0",
     "@mapbox/mapbox-gl-geocoder": "^5.0.2",

@@ -8,6 +8,11 @@ import { concatHex, stringToHex } from "viem";
 import { resourceTypeIds } from "@latticexyz/common";
 import { AugmentType } from "../AugmentPublisher";
 import { getAugmentAddress } from "../AugmentPublisher";
+import { resourceToHex } from "@latticexyz/common";
+import PCOOwnershipSystem from "@geo-web/mud-world-base-contracts/out/PCOOwnershipSystem.sol/PCOOwnershipSystem.abi.json";
+import { Interface } from "ethers/lib/utils";
+
+const IPCOOwnershipSystem = new Interface(PCOOwnershipSystem);
 
 export type ApproveAugmentButtonProps = OffCanvasPanelProps & {
   isDisabled: boolean;
@@ -91,15 +96,31 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
     }
 
     try {
+      const systemId = resourceToHex({
+        type: "system",
+        name: "PCOOwnershipSystem",
+        namespace: Number(selectedParcelId).toString(),
+      });
+
       if (namespaceExists === undefined) {
         const txn = await worldContract
           .connect(signer)
-          .registerParcelNamespace(Number(selectedParcelId));
+          .call(
+            systemId,
+            IPCOOwnershipSystem.encodeFunctionData("registerParcelNamespace", [
+              Number(selectedParcelId),
+            ])
+          );
         await txn.wait();
       } else {
         const txn = await worldContract
           .connect(signer)
-          .claimParcelNamespace(Number(selectedParcelId));
+          .call(
+            systemId,
+            IPCOOwnershipSystem.encodeFunctionData("claimParcelNamespace", [
+              Number(selectedParcelId),
+            ])
+          );
         await txn.wait();
       }
     } catch (err) {

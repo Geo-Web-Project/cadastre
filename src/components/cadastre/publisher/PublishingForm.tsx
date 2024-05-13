@@ -17,6 +17,9 @@ import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
 import Quaternion from "quaternion";
 import { isNumber } from "../../../lib/utils";
+import { resourceToHex } from "@latticexyz/common";
+import AugmentInstallSystem from "@geo-web/mud-world-base-contracts/out/AugmentInstallSystem.sol/AugmentInstallSystem.abi.json";
+import { Interface } from "ethers/lib/utils";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
@@ -35,6 +38,8 @@ type AugmentArgs = {
   displayWidth: string;
   audioVolume: string;
 };
+
+const IAugmentInstallSystem = new Interface(AugmentInstallSystem);
 
 export default function PublishingForm(props: PublishingFormProps) {
   const {
@@ -205,23 +210,31 @@ export default function PublishingForm(props: PublishingFormProps) {
         z: 10 * Number(augmentArgs.displayScale ?? 100),
       });
 
-      await worldContract.connect(signer).installAugment(
-        getAugmentAddress(augmentType),
-        namespaceId,
-        encodeAbiParameters(
-          [
-            {
-              name: "components",
-              type: "tuple[][]",
-              components: [
-                { name: "staticData", type: "bytes" },
-                { name: "encodedLengths", type: "bytes32" },
-                { name: "dynamicData", type: "bytes" },
-              ],
-            },
-          ],
-          [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
-        )
+      const systemId = resourceToHex({
+        type: "system",
+        name: "AugmentInstall",
+        namespace: Number(selectedParcelId).toString(),
+      });
+
+      await worldContract.connect(signer).call(
+        systemId,
+        IAugmentInstallSystem.encodeFunctionData("installAugment", [
+          getAugmentAddress(augmentType),
+          encodeAbiParameters(
+            [
+              {
+                name: "components",
+                type: "tuple[][]",
+                components: [
+                  { name: "staticData", type: "bytes" },
+                  { name: "encodedLengths", type: "bytes32" },
+                  { name: "dynamicData", type: "bytes" },
+                ],
+              },
+            ],
+            [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
+          ),
+        ])
       );
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */

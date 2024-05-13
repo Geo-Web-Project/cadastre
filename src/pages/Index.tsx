@@ -20,7 +20,7 @@ import {
   SUBGRAPH_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
-import { ethers, BigNumber } from "ethers";
+import { ethers, BigNumber, Contract } from "ethers";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { useAccount, useNetwork } from "wagmi";
@@ -48,7 +48,7 @@ import { optimism, optimismSepolia } from "viem/chains";
 import { MUDProvider } from "../context/MUD";
 import { useEthersSigner } from "../hooks/ethersAdapters";
 import useSuperfluid from "../hooks/superfluid";
-import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
+import IWorld from "@geo-web/mud-world-base-contracts/out/IWorld.sol/IWorld.abi.json";
 
 async function createW3UpClient(didSession: DIDSession) {
   const store = new StoreIndexedDB("w3up-client");
@@ -137,9 +137,9 @@ function IndexPage(props: IndexPageProps) {
 
   const [worldConfig, setWorldConfig] =
     React.useState<typeof SyncWorldResult>();
-  const [worldContract, setWorldContract] = React.useState<IWorld | undefined>(
-    undefined
-  );
+  const [worldContract, setWorldContract] = React.useState<
+    Contract | undefined
+  >(undefined);
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -372,7 +372,7 @@ function IndexPage(props: IndexPageProps) {
       setWorldConfig(worldConfig);
 
       if (library) {
-        setWorldContract(IWorld__factory.connect(WORLD.worldAddress, library));
+        setWorldContract(new Contract(WORLD.worldAddress, IWorld, library));
       }
     })();
   }, [address, selectedParcelId, library]);

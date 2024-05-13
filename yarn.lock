@@ -3223,10 +3223,10 @@
     "@openzeppelin/contracts" "^4.9.3"
     ethers "^5.7.2"
 
-"@geo-web/mud-world-base-contracts@0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.4.1.tgz#fea2326ee79bdc129087dc445a15e3eb39743940"
-  integrity sha512-dIo2sLgOLASgITPQbanjjvVkHPh39B0aHpKCb3o4J2ndpD/ky4mAoyH2p9ivytS/uCPtE7GMs5WdtwR1I3fjwg==
+"@geo-web/mud-world-base-contracts@0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@geo-web/mud-world-base-contracts/-/mud-world-base-contracts-0.4.2.tgz#4f633061d9e8a6dd72e973274a80f9953d9d51a3"
+  integrity sha512-VdVAOlImPzgQEAproYbFxN/GowTwBij77VR5NRDC6RWgLgASM10FSXSdv9cWZqX9P4IOl09avb+ZCx31kWtddQ==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
