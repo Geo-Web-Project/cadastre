@@ -44,7 +44,14 @@ export const PAYMENT_TOKEN_FAUCET_URL = "https://faucet.paradigm.xyz";
 export const BETA_AGREEMENT_KEY = "storedBetaAgreement";
 export const STORAGE_WORKER_ENDPOINT =
   "https://storage-workers.geo-web.workers.dev";
-export const IPFS_GATEWAY = import.meta.env.VITE_IPFS_GATEWAY;
+export const IPFS_GATEWAYS = [
+  "https://trustless-gateway.link",
+  "https://gateway.pinata.cloud",
+  "https://storry.tv",
+  "https://cloudflare-ipfs.com",
+  "https://4everland.io",
+  "https://ipfs.runfission.com",
+];
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const SECONDS_IN_WEEK = 60 * 60 * 24 * 7;
