@@ -96,31 +96,15 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
     }
 
     try {
-      const systemId = resourceToHex({
-        type: "system",
-        name: "PCOOwnershipSystem",
-        namespace: Number(selectedParcelId).toString(),
-      });
-
       if (namespaceExists === undefined) {
         const txn = await worldContract
           .connect(signer)
-          .call(
-            systemId,
-            IPCOOwnershipSystem.encodeFunctionData("registerParcelNamespace", [
-              Number(selectedParcelId),
-            ])
-          );
+          .claimParcelNamespace(Number(selectedParcelId));
         await txn.wait();
       } else {
         const txn = await worldContract
           .connect(signer)
-          .call(
-            systemId,
-            IPCOOwnershipSystem.encodeFunctionData("claimParcelNamespace", [
-              Number(selectedParcelId),
-            ])
-          );
+          .claimParcelNamespace(Number(selectedParcelId));
         await txn.wait();
       }
     } catch (err) {
@@ -148,7 +132,7 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
     try {
       const txn = await worldContract
         .connect(signer)
-        .functions.grantAccess(namespaceId, getAugmentAddress(augmentType));
+        .grantAccess(namespaceId, getAugmentAddress(augmentType));
       await txn.wait();
     } catch (err) {
       console.error(err);
