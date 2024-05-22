@@ -9,6 +9,7 @@
     "@geo-web/mud-world-base-contracts": "0.4.2",
     "@geo-web/mud-world-base-setup": "0.4.3",
     "@geo-web/sdk": "^4.4.0",
+    "@latticexyz/protocol-parser": "^2.0.11",
     "@mapbox/mapbox-gl-geocoder": "^5.0.2",
     "@popperjs/core": "^2.11.5",
     "@rainbow-me/rainbowkit": "^1.3.4",

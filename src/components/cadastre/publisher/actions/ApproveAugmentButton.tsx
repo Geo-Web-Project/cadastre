@@ -99,7 +99,7 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
       if (namespaceExists === undefined) {
         const txn = await worldContract
           .connect(signer)
-          .claimParcelNamespace(Number(selectedParcelId));
+          .registerParcelNamespace(Number(selectedParcelId));
         await txn.wait();
       } else {
         const txn = await worldContract
@@ -158,6 +158,7 @@ export function ApproveAugmentButton(props: ApproveAugmentButtonProps) {
 
       // Check namespace claim
       if (
+        !namespaceExists ||
         namespaceOwner?.value?.owner.toLowerCase() !== account.toLowerCase()
       ) {
         _approvals.push(registerOrClaimNamespace);

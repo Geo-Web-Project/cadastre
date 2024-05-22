@@ -79,7 +79,7 @@ function useWorld() {
       contentURI: component.value.contentURI,
       name: getValue("NameCom", component.key).value,
       encodingFormat: component.value.encodingFormat,
-      position: getValue("PositionCom", component.key),
+      position: getValue("GeoAnchorCom", component.key),
       orientation: getValue("OrientationCom", component.key),
       contentSize: getValue("ScaleCom", component.key),
     };

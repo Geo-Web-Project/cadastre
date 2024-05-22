@@ -164,15 +164,15 @@ export default function PublishingForm(props: PublishingFormProps) {
         value: augmentArgs.name ?? "",
       });
 
-      let positionComSchema: any = {};
-      Object.keys(tables.PositionCom.schema).forEach((key) => {
-        if (tables.PositionCom.key.includes(key)) {
+      let geoAnchorComSchema: any = {};
+      Object.keys(tables.GeoAnchorCom.schema).forEach((key) => {
+        if (tables.GeoAnchorCom.key.includes(key)) {
           return;
         }
-        positionComSchema[key] = tables.PositionCom.schema[key].type;
+        geoAnchorComSchema[key] = tables.GeoAnchorCom.schema[key].type;
       });
 
-      const positionCom = encodeValueArgs(positionComSchema, {
+      const geoAnchorCom = encodeValueArgs(geoAnchorComSchema, {
         h: Number(augmentArgs.altitude ?? 0),
         geohash: Geohash.encode(augmentArgs.coords.lat, augmentArgs.coords.lon),
       });
@@ -232,7 +232,7 @@ export default function PublishingForm(props: PublishingFormProps) {
                 ],
               },
             ],
-            [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
+            [[[modelCom, nameCom, geoAnchorCom, orientationCom, scaleCom]]]
           ),
         ])
       );
