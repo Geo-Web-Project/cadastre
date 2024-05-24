@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useNetwork } from "wagmi";
 import {
@@ -79,17 +79,6 @@ export default function Header(props: HeaderProps) {
       }),
     []
   );
-
-  useEffect(() => {
-    (window as any).Intercom("boot", {
-      api_base: "https://api-iam.intercom.io",
-      app_id: "qonbdvt5",
-    });
-  }, []);
-
-  useEffect(() => {
-    (window as any).Intercom("update");
-  }, [location.pathname]);
 
   return (
     <ApolloProvider client={apolloClient}>
