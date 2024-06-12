@@ -33,10 +33,11 @@ export const makeStore = () => {
     return await Framework.create({
       chainId: NETWORK_ID,
       provider: new ethers.providers.JsonRpcProvider(RPC_URLS_HTTP[NETWORK_ID]),
-      customSubgraphQueriesEndpoint:
+      customSubgraphQueriesEndpoint: `https://subgraph-endpoints.superfluid.dev/${
         import.meta.env.MODE === "mainnet"
-          ? "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
-          : "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1",
+          ? "optimism-mainnet"
+          : "optimism-sepolia"
+      }/protocol-v1`,
       resolverAddress: SUPERFLUID_RESOLVER_ADDRESS,
     });
   });
