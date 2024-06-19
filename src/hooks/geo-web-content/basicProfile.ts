@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
-import { IPFS_GATEWAY } from "../../lib/constants";
+import { IPFS_GATEWAYS } from "../../lib/constants";
 import { ethers } from "ethers";
+import { createVerifiedFetch } from "@helia/verified-fetch";
 
 export type BasicProfile = { name?: string; external_url?: string };
 
@@ -76,9 +77,11 @@ function useBasicProfile(
         return basicProfile;
       }
 
-      const basicProfileRes = await fetch(
-        `${IPFS_GATEWAY}/${tokenURI.slice(7)}`
-      );
+      const verifiedFetch = await createVerifiedFetch({
+        gateways: IPFS_GATEWAYS,
+      });
+      const basicProfileRes = await verifiedFetch(tokenURI);
+
       basicProfile = await basicProfileRes.json();
     } catch (err) {
       console.warn(err);

@@ -1,7 +1,6 @@
 import { formatEther } from "viem";
 import { BigNumber } from "ethers";
 import { Framework, NativeAssetSuperToken } from "@superfluid-finance/sdk-core";
-import { IPFS_GATEWAY } from "./constants";
 
 export enum TimeInterval {
   DAY = "/day",
@@ -96,10 +95,6 @@ export function calculateAuctionValue(
   const priceDecrease = forSalePrice.mul(timeElapsed).div(auctionLength);
 
   return forSalePrice.sub(priceDecrease);
-}
-
-export function getGatewayUrl(uri: string) {
-  return uri.startsWith("ipfs://") ? `${IPFS_GATEWAY}/${uri.slice(7)}` : uri;
 }
 
 export function perSecondToPerMonth(amount: number) {
