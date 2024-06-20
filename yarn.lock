@@ -3912,6 +3912,21 @@
     prettier-plugin-solidity "1.3.1"
     viem "2.9.20"
 
+"@latticexyz/common@2.0.12":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.12.tgz#2dd5319807c2287d5afb900855cdc8efbf899d5b"
+  integrity sha512-B077Ss6N6PO/KVDkXvOKCDR1BN6WP+xYGXGegiyCenvgR4qPvx3EHRe/yPcRXfNJx7vOX0i7zwhaLYcaB5QO/w==
+  dependencies:
+    "@latticexyz/schema-type" "2.0.12"
+    "@solidity-parser/parser" "^0.16.0"
+    debug "^4.3.4"
+    execa "^7.0.0"
+    p-queue "^7.4.1"
+    p-retry "^5.1.2"
+    prettier "3.2.5"
+    prettier-plugin-solidity "1.3.1"
+    viem "2.9.20"
+
 "@latticexyz/common@2.0.7":
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/@latticexyz/common/-/common-2.0.7.tgz#0e53ff68e66d84969630da974c31c763eb490637"
@@ -3947,6 +3962,19 @@
   dependencies:
     "@latticexyz/common" "2.0.11"
     "@latticexyz/schema-type" "2.0.11"
+    esbuild "^0.17.15"
+    find-up "^6.3.0"
+    viem "2.9.20"
+    zod "^3.22.2"
+    zod-validation-error "^1.3.0"
+
+"@latticexyz/config@2.0.12":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@latticexyz/config/-/config-2.0.12.tgz#52803ac674bc0846ce30f4c6c33c828a8f207f0f"
+  integrity sha512-M9OvNabwuaQEAamv0270mMgT7+S8UpExwvS4OS9rSgRoSd6Y+7cmtNXW3VNXzSjHkLcEk8TFU5ZYp3aAPly+tQ==
+  dependencies:
+    "@latticexyz/common" "2.0.12"
+    "@latticexyz/schema-type" "2.0.12"
     esbuild "^0.17.15"
     find-up "^6.3.0"
     viem "2.9.20"
@@ -4003,6 +4031,17 @@
     abitype "1.0.0"
     viem "2.7.12"
 
+"@latticexyz/protocol-parser@2.0.12":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.12.tgz#ace3cbcbde69c91ff18d0eae4c8bad92e610400f"
+  integrity sha512-2P+4nLPPC6ZG9BmAIvS7GBr8+ZiCxeFP5yzHyNrEEPUhZHXyXXPsElupcXV4IptfiFDipwJWkGx9nzF9p4g8ZQ==
+  dependencies:
+    "@latticexyz/common" "2.0.12"
+    "@latticexyz/config" "2.0.12"
+    "@latticexyz/schema-type" "2.0.12"
+    abitype "1.0.0"
+    viem "2.9.20"
+
 "@latticexyz/protocol-parser@2.0.7":
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/@latticexyz/protocol-parser/-/protocol-parser-2.0.7.tgz#a9198777e3e07e2c9e9a027c960c0a5448127d56"
@@ -4058,6 +4097,14 @@
   version "2.0.11"
   resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.11.tgz#8350a026b90fba4c89adcefcf64261f3c715b819"
   integrity sha512-H6KO7zHJkYNNT12FLFMQivRE27rfyuoY62UtLfvBrWSQm6tiL6j5NBlylo8cK4cB+oQ9eUMZ78PSvzHEBm6aKg==
+  dependencies:
+    abitype "1.0.0"
+    viem "2.9.20"
+
+"@latticexyz/schema-type@2.0.12":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@latticexyz/schema-type/-/schema-type-2.0.12.tgz#70138d61962af7d93feb2d375c6596806b13cc6d"
+  integrity sha512-QDnHU3iCQmY8e24CGR3hKUEprHrrNUfFTiUaSuj3J0d/x9iaIafYT2+dWydxgcpCmK4Xl7PgurvJiAVCmcLokg==
   dependencies:
     abitype "1.0.0"
     viem "2.9.20"
@@ -4148,6 +4195,21 @@
     arktype "1.0.29-alpha"
     viem "2.9.20"
     zod "^3.21.4"
+
+"@latticexyz/store@^2.0.12":
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/@latticexyz/store/-/store-2.0.12.tgz#8a2ff4050b85ea11e63c35cd0e6b74cd0e5cec1a"
+  integrity sha512-dSN3nX4mt8SkHq2pjQ2DEYreRV4/3FVPoy0vhvpbpkpa0QocroYBWzykVMmxYVOcWWUp8pznq0LNBuzyo26H4w==
+  dependencies:
+    "@arktype/util" "0.0.29"
+    "@latticexyz/common" "2.0.12"
+    "@latticexyz/config" "2.0.12"
+    "@latticexyz/protocol-parser" "2.0.12"
+    "@latticexyz/schema-type" "2.0.12"
+    abitype "1.0.0"
+    arktype "1.0.29-alpha"
+    viem "2.9.20"
+    zod "^3.22.2"
 
 "@latticexyz/utils@2.0.1":
   version "2.0.1"
