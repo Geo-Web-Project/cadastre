@@ -29,13 +29,7 @@ export function PerformButton(props: PerformButtonProps) {
         !isAllowed ? "info" : buttonText === "Reject Bid" ? "danger" : "success"
       }
       className="w-100"
-      onClick={() => {
-        submit();
-
-        if (buttonText === "Claim") {
-          window.plausible("Submit Claim Button");
-        }
-      }}
+      onClick={submit}
       disabled={isDisabled || !isAllowed}
     >
       {isActing ? spinner : buttonText}
