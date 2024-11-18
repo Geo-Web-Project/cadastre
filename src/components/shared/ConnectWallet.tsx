@@ -52,13 +52,7 @@ export default function ConnectWallet(props: ConnectWalletProps) {
                         : "w-100 py-2"
                     }`}
                     disabled={!mounted || status === "connecting"}
-                    onClick={() => {
-                      if (openConnectModal) {
-                        openConnectModal();
-                      }
-
-                      window.plausible("Connect Wallet");
-                    }}
+                    onClick={openConnectModal}
                   >
                     {variant === "header" && isMobile
                       ? "Connect"

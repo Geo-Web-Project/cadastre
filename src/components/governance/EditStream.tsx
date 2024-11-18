@@ -44,7 +44,6 @@ import useSuperfluid from "../../hooks/superfluid";
 import useTransactionsQueue from "../../hooks/transactionsQueue";
 import useAllo from "../../hooks/allo";
 import useRoundQuery from "../../hooks/roundQuery";
-import { useDonationAnalyticsEvent } from "../../hooks/analyticsEvent";
 import { passportDecoderAbi } from "../../lib/abi/passportDecoder";
 import { calcMatchingImpactEstimate } from "../../lib/governance/matchingImpactEstimate";
 import {
@@ -181,7 +180,6 @@ export default function EditStream(props: EditStreamProps) {
       enabled: address ? true : false,
       watch: false,
     });
-  useDonationAnalyticsEvent(step, isFundingMatchingPool);
 
   const minEthBalance = 0.001;
   const suggestedTokenBalance = newFlowRate
