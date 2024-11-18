@@ -187,7 +187,6 @@ export function ActionForm(props: ActionFormProps) {
 
     if (!selectedParcelId && licenseId) {
       setSelectedParcelId(`0x${new BN(licenseId.toString()).toString(16)}`);
-      window.plausible("Successful Claim");
     }
 
     const didForSalePriceChange =

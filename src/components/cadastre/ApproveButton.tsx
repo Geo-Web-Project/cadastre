@@ -229,10 +229,7 @@ export function ApproveButton(props: ApproveButtonProps) {
     <Button
       variant={isAllowed || isActing ? "info" : "primary"}
       className="w-100 mb-3"
-      onClick={() => {
-        submit();
-        window.plausible("ETHx Allowance Button");
-      }}
+      onClick={submit}
       disabled={
         isDisabled ||
         !isReady ||
