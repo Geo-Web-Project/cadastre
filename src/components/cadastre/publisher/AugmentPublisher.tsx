@@ -2,15 +2,16 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Dropdown from "react-bootstrap/Dropdown";
-import Table from "react-bootstrap/Table";
+import Card from "react-bootstrap/Card";
+import Stack from "react-bootstrap/Stack";
 import PublishingForm from "./PublishingForm";
-import Row from "react-bootstrap/Row";
 import {
   MediaObjectType,
   useWorld,
 } from "../../../hooks/geo-web-content/world";
 import { ParcelInfoProps } from "../cards/ParcelInfo";
 import { STATE } from "../Map";
+import { GEO_ANCHOR_MODEL_AUGMENT_ADDRESS } from "../../../lib/constants";
 
 export enum AugmentType {
   MODEL = "3D Model",
@@ -22,7 +23,7 @@ export enum AugmentType {
 export function getAugmentAddress(augmentType: AugmentType) {
   switch (augmentType) {
     default:
-      return "0x0c2819e12c930089D0F563467Fa6af4f87563019";
+      return GEO_ANCHOR_MODEL_AUGMENT_ADDRESS;
   }
 }
 
@@ -32,7 +33,11 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
     AugmentType.MODEL
   );
 
-  const { mediaObjects } = useWorld();
+  const {
+    mediaObjects,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+  } = useWorld();
 
   return (
     <>
@@ -50,6 +55,8 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
               showForm ? STATE.PUBLISHING_NEW_MARKER : STATE.PUBLISHING
             );
           }}
+          shouldMediaObjectsUpdate={shouldMediaObjectsUpdate}
+          setShouldMediaObjectsUpdate={setShouldMediaObjectsUpdate}
           {...props}
         />
       ) : (
@@ -97,45 +104,49 @@ export default function AugmentPublisher(props: ParcelInfoProps) {
               </span>
             </Button>
           </div>
-          <Row className="mt-4">
-            <Table
-              striped
-              variant="dark"
-              className="m-3 mt-0 text-light flex-shrink-1"
-            >
-              <tbody>
-                {mediaObjects.map((mediaObject, i) => {
-                  let mediaType;
-                  switch (mediaObject.mediaType) {
-                    case MediaObjectType.Model:
-                      mediaType = "3D Model";
-                      break;
-                    case MediaObjectType.Audio:
-                      mediaType = "Audio";
-                      break;
-                    case MediaObjectType.Image:
-                      mediaType = "Image";
-                      break;
-                    case MediaObjectType.Video:
-                      mediaType = "Video";
-                      break;
-                  }
-                  return (
-                    <tr>
-                      <td>{i + 1}</td>
-                      <td>{mediaObject.name}</td>
-                      <td>{mediaType}</td>
-                      {/* <td>
-                        <Button variant="link">
-                          <Image src={"delete.svg"} width={20}></Image>
-                        </Button>
-                      </td> */}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          </Row>
+          <Stack direction="vertical" className="mt-4">
+            {mediaObjects.map((mediaObject, i) => {
+              let mediaType;
+              switch (mediaObject.mediaType) {
+                case MediaObjectType.Model:
+                  mediaType = "3D Model";
+                  break;
+                case MediaObjectType.Audio:
+                  mediaType = "Audio";
+                  break;
+                case MediaObjectType.Image:
+                  mediaType = "Image";
+                  break;
+                case MediaObjectType.Video:
+                  mediaType = "Video";
+                  break;
+                default:
+                  break;
+              }
+
+              return (
+                <Stack
+                  direction="horizontal"
+                  className={`${
+                    i === 0
+                      ? "rounded-top-3"
+                      : i === mediaObjects.length - 1
+                      ? "rounded-bottom-3"
+                      : ""
+                  } ${i % 2 === 0 ? "bg-blue" : "bg-purple"}`}
+                  key={i}
+                >
+                  <Card.Text className="text-center w-10 m-0 p-2">
+                    {i + 1}
+                  </Card.Text>
+                  <Card.Text className="w-50 m-0 p-2 overflow-hidden text-truncate">
+                    {mediaObject.name}
+                  </Card.Text>
+                  <Card.Text className="m-50 p-2">{mediaType}</Card.Text>
+                </Stack>
+              );
+            })}
+          </Stack>
         </>
       )}
     </>

@@ -27,6 +27,7 @@ import {
 } from "../../lib/constants";
 import ParcelSource, { parcelsToMultiPoly } from "./sources/ParcelSource";
 import OpRewardAlert from "./OpRewardAlert";
+import AugmentPin from "./AugmentPin";
 
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 
@@ -50,7 +51,6 @@ import { useMediaQuery } from "../../hooks/mediaQuery";
 import { useParcelNavigation } from "../../hooks/parcelNavigation";
 import { useWorld } from "../../hooks/geo-web-content/world";
 import Geohash from "latlon-geohash";
-import { IWorld } from "@geo-web/mud-world-base-contracts";
 
 export const GW_CELL_SIZE_LAT = 23;
 export const GW_CELL_SIZE_LON = 24;
@@ -187,7 +187,7 @@ export type MapProps = {
   endingBid: BigNumber;
   isFullScreen: boolean;
   setIsFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
-  worldContract: IWorld;
+  worldContract: Contract;
 };
 
 const MAP_STYLE_KEY = "storedMapStyleName";
@@ -228,7 +228,7 @@ function Map(props: MapProps) {
       MapStyleName.satellite
   );
 
-  const { mediaObjects } = useWorld();
+  const { mediaObjects, stopSync: stopWorldSync } = useWorld();
 
   const handleMapstyle = (newStyle: MapStyleName) => {
     localStorage.setItem(MAP_STYLE_KEY, newStyle);
@@ -296,7 +296,7 @@ function Map(props: MapProps) {
   }>({ id: "", timerId: null });
   const [showParcelList, setShowParcelList] = React.useState<boolean>(false);
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
-  const [lastClickPoint, setLastClickPoint] = useState<LngLat | null>(null);
+  const [newAugmentCoords, setNewAugmentCoords] = useState<LngLat | null>(null);
 
   const { isMobile, isTablet } = useMediaQuery();
   const { parcelIdToCoords, flyToParcel } = useParcelNavigation();
@@ -456,13 +456,10 @@ function Map(props: MapProps) {
   }
 
   function _onMove(nextViewport: ViewState) {
-    if (
-      interactionState === STATE.PUBLISHING ||
-      interactionState === STATE.PUBLISHING_NEW_MARKER ||
-      mapRef.current == null
-    ) {
+    if (mapRef.current == null) {
       return;
     }
+
     setViewport(nextViewport);
 
     const mapBounds = mapRef.current.getBounds();
@@ -565,8 +562,6 @@ function Map(props: MapProps) {
     if (viewport.zoom < 5) {
       return;
     }
-
-    setLastClickPoint(event.lngLat);
 
     const parcelFeature = event.features?.find(
       (f) => f.layer.id === "parcels-layer"
@@ -737,6 +732,22 @@ function Map(props: MapProps) {
       case STATE.PARCEL_SELECTED:
         if (_checkParcelClick()) {
           return;
+        }
+        break;
+      case STATE.PUBLISHING_NEW_MARKER:
+        const coords = event.lngLat;
+        const parcel = data?.geoWebParcels?.filter(
+          (parcel) => parcel.id === selectedParcelId
+        )[0];
+
+        if (
+          parcel &&
+          coords.lng > Number(parcel.bboxW) &&
+          coords.lng < Number(parcel.bboxE) &&
+          coords.lat > Number(parcel.bboxS) &&
+          coords.lat < Number(parcel.bboxN)
+        ) {
+          setNewAugmentCoords(coords);
         }
         break;
       case STATE.PARCEL_EDITING_BID:
@@ -933,6 +944,7 @@ function Map(props: MapProps) {
         setClaimBase2Coord(null);
         setSelectedParcelId("");
         setParcelHoverId("");
+        stopWorldSync();
         break;
       case STATE.PARCEL_SELECTED:
         setClaimBase1Coord(null);
@@ -948,7 +960,7 @@ function Map(props: MapProps) {
         ]);
         break;
       case STATE.PUBLISHING_NEW_MARKER:
-        setLastClickPoint(null);
+        setNewAugmentCoords(null);
         break;
       default:
         if (isGridVisible) {
@@ -1051,6 +1063,8 @@ function Map(props: MapProps) {
           setNewParcel={setNewParcel}
           isValidClaim={isValidClaim}
           delay={interactionState === STATE.CLAIM_SELECTING}
+          newAugmentCoords={newAugmentCoords}
+          setNewAugmentCoords={setNewAugmentCoords}
         ></OffCanvasPanel>
       ) : null}
       <Col
@@ -1069,7 +1083,7 @@ function Map(props: MapProps) {
           mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle={mapStyleUrlByName[mapStyleName]}
           interactiveLayerIds={interactiveLayerIds}
-          projection="globe"
+          projection={{ name: "globe" }}
           fog={{}}
           dragRotate={false}
           touchZoomRotate={true}
@@ -1136,24 +1150,27 @@ function Map(props: MapProps) {
                 latitude={coords.lat}
                 anchor="bottom"
               >
-                {interactionState === STATE.PUBLISHING_NEW_MARKER ? (
-                  <Image src={"markerGray.svg"} />
-                ) : (
-                  <Image src={"markerRed.svg"} />
-                )}
+                <AugmentPin
+                  fill={
+                    interactionState === STATE.PUBLISHING_NEW_MARKER
+                      ? "#707179"
+                      : "#CF3232"
+                  }
+                  text={`${i + 1}`}
+                />
               </Marker>
             );
           })}
 
           {interactionState === STATE.PUBLISHING_NEW_MARKER &&
-            lastClickPoint && (
+            newAugmentCoords && (
               <Marker
                 key={`marker-add`}
-                longitude={lastClickPoint.lng}
-                latitude={lastClickPoint.lat}
+                longitude={newAugmentCoords.lng}
+                latitude={newAugmentCoords.lat}
                 anchor="bottom"
               >
-                <Image src={"markerAdd.svg"} />
+                <AugmentPin fill="#CF3232" />
               </Marker>
             )}
 

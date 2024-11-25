@@ -32,15 +32,17 @@ export type MediaObject = {
 
 function useWorld() {
   const [mediaObjects, setMediaObjects] = useState<MediaObject[]>([]);
+  const [shouldMediaObjectsUpdate, setShouldMediaObjectsUpdate] =
+    useState<boolean>(true);
 
-  const { tables, useStore } = useMUD();
+  const { tables, useStore, stopSync } = useMUD();
 
   const modelComponents = useStore((state: any) =>
     Object.values(state.getRecords(tables.ModelCom))
   );
-  const imageComponents = useStore((state: any) =>
-    Object.values(state.getRecords(tables.ImageCom))
-  );
+  // const imageComponents = useStore((state: any) =>
+  //   Object.values(state.getRecords(tables.ImageCom))
+  // );
 
   useEffect(() => {
     const mediaObjects = [];
@@ -53,16 +55,17 @@ function useWorld() {
       mediaObjects.push(mediaObject);
     }
 
-    for (const imageComponent of imageComponents) {
-      const mediaObject = buildMediaObject(
-        MediaObjectType.Image,
-        imageComponent
-      );
-      mediaObjects.push(mediaObject);
-    }
+    // for (const imageComponent of imageComponents) {
+    //   const mediaObject = buildMediaObject(
+    //     MediaObjectType.Image,
+    //     imageComponent
+    //   );
+    //   mediaObjects.push(mediaObject);
+    // }
 
     setMediaObjects(mediaObjects);
-  }, [modelComponents.length, imageComponents.length]);
+    setShouldMediaObjectsUpdate(false);
+  }, [modelComponents.length]);
 
   const getValue = (table: string, key: { key: string }) =>
     useStore.getState().getValue(tables[table], key);
@@ -76,13 +79,18 @@ function useWorld() {
       contentURI: component.value.contentURI,
       name: getValue("NameCom", component.key).value,
       encodingFormat: component.value.encodingFormat,
-      position: getValue("PositionCom", component.key),
+      position: getValue("GeoAnchorCom", component.key),
       orientation: getValue("OrientationCom", component.key),
       contentSize: getValue("ScaleCom", component.key),
     };
   };
 
-  return { mediaObjects };
+  return {
+    mediaObjects,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+    stopSync,
+  };
 }
 
 export { useWorld };

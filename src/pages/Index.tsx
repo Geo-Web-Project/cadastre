@@ -20,7 +20,7 @@ import {
   SUBGRAPH_URL,
 } from "../lib/constants";
 import { getContractsForChainOrThrow } from "@geo-web/sdk";
-import { ethers, BigNumber } from "ethers";
+import { ethers, BigNumber, Contract } from "ethers";
 import { setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 import { Contracts } from "@geo-web/sdk/dist/contract/types";
 import { useAccount, useNetwork } from "wagmi";
@@ -48,7 +48,7 @@ import { optimism, optimismSepolia } from "viem/chains";
 import { MUDProvider } from "../context/MUD";
 import { useEthersSigner } from "../hooks/ethersAdapters";
 import useSuperfluid from "../hooks/superfluid";
-import { IWorld, IWorld__factory } from "@geo-web/mud-world-base-contracts";
+import IWorld from "@geo-web/mud-world-base-contracts/out/IWorld.sol/IWorld.abi.json";
 
 async function createW3UpClient(didSession: DIDSession) {
   const store = new StoreIndexedDB("w3up-client");
@@ -82,6 +82,18 @@ type IndexPageProps = {
   setSelectedParcelId: React.Dispatch<React.SetStateAction<string>>;
   shouldRefetchParcelsData: boolean;
   setShouldRefetchParcelsData: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const chain = import.meta.env.MODE === "mainnet" ? optimism : optimismSepolia;
+const mudChain = {
+  ...chain,
+  rpcUrls: {
+    ...chain.rpcUrls,
+    default: {
+      http: [RPC_URLS_HTTP[NETWORK_ID]],
+      webSocket: [RPC_URLS_WS[NETWORK_ID]],
+    },
+  },
 };
 
 function IndexPage(props: IndexPageProps) {
@@ -125,9 +137,9 @@ function IndexPage(props: IndexPageProps) {
 
   const [worldConfig, setWorldConfig] =
     React.useState<typeof SyncWorldResult>();
-  const [worldContract, setWorldContract] = React.useState<IWorld | undefined>(
-    undefined
-  );
+  const [worldContract, setWorldContract] = React.useState<
+    Contract | undefined
+  >(undefined);
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -345,18 +357,6 @@ function IndexPage(props: IndexPageProps) {
 
   React.useEffect(() => {
     (async () => {
-      const chain =
-        import.meta.env.MODE === "mainnet" ? optimism : optimismSepolia;
-      const mudChain = {
-        ...chain,
-        rpcUrls: {
-          ...chain.rpcUrls,
-          default: {
-            http: [RPC_URLS_HTTP[NETWORK_ID]],
-            webSocket: [RPC_URLS_WS[NETWORK_ID]],
-          },
-        },
-      };
       const worldConfig = await syncWorld({
         mudChain,
         chainId: NETWORK_ID,
@@ -364,16 +364,18 @@ function IndexPage(props: IndexPageProps) {
         namespaces: [Number(selectedParcelId).toString()],
         indexerUrl: "https://mud-testnet.geoweb.network/trpc",
         startSync:
-          selectedParcelId !== "" && import.meta.env.MODE !== "mainnet",
+          !!address &&
+          selectedParcelId !== "" &&
+          import.meta.env.MODE !== "mainnet",
       });
 
       setWorldConfig(worldConfig);
 
       if (library) {
-        setWorldContract(IWorld__factory.connect(WORLD.worldAddress, library));
+        setWorldContract(new Contract(WORLD.worldAddress, IWorld, library));
       }
     })();
-  }, [selectedParcelId, library]);
+  }, [address, selectedParcelId, library]);
 
   return (
     <ApolloProvider client={client}>

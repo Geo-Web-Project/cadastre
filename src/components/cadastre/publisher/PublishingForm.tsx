@@ -3,69 +3,100 @@ import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import Spinner from "react-bootstrap/Spinner";
 import { AugmentType } from "./AugmentPublisher";
 import Stack from "react-bootstrap/Stack";
-import { useMap } from "react-map-gl";
 import ApproveAugmentButton from "./actions/ApproveAugmentButton";
 import { OffCanvasPanelProps } from "../OffCanvasPanel";
+import AugmentPin from "../AugmentPin";
 import TransactionError from "../cards/TransactionError";
 import { getAugmentAddress } from "./AugmentPublisher";
 import { encodeAbiParameters, stringToHex } from "viem";
 import { useMUD } from "../../../context/MUD";
-import { encodeValueArgs } from "@latticexyz/protocol-parser";
+import { encodeValueArgs } from "@latticexyz/protocol-parser/internal";
 import Geohash from "latlon-geohash";
+import Quaternion from "quaternion";
+import { isNumber } from "../../../lib/utils";
+import { resourceToHex } from "@latticexyz/common";
+import AugmentInstallSystem from "@geo-web/mud-world-base-contracts/out/AugmentInstallSystem.sol/AugmentInstallSystem.abi.json";
+import { Interface } from "ethers/lib/utils";
 
 type PublishingFormProps = {
   augmentType: AugmentType;
   setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldMediaObjectsUpdate: boolean;
+  setShouldMediaObjectsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
 } & OffCanvasPanelProps;
 
 type AugmentArgs = {
-  contentURI?: string;
-  name?: string;
+  contentURI: string;
+  name: string;
   coords: { lat?: number; lon?: number };
-  altitude?: string;
-  orientation?: string;
-  displayScale?: string;
-  displayWidth?: string;
-  audioVolume?: string;
+  altitude: string;
+  orientation: string;
+  displayScale: string;
+  displayWidth: string;
+  audioVolume: string;
 };
 
+const IAugmentInstallSystem = new Interface(AugmentInstallSystem);
+
 export default function PublishingForm(props: PublishingFormProps) {
-  const { augmentType, setShowForm, signer, worldContract, selectedParcelId } =
-    props;
-  const { default: map } = useMap();
+  const {
+    augmentType,
+    setShowForm,
+    signer,
+    worldContract,
+    selectedParcelId,
+    w3Client,
+    newAugmentCoords,
+    setNewAugmentCoords,
+    shouldMediaObjectsUpdate,
+    setShouldMediaObjectsUpdate,
+  } = props;
 
   const { tables } = useMUD();
 
+  const [isUploading, setIsUploading] = useState(false);
   const [isAllowed, setIsAllowed] = useState(false);
   const [isActing, setIsActing] = useState(false);
   const [didFail, setDidFail] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [augmentArgs, setAugmentArgs] = useState<AugmentArgs>({
-    contentURI: undefined,
-    name: undefined,
+    contentURI: "",
+    name: "",
     coords: {},
-    altitude: undefined,
-    orientation: undefined,
-    displayScale: undefined,
-    displayWidth: undefined,
-    audioVolume: undefined,
+    altitude: "",
+    orientation: "",
+    displayScale: "",
+    displayWidth: "",
+    audioVolume: "",
   });
-
-  const isLocationOn = false;
 
   const namespaceId = useMemo(() => {
     return stringToHex(Number(selectedParcelId).toString(), { size: 14 });
   }, [selectedParcelId]);
 
+  const isValidAltitude =
+    !augmentArgs.altitude || isNumber(augmentArgs.altitude);
+  const isValidOrientation =
+    !augmentArgs.orientation ||
+    (isNumber(augmentArgs.orientation) &&
+      Number(augmentArgs.orientation) >= 0 &&
+      Number(augmentArgs.orientation) <= 360);
+  const isValidDisplayScale =
+    !augmentArgs.displayScale ||
+    (isNumber(augmentArgs.displayScale) &&
+      Number(augmentArgs.displayScale) > 0);
   const isReady =
-    augmentArgs.contentURI !== undefined &&
-    augmentArgs.name !== undefined &&
-    augmentArgs.coords.lat !== undefined &&
-    augmentArgs.coords.lon !== undefined &&
-    augmentArgs.orientation !== undefined &&
-    augmentArgs.displayScale !== undefined;
+    augmentArgs.contentURI &&
+    augmentArgs.coords.lat &&
+    augmentArgs.coords.lon &&
+    isValidAltitude &&
+    isValidOrientation &&
+    isValidDisplayScale
+      ? true
+      : false;
 
   const title = (
     <div className="d-flex align-items-center gap-2 mb-2 mt-1">
@@ -108,8 +139,11 @@ export default function PublishingForm(props: PublishingFormProps) {
 
     try {
       let modelComSchema: any = {};
-      Object.keys(tables.ModelCom.valueSchema).forEach((key) => {
-        modelComSchema[key] = tables.ModelCom.valueSchema[key].type;
+      Object.keys(tables.ModelCom.schema).forEach((key) => {
+        if (tables.ModelCom.key.includes(key)) {
+          return;
+        }
+        modelComSchema[key] = tables.ModelCom.schema[key].type;
       });
 
       // TODO: Support GLB
@@ -119,67 +153,89 @@ export default function PublishingForm(props: PublishingFormProps) {
       });
 
       let nameComSchema: any = {};
-      Object.keys(tables.NameCom.valueSchema).forEach((key) => {
-        nameComSchema[key] = tables.NameCom.valueSchema[key].type;
+      Object.keys(tables.NameCom.schema).forEach((key) => {
+        if (tables.NameCom.key.includes(key)) {
+          return;
+        }
+        nameComSchema[key] = tables.NameCom.schema[key].type;
       });
 
       const nameCom = encodeValueArgs(nameComSchema, {
         value: augmentArgs.name ?? "",
       });
 
-      let positionComSchema: any = {};
-      Object.keys(tables.PositionCom.valueSchema).forEach((key) => {
-        positionComSchema[key] = tables.PositionCom.valueSchema[key].type;
+      let geoAnchorComSchema: any = {};
+      Object.keys(tables.GeoAnchorCom.schema).forEach((key) => {
+        if (tables.GeoAnchorCom.key.includes(key)) {
+          return;
+        }
+        geoAnchorComSchema[key] = tables.GeoAnchorCom.schema[key].type;
       });
 
-      const positionCom = encodeValueArgs(positionComSchema, {
-        h: Number(augmentArgs.altitude),
+      const geoAnchorCom = encodeValueArgs(geoAnchorComSchema, {
+        h: Number(augmentArgs.altitude ?? 0),
         geohash: Geohash.encode(augmentArgs.coords.lat, augmentArgs.coords.lon),
       });
 
       let orientationComSchema: any = {};
-      Object.keys(tables.OrientationCom.valueSchema).forEach((key) => {
-        orientationComSchema[key] = tables.OrientationCom.valueSchema[key].type;
+      Object.keys(tables.OrientationCom.schema).forEach((key) => {
+        if (tables.OrientationCom.key.includes(key)) {
+          return;
+        }
+        orientationComSchema[key] = tables.OrientationCom.schema[key].type;
       });
 
-      // TODO: Calculate quaternion
+      const q = Quaternion.fromAxisAngle(
+        [0, 1, 0],
+        Number(augmentArgs.orientation ?? 0)
+      );
       const orientationCom = encodeValueArgs(orientationComSchema, {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 0,
+        x: Math.trunc(q.x * 1000),
+        y: Math.trunc(q.y * 1000),
+        z: Math.trunc(q.z * 1000),
+        w: Math.trunc(q.w * 1000),
       });
 
       let scaleComSchema: any = {};
-      Object.keys(tables.ScaleCom.valueSchema).forEach((key) => {
-        scaleComSchema[key] = tables.ScaleCom.valueSchema[key].type;
+      Object.keys(tables.ScaleCom.schema).forEach((key) => {
+        if (tables.ScaleCom.key.includes(key)) {
+          return;
+        }
+        scaleComSchema[key] = tables.ScaleCom.schema[key].type;
       });
 
       const scaleCom = encodeValueArgs(scaleComSchema, {
-        x: 10 * Number(augmentArgs.displayScale),
-        y: 10 * Number(augmentArgs.displayScale),
-        z: 10 * Number(augmentArgs.displayScale),
+        x: 10 * Number(augmentArgs.displayScale ?? 100),
+        y: 10 * Number(augmentArgs.displayScale ?? 100),
+        z: 10 * Number(augmentArgs.displayScale ?? 100),
       });
 
-      const txn = await worldContract.connect(signer).installAugment(
-        getAugmentAddress(augmentType),
-        namespaceId,
-        encodeAbiParameters(
-          [
-            {
-              name: "components",
-              type: "tuple[][]",
-              components: [
-                { name: "staticData", type: "bytes" },
-                { name: "encodedLengths", type: "bytes32" },
-                { name: "dynamicData", type: "bytes" },
-              ],
-            },
-          ],
-          [[[modelCom, nameCom, positionCom, orientationCom, scaleCom]]]
-        )
+      const systemId = resourceToHex({
+        type: "system",
+        name: "AugmentInstall",
+        namespace: Number(selectedParcelId).toString(),
+      });
+
+      await worldContract.connect(signer).call(
+        systemId,
+        IAugmentInstallSystem.encodeFunctionData("installAugment", [
+          getAugmentAddress(augmentType),
+          encodeAbiParameters(
+            [
+              {
+                name: "components",
+                type: "tuple[][]",
+                components: [
+                  { name: "staticData", type: "bytes" },
+                  { name: "encodedLengths", type: "bytes32" },
+                  { name: "dynamicData", type: "bytes" },
+                ],
+              },
+            ],
+            [[[modelCom, nameCom, geoAnchorCom, orientationCom, scaleCom]]]
+          ),
+        ])
       );
-      await txn.wait();
     } catch (err) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       if (
@@ -199,21 +255,63 @@ export default function PublishingForm(props: PublishingFormProps) {
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }
 
-    setIsActing(false);
-    setShowForm(false);
+    setShouldMediaObjectsUpdate(true);
   }, [augmentArgs, tables, worldContract, signer]);
 
   useEffect(() => {
-    map?.on(`click`, (ev) => {
-      setAugmentArgs({
-        ...augmentArgs,
-        coords: {
-          lat: ev.lngLat.lat,
-          lon: ev.lngLat.lng,
-        },
-      });
+    if (isActing && !shouldMediaObjectsUpdate) {
+      setIsActing(false);
+      setShowForm(false);
+    }
+  }, [shouldMediaObjectsUpdate]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function captureFile(event: React.ChangeEvent<any>) {
+    event.persist();
+    event.stopPropagation();
+    event.preventDefault();
+
+    const file = event.target.files[0];
+
+    if (!file || !w3Client) {
+      return;
+    }
+
+    setIsUploading(true);
+
+    // Upload to Web3 storage
+    const added = await w3Client.uploadFile(file);
+
+    setAugmentArgs((prev) => {
+      return { ...prev, contentURI: `ipfs://${added.toString()}` };
     });
-  }, [map]);
+
+    setIsUploading(false);
+  }
+
+  useEffect(() => {
+    setAugmentArgs({
+      ...augmentArgs,
+      coords: newAugmentCoords
+        ? {
+            lat: newAugmentCoords.lat,
+            lon: newAugmentCoords.lng,
+          }
+        : {},
+    });
+  }, [newAugmentCoords]);
+
+  const spinner = (
+    <Spinner
+      as="span"
+      size="sm"
+      animation="border"
+      role="status"
+      className="mx-2"
+    >
+      <span className="visually-hidden">Sending Transaction...</span>
+    </Spinner>
+  );
 
   return (
     <>
@@ -223,15 +321,15 @@ export default function PublishingForm(props: PublishingFormProps) {
         positioning. For best results, place your anchor within direct view of a
         publicly accessible road (i.e. front yards).
       </small>
-      <Stack className="my-3 px-3 py-5 text-center bg-blue border-0 rounded">
-        <Image
-          src="markerAdd.svg"
-          width={30}
-          className="mb-3 mx-auto col-md-1"
-        />
-        <div>Position your augment by clicking on the map</div>
+      <Stack
+        direction="vertical"
+        gap={3}
+        className="align-items-center my-3 px-3 py-4 text-center bg-blue border-0 rounded-3"
+      >
+        <AugmentPin fill="#CF3232" />
+        Position your augment by clicking on the map
       </Stack>
-      <Form className="mt-3" onSubmit={(e) => e.preventDefault()}>
+      <Form className="mt-3" noValidate onSubmit={(e) => e.preventDefault()}>
         <Form.Group className="mb-3">
           <InputGroup className="mb-3">
             <Button
@@ -239,23 +337,31 @@ export default function PublishingForm(props: PublishingFormProps) {
               variant="secondary"
               className="d-flex align-items-center p-0 m-0 px-1"
               htmlFor="upload-augment-uri"
+              disabled={isUploading}
             >
-              <Image src="upload.svg" alt="upload" width={24} />
+              {!isUploading ? (
+                <Image
+                  src="upload.svg"
+                  alt="upload"
+                  width={24}
+                  className="mx-1"
+                />
+              ) : (
+                spinner
+              )}
             </Button>
             <Form.Control
               hidden
               type="file"
               id="upload-augment-uri"
-              onChange={(e) => {
-                e.persist();
-                console.log(e);
-              }}
+              disabled={isUploading}
+              onChange={captureFile}
             />
             <Form.Control
               type="text"
               required
               placeholder={`${augmentType} URI*`}
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               value={augmentArgs.contentURI}
               onChange={(e) =>
                 setAugmentArgs({ ...augmentArgs, contentURI: e.target.value })
@@ -265,7 +371,7 @@ export default function PublishingForm(props: PublishingFormProps) {
           <Form.Control
             type="text"
             placeholder="Name"
-            className="bg-blue border-0 text-light"
+            className="bg-blue border-0 text-light shadow-none"
             value={augmentArgs.name}
             onChange={(e) =>
               setAugmentArgs({ ...augmentArgs, name: e.target.value })
@@ -275,22 +381,33 @@ export default function PublishingForm(props: PublishingFormProps) {
         <Form.Group className="d-flex gap-3 mb-3">
           <InputGroup>
             <Button
-              variant={isLocationOn ? "secondary" : "info"}
-              className="d-flex align-items-center p-0 m-0 px-1"
-              disabled
-              // onClick={() => setIsLocationOn(!isLocationOn)}
+              variant={
+                augmentArgs.coords.lat && augmentArgs.coords.lon
+                  ? "secondary"
+                  : "info"
+              }
+              className="d-flex justify-content-center p-0 m-0 px-1"
+              style={{ width: 36 }}
+              disabled={!augmentArgs.coords.lat || !augmentArgs.coords.lon}
+              onClick={() => setNewAugmentCoords(null)}
             >
               <Image
-                src={isLocationOn ? "location-on.svg" : "location-off.svg"}
+                src={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon
+                    ? "location-on.svg"
+                    : "location-off.svg"
+                }
                 alt="upload"
-                width={24}
+                width={
+                  augmentArgs.coords.lat && augmentArgs.coords.lon ? 20 : 24
+                }
               />
             </Button>
             <Form.Control
               type="number"
               inputMode="numeric"
               placeholder="Lat (±°)"
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               pattern="-?[0-9]*"
               min={-90}
               max={90}
@@ -311,7 +428,7 @@ export default function PublishingForm(props: PublishingFormProps) {
             type="number"
             inputMode="numeric"
             placeholder="Lon (±°)"
-            className="bg-blue border-0 text-light"
+            className="bg-blue border-0 text-light shadow-none"
             pattern="-?[0-9]*"
             min={-180}
             max={180}
@@ -328,15 +445,15 @@ export default function PublishingForm(props: PublishingFormProps) {
             }
           />
         </Form.Group>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3" hasValidation>
           <Form.Control
-            type="number"
             inputMode="numeric"
             placeholder="Altitude (m from the ground)"
-            className="bg-blue border-0 text-light"
-            pattern="[0-9]*"
-            min={0}
+            className={`bg-blue text-light shadow-none ${
+              isValidAltitude ? "border-0" : "border-danger"
+            }`}
             value={augmentArgs.altitude}
+            isInvalid={!isValidAltitude}
             onChange={(e) =>
               setAugmentArgs({
                 ...augmentArgs,
@@ -344,21 +461,22 @@ export default function PublishingForm(props: PublishingFormProps) {
               })
             }
           />
-          {augmentArgs.altitude && (
+          {augmentArgs.altitude && isValidAltitude && (
             <InputGroup.Text className="bg-blue text-info border-0">
               m
             </InputGroup.Text>
           )}
+          <Form.Control.Feedback type="invalid">
+            Must be a number
+          </Form.Control.Feedback>
         </InputGroup>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3" hasValidation>
           <Form.Control
-            type="number"
             inputMode="numeric"
             placeholder="Orientation (N=0°, ↻)"
-            className="bg-blue border-0 text-light"
-            pattern="[0-9]*"
-            min={0}
-            max={360}
+            className={`bg-blue text-light shadow-none ${
+              isValidOrientation ? "border-0" : "border-danger"
+            }`}
             value={augmentArgs.orientation}
             onChange={(e) =>
               setAugmentArgs({
@@ -366,22 +484,26 @@ export default function PublishingForm(props: PublishingFormProps) {
                 orientation: e.target.value,
               })
             }
+            isInvalid={!isValidOrientation}
           />
-          {augmentArgs.orientation && (
+          {augmentArgs.orientation && isValidOrientation && (
             <InputGroup.Text className="bg-blue text-info border-0">
               °
             </InputGroup.Text>
           )}
+          <Form.Control.Feedback type="invalid">
+            Must be between 0 and 360
+          </Form.Control.Feedback>
         </InputGroup>
         {augmentType === AugmentType.MODEL ? (
-          <InputGroup className="mb-1">
+          <InputGroup className="mb-1" hasValidation>
             <Form.Control
-              type="number"
               inputMode="numeric"
               placeholder="Display Scale (%)"
-              className="bg-blue border-0 text-light"
-              pattern="[0-9]*"
-              min={0}
+              className={`bg-blue text-light shadow-none ${
+                isValidDisplayScale ? "border-0" : "border-danger"
+              }`}
+              isInvalid={!isValidDisplayScale}
               value={augmentArgs.displayScale}
               onChange={(e) =>
                 setAugmentArgs({
@@ -390,11 +512,14 @@ export default function PublishingForm(props: PublishingFormProps) {
                 })
               }
             />
-            {augmentArgs.displayScale && (
+            {augmentArgs.displayScale && isValidDisplayScale && (
               <InputGroup.Text className="bg-blue text-info border-0">
                 %
               </InputGroup.Text>
             )}
+            <Form.Control.Feedback type="invalid">
+              Must be greater than 0
+            </Form.Control.Feedback>
           </InputGroup>
         ) : augmentType === AugmentType.IMAGE ||
           augmentType === AugmentType.VIDEO ? (
@@ -403,7 +528,7 @@ export default function PublishingForm(props: PublishingFormProps) {
               type="number"
               inputMode="numeric"
               placeholder="Display Width (m, height is scaled)"
-              className="bg-blue border-0 text-light"
+              className="bg-blue border-0 text-light shadow-none"
               pattern="[0-9]*"
               min={0}
               value={augmentArgs.displayWidth}
@@ -438,7 +563,7 @@ export default function PublishingForm(props: PublishingFormProps) {
                 type="number"
                 inputMode="numeric"
                 placeholder="Volume Adjustment (%)"
-                className="bg-blue border-0 text-light"
+                className="bg-blue border-0 text-light shadow-none"
                 pattern="[0-9]*"
                 min={0}
                 value={augmentArgs.audioVolume}
@@ -484,7 +609,7 @@ export default function PublishingForm(props: PublishingFormProps) {
             onClick={installAugment}
             disabled={!isAllowed || !isReady}
           >
-            Submit
+            {isActing ? spinner : "Submit"}
           </Button>
           {didFail && !isActing ? (
             <TransactionError
